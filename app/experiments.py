@@ -291,8 +291,10 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
 
         experiment_metadata = {"execution_id": execution_id, "pipeline_id": pipeline_manifest["pipeline_id"],
                       "evaluator_id": evaluator_manifest["evaluator_id"], "dataset_version": version.isoformat(),
-                      "variant_label": variant, "snapshot_sha256": snapshot["sha256"],
-                      "config": json.dumps(config.manifest(), sort_keys=True, ensure_ascii=False)}
+                      "variant_label": variant, "snapshot_sha256": snapshot["sha256"]}
+        # One key per setting: Langfuse drops propagated metadata values over 200 characters.
+        experiment_metadata.update({f"config_{key}": value if isinstance(value, str) else json.dumps(value, sort_keys=True)
+                                    for key, value in config.manifest().items() if key != "prompt_hashes"})
         experiment_metadata.update({f"prompt_{name}": f"{asset['id']}@{asset['version']}:{asset['label']}"
                                     for name, asset in prompt_versions.items()})
         experiment_metadata.update({f"managed_eval_{name}": f"{asset['id']}@{asset['version']}"
