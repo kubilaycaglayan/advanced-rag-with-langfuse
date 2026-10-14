@@ -10,7 +10,7 @@ Create a Python environment and install the SDK release verified against this ma
 python3 -m venv .venv
 . .venv/bin/activate
 python -m pip install -r app/requirements.txt
-cp .env.example .env
+cp -n .env.example .env
 ```
 
 Set the project-scoped `LANGFUSE_PUBLIC_KEY` and `LANGFUSE_SECRET_KEY` in `.env`. Keep `.env` local. Langfuse should be reachable at `http://127.0.0.1:28420` from the host. The required hosted project is named `millenium`; the dataset is named `QA.csv`.
@@ -40,4 +40,4 @@ The current Langfuse Docker web and worker containers reached the host API throu
 | Target-root `QA.csv` | Used directly by `app/seed_dataset.py` | Authoritative 35-row seed; checksum is recorded in the handoff. |
 | Legacy notebooks, results, HTML, indexes, caches, `.env`, and unrelated files | Reference/excluded | Exploratory, generated, secret, or outside the runtime workflow. |
 
-Stage 1 is not complete until the `millenium` project is verified, the 35-item dataset is seeded, and the actual remote trigger is configured and checked. See the status table in the handoff.
+Stage 1 preparation is complete: project `millenium` is verified and the 35-item dataset is seeded idempotently. Configure the Langfuse UI trigger after stage 2 adds `/experiments/run`; verify trigger acknowledgement and result linkage during stage 3.
