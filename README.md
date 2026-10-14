@@ -2,7 +2,7 @@
 
 This repository root is the implementation target for the Langfuse hosted dataset experiment workflow. The plan and current preparation findings are in [the integration handoff](LANGFUSE_INTEGRATION_PLAN.md). The legacy repository is reference material only; the target project is implemented directly here.
 
-## Stage 1 tools
+## Stage 1 setup
 
 Create a Python environment and install the SDK release verified against this machine's Langfuse instance:
 
@@ -36,8 +36,8 @@ The current Langfuse Docker web and worker containers reached the host API throu
 | Source | Target | Purpose / disposition |
 | --- | --- | --- |
 | Legacy RAG application's `app/main.py` and `tracing.py` | Reference only | Consult selected source behavior while implementing the API and tracing directly in this root project. |
-| Locally supplied book files (`*.epub`) | `books/` (stage 2) | Three corpus inputs needed to build the index; use the target copy once staged. |
+| Locally supplied book files (`*.epub`) | `corpus/` | Three corpus inputs copied into the target; see their checksums in the execution record in `LANGFUSE_INTEGRATION_PLAN.md`. |
 | Target-root `QA.csv` | Used directly by `app/seed_dataset.py` | Authoritative 35-row seed; checksum is recorded in the handoff. |
 | Legacy notebooks, results, HTML, indexes, caches, `.env`, and unrelated files | Reference/excluded | Exploratory, generated, secret, or outside the runtime workflow. |
 
-Stage 1 preparation is complete: project `millenium` is verified and the 35-item dataset is seeded idempotently. Configure the Langfuse UI trigger after stage 2 adds `/experiments/run`; verify trigger acknowledgement and result linkage during stage 3.
+Stage 1 preparation is complete: project `millenium` is verified, the 35-item dataset is seeded idempotently, and the three EPUB inputs are in `corpus/`. Configure the Langfuse UI trigger after stage 2 adds `/experiments/run`; verify trigger acknowledgement and result linkage during stage 3.
