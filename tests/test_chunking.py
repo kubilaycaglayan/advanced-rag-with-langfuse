@@ -32,14 +32,15 @@ class ChunkingChecks(unittest.TestCase):
     def test_merge_changes_index_identity_only_when_enabled(self):
         with patch("app.indexer.corpus_paths") as paths:
             paths.return_value = [type("P", (), {"name": n, "read_bytes": lambda self: b"x", "parent": "c"})() for n in "abc"]
-            plain = index_identity(ResolvedPipelineConfig())
+            plain = index_identity(ResolvedPipelineConfig(min_passage_chars=0))
             merged = index_identity(ResolvedPipelineConfig(min_passage_chars=400))
         self.assertNotIn("merge", plain[2])
         self.assertNotEqual(plain[0], merged[0])
 
     def test_tuning_settings_are_validated(self):
         self.assertEqual(ResolvedPipelineConfig.from_mapping({"expansion_count": 5}).expansion_count, 5)
-        for bad in ({"expansion_count": 0}, {"passage_overlap": 1}, {"min_passage_chars": 5000}):
+        self.assertEqual(ResolvedPipelineConfig().min_passage_chars, 400)
+        for bad in ({"expansion_count": 0}, {"min_passage_chars": 0, "passage_overlap": 1}, {"min_passage_chars": -1}):
             with self.assertRaises(ValueError):
                 ResolvedPipelineConfig.from_mapping(bad)
 

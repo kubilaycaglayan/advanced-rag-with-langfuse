@@ -62,7 +62,7 @@ class ResolvedPipelineConfig:
     generation_model: ModelIdentity = ModelIdentity("qwen3:8b")
     generation: GenerationSettings = GenerationSettings()
     rrf_constant: int = 60
-    min_passage_chars: int = 0
+    min_passage_chars: int = 400
     passage_overlap: int = 0
     expansion_count: int = 3
     corpus_checksum: str = ""
@@ -91,8 +91,8 @@ class ResolvedPipelineConfig:
             raise ValueError("top_k must be between 1 and candidate_count")
         if self.passage_chars < 1 or self.rrf_constant < 1:
             raise ValueError("passage_chars and rrf_constant must be positive")
-        if not 0 <= self.min_passage_chars <= self.passage_chars:
-            raise ValueError("min_passage_chars must be between 0 and passage_chars")
+        if self.min_passage_chars < 0:
+            raise ValueError("min_passage_chars must not be negative")
         if not 0 <= self.passage_overlap <= 5:
             raise ValueError("passage_overlap must be between 0 and 5")
         if self.passage_overlap and not self.min_passage_chars:
@@ -115,6 +115,7 @@ class ResolvedPipelineConfig:
             "candidate_count": 30,
             "top_k": 10,
             "passage_chars": int(os.getenv("PASSAGE_CHARS", "1200")),
+            "min_passage_chars": int(os.getenv("MIN_PASSAGE_CHARS", "400")),
             "embedding_model": os.getenv("EMBEDDING_MODEL", "sentence-transformers/multi-qa-MiniLM-L6-cos-v1"),
             "reranker_model": os.getenv("RERANKER_MODEL", "cross-encoder/ms-marco-MiniLM-L-6-v2"),
             "generation_model": os.getenv("GENERATION_MODEL", "qwen3:8b"),

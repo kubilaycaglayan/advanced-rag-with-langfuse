@@ -77,7 +77,8 @@ def _transform(question: str, config: ResolvedPipelineConfig, prompt_bundle: dic
         with _observe("query expansion", input=question) as obs:
             # Prompts may reference {{expansion_count}}; templates without it ignore the value.
             messages = (prompt_bundle["rag-query-expansion"]["client"].compile(question=question, expansion_count=str(config.expansion_count)) if prompt_bundle else [
-                {"role": "system", "content": PROMPT_TEMPLATES["query_expansion_system"]}, {"role": "user", "content": question}])
+                {"role": "system", "content": PROMPT_TEMPLATES["query_expansion_system"].replace("{{expansion_count}}", str(config.expansion_count))},
+                {"role": "user", "content": question}])
             raw = _ollama(messages, config.generation_model.name, config.generation.output_budgets, config.generation.temperature, config.generation.context_length,
                           prompt=prompt_bundle["rag-query-expansion"]["client"] if prompt_bundle else None, name="literary query generation")
             _update(obs, output=raw)
