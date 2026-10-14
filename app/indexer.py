@@ -135,6 +135,54 @@ def _extract(path: Path, limit: int) -> list[dict[str, Any]]:
     return rows
 
 
+def _merge(rows: list[dict[str, Any]], min_chars: int, max_chars: int, overlap: int) -> list[dict[str, Any]]:
+    """Join consecutive passages of one EPUB section until a passage reaches min_chars.
+
+    A passage never grows past max_chars by joining; ``overlap`` trailing units of each
+    passage are repeated at the start of the next one in the same section.
+    """
+    merged: list[dict[str, Any]] = []
+
+    def emit(units: list[dict[str, Any]]) -> None:
+        first, last = units[0], units[-1]
+        merged.append(first | {"paragraph_end": last["paragraph"], "part_end": last["part"],
+                               "text": "\n".join(unit["text"] for unit in units)})
+
+    window: list[dict[str, Any]] = []
+    fresh = 0  # units in the window not carried over from the previous passage
+    for row in rows:
+        if window and (window[0]["book_file"], window[0]["section"]) != (row["book_file"], row["section"]):
+            if fresh:
+                emit(window)
+            window, fresh = [], 0
+        size = sum(len(unit["text"]) + 1 for unit in window)
+        if window and fresh and (size >= min_chars or size + len(row["text"]) > max_chars):
+            emit(window)
+            window = window[len(window) - min(overlap, len(window) - 1):] if overlap else []
+            fresh = 0
+        while window and sum(len(unit["text"]) + 1 for unit in window) + len(row["text"]) > max_chars:
+            window.pop(0)
+        window.append(row)
+        fresh += 1
+    if window and fresh:
+        emit(window)
+    return merged
+
+
+def _merge_settings(config: ResolvedPipelineConfig) -> dict[str, Any] | None:
+    if not config.min_passage_chars:
+        return None
+    return {"min_passage_chars": config.min_passage_chars, "passage_overlap": config.passage_overlap,
+            "merge_fingerprint": hashlib.sha256(inspect.getsource(_merge).encode("utf-8")).hexdigest()}
+
+
+def _passages(path: Path, config: ResolvedPipelineConfig) -> list[dict[str, Any]]:
+    rows = _extract(path, config.passage_chars)
+    if config.min_passage_chars:
+        rows = _merge(rows, config.min_passage_chars, config.passage_chars, config.passage_overlap)
+    return rows
+
+
 def index_identity(config: ResolvedPipelineConfig) -> tuple[str, str, dict[str, Any], dict[str, str]]:
     paths = corpus_paths()
     if len(paths) != 3:
@@ -147,6 +195,10 @@ def index_identity(config: ResolvedPipelineConfig) -> tuple[str, str, dict[str, 
                 "splitter": SPLITTER_VERSION, "splitter_fingerprint": splitter_fingerprint,
                 "embedding_model": config.embedding_model.__dict__,
                 "vector_settings": {"distance": "cosine", "normalized": True}}
+    merge = _merge_settings(config)
+    if merge:
+        # Added only when enabled so existing unmerged index identities stay valid.
+        manifest["merge"] = merge
     fingerprint = hashlib.sha256(canonical_json(manifest).encode()).hexdigest()
     collection = "millennium_books_" + fingerprint[:20]
     return collection, fingerprint, manifest, corpus
@@ -172,7 +224,7 @@ def build_index(config: ResolvedPipelineConfig, qdrant: QdrantClient | None = No
     if incomplete and explicit_rebuild and qdrant.collection_exists(collection):
         qdrant.delete_collection(collection)
 
-    rows = [row for path in paths for row in _extract(path, config.passage_chars)]
+    rows = [row for path in paths for row in _passages(path, config)]
     if not rows:
         raise RuntimeError("EPUB extraction produced no passages")
     save_index_manifest(collection=collection, fingerprint=fingerprint, config=manifest, corpus=corpus,

@@ -75,15 +75,16 @@ def _transform(question: str, config: ResolvedPipelineConfig, prompt_bundle: dic
             _update(obs, output=hypothetical)
     if mode in {"query_expansion", "hyde_query_expansion", "full"}:
         with _observe("query expansion", input=question) as obs:
-            messages = (prompt_bundle["rag-query-expansion"]["client"].compile(question=question) if prompt_bundle else [
+            # Prompts may reference {{expansion_count}}; templates without it ignore the value.
+            messages = (prompt_bundle["rag-query-expansion"]["client"].compile(question=question, expansion_count=str(config.expansion_count)) if prompt_bundle else [
                 {"role": "system", "content": PROMPT_TEMPLATES["query_expansion_system"]}, {"role": "user", "content": question}])
             raw = _ollama(messages, config.generation_model.name, config.generation.output_budgets, config.generation.temperature, config.generation.context_length,
                           prompt=prompt_bundle["rag-query-expansion"]["client"] if prompt_bundle else None, name="literary query generation")
             _update(obs, output=raw)
         alternatives = list(dict.fromkeys(line.strip().lstrip("-•0123456789. )") for line in raw.splitlines() if line.strip()))
-        alternatives = [q for q in alternatives if q and q.casefold() != question.casefold()][:3]
-        if len(alternatives) != 3:
-            raise ValueError("query expansion must return three distinct alternative queries")
+        alternatives = [q for q in alternatives if q and q.casefold() != question.casefold()][:config.expansion_count]
+        if len(alternatives) != config.expansion_count:
+            raise ValueError(f"query expansion must return {config.expansion_count} distinct alternative queries")
     if mode == "full":
         with _observe("grammar correction", input=question) as obs:
             messages = (prompt_bundle["rag-grammar-correction"]["client"].compile(question=question) if prompt_bundle else [
@@ -150,7 +151,7 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
             candidates = [dict(p.payload or {}) | {"id": str(p.id), "similarity": float(p.score)} for p in rankings[0]]
         else:
             with _observe("RRF candidate merge", input={"ranking_count": len(rankings), "rrf_constant": config.rrf_constant}) as merge_obs:
-                candidates = _rrf(rankings, min(config.candidate_count, 30), config.rrf_constant)
+                candidates = _rrf(rankings, config.candidate_count, config.rrf_constant)
                 _update(merge_obs, output=candidates)
         _update(obs, output={"candidate_count": len(candidates), "candidates": candidates})
     timings["retrieval_seconds"] = round(time.perf_counter() - stage, 4)

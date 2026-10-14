@@ -62,6 +62,9 @@ class ResolvedPipelineConfig:
     generation_model: ModelIdentity = ModelIdentity("qwen3:8b")
     generation: GenerationSettings = GenerationSettings()
     rrf_constant: int = 60
+    min_passage_chars: int = 0
+    passage_overlap: int = 0
+    expansion_count: int = 3
     corpus_checksum: str = ""
     prompt_hashes: Mapping[str, str] | None = None
 
@@ -70,7 +73,8 @@ class ResolvedPipelineConfig:
             raise ValueError("embedding_model, reranker_model, and generation_model must be model identities")
         if not isinstance(self.generation, GenerationSettings):
             raise ValueError("generation must be GenerationSettings")
-        for name, number in (("candidate_count", self.candidate_count), ("top_k", self.top_k), ("passage_chars", self.passage_chars), ("rrf_constant", self.rrf_constant)):
+        for name, number in (("candidate_count", self.candidate_count), ("top_k", self.top_k), ("passage_chars", self.passage_chars), ("rrf_constant", self.rrf_constant),
+                             ("min_passage_chars", self.min_passage_chars), ("passage_overlap", self.passage_overlap), ("expansion_count", self.expansion_count)):
             if isinstance(number, bool) or not isinstance(number, int):
                 raise ValueError(f"{name} must be an integer")
         if not isinstance(self.retrieval_mode, str):
@@ -87,6 +91,14 @@ class ResolvedPipelineConfig:
             raise ValueError("top_k must be between 1 and candidate_count")
         if self.passage_chars < 1 or self.rrf_constant < 1:
             raise ValueError("passage_chars and rrf_constant must be positive")
+        if not 0 <= self.min_passage_chars <= self.passage_chars:
+            raise ValueError("min_passage_chars must be between 0 and passage_chars")
+        if not 0 <= self.passage_overlap <= 5:
+            raise ValueError("passage_overlap must be between 0 and 5")
+        if self.passage_overlap and not self.min_passage_chars:
+            raise ValueError("passage_overlap requires min_passage_chars (paragraph merging)")
+        if not 1 <= self.expansion_count <= 10:
+            raise ValueError("expansion_count must be between 1 and 10")
 
     def manifest(self) -> dict[str, Any]:
         value = asdict(self)
@@ -109,7 +121,8 @@ class ResolvedPipelineConfig:
         }
         defaults.update(value)
         value = defaults
-        allowed = {"retrieval_mode", "candidate_count", "top_k", "passage_chars", "embedding_model", "reranker_model", "generation_model", "generation", "rrf_constant", "corpus_checksum", "prompt_hashes"}
+        allowed = {"retrieval_mode", "candidate_count", "top_k", "passage_chars", "embedding_model", "reranker_model", "generation_model", "generation", "rrf_constant",
+                   "min_passage_chars", "passage_overlap", "expansion_count", "corpus_checksum", "prompt_hashes"}
         unknown = set(value) - allowed
         if unknown:
             raise ValueError(f"unknown config fields: {', '.join(sorted(unknown))}")
