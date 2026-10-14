@@ -15,20 +15,32 @@ from qdrant_client import QdrantClient
 
 try:
     from .experiment_store import get_execution, initialize
-    from .experiments import start_worker, submit
+    from .experiments import start_worker, submit, submit_retry
     from .indexer import build_index, index_identity, validate_index
     from .observability import observation, update as update_observation
     from .pipeline import run_pipeline
     from .resolved_config import ResolvedPipelineConfig, resolve_pipeline_model_identities
 except ImportError:
     from experiment_store import get_execution, initialize
-    from experiments import start_worker, submit
+    from experiments import start_worker, submit, submit_retry
     from indexer import build_index, index_identity, validate_index
     from observability import observation, update as update_observation
     from pipeline import run_pipeline
     from resolved_config import ResolvedPipelineConfig, resolve_pipeline_model_identities
 
 app = FastAPI(title="Millennium RAG Experiment Runner", version="0.2.0")
+
+
+def _custom_payload(incoming: dict[str, Any]) -> dict[str, Any]:
+    custom = incoming.get("customPayload", incoming.get("custom_payload", incoming.get("payload", {})))
+    if isinstance(custom, str):
+        try:
+            custom = json.loads(custom)
+        except json.JSONDecodeError as exc:
+            raise HTTPException(status_code=400, detail="custom payload must be valid JSON") from exc
+    if not isinstance(custom, dict):
+        raise HTTPException(status_code=400, detail="custom payload must be an object")
+    return dict(custom)
 
 
 class AskRequest(BaseModel):
@@ -132,20 +144,19 @@ async def trigger_experiment(request: Request,
         raise HTTPException(status_code=400, detail="request body must be JSON") from exc
     if not isinstance(incoming, dict):
         raise HTTPException(status_code=400, detail="request body must be a JSON object")
-    custom = incoming.get("customPayload", incoming.get("custom_payload", incoming.get("payload", {})))
-    if not isinstance(custom, dict):
-        raise HTTPException(status_code=400, detail="custom payload must be an object")
-    custom = dict(custom)
+    custom = _custom_payload(incoming)
     dataset_name = incoming.get("datasetName", incoming.get("dataset_name"))
     dataset_id = incoming.get("datasetId", incoming.get("dataset_id"))
     dataset_name = dataset_name or custom.pop("dataset_name", None)
     dataset_id = dataset_id or custom.pop("dataset_id", None)
-    allowed = {"variant_label", "config", "dataset_version", "item_ids"}
+    allowed = {"variant_label", "config", "dataset_version", "item_ids", "prompt_label"}
     unknown = set(custom) - allowed
     if unknown:
         raise HTTPException(status_code=400, detail=f"unsupported trigger fields: {', '.join(sorted(unknown))}")
     if not dataset_name:
         dataset_name = os.getenv("DATASET_NAME", "QA.csv")
+    if "prompt_label" in custom and (not isinstance(custom["prompt_label"], str) or not custom["prompt_label"].strip()):
+        raise HTTPException(status_code=400, detail="prompt_label must be a non-empty string")
     try:
         config = ResolvedPipelineConfig.from_mapping(custom.get("config"))
         custom["config"] = config.manifest()
@@ -154,25 +165,26 @@ async def trigger_experiment(request: Request,
     item_ids = custom.get("item_ids")
     if item_ids is not None and (not isinstance(item_ids, list) or not all(isinstance(value, str) for value in item_ids)):
         raise HTTPException(status_code=400, detail="item_ids must be an array of strings")
-    client = None
     try:
+        # Langfuse's tracer/score queues are process-wide singletons keyed by
+        # credentials. Do not shut this client down here: the queued worker uses
+        # the same resource manager to export the experiment's traces and scores.
         client = Langfuse()
         dataset = client.get_dataset(dataset_name)
         if dataset_id and dataset.id != dataset_id:
             raise ValueError("trigger dataset_id does not match dataset_name")
         projects = getattr(client.api.projects.get(), "data", []) or []
-        if not any(project.name == "millenium" and project.id == dataset.project_id for project in projects):
+        configured_project = next((project for project in projects
+                                   if project.name == "millenium" and project.id == dataset.project_id), None)
+        if configured_project is None:
             raise ValueError("dataset does not belong to configured Langfuse project 'millenium'")
+        requested_project_id = incoming.get("projectId", incoming.get("project_id"))
+        if requested_project_id and requested_project_id not in {dataset.project_id, configured_project.name}:
+            raise ValueError("trigger projectId does not match dataset project")
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=503, detail=f"Langfuse dataset access validation failed: {exc}") from exc
-    finally:
-        if client is not None:
-            try:
-                client.shutdown()
-            except Exception:
-                pass
     payload = {"dataset_name": dataset_name, "dataset_id": dataset_id, **custom}
     row, created = submit(payload, idempotency_key=idempotency_key)
     return {"execution_id": row["execution_id"], "status": row["status"],
@@ -199,3 +211,20 @@ def experiment_status(execution_id: str) -> dict[str, Any]:
             "experiment_id": result.get("experiment_id") if result else None,
             "dataset_run_url": result.get("dataset_run_url") if result else None,
             "error": row.get("error"), "result": result}
+
+
+@app.post("/experiments/{execution_id}/retry", status_code=202)
+def retry_experiment(execution_id: str,
+        x_experiment_trigger_token: str | None = Header(default=None, alias="X-Experiment-Trigger-Token"),
+        idempotency_key: str | None = Header(default=None, alias="Idempotency-Key")) -> dict[str, Any]:
+    expected_token = os.getenv("EXPERIMENT_TRIGGER_TOKEN")
+    if not expected_token or not x_experiment_trigger_token or not hmac.compare_digest(expected_token, x_experiment_trigger_token):
+        raise HTTPException(status_code=401, detail="invalid experiment trigger token")
+    try:
+        row, created = submit_retry(execution_id, idempotency_key=idempotency_key)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="execution not found") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    return {"execution_id": row["execution_id"], "retry_of_execution_id": execution_id,
+            "status": row["status"], "status_url": f"/experiments/{row['execution_id']}", "created": created}

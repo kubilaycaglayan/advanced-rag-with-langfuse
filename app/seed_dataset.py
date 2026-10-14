@@ -14,7 +14,10 @@ from typing import Any
 from langfuse import Langfuse
 from langfuse.api import NotFoundError
 
-from identity import canonical_json, normalize_question, seed_row_key, seeded_item_id
+try:
+    from .identity import canonical_json, normalize_question, seed_row_key, seeded_item_id
+except ImportError:
+    from identity import canonical_json, normalize_question, seed_row_key, seeded_item_id
 
 
 def read_seed(path: Path) -> tuple[list[dict[str, Any]], str]:

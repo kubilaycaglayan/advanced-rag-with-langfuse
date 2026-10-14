@@ -4,7 +4,6 @@ from __future__ import annotations
 import os
 import re
 import time
-import hashlib
 from functools import lru_cache
 from typing import Any
 
@@ -15,17 +14,11 @@ from sentence_transformers import CrossEncoder, SentenceTransformer
 try:
     from .resolved_config import ResolvedPipelineConfig
     from .observability import observation as _observe, update as _update
+    from .prompt_templates import PROMPT_HASHES, PROMPT_TEMPLATES
 except ImportError:
     from resolved_config import ResolvedPipelineConfig
     from observability import observation as _observe, update as _update
-
-PROMPT_TEMPLATES = {
-    "answer_system": ("Answer the user's question using only the evidence passages provided. Do not use outside knowledge or make unsupported claims. "
-                      "If evidence is insufficient, say so. Cite each factual claim with labels such as [E1]. Keep the answer concise."),
-    "hyde_system": "Write a concise hypothetical answer to help retrieve relevant passages. No preamble; do not claim access to the source books.",
-    "query_expansion_system": "Generate exactly three distinct search queries preserving intent with varied literary phrasing. Return one per line, no numbering or commentary.",
-}
-PROMPT_HASHES = {name: hashlib.sha256(value.encode("utf-8")).hexdigest() for name, value in PROMPT_TEMPLATES.items()}
+    from prompt_templates import PROMPT_HASHES, PROMPT_TEMPLATES
 
 
 def qdrant_client() -> QdrantClient:
@@ -68,22 +61,20 @@ def _ollama(messages: list[dict[str, str]], model: str, budgets: tuple[int, ...]
         raise RuntimeError(f"Ollama request failed or returned empty content: {last_error or 'empty response'}")
 
 
-def _transform(question: str, config: ResolvedPipelineConfig) -> tuple[str | None, list[str]]:
+def _transform(question: str, config: ResolvedPipelineConfig, prompt_bundle: dict[str, Any] | None = None) -> tuple[str | None, list[str]]:
     mode = config.retrieval_mode
     hypothetical = None
     alternatives: list[str] = []
     if mode in {"hyde", "hyde_query_expansion"}:
         with _observe("HyDE transformation", input=question):
-            hypothetical = _ollama([
-                {"role": "system", "content": PROMPT_TEMPLATES["hyde_system"]},
-                {"role": "user", "content": question},
-            ], config.generation_model.name, config.generation.output_budgets, config.generation.temperature, config.generation.context_length)
+            messages = (prompt_bundle["rag-hyde"]["client"].compile(question=question) if prompt_bundle else [
+                {"role": "system", "content": PROMPT_TEMPLATES["hyde_system"]}, {"role": "user", "content": question}])
+            hypothetical = _ollama(messages, config.generation_model.name, config.generation.output_budgets, config.generation.temperature, config.generation.context_length)
     if mode in {"query_expansion", "hyde_query_expansion"}:
         with _observe("query expansion", input=question):
-            raw = _ollama([
-                {"role": "system", "content": PROMPT_TEMPLATES["query_expansion_system"]},
-                {"role": "user", "content": question},
-            ], config.generation_model.name, config.generation.output_budgets, config.generation.temperature, config.generation.context_length)
+            messages = (prompt_bundle["rag-query-expansion"]["client"].compile(question=question) if prompt_bundle else [
+                {"role": "system", "content": PROMPT_TEMPLATES["query_expansion_system"]}, {"role": "user", "content": question}])
+            raw = _ollama(messages, config.generation_model.name, config.generation.output_budgets, config.generation.temperature, config.generation.context_length)
         alternatives = list(dict.fromkeys(line.strip().lstrip("-•0123456789. )") for line in raw.splitlines() if line.strip()))
         alternatives = [q for q in alternatives if q and q.casefold() != question.casefold()][:3]
     return hypothetical, alternatives
@@ -107,7 +98,8 @@ def _format_evidence(rows: list[dict[str, Any]]) -> str:
     )
 
 
-def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *, collection: str | None = None) -> dict[str, Any]:
+def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *, collection: str | None = None,
+                 prompt_bundle: dict[str, Any] | None = None) -> dict[str, Any]:
     """Run retrieve, rerank and answer. Reference answers are never accepted here."""
     config = config or ResolvedPipelineConfig()
     if not question.strip():
@@ -121,7 +113,7 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
         raise RuntimeError(f"index collection {collection!r} does not exist")
 
     stage = time.perf_counter()
-    hypothetical, alternatives = _transform(question, config)
+    hypothetical, alternatives = _transform(question, config, prompt_bundle)
     timings["transformation_seconds"] = round(time.perf_counter() - stage, 4)
     queries = [question] + ([hypothetical] if hypothetical else []) + alternatives
     rankings = []
@@ -167,10 +159,11 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
         evidence = _format_evidence(reranked)
         _update(obs, output=evidence)
     timings["evidence_formatting_seconds"] = round(time.perf_counter() - stage, 4)
-    system = PROMPT_TEMPLATES["answer_system"]
-    prompt = f"Question: {question}\n\nEvidence passages:\n{evidence}"
+    messages = (prompt_bundle["rag-answer"]["client"].compile(question=question, evidence=evidence) if prompt_bundle else [
+        {"role": "system", "content": PROMPT_TEMPLATES["answer_system"]},
+        {"role": "user", "content": f"Question: {question}\n\nEvidence passages:\n{evidence}"}])
     stage = time.perf_counter()
-    answer = _ollama([{"role": "system", "content": system}, {"role": "user", "content": prompt}],
+    answer = _ollama(messages,
                      config.generation_model.name, config.generation.output_budgets, config.generation.temperature, config.generation.context_length)
     timings["generation_seconds"] = round(time.perf_counter() - stage, 4)
     citations = list(dict.fromkeys(re.findall(r"\[E\d+\]", answer)))
