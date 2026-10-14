@@ -58,7 +58,7 @@ def _custom_payload(incoming: dict[str, Any]) -> dict[str, Any]:
 class AskRequest(BaseModel):
     question: str = Field(min_length=1)
     candidate_count: int = Field(default=30, ge=5, le=100)
-    top_k: int = Field(default=10, ge=1, le=10)
+    top_k: int = Field(default=15, ge=1, le=30)
     mode: str = Field(default="full", pattern="^(baseline|hyde|query_expansion|hyde_query_expansion|full)$")
     passage_chars: int | None = Field(default=None, ge=1)
     collection: str | None = None

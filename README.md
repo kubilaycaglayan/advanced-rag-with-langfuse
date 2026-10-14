@@ -64,7 +64,7 @@ The current Langfuse Docker UI only accepts webhook URLs on ports 80 and 443 and
 
 ## Stage 2 implementation
 
-The target app exposes `/ask`, `/index`, and the experiment API from `app/main.py`. Interactive calls and dataset tasks share `app/pipeline.py::run_pipeline(question, config)`. `/ask` defaults to full retrieval, 1200-character passages built by joining paragraphs to at least 400 characters, 30 fused candidates, and 10 evidence passages. It requires the matching index to be ready and does not rebuild an index during a question request.
+The target app exposes `/ask`, `/index`, and the experiment API from `app/main.py`. Interactive calls and dataset tasks share `app/pipeline.py::run_pipeline(question, config)`. `/ask` defaults to full retrieval, 1200-character passages built by joining paragraphs to at least 400 characters, 30 fused candidates, 15 evidence passages, and answer generation that reasons before answering (`answer_thinking`). It requires the matching index to be ready and does not rebuild an index during a question request.
 
 Start the Docker services after setting `.env` and the trigger token:
 

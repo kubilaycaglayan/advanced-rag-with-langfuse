@@ -32,7 +32,7 @@ class ModelIdentity:
 class GenerationSettings:
     temperature: float = 0.0
     context_length: int = 8192
-    output_budgets: tuple[int, ...] = (768, 1536, 3072)
+    output_budgets: tuple[int, ...] = (4096, 8192)
 
     def __post_init__(self) -> None:
         if isinstance(self.temperature, bool) or not isinstance(self.temperature, (int, float)) or not math.isfinite(self.temperature) or self.temperature < 0:
@@ -55,7 +55,7 @@ class EvaluatorSettings:
 class ResolvedPipelineConfig:
     retrieval_mode: str = "full"
     candidate_count: int = 30
-    top_k: int = 10
+    top_k: int = 15
     passage_chars: int = 1200
     embedding_model: ModelIdentity = ModelIdentity("sentence-transformers/multi-qa-MiniLM-L6-cos-v1")
     reranker_model: ModelIdentity = ModelIdentity("cross-encoder/ms-marco-MiniLM-L-6-v2")
@@ -65,7 +65,7 @@ class ResolvedPipelineConfig:
     min_passage_chars: int = 400
     passage_overlap: int = 0
     expansion_count: int = 3
-    answer_thinking: bool = False
+    answer_thinking: bool = True
     corpus_checksum: str = ""
     prompt_hashes: Mapping[str, str] | None = None
 
@@ -116,7 +116,7 @@ class ResolvedPipelineConfig:
         defaults: dict[str, Any] = {
             "retrieval_mode": "full",
             "candidate_count": 30,
-            "top_k": 10,
+            "top_k": 15,
             "passage_chars": int(os.getenv("PASSAGE_CHARS", "1200")),
             "min_passage_chars": int(os.getenv("MIN_PASSAGE_CHARS", "400")),
             "embedding_model": os.getenv("EMBEDDING_MODEL", "sentence-transformers/multi-qa-MiniLM-L6-cos-v1"),
