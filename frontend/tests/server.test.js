@@ -57,7 +57,7 @@ test('production allows one active question per IP and releases the slot after c
   let signalStarted
   const firstStarted = new Promise(resolve => { signalStarted = resolve })
   let upstreamCalls = 0
-  const app = createApp({ production: true, fetcher: async () => {
+  const app = createApp({ production: true, clientIpForRequest: () => '198.51.100.9', fetcher: async () => {
     upstreamCalls++
     if (upstreamCalls === 1) {
       signalStarted()
@@ -85,6 +85,36 @@ test('production allows one active question per IP and releases the slot after c
   } finally {
     releaseFirst?.(new Response('{}', { status: 200 }))
     limitedServer.close()
+  }
+})
+
+test('production allows concurrent localhost questions', async () => {
+  let releaseFirst
+  let signalStarted
+  const firstStarted = new Promise(resolve => { signalStarted = resolve })
+  let upstreamCalls = 0
+  const app = createApp({ production: true, fetcher: async () => {
+    upstreamCalls++
+    if (upstreamCalls === 1) {
+      signalStarted()
+      return new Promise(resolve => { releaseFirst = resolve })
+    }
+    return new Response(JSON.stringify({ answer: 'Second' }), { status: 200 })
+  } })
+  const localServer = app.listen(0)
+  await new Promise(resolve => localServer.once('listening', resolve))
+  const url = `http://127.0.0.1:${localServer.address().port}/api/ask`
+  const ask = () => fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ question: 'Who?' }) })
+  try {
+    const first = ask()
+    await firstStarted
+    assert.equal((await ask()).status, 200)
+    assert.equal(upstreamCalls, 2)
+    releaseFirst(new Response(JSON.stringify({ answer: 'First' }), { status: 200 }))
+    assert.equal((await first).status, 200)
+  } finally {
+    releaseFirst?.(new Response('{}', { status: 200 }))
+    localServer.close()
   }
 })
 

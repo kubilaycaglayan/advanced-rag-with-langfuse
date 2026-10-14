@@ -40,6 +40,10 @@ export function clientIp(req) {
   return isIP(normalized) ? normalized : null
 }
 
+function isLoopbackIp(ip) {
+  return ip === '::1' || (isIP(ip) === 4 && ip.startsWith('127.'))
+}
+
 async function jsonResponse(response) {
   const raw = await response.text()
   try { return JSON.parse(raw) } catch { return {} }
@@ -60,7 +64,7 @@ function scoreId(traceId, sessionId) {
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-4${hex.slice(13, 16)}-a${hex.slice(17, 20)}-${hex.slice(20, 32)}`
 }
 
-export function createApp({ fetcher = fetch, production = process.env.NODE_ENV === 'production' } = {}) {
+export function createApp({ fetcher = fetch, production = process.env.NODE_ENV === 'production', clientIpForRequest = clientIp } = {}) {
   const app = express()
   const activeAskIps = new Set()
   app.disable('x-powered-by')
@@ -69,11 +73,12 @@ export function createApp({ fetcher = fetch, production = process.env.NODE_ENV =
   app.post('/api/ask', async (req, res) => {
     const question = typeof req.body?.question === 'string' ? req.body.question.trim() : ''
     if (!question || question.length > 2000) return res.status(400).json({ error: 'Enter a question of up to 2,000 characters.' })
-    const ip = clientIp(req) || 'unknown'
-    if (production && activeAskIps.has(ip)) {
+    const ip = clientIpForRequest(req) || 'unknown'
+    const limited = production && !isLoopbackIp(ip)
+    if (limited && activeAskIps.has(ip)) {
       return res.status(429).json({ error: 'A question from this IP address is already in progress. Please try again when it finishes.' })
     }
-    if (production) activeAskIps.add(ip)
+    if (limited) activeAskIps.add(ip)
     try {
       const sessionId = sessionFor(req, res)
       const upstream = await fetcher(`${ragUrl}/ask`, {
@@ -90,7 +95,7 @@ export function createApp({ fetcher = fetch, production = process.env.NODE_ENV =
     } catch (error) {
       res.status(502).json({ error: error?.name === 'TimeoutError' ? 'The answer took too long. Please try again.' : 'The answer service is unavailable.' })
     } finally {
-      if (production) activeAskIps.delete(ip)
+      if (limited) activeAskIps.delete(ip)
     }
   })
 
