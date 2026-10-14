@@ -118,6 +118,24 @@ test('production allows concurrent localhost questions', async () => {
   }
 })
 
+test('forwards the upstream quota response and Retry-After header', async () => {
+  const app = createApp({ fetcher: async () => new Response(JSON.stringify({ detail: 'Question limit reached.' }), {
+    status: 429, headers: { 'Retry-After': '60' },
+  }) })
+  const quotaServer = app.listen(0)
+  await new Promise(resolve => quotaServer.once('listening', resolve))
+  try {
+    const response = await fetch(`http://127.0.0.1:${quotaServer.address().port}/api/ask`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ question: 'Who?' }),
+    })
+    assert.equal(response.status, 429)
+    assert.equal(response.headers.get('retry-after'), '60')
+    assert.equal((await response.json()).error, 'Question limit reached.')
+  } finally {
+    quotaServer.close()
+  }
+})
+
 test('rejects invalid feedback before contacting Langfuse', async () => {
   const beforeCount = calls.length
   const response = await fetch(`${base}/api/feedback`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ traceId, helpful: true }) })

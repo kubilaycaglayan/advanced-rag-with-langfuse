@@ -20,6 +20,7 @@ from qdrant_client import QdrantClient
 
 try:
     from .experiment_store import get_execution, initialize
+    from .frontend_rate_limit import reserve_request
     from .experiments import start_worker, submit, submit_retry
     from .indexer import build_index, index_identity, validate_index
     from .observability import observation, update as update_observation
@@ -29,6 +30,7 @@ try:
     from .resolved_config import ResolvedPipelineConfig, resolve_pipeline_model_identities
 except ImportError:
     from experiment_store import get_execution, initialize
+    from frontend_rate_limit import reserve_request
     from experiments import start_worker, submit, submit_retry
     from indexer import build_index, index_identity, validate_index
     from observability import observation, update as update_observation
@@ -64,6 +66,7 @@ class AskRequest(BaseModel):
     session_id: str | None = Field(default=None, min_length=1, max_length=200)
     source: str = Field(default="api", pattern="^(api|frontend)$")
     client_ip: IPvAnyAddress | None = None
+    production: bool = False
 
 
 class IndexRequest(BaseModel):
@@ -176,6 +179,12 @@ def index(request: IndexRequest) -> dict[str, Any]:
 def ask(request: AskRequest) -> dict[str, Any]:
     if not request.question.strip():
         raise HTTPException(status_code=400, detail="question must not be blank")
+    if (os.getenv("FRONTEND_RATE_LIMIT_ENABLED") == "true" and request.production and request.source == "frontend"
+            and request.client_ip and not request.client_ip.is_loopback):
+        retry_after = reserve_request(str(request.client_ip))
+        if retry_after is not None:
+            raise HTTPException(status_code=429, detail="Question limit reached. Please try again later.",
+                                headers={"Retry-After": str(retry_after)})
     try:
         values = {"retrieval_mode": request.mode, "candidate_count": request.candidate_count,
                   "top_k": min(request.top_k, request.candidate_count)}

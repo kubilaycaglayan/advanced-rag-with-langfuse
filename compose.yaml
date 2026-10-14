@@ -21,6 +21,7 @@ services:
       OLLAMA_URL: http://127.0.0.1:11434
       LANGFUSE_BASE_URL: http://127.0.0.1:28420
       EXPERIMENT_DATA_DIR: /data
+      FRONTEND_RATE_LIMIT_ENABLED: "true"
       CORPUS_DIR: /corpus
       HF_HOME: /model-cache
     command: ["uvicorn", "main:app", "--app-dir", "app", "--host", "127.0.0.1", "--port", "8001"]

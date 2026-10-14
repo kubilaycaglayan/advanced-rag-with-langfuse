@@ -83,11 +83,15 @@ export function createApp({ fetcher = fetch, production = process.env.NODE_ENV =
       const sessionId = sessionFor(req, res)
       const upstream = await fetcher(`${ragUrl}/ask`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question, session_id: sessionId, source: 'frontend', client_ip: ip === 'unknown' ? null : ip }),
+        body: JSON.stringify({ question, session_id: sessionId, source: 'frontend', client_ip: ip === 'unknown' ? null : ip,
+          production }),
         signal: AbortSignal.timeout(960_000),
       })
       const result = await jsonResponse(upstream)
-      if (!upstream.ok) return res.status(upstream.status >= 500 ? 502 : upstream.status).json({ error: typeof result.detail === 'string' ? result.detail : 'The pipeline could not answer this question.' })
+      if (!upstream.ok) {
+        if (upstream.status === 429 && upstream.headers.get('retry-after')) res.set('Retry-After', upstream.headers.get('retry-after'))
+        return res.status(upstream.status >= 500 ? 502 : upstream.status).json({ error: typeof result.detail === 'string' ? result.detail : 'The pipeline could not answer this question.' })
+      }
       const traceId = typeof result.trace_id === 'string' ? result.trace_id : null
       res.json({ answer: result.answer, sources: citedSources(result), traceId,
         traceUrl: traceId ? `${langfuseUiUrl}/project/${encodeURIComponent(projectId)}/traces/${encodeURIComponent(traceId)}` : null,

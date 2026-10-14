@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from types import SimpleNamespace
 from unittest import TestCase
 from unittest.mock import patch
+from fastapi import HTTPException
 
 from app.main import AskRequest, ask
 from app.experiments import _fingerprints
@@ -12,6 +13,15 @@ from app.resolved_config import ResolvedPipelineConfig
 
 
 class InteractiveAskContract(TestCase):
+    def test_remote_frontend_quota_rejection_is_429_with_retry_after(self):
+        with patch.dict("os.environ", {"FRONTEND_RATE_LIMIT_ENABLED": "true"}), \
+             patch("app.main.reserve_request", return_value=60) as reserve:
+            with self.assertRaises(HTTPException) as error:
+                ask(AskRequest(question="Who?", source="frontend", client_ip="198.51.100.9", production=True))
+            self.assertEqual(error.exception.status_code, 429)
+            self.assertEqual(error.exception.headers["Retry-After"], "60")
+            reserve.assert_called_once_with("198.51.100.9")
+
     def test_setup_id_matches_experiment_pipeline_identity(self):
         config = ResolvedPipelineConfig()
         prompts = {"rag-answer": {"id": "prompt-1", "version": 2, "label": "production"}}
@@ -47,9 +57,12 @@ class InteractiveAskContract(TestCase):
              patch("app.main.propagate_attributes", side_effect=propagate), \
              patch("app.main.observation", side_effect=observe), \
              patch("app.main.get_client", return_value=client), \
-             patch("app.main.run_pipeline", return_value={"answer": "A [E1]", "citations": ["[E1]"]}):
-            result = ask(AskRequest(question="Who?", source="frontend", session_id="interactive-ui-browser", client_ip="192.0.2.12"))
+             patch("app.main.run_pipeline", return_value={"answer": "A [E1]", "citations": ["[E1]"]}), \
+             patch.dict("os.environ", {"FRONTEND_RATE_LIMIT_ENABLED": "true"}), \
+             patch("app.main.reserve_request") as reserve:
+            result = ask(AskRequest(question="Who?", source="frontend", session_id="interactive-ui-browser", client_ip="127.0.0.1"))
             ask(AskRequest(question="Who?", source="api", client_ip="192.0.2.12"))
+            reserve.assert_not_called()
 
         self.assertEqual(result["trace_id"], "a" * 32)
         self.assertEqual(result["pipeline_id"], "pipeline-123")
@@ -57,5 +70,5 @@ class InteractiveAskContract(TestCase):
         self.assertEqual(attributes[0]["session_id"], "interactive-ui-browser")
         self.assertEqual(attributes[0]["metadata"]["pipeline_id"], "pipeline-123")
         self.assertIn("pipeline:pipeline-123", attributes[0]["tags"])
-        self.assertEqual(observations[0]["metadata"], {"clientIp": "192.0.2.12"})
+        self.assertEqual(observations[0]["metadata"], {"clientIp": "127.0.0.1"})
         self.assertIsNone(observations[1]["metadata"])
