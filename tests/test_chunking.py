@@ -40,7 +40,8 @@ class ChunkingChecks(unittest.TestCase):
     def test_tuning_settings_are_validated(self):
         self.assertEqual(ResolvedPipelineConfig.from_mapping({"expansion_count": 5}).expansion_count, 5)
         self.assertEqual(ResolvedPipelineConfig().min_passage_chars, 400)
-        for bad in ({"expansion_count": 0}, {"min_passage_chars": 0, "passage_overlap": 1}, {"min_passage_chars": -1}):
+        self.assertTrue(ResolvedPipelineConfig.from_mapping({"answer_thinking": True}).answer_thinking)
+        for bad in ({"expansion_count": 0}, {"min_passage_chars": 0, "passage_overlap": 1}, {"min_passage_chars": -1}, {"answer_thinking": "yes"}):
             with self.assertRaises(ValueError):
                 ResolvedPipelineConfig.from_mapping(bad)
 

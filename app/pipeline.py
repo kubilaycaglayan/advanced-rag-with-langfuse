@@ -35,7 +35,8 @@ def _reranker(name: str, revision: str | None = None) -> CrossEncoder:
     return CrossEncoder(name, device="cpu", revision=revision)
 
 
-def _ollama(messages: list[dict[str, str]], model: str, budgets: tuple[int, ...], temperature: float = 0, context_length: int = 8192, *, prompt: Any = None, name: str = "answer generation") -> str:
+def _ollama(messages: list[dict[str, str]], model: str, budgets: tuple[int, ...], temperature: float = 0, context_length: int = 8192, *, prompt: Any = None, name: str = "answer generation",
+            think: bool = False) -> str:
     base = os.getenv("OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/")
     keep_alive: str | int = os.getenv("OLLAMA_KEEP_ALIVE", "-1")
     if keep_alive.lstrip("-").isdigit():
@@ -46,14 +47,16 @@ def _ollama(messages: list[dict[str, str]], model: str, budgets: tuple[int, ...]
             try:
                 response = requests.post(f"{base}/api/chat", json={
                     "model": model, "keep_alive": keep_alive, "messages": messages,
-                    "think": False, "stream": False,
+                    "think": think, "stream": False,
                     "options": {"temperature": temperature, "num_ctx": context_length, "num_predict": budget},
                 }, timeout=(10, 900))
                 response.raise_for_status()
                 data = response.json()
                 text = data.get("message", {}).get("content", "").strip()
                 if text:
-                    _update(obs, output=text, usage_details={"input": data.get("prompt_eval_count"), "output": data.get("eval_count")})
+                    thinking = data.get("message", {}).get("thinking")
+                    _update(obs, output=text, usage_details={"input": data.get("prompt_eval_count"), "output": data.get("eval_count")},
+                            **({"metadata": {"thinking": thinking}} if thinking else {}))
                     return text
             except requests.RequestException as exc:
                 last_error = exc
@@ -185,7 +188,7 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
     stage = time.perf_counter()
     answer = _ollama(messages,
                      config.generation_model.name, config.generation.output_budgets, config.generation.temperature, config.generation.context_length,
-                     prompt=prompt_bundle["rag-answer"]["client"] if prompt_bundle else None)
+                     prompt=prompt_bundle["rag-answer"]["client"] if prompt_bundle else None, think=config.answer_thinking)
     timings["generation_seconds"] = round(time.perf_counter() - stage, 4)
     citations = list(dict.fromkeys(re.findall(r"\[E\d+\]", answer)))
     stage = time.perf_counter()
