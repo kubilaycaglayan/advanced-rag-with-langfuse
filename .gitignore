@@ -1,1 +1,4 @@
-LANGFUSE_INTEGRATION_PLAN.md
+/.env
+/.venv/
+/data/
+/outputs/
