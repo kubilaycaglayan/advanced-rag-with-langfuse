@@ -28,7 +28,7 @@ try:
     from .evaluator_specs import evaluator_manifest
     from .observability import use_client
     from .pipeline import PROMPT_HASHES, run_pipeline
-    from .prompt_assets import load_managed_evaluators, load_prompt_bundle, prompt_manifests
+    from .prompt_assets import ManagedJudgePrompt, load_managed_evaluators, load_prompt_bundle, prompt_manifests
     from .resolved_config import ResolvedPipelineConfig, resolve_ollama_model, resolve_pipeline_model_identities
 except ImportError:
     from evaluation import citation_support, correctness, is_explicit_abstention
@@ -40,7 +40,7 @@ except ImportError:
     from evaluator_specs import evaluator_manifest
     from observability import use_client
     from pipeline import PROMPT_HASHES, run_pipeline
-    from prompt_assets import load_managed_evaluators, load_prompt_bundle, prompt_manifests
+    from prompt_assets import ManagedJudgePrompt, load_managed_evaluators, load_prompt_bundle, prompt_manifests
     from resolved_config import ResolvedPipelineConfig, resolve_ollama_model, resolve_pipeline_model_identities
 
 _jobs: queue.Queue[str] = queue.Queue()
@@ -48,8 +48,20 @@ _worker: threading.Thread | None = None
 _active_lock = threading.Lock()
 
 
+class ExperimentLangfuse(Langfuse):
+    """Scope the SDK's entire item tree, including root and judges, to one question.
+
+    This adapter targets the pinned Langfuse 4.17 SDK. Its item hook is covered by
+    a regression test and the live observation/session acceptance check.
+    """
+    async def _process_experiment_item(self, item: Any, *args: Any, **kwargs: Any) -> Any:
+        session = question_session_id(item.dataset_id, item.id)
+        with propagate_attributes(session_id=session, environment="sdk-experiment"):
+            return await super()._process_experiment_item(item, *args, **kwargs)
+
+
 def _client() -> Langfuse:
-    return Langfuse()
+    return ExperimentLangfuse(environment="sdk-experiment")
 
 
 def _get(obj: Any, key: str, default: Any = None) -> Any:
@@ -245,7 +257,7 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
         collection = index["collection"]
         pipeline_manifest, evaluator_manifest, corpus_checksum = _fingerprints(config, version, prompt_versions, managed_evaluators)
         # Include the selected frozen snapshot and exact corpus content in each execution manifest.
-        variant = re.sub(r"[^A-Za-z0-9._-]+", "-", payload.get("variant_label", "baseline")).strip("-")[:50] or "run"
+        variant = re.sub(r"[^A-Za-z0-9._-]+", "-", payload.get("variant_label", "full")).strip("-")[:50] or "run"
         run_name = f"{variant}-{execution_id}"
         (Path(os.getenv("EXPERIMENT_DATA_DIR", "./data")) / "executions" / execution_id).mkdir(parents=True, exist_ok=True)
         manifest = {"execution_id": execution_id, "variant_label": variant, "dataset_snapshot": snapshot,
@@ -294,11 +306,11 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
                 description=f"Execution {execution_id}; pipeline {pipeline_manifest['pipeline_id']}; dataset version {version.isoformat()}",
                 data=items, task=task,
                 evaluators=[partial(correctness, evaluator_id=evaluator_manifest["evaluator_id"], langfuse_client=client,
-                                    managed_prompt=prompt_bundle["rag-eval-answer_correctness_v1"]["client"],
+                                    managed_prompt=ManagedJudgePrompt(managed_evaluators["answer_correctness_v1"]),
                                     evaluator_version=managed_evaluators["answer_correctness_v1"]["version"],
                                     managed_evaluator_id=managed_evaluators["answer_correctness_v1"]["id"]),
                             partial(citation_support, evaluator_id=evaluator_manifest["evaluator_id"], langfuse_client=client,
-                                    managed_prompt=prompt_bundle["rag-eval-citation_support_v1"]["client"],
+                                    managed_prompt=ManagedJudgePrompt(managed_evaluators["citation_support_v1"]),
                                     evaluator_version=managed_evaluators["citation_support_v1"]["version"],
                                     managed_evaluator_id=managed_evaluators["citation_support_v1"]["id"])],
                 max_concurrency=1,
@@ -414,7 +426,7 @@ def cli() -> int:
     parser = argparse.ArgumentParser(description="Run Millennium RAG against a pinned Langfuse dataset version")
     parser.add_argument("--dataset", default=os.getenv("DATASET_NAME", "QA.csv"))
     parser.add_argument("--dataset-version", help="ISO-8601 UTC dataset version timestamp")
-    parser.add_argument("--variant", default="baseline")
+    parser.add_argument("--variant", default="full")
     parser.add_argument("--prompt-label", default=os.getenv("LANGFUSE_PROMPT_LABEL", "production"))
     parser.add_argument("--config", type=Path, help="JSON resolved pipeline config")
     parser.add_argument("--item-id", action="append", dest="item_ids")

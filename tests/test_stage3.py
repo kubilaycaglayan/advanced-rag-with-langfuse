@@ -10,6 +10,8 @@ from contextlib import nullcontext
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
+# Keep fixture spans out of the live Langfuse project the container is configured for.
+os.environ["LANGFUSE_TRACING_ENABLED"] = "false"
 from langfuse.api import NotFoundError
 
 from app.identity import pipeline_identity, question_session_id
@@ -155,7 +157,7 @@ class Stage3Checks(unittest.TestCase):
              patch("app.pipeline._embedder", return_value=SimpleNamespace(encode=lambda *_args, **_kwargs: SimpleNamespace(tolist=lambda: [0.0]))), \
              patch("app.pipeline._observe", return_value=nullcontext(None)), \
              patch("app.pipeline._update"), patch("app.pipeline._ollama") as ollama:
-            result = run_pipeline("q", collection="empty-index")
+            result = run_pipeline("q", ResolvedPipelineConfig(retrieval_mode="baseline"), collection="empty-index")
         self.assertEqual(result["citations"], [])
         self.assertEqual(result["evidence"], "")
         self.assertEqual(result["answer"], "I could not find supporting passages.")
@@ -227,8 +229,8 @@ class Stage3Checks(unittest.TestCase):
                                      expected_output={"answer": f"a{i}"}, metadata={}) for i in (1, 2)]
             dataset = SimpleNamespace(id="dataset-1", name="QA.csv", items=items)
             managed = {
-                "answer_correctness_v1": {"id": "eval-a", "name": "answer", "version": 1},
-                "citation_support_v1": {"id": "eval-c", "name": "citation", "version": 1},
+                "answer_correctness_v1": {"id": "eval-a", "name": "answer", "version": 1, "model_config": {"model": "qwen3:8b"}, "prompt": []},
+                "citation_support_v1": {"id": "eval-c", "name": "citation", "version": 1, "model_config": {"model": "qwen3:8b"}, "prompt": []},
             }
             run = SimpleNamespace(
                 dataset_run_id=None, dataset_run_url=None, experiment_id=None,

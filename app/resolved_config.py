@@ -53,7 +53,7 @@ class EvaluatorSettings:
 
 @dataclass(frozen=True)
 class ResolvedPipelineConfig:
-    retrieval_mode: str = "baseline"
+    retrieval_mode: str = "full"
     candidate_count: int = 30
     top_k: int = 10
     passage_chars: int = 1200
@@ -79,7 +79,7 @@ class ResolvedPipelineConfig:
             raise ValueError("corpus_checksum must be a string")
         if self.prompt_hashes is not None and (not isinstance(self.prompt_hashes, Mapping) or not all(isinstance(k, str) and isinstance(v, str) for k, v in self.prompt_hashes.items())):
             raise ValueError("prompt_hashes must map strings to strings")
-        if self.retrieval_mode not in {"baseline", "hyde", "query_expansion", "hyde_query_expansion"}:
+        if self.retrieval_mode not in {"baseline", "hyde", "query_expansion", "hyde_query_expansion", "full"}:
             raise ValueError(f"unsupported retrieval mode: {self.retrieval_mode}")
         if not 1 <= self.candidate_count <= 100:
             raise ValueError("candidate_count must be between 1 and 100")
@@ -99,7 +99,7 @@ class ResolvedPipelineConfig:
         """Validate a JSON config without accepting unknown or identity fields."""
         value = dict(value or {})
         defaults: dict[str, Any] = {
-            "retrieval_mode": "baseline",
+            "retrieval_mode": "full",
             "candidate_count": 30,
             "top_k": 10,
             "passage_chars": int(os.getenv("PASSAGE_CHARS", "1200")),

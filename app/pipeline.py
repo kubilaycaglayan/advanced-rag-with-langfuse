@@ -35,13 +35,13 @@ def _reranker(name: str, revision: str | None = None) -> CrossEncoder:
     return CrossEncoder(name, device="cpu", revision=revision)
 
 
-def _ollama(messages: list[dict[str, str]], model: str, budgets: tuple[int, ...], temperature: float = 0, context_length: int = 8192) -> str:
+def _ollama(messages: list[dict[str, str]], model: str, budgets: tuple[int, ...], temperature: float = 0, context_length: int = 8192, *, prompt: Any = None, name: str = "answer generation") -> str:
     base = os.getenv("OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/")
     keep_alive: str | int = os.getenv("OLLAMA_KEEP_ALIVE", "-1")
     if keep_alive.lstrip("-").isdigit():
         keep_alive = int(keep_alive)
     last_error: Exception | None = None
-    with _observe("ollama generation", as_type="generation", input=messages, model=model) as obs:
+    with _observe(name, as_type="generation", input=messages, model=model, prompt=prompt) as obs:
         for budget in budgets:
             try:
                 response = requests.post(f"{base}/api/chat", json={
@@ -61,23 +61,38 @@ def _ollama(messages: list[dict[str, str]], model: str, budgets: tuple[int, ...]
         raise RuntimeError(f"Ollama request failed or returned empty content: {last_error or 'empty response'}")
 
 
-def _transform(question: str, config: ResolvedPipelineConfig, prompt_bundle: dict[str, Any] | None = None) -> tuple[str | None, list[str]]:
+def _transform(question: str, config: ResolvedPipelineConfig, prompt_bundle: dict[str, Any] | None = None) -> tuple[str | None, list[str], str | None]:
     mode = config.retrieval_mode
     hypothetical = None
+    corrected = None
     alternatives: list[str] = []
-    if mode in {"hyde", "hyde_query_expansion"}:
-        with _observe("HyDE transformation", input=question):
+    if mode in {"hyde", "hyde_query_expansion", "full"}:
+        with _observe("HyDE transformation", input=question) as obs:
             messages = (prompt_bundle["rag-hyde"]["client"].compile(question=question) if prompt_bundle else [
                 {"role": "system", "content": PROMPT_TEMPLATES["hyde_system"]}, {"role": "user", "content": question}])
-            hypothetical = _ollama(messages, config.generation_model.name, config.generation.output_budgets, config.generation.temperature, config.generation.context_length)
-    if mode in {"query_expansion", "hyde_query_expansion"}:
-        with _observe("query expansion", input=question):
+            hypothetical = _ollama(messages, config.generation_model.name, config.generation.output_budgets, config.generation.temperature, config.generation.context_length,
+                                   prompt=prompt_bundle["rag-hyde"]["client"] if prompt_bundle else None, name="hypothetical document generation")
+            _update(obs, output=hypothetical)
+    if mode in {"query_expansion", "hyde_query_expansion", "full"}:
+        with _observe("query expansion", input=question) as obs:
             messages = (prompt_bundle["rag-query-expansion"]["client"].compile(question=question) if prompt_bundle else [
                 {"role": "system", "content": PROMPT_TEMPLATES["query_expansion_system"]}, {"role": "user", "content": question}])
-            raw = _ollama(messages, config.generation_model.name, config.generation.output_budgets, config.generation.temperature, config.generation.context_length)
+            raw = _ollama(messages, config.generation_model.name, config.generation.output_budgets, config.generation.temperature, config.generation.context_length,
+                          prompt=prompt_bundle["rag-query-expansion"]["client"] if prompt_bundle else None, name="literary query generation")
+            _update(obs, output=raw)
         alternatives = list(dict.fromkeys(line.strip().lstrip("-•0123456789. )") for line in raw.splitlines() if line.strip()))
         alternatives = [q for q in alternatives if q and q.casefold() != question.casefold()][:3]
-    return hypothetical, alternatives
+        if len(alternatives) != 3:
+            raise ValueError("query expansion must return three distinct alternative queries")
+    if mode == "full":
+        with _observe("grammar correction", input=question) as obs:
+            messages = (prompt_bundle["rag-grammar-correction"]["client"].compile(question=question) if prompt_bundle else [
+                {"role": "system", "content": PROMPT_TEMPLATES["grammar_system"]}, {"role": "user", "content": question}])
+            corrected = _ollama(messages, config.generation_model.name, config.generation.output_budgets,
+                                config.generation.temperature, config.generation.context_length,
+                                prompt=prompt_bundle["rag-grammar-correction"]["client"] if prompt_bundle else None, name="grammar corrected query generation")
+            _update(obs, output=corrected)
+    return hypothetical, alternatives, corrected
 
 
 def _rrf(rankings: list[list[Any]], limit: int, k: int) -> list[dict[str, Any]]:
@@ -113,17 +128,20 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
         raise RuntimeError(f"index collection {collection!r} does not exist")
 
     stage = time.perf_counter()
-    hypothetical, alternatives = _transform(question, config, prompt_bundle)
+    hypothetical, alternatives, corrected = _transform(question, config, prompt_bundle)
     timings["transformation_seconds"] = round(time.perf_counter() - stage, 4)
-    queries = [question] + ([hypothetical] if hypothetical else []) + alternatives
+    queries = [question] + ([hypothetical] if hypothetical else []) + alternatives + ([corrected] if corrected else [])
     rankings = []
     stage = time.perf_counter()
     vector_search_timings: list[float] = []
     with _observe("candidate retrieval", input={"question": question, "queries": queries}) as obs:
-        for query in queries:
+        query_names = ["original question"] + (["hypothetical document"] if hypothetical else []) + [f"literary alternative {i}" for i in range(1, len(alternatives) + 1)] + (["grammar corrected question"] if corrected else [])
+        for query, query_name in zip(queries, query_names):
             search_started = time.perf_counter()
-            with _observe("query embedding and vector search", input=query, model=config.embedding_model.name) as search_obs:
-                vector = _embedder(config.embedding_model.name, config.embedding_model.revision).encode(query, normalize_embeddings=True).tolist()
+            with _observe(f"search: {query_name}", as_type="retriever", input=query) as search_obs:
+                with _observe("query embedding", as_type="embedding", input=query, model=config.embedding_model.name) as embedding_obs:
+                    vector = _embedder(config.embedding_model.name, config.embedding_model.revision).encode(query, normalize_embeddings=True).tolist()
+                    _update(embedding_obs, output={"dimensions": len(vector)})
                 points = qdrant.query_points(collection_name=collection, query=vector, limit=config.candidate_count, with_payload=True).points
                 rankings.append(points)
                 _update(search_obs, output={"hits": [{"id": str(point.id), "score": float(point.score), "payload": dict(point.payload or {})} for point in points]})
@@ -140,7 +158,7 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
 
     if not candidates:
         return {"question": question, "mode": config.retrieval_mode, "generated_queries": queries,
-                "hypothetical_answer": hypothetical, "query_alternatives": alternatives,
+                "hypothetical_answer": hypothetical, "query_alternatives": alternatives, "grammar_corrected_query": corrected,
                 "answer": "I could not find supporting passages.", "citations": [], "baseline": [],
                 "candidates": [], "reranked": [], "evidence": "", "latency_seconds": round(time.perf_counter()-started, 2),
                 "generation_model": config.generation_model.name, "timings": timings}
@@ -164,7 +182,8 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
         {"role": "user", "content": f"Question: {question}\n\nEvidence passages:\n{evidence}"}])
     stage = time.perf_counter()
     answer = _ollama(messages,
-                     config.generation_model.name, config.generation.output_budgets, config.generation.temperature, config.generation.context_length)
+                     config.generation_model.name, config.generation.output_budgets, config.generation.temperature, config.generation.context_length,
+                     prompt=prompt_bundle["rag-answer"]["client"] if prompt_bundle else None)
     timings["generation_seconds"] = round(time.perf_counter() - stage, 4)
     citations = list(dict.fromkeys(re.findall(r"\[E\d+\]", answer)))
     stage = time.perf_counter()
@@ -172,7 +191,7 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
         _update(obs, output=citations)
     timings["citation_extraction_seconds"] = round(time.perf_counter() - stage, 4)
     return {"question": question, "mode": config.retrieval_mode, "generated_queries": queries,
-            "hypothetical_answer": hypothetical, "query_alternatives": alternatives, "answer": answer,
+            "hypothetical_answer": hypothetical, "query_alternatives": alternatives, "grammar_corrected_query": corrected, "answer": answer,
             "citations": citations, "baseline": baseline, "candidates": candidates, "reranked": reranked,
             "evidence": evidence, "generation_model": config.generation_model.name,
             "latency_seconds": round(time.perf_counter()-started, 2), "timings": timings}

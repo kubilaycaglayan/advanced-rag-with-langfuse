@@ -21,14 +21,14 @@ def use_client(client: Any) -> Iterator[None]:
 
 @contextmanager
 def observation(name: str, *, as_type: str = "span", input: Any = None,
-                model: str | None = None, metadata: dict[str, Any] | None = None) -> Iterator[Any | None]:
+                model: str | None = None, prompt: Any = None, metadata: dict[str, Any] | None = None) -> Iterator[Any | None]:
     try:
         client = _client_context.get()
         if client is None:
             from langfuse import get_client
             client = get_client()
         context = client.start_as_current_observation(as_type=as_type, name=name,
-                                                      input=input, model=model, metadata=metadata)
+                                                      input=input, model=model, metadata=metadata, prompt=prompt)
     except Exception:
         context = nullcontext(None)
     body_failed = False

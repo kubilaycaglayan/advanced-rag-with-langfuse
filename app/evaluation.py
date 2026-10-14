@@ -37,7 +37,7 @@ def _judge(spec: Any, *, question: str, answer: str, expected: str | None = None
     values = {"question": question, "reference_answer": expected or "", "answer": answer,
               "evidence": evidence, "rubric": spec.rubric}
     prompt = managed_prompt.compile(**values) if managed_prompt is not None else spec.prompt_template.format(**values)
-    model = os.getenv("EVALUATOR_MODEL", "qwen3:8b")
+    model = getattr(managed_prompt, "model", None) or os.getenv("EVALUATOR_MODEL", "qwen3:8b")
     # Keep the judge connection independently configurable so generation and
     # evaluation failures can be isolated and the evaluator can use its own host.
     url = (os.getenv("EVALUATOR_OLLAMA_URL") or os.getenv("OLLAMA_URL", "http://127.0.0.1:11434")).rstrip("/")
@@ -50,14 +50,15 @@ def _judge(spec: Any, *, question: str, answer: str, expected: str | None = None
                                 "evaluator_version": evaluator_version or spec.version,
                                 "managed_evaluator_id": managed_evaluator_id}) as obs:
                 response = requests.post(f"{url}/api/chat", json={"model": model,
-                    "messages":[{"role":"user","content":prompt}],"stream":False,"format":"json",
+                    "messages": prompt if isinstance(prompt, list) else [{"role":"user","content":prompt}],
+                    "think": False, "stream":False,"format":"json",
                     "options":{"temperature":0}}, timeout=(10, 300))
                 response.raise_for_status()
                 raw = response.json().get("message", {}).get("content", "")
                 update_observation(obs, output=raw)
                 data = json.loads(raw)
                 score = data.get("score")
-                explanation = str(data.get("explanation", "")).strip()
+                explanation = str(data.get("explanation", data.get("reasoning", ""))).strip()
                 abstention_explanation = re.search(r"\b(not applicable|no factual claims|explicitly abstains?)\b", explanation, re.I)
                 if score is None and spec is CITATION_SUPPORT_V1 and is_explicit_abstention(answer) and abstention_explanation:
                     return {"score": None, "explanation": explanation or "not applicable: explicit abstention",
@@ -88,7 +89,7 @@ def correctness(*, input: Any, output: Any, expected_output: Any = None, **kwarg
                 "metadata": {"evaluator_id": kwargs.get("evaluator_id"), "managed_evaluator_id": kwargs.get("managed_evaluator_id"),
                              "managed_evaluator_version": kwargs.get("evaluator_version")}}
     return {"name": ANSWER_CORRECTNESS_V1.name, "value": result["score"], "comment": result["explanation"],
-            "metadata": {"evaluator_model": os.getenv("EVALUATOR_MODEL", "qwen3:8b"), "evaluator_version": kwargs.get("evaluator_version", 1),
+            "metadata": {"evaluator_model": getattr(kwargs.get("managed_prompt"), "model", None) or os.getenv("EVALUATOR_MODEL", "qwen3:8b"), "evaluator_version": kwargs.get("evaluator_version", 1),
                          "managed_evaluator_id": kwargs.get("managed_evaluator_id"),
                          "evaluator_latency_seconds": result["latency_seconds"], "evaluator_id": kwargs.get("evaluator_id")}}
 
@@ -137,6 +138,6 @@ def citation_support(*, input: Any, output: Any, expected_output: Any = None, **
                 "data_type": "CATEGORICAL", "metadata": {"reason": result["explanation"], "evaluator_id": kwargs.get("evaluator_id"),
                     "managed_evaluator_id": kwargs.get("managed_evaluator_id"), "managed_evaluator_version": kwargs.get("evaluator_version")}}
     return {"name": CITATION_SUPPORT_V1.name, "value": result["score"], "comment": result["explanation"],
-            "metadata": {"evaluator_model": os.getenv("EVALUATOR_MODEL", "qwen3:8b"), "evaluator_version": kwargs.get("evaluator_version", 1),
+            "metadata": {"evaluator_model": getattr(kwargs.get("managed_prompt"), "model", None) or os.getenv("EVALUATOR_MODEL", "qwen3:8b"), "evaluator_version": kwargs.get("evaluator_version", 1),
                          "managed_evaluator_id": kwargs.get("managed_evaluator_id"),
                          "evaluator_latency_seconds": result["latency_seconds"], "evaluator_id": kwargs.get("evaluator_id")}}
