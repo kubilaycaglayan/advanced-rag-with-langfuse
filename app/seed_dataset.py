@@ -37,7 +37,8 @@ def read_seed(path: Path) -> tuple[list[dict[str, Any]], str]:
         if normalized in seen:
             raise ValueError(f"duplicate normalized question at CSV row {row_number}")
         seen.add(normalized)
-        key = seed_row_key(question)
+        occurrence = 1
+        key = seed_row_key(question, occurrence)
         items.append({
             "id": seeded_item_id("qa-csv", checksum, key),
             "input": {"question": question},
@@ -46,6 +47,7 @@ def read_seed(path: Path) -> tuple[list[dict[str, Any]], str]:
                 "seed_row_key": key,
                 "source_checksum": checksum,
                 "source_row": row_number,
+                "seed_occurrence": occurrence,
             },
         })
     return items, checksum

@@ -9,6 +9,7 @@ import subprocess
 import unicodedata
 import uuid
 from collections.abc import Mapping, Sequence
+from datetime import datetime
 from typing import Any
 
 
@@ -37,9 +38,12 @@ def normalize_question(question: str) -> str:
     return " ".join(unicodedata.normalize("NFKC", question).casefold().split())
 
 
-def seed_row_key(question: str) -> str:
+def seed_row_key(question: str, occurrence: int = 1) -> str:
+    if occurrence < 1:
+        raise ValueError("occurrence must be a positive integer")
     normalized = normalize_question(question)
-    return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+    source_key = f"{normalized}\0{occurrence}"
+    return hashlib.sha256(source_key.encode("utf-8")).hexdigest()
 
 
 def seeded_item_id(dataset_name: str, source_checksum: str, row_key: str) -> str:
@@ -58,8 +62,18 @@ def question_session_id(dataset_id: str, item_id: str, max_length: int = 200) ->
     return f"{session_id[:prefix_len]}-{suffix}"
 
 
-def dataset_snapshot(items: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+def dataset_snapshot(
+    items: Sequence[Mapping[str, Any]],
+    *,
+    dataset_id: str,
+    dataset_name: str,
+    version: datetime,
+) -> dict[str, Any]:
     """Return a sorted immutable-data representation and its content checksum."""
+    version_text = version.isoformat()
+    offset = version.utcoffset()
+    if offset is None or offset.total_seconds() != 0:
+        raise ValueError("dataset version must be a timezone-aware UTC timestamp")
     normalized = [
         {
             "id": item["id"],
@@ -71,7 +85,14 @@ def dataset_snapshot(items: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
     ]
     normalized.sort(key=lambda item: str(item["id"]))
     digest = hashlib.sha256(canonical_json(normalized).encode("utf-8")).hexdigest()
-    return {"item_count": len(normalized), "sha256": digest, "items": normalized}
+    return {
+        "dataset_id": dataset_id,
+        "dataset_name": dataset_name,
+        "dataset_version": version_text,
+        "item_count": len(normalized),
+        "sha256": digest,
+        "items": normalized,
+    }
 
 
 def pipeline_identity(
