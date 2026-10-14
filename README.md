@@ -36,8 +36,8 @@ The current Langfuse Docker web and worker containers reached the host API throu
 | Source | Target | Purpose / disposition |
 | --- | --- | --- |
 | Legacy RAG application's `app/main.py` and `tracing.py` | Reference only | Consult selected source behavior while implementing the API and tracing directly in this root project. |
-| Locally supplied book files (`*.epub`) | `corpus/` | Three corpus inputs copied into the target; see their checksums in the execution record in `LANGFUSE_INTEGRATION_PLAN.md`. |
+| Locally supplied book files (`*.epub`) | local `corpus/` | Three corpus inputs copied into the target for indexing; excluded from Git. Their checksums are in the local integration handoff plan. |
 | Target-root `QA.csv` | Used directly by `app/seed_dataset.py` | Authoritative 35-row seed; checksum is recorded in the handoff. |
 | Legacy notebooks, results, HTML, indexes, caches, `.env`, and unrelated files | Reference/excluded | Exploratory, generated, secret, or outside the runtime workflow. |
 
-Stage 1 preparation is complete: project `millenium` is verified, the 35-item dataset is seeded idempotently, and the three EPUB inputs are in `corpus/`. Configure the Langfuse UI trigger after stage 2 adds `/experiments/run`; verify trigger acknowledgement and result linkage during stage 3.
+Stage 1 preparation is complete: project `millenium` is verified, the 35-item dataset is seeded idempotently, and the three local EPUB inputs are in `corpus/`. The corpus and integration plan are intentionally excluded from Git. Configure the Langfuse UI trigger after stage 2 adds `/experiments/run`; verify trigger acknowledgement and result linkage during stage 3.

@@ -4,3 +4,5 @@
 /.venv/
 /data/
 /outputs/
+/corpus/
+/LANGFUSE_INTEGRATION_PLAN.md
