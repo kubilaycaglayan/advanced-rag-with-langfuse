@@ -34,6 +34,20 @@ test('normalizes the connection IP without trusting forwarding headers', () => {
   assert.equal(clientIp({ socket: { remoteAddress: 'not-an-ip' } }), null)
 })
 
+test('trusts Cloudflare client IP only on an enabled local proxy connection', () => {
+  const prior = process.env.TRUST_CLOUDFLARE_PROXY
+  process.env.TRUST_CLOUDFLARE_PROXY = 'true'
+  try {
+    assert.equal(clientIp({ socket: { remoteAddress: '127.0.0.1' }, headers: { 'cf-connecting-ip': '198.51.100.9' } }), '198.51.100.9')
+    assert.equal(clientIp({ socket: { remoteAddress: '::ffff:127.0.0.1' }, headers: { 'cf-connecting-ip': '2001:db8::1' } }), '2001:db8::1')
+    assert.equal(clientIp({ socket: { remoteAddress: '192.0.2.12' }, headers: { 'cf-connecting-ip': '198.51.100.9' } }), '192.0.2.12')
+    assert.equal(clientIp({ socket: { remoteAddress: '127.0.0.1' }, headers: { 'cf-connecting-ip': 'invalid' } }), '127.0.0.1')
+  } finally {
+    if (prior === undefined) delete process.env.TRUST_CLOUDFLARE_PROXY
+    else process.env.TRUST_CLOUDFLARE_PROXY = prior
+  }
+})
+
 test('explains quota wait times in plain language', () => {
   assert.equal(quotaMessage('45'), "You've reached the question limit. Please try again in about 45 seconds.")
   assert.equal(quotaMessage('60'), "You've reached the question limit. Please try again in about 1 minute.")

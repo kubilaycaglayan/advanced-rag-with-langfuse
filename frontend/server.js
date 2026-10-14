@@ -7,6 +7,7 @@ import { isIP } from 'node:net'
 const root = dirname(fileURLToPath(import.meta.url))
 const dev = process.argv.includes('--dev')
 const port = Number(process.env.FRONTEND_PORT || 43179)
+const host = process.env.FRONTEND_HOST || '127.0.0.1'
 const ragUrl = (process.env.RAG_API_URL || 'http://127.0.0.1:8001').replace(/\/$/, '')
 const langfuseUrl = (process.env.LANGFUSE_BASE_URL || 'http://127.0.0.1:28420').replace(/\/$/, '')
 const langfuseUiUrl = (process.env.LANGFUSE_UI_URL || langfuseUrl).replace(/\/$/, '')
@@ -37,6 +38,10 @@ function authHeader() {
 export function clientIp(req) {
   const address = req.socket.remoteAddress || ''
   const normalized = address.startsWith('::ffff:') ? address.slice(7) : address
+  if (process.env.TRUST_CLOUDFLARE_PROXY === 'true' && isLoopbackIp(normalized)) {
+    const forwarded = req.headers['cf-connecting-ip']
+    if (typeof forwarded === 'string' && isIP(forwarded)) return forwarded
+  }
   return isIP(normalized) ? normalized : null
 }
 
@@ -198,5 +203,5 @@ export function createApp({ fetcher = fetch, production = process.env.NODE_ENV =
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
-  Promise.resolve(createApp()).then(app => app.listen(port, () => console.log(`Millennium frontend listening on http://127.0.0.1:${port}`)))
+  Promise.resolve(createApp()).then(app => app.listen(port, host, () => console.log(`Millennium frontend listening on http://${host}:${port}`)))
 }

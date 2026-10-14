@@ -1,6 +1,10 @@
 **/.env
 **/.env.*
 !/.env.example
+# Local tunnel credentials and machine-specific Cloudflare configuration.
+**/.cloudflared/
+**/cloudflared-credentials*.json
+**/cert.pem
 /.venv/
 /data/
 /outputs/

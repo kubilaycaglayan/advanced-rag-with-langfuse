@@ -40,10 +40,28 @@ services:
       - .env
     environment:
       FRONTEND_PORT: 43179
+      FRONTEND_HOST: 127.0.0.1
+      TRUST_CLOUDFLARE_PROXY: "true"
+      COOKIE_SECURE: "true"
       RAG_API_URL: http://127.0.0.1:8001
       LANGFUSE_BASE_URL: http://127.0.0.1:28420
       LANGFUSE_UI_URL: http://127.0.0.1:28420
       LANGFUSE_PROJECT_ID: millenium
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    profiles: [cloudflare]
+    depends_on:
+      - frontend
+    network_mode: host
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_PRODUCTION_TUNNEL_TOKEN:-}
+    command: ["tunnel", "--no-autoupdate", "run"]
+    restart: unless-stopped
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   qdrant_data:
