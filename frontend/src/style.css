@@ -6,17 +6,15 @@ html,body,#app{height:100%;margin:0}
 button,textarea{font:inherit}
 button{cursor:pointer}
 .shell{display:flex;width:100%;height:100vh;height:100dvh;overflow:hidden}
-.sidebar{width:52px;flex:none;min-height:0;background:#202c29;color:#e8eee9;padding:12px 6px;display:flex;flex-direction:column;overflow:hidden}
-.sidebar--open{width:278px;margin-right:-226px;position:relative;z-index:11;box-shadow:12px 0 30px #101b1740;padding:12px 14px}
-.sidebar-head{display:flex;flex-direction:column;align-items:center;gap:12px}
+.sidebar{display:none;flex:none;min-height:0;background:#202c29;color:#e8eee9;flex-direction:column;overflow:hidden}
+.sidebar--open{display:flex;position:fixed;inset:0 auto 0 0;z-index:11;width:min(278px,calc(100vw - 48px));height:100vh;height:100dvh;padding:12px 14px;box-shadow:12px 0 30px #101b1740}
+.sidebar-head{display:flex;align-items:center;gap:8px;margin-bottom:18px}
 .sidebar-toggle{display:grid;place-items:center;width:40px;height:40px;flex:none;border:0;border-radius:4px;background:transparent;color:#e8eee9;font-size:23px;line-height:1}
 .sidebar-toggle:hover,.sidebar-toggle:focus-visible{background:#354740}
-.sidebar--open .sidebar-head{flex-direction:row;align-items:center;justify-content:flex-start;gap:8px;margin-bottom:18px}
 .sidebar--open .brand{padding:0}
 .sidebar--open .brand strong,.sidebar--open .brand small{display:block}
 .sidebar--open .brand strong{font-size:11px;letter-spacing:.13em}
 .sidebar--open .brand small{font-size:8px;letter-spacing:.1em;color:#b7c4bc;margin-top:4px}
-.sidebar:not(.sidebar--open) .new-question,.sidebar:not(.sidebar--open) .sidebar-scroll,.sidebar:not(.sidebar--open) .sidebar-foot{display:none}
 .sidebar-scrim{position:fixed;inset:0;z-index:10;border:0;background:#14231b99;cursor:default}
 .brand{display:flex;justify-content:center;align-items:center;gap:11px;padding:0}
 .brand-mark{font-family:'Libre Baskerville',serif;display:grid;place-items:center;background:#d4a85c;color:#202c29;width:37px;height:37px;flex:none;font-size:25px}
@@ -43,6 +41,9 @@ button{cursor:pointer}
 .sidebar-foot{display:none}
 .main{min-width:0;min-height:0;flex:1;display:flex;flex-direction:column}
 .topbar{height:54px;flex:none;border-bottom:1px solid #e2dfd4;display:flex;align-items:center;justify-content:space-between;gap:9px;padding:0 14px;font-size:9px;font-weight:700;letter-spacing:.08em;color:#53665a}
+.mobile-menu-toggle{display:grid;place-items:center;flex:none;width:40px;height:40px;border:0;border-radius:4px;background:transparent;color:#314c3c;font-size:23px;line-height:1}
+.mobile-menu-toggle:hover,.mobile-menu-toggle:focus-visible{background:#e7e3d6}
+.topbar-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .status{font-size:10px;letter-spacing:0;color:#627168;white-space:nowrap}
 .status i{display:inline-block;width:7px;height:7px;background:#7b9e67;border-radius:50%;margin-right:5px}
 .content{width:100%;min-height:0;flex:1;overflow-y:auto;overscroll-behavior:contain;padding:26px 17px 36px}
@@ -90,12 +91,9 @@ button{cursor:pointer}
 .form-foot span:last-child{display:none}
 .error{background:#fff3ed;border:1px solid #e3bba9;color:#8e3e2d;border-radius:4px;padding:12px 15px;font-size:12px}
 @media(min-width:751px){
-  .sidebar,.sidebar--open{width:278px;margin-right:0;position:static;z-index:auto;box-shadow:none;padding:28px 19px}
+  .sidebar,.sidebar--open{display:flex;width:278px;height:auto;margin-right:0;position:static;z-index:auto;box-shadow:none;padding:28px 19px}
   .sidebar-head,.sidebar--open .sidebar-head{display:block;margin:0}
-  .sidebar-toggle,.sidebar-scrim{display:none}
-  .sidebar:not(.sidebar--open) .new-question{display:flex}
-  .sidebar:not(.sidebar--open) .sidebar-scroll{display:block}
-  .sidebar:not(.sidebar--open) .sidebar-foot{display:block}
+  .sidebar-toggle,.sidebar-scrim,.mobile-menu-toggle{display:none}
   .brand{justify-content:flex-start;padding:2px 8px 40px}
   .sidebar--open .brand{padding:2px 8px 40px}
   .brand strong,.brand small{display:block}
