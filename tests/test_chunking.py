@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 os.environ["LANGFUSE_TRACING_ENABLED"] = "false"
 
+from app.evaluation import is_explicit_abstention
 from app.indexer import _merge, index_identity
 from app.resolved_config import ResolvedPipelineConfig
 
@@ -41,6 +42,10 @@ class ChunkingChecks(unittest.TestCase):
         for bad in ({"expansion_count": 0}, {"passage_overlap": 1}, {"min_passage_chars": 5000}):
             with self.assertRaises(ValueError):
                 ResolvedPipelineConfig.from_mapping(bad)
+
+    def test_not_found_in_sources_is_an_abstention(self):
+        self.assertTrue(is_explicit_abstention("The information was not found in the sources."))
+        self.assertFalse(is_explicit_abstention("Salander's mother is Agneta Sofia Salander [E5]."))
 
 
 if __name__ == "__main__":

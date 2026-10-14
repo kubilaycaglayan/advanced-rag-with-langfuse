@@ -22,7 +22,8 @@ _ABSTENTION_PATTERN = re.compile(
     r"\b(insufficient|cannot determine|no factual claims|I don't know|could not find|"
     r"not possible to answer|cannot be answered|does not indicate|do not indicate|"
     r"none of (?:the )?(?:provided )?(?:evidence|passages)|no (?:relevant )?evidence|"
-    r"not mentioned in (?:the )?(?:evidence|passages)|does not contain (?:any )?information)\b",
+    r"not mentioned in (?:the )?(?:evidence|passages)|does not contain (?:any )?information|"
+    r"not found in (?:the )?(?:sources|evidence|passages))\b",
     re.I,
 )
 
