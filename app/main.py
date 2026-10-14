@@ -14,7 +14,7 @@ import requests
 from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.responses import Response, StreamingResponse
 from starlette.background import BackgroundTask
-from langfuse import Langfuse, propagate_attributes
+from langfuse import Langfuse, get_client, propagate_attributes
 from pydantic import BaseModel, Field
 from qdrant_client import QdrantClient
 
@@ -25,6 +25,7 @@ try:
     from .observability import observation, update as update_observation
     from .prompt_assets import load_prompt_bundle, prompt_manifests
     from .pipeline import run_pipeline
+    from .pipeline_setup import current_pipeline_setup
     from .resolved_config import ResolvedPipelineConfig, resolve_pipeline_model_identities
 except ImportError:
     from experiment_store import get_execution, initialize
@@ -33,6 +34,7 @@ except ImportError:
     from observability import observation, update as update_observation
     from prompt_assets import load_prompt_bundle, prompt_manifests
     from pipeline import run_pipeline
+    from pipeline_setup import current_pipeline_setup
     from resolved_config import ResolvedPipelineConfig, resolve_pipeline_model_identities
 
 app = FastAPI(title="Millennium RAG Experiment Runner", version="0.2.0")
@@ -60,6 +62,7 @@ class AskRequest(BaseModel):
     collection: str | None = None
     prompt_label: str | None = None
     session_id: str | None = Field(default=None, min_length=1, max_length=200)
+    source: str = Field(default="api", pattern="^(api|frontend)$")
 
 
 class IndexRequest(BaseModel):
@@ -183,11 +186,21 @@ def ask(request: AskRequest) -> dict[str, Any]:
             collection = index_identity(config)[0]
         validate_index(collection, config)
         bundle = load_prompt_bundle(Langfuse(), label=request.prompt_label)
+        prompts = prompt_manifests(bundle)
+        pipeline_id = current_pipeline_setup(config, prompts)["pipeline_id"]
         session_id = request.session_id or "interactive-" + hashlib.sha256(" ".join(request.question.casefold().split()).encode()).hexdigest()[:24]
-        with propagate_attributes(session_id=session_id, environment="default"), observation("rag ask", as_type="span", input={"question": request.question}) as obs:
+        environment = "interactive-ui" if request.source == "frontend" else "default"
+        trace_metadata = {"pipeline_id": pipeline_id, "collection": collection, "source": request.source}
+        trace_metadata.update({f"prompt_{name}": f"{asset['id']}@{asset['version']}:{asset['label']}"
+                               for name, asset in prompts.items()})
+        with propagate_attributes(session_id=session_id, environment=environment, metadata=trace_metadata,
+                                  tags=[f"pipeline:{pipeline_id}"]), observation("rag ask", as_type="span", input={"question": request.question}) as obs:
+            trace_id = get_client().get_current_trace_id()
             result = run_pipeline(request.question, config, collection=collection, prompt_bundle=bundle)
-            result["prompts"] = prompt_manifests(bundle)
+            result["prompts"] = prompts
             result["session_id"] = session_id
+            result["trace_id"] = trace_id
+            result["pipeline_id"] = pipeline_id
             update_observation(obs, output={"answer": result.get("answer"), "citations": result.get("citations")})
             return result
     except ValueError as exc:

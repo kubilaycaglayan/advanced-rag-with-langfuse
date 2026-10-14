@@ -29,6 +29,21 @@ services:
       - ./data:/data
       - model_cache:/model-cache
 
+  frontend:
+    build:
+      context: ./frontend
+    depends_on:
+      - app
+    network_mode: host
+    env_file:
+      - .env
+    environment:
+      FRONTEND_PORT: 43179
+      RAG_API_URL: http://127.0.0.1:8001
+      LANGFUSE_BASE_URL: http://127.0.0.1:28420
+      LANGFUSE_UI_URL: http://127.0.0.1:28420
+      LANGFUSE_PROJECT_ID: millenium
+
 volumes:
   qdrant_data:
   model_cache:

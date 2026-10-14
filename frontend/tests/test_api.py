@@ -1,0 +1,53 @@
+"""Narrow contract check for the interactive API's Langfuse identities."""
+from contextlib import contextmanager, nullcontext
+from datetime import datetime, timezone
+from types import SimpleNamespace
+from unittest import TestCase
+from unittest.mock import patch
+
+from app.main import AskRequest, ask
+from app.experiments import _fingerprints
+from app.pipeline_setup import current_pipeline_setup
+from app.resolved_config import ResolvedPipelineConfig
+
+
+class InteractiveAskContract(TestCase):
+    def test_setup_id_matches_experiment_pipeline_identity(self):
+        config = ResolvedPipelineConfig()
+        prompts = {"rag-answer": {"id": "prompt-1", "version": 2, "label": "production"}}
+        model = SimpleNamespace(name="qwen3:8b", digest="digest")
+        with patch("app.experiments.resolve_ollama_model", return_value=model), \
+             patch("app.pipeline_setup.resolve_ollama_model", return_value=model):
+            interactive = current_pipeline_setup(config, prompts)
+            experiment, _, _ = _fingerprints(config, datetime.now(timezone.utc), prompts, {})
+        self.assertEqual(interactive["pipeline_id"], experiment["pipeline_id"])
+
+    def test_frontend_ask_returns_trace_and_pipeline_and_sets_environment(self):
+        attributes = []
+
+        @contextmanager
+        def propagate(**kwargs):
+            attributes.append(kwargs)
+            yield
+
+        prompts = {"rag-answer": {"id": "prompt-1", "version": 2, "label": "production"}}
+        client = SimpleNamespace(get_current_trace_id=lambda: "a" * 32)
+        with patch("app.main.resolve_pipeline_model_identities", side_effect=lambda config: config), \
+             patch("app.main.index_identity", return_value=("collection", None, None, None)), \
+             patch("app.main.validate_index"), \
+             patch("app.main.Langfuse"), \
+             patch("app.main.load_prompt_bundle", return_value={}), \
+             patch("app.main.prompt_manifests", return_value=prompts), \
+             patch("app.main.current_pipeline_setup", return_value={"pipeline_id": "pipeline-123"}), \
+             patch("app.main.propagate_attributes", side_effect=propagate), \
+             patch("app.main.observation", return_value=nullcontext(None)), \
+             patch("app.main.get_client", return_value=client), \
+             patch("app.main.run_pipeline", return_value={"answer": "A [E1]", "citations": ["[E1]"]}):
+            result = ask(AskRequest(question="Who?", source="frontend", session_id="interactive-ui-browser"))
+
+        self.assertEqual(result["trace_id"], "a" * 32)
+        self.assertEqual(result["pipeline_id"], "pipeline-123")
+        self.assertEqual(attributes[0]["environment"], "interactive-ui")
+        self.assertEqual(attributes[0]["session_id"], "interactive-ui-browser")
+        self.assertEqual(attributes[0]["metadata"]["pipeline_id"], "pipeline-123")
+        self.assertIn("pipeline:pipeline-123", attributes[0]["tags"])

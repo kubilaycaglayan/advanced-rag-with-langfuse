@@ -1,0 +1,73 @@
+import assert from 'node:assert/strict'
+import { after, before, test } from 'node:test'
+import { createApp, citedSources } from '../server.js'
+
+let server
+let base
+const calls = []
+const sessionId = 'interactive-ui-12345678-1234-4123-8123-123456789abc'
+const traceId = 'a'.repeat(32)
+
+before(async () => {
+  const app = createApp({ fetcher: async (url, options) => {
+    calls.push({ url, options })
+    if (url.endsWith('/ask')) return new Response(JSON.stringify({ answer: 'Answer [E2]', citations: ['[E2]'],
+      reranked: [{ book: 'One', text: 'first' }, { book: 'Two', chapter: 'Chapter 2', paragraph: 8, text: 'second' }],
+      trace_id: traceId, pipeline_id: 'pipeline-123', latency_seconds: 3.4 }), { status: 200 })
+    if (url.includes('/v2/observations?')) return new Response(JSON.stringify({ data: [{ isRootObservation: true, name: 'rag ask', sessionId, environment: 'interactive-ui' }] }), { status: 200 })
+    if (url.endsWith('/scores')) return new Response(JSON.stringify({ id: 'score-1' }), { status: 200 })
+    return new Response('{}', { status: 404 })
+  } })
+  await new Promise(resolve => { server = app.listen(0, resolve) })
+  base = `http://127.0.0.1:${server.address().port}`
+})
+after(() => server?.close())
+
+test('maps only cited passages, keeping citation order', () => {
+  assert.deepEqual(citedSources({ citations: ['[E2]'], reranked: [{ text: 'first' }, { book: 'Two', text: 'second' }] }),
+    [{ label: '[E2]', book: 'Two', chapter: null, page: null, paragraph: null, text: 'second' }])
+})
+
+test('passes a stable browser session to the pipeline and returns trace identity', async () => {
+  const first = await fetch(`${base}/api/ask`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ question: 'Who is Salander?' }) })
+  assert.equal(first.status, 200)
+  const cookie = first.headers.get('set-cookie')
+  assert.match(cookie, /HttpOnly/i)
+  assert.match(cookie, /SameSite=Lax/i)
+  const body = await first.json()
+  assert.equal(body.pipelineId, 'pipeline-123')
+  assert.equal(body.traceId, traceId)
+  assert.equal(body.sources.length, 1)
+  const second = await fetch(`${base}/api/ask`, { method: 'POST', headers: { 'Content-Type': 'application/json', Cookie: cookie }, body: JSON.stringify({ question: 'And Mikael?' }) })
+  assert.equal(second.status, 200)
+  const sent = calls.filter(call => call.url.endsWith('/ask')).map(call => JSON.parse(call.options.body))
+  assert.equal(sent[0].session_id, sent[1].session_id)
+  assert.equal(sent[0].source, 'frontend')
+})
+
+test('rejects invalid feedback before contacting Langfuse', async () => {
+  const beforeCount = calls.length
+  const response = await fetch(`${base}/api/feedback`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ traceId, helpful: true }) })
+  assert.equal(response.status, 400)
+  assert.equal(calls.length, beforeCount)
+})
+
+test('links helpfulness feedback to an owned trace in the UI environment', async () => {
+  process.env.LANGFUSE_PUBLIC_KEY = 'test-public'
+  process.env.LANGFUSE_SECRET_KEY = 'test-secret'
+  try {
+    const response = await fetch(`${base}/api/feedback`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', Cookie: `millennium_session=${sessionId}` },
+      body: JSON.stringify({ traceId, helpful: false }),
+    })
+    assert.equal(response.status, 200)
+    const sent = JSON.parse(calls.findLast(call => call.url.endsWith('/scores')).options.body)
+    assert.equal(sent.traceId, traceId)
+    assert.equal(sent.value, 0)
+    assert.equal(sent.dataType, 'BOOLEAN')
+    assert.equal(sent.environment, 'interactive-ui')
+  } finally {
+    delete process.env.LANGFUSE_PUBLIC_KEY
+    delete process.env.LANGFUSE_SECRET_KEY
+  }
+})
