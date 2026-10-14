@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { after, before, test } from 'node:test'
-import { createApp, citedSources } from '../server.js'
+import { createApp, citedSources, clientIp } from '../server.js'
 
 let server
 let base
@@ -28,8 +28,14 @@ test('maps only cited passages, keeping citation order', () => {
     [{ label: '[E2]', book: 'Two', chapter: null, page: null, paragraph: null, text: 'second' }])
 })
 
+test('normalizes the connection IP without trusting forwarding headers', () => {
+  assert.equal(clientIp({ socket: { remoteAddress: '::ffff:192.0.2.12' }, headers: { 'x-forwarded-for': '198.51.100.9' } }), '192.0.2.12')
+  assert.equal(clientIp({ socket: { remoteAddress: '2001:db8::1' } }), '2001:db8::1')
+  assert.equal(clientIp({ socket: { remoteAddress: 'not-an-ip' } }), null)
+})
+
 test('passes a stable browser session to the pipeline and returns trace identity', async () => {
-  const first = await fetch(`${base}/api/ask`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ question: 'Who is Salander?' }) })
+  const first = await fetch(`${base}/api/ask`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Forwarded-For': '198.51.100.9' }, body: JSON.stringify({ question: 'Who is Salander?' }) })
   assert.equal(first.status, 200)
   const cookie = first.headers.get('set-cookie')
   assert.match(cookie, /HttpOnly/i)
@@ -43,6 +49,43 @@ test('passes a stable browser session to the pipeline and returns trace identity
   const sent = calls.filter(call => call.url.endsWith('/ask')).map(call => JSON.parse(call.options.body))
   assert.equal(sent[0].session_id, sent[1].session_id)
   assert.equal(sent[0].source, 'frontend')
+  assert.equal(sent[0].client_ip, '127.0.0.1')
+})
+
+test('production allows one active question per IP and releases the slot after completion or failure', async () => {
+  let releaseFirst
+  let signalStarted
+  const firstStarted = new Promise(resolve => { signalStarted = resolve })
+  let upstreamCalls = 0
+  const app = createApp({ production: true, fetcher: async () => {
+    upstreamCalls++
+    if (upstreamCalls === 1) {
+      signalStarted()
+      return new Promise(resolve => { releaseFirst = resolve })
+    }
+    if (upstreamCalls === 2) throw new Error('upstream unavailable')
+    return new Response(JSON.stringify({ answer: 'Ready' }), { status: 200 })
+  } })
+  const limitedServer = app.listen(0)
+  await new Promise(resolve => limitedServer.once('listening', resolve))
+  const url = `http://127.0.0.1:${limitedServer.address().port}/api/ask`
+  const ask = () => fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ question: 'Who?' }) })
+  try {
+    const first = ask()
+    await firstStarted
+    const blocked = await ask()
+    assert.equal(blocked.status, 429)
+    assert.match((await blocked.json()).error, /already in progress/)
+    assert.equal(upstreamCalls, 1)
+    releaseFirst(new Response(JSON.stringify({ answer: 'First' }), { status: 200 }))
+    assert.equal((await first).status, 200)
+    assert.equal((await ask()).status, 502)
+    assert.equal((await ask()).status, 200)
+    assert.equal(upstreamCalls, 3)
+  } finally {
+    releaseFirst?.(new Response('{}', { status: 200 }))
+    limitedServer.close()
+  }
 })
 
 test('rejects invalid feedback before contacting Langfuse', async () => {

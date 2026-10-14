@@ -10,4 +10,8 @@ For Docker, run `docker compose up -d --build --no-deps frontend` from the repos
 
 Interactive questions and feedback use the Langfuse `interactive-ui` environment. The Python `/ask` endpoint supplies exact trace and pipeline IDs. The frontend server listens on `FRONTEND_PORT` (default `43179`).
 
+Interactive question traces store the connecting client's IP address as `clientIp` metadata on the root “rag ask” observation. The frontend uses the direct connection address; if deployed behind a reverse proxy, this will be the proxy's IP address. Browser-supplied forwarding headers are ignored.
+
+In production (`NODE_ENV=production`), the frontend allows one active `/api/ask` request per connection IP and returns HTTP 429 for another request until the first finishes. This limit is held in the frontend process; deployments with multiple frontend instances need a shared limiter. The Docker Compose app API listens on loopback so remote clients cannot bypass the frontend limit by calling `/ask` directly.
+
 “View trace” opens a panel in the app with the question's Langfuse observation timeline. Trace details are available only to the browser session that asked the question, so the Langfuse UI does not need to be reachable from the browser.

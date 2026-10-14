@@ -2,6 +2,7 @@ import express from 'express'
 import { createHash, randomUUID } from 'node:crypto'
 import { fileURLToPath } from 'node:url'
 import { dirname, join, resolve } from 'node:path'
+import { isIP } from 'node:net'
 
 const root = dirname(fileURLToPath(import.meta.url))
 const dev = process.argv.includes('--dev')
@@ -33,6 +34,12 @@ function authHeader() {
   return `Basic ${Buffer.from(`${publicKey}:${secretKey}`).toString('base64')}`
 }
 
+export function clientIp(req) {
+  const address = req.socket.remoteAddress || ''
+  const normalized = address.startsWith('::ffff:') ? address.slice(7) : address
+  return isIP(normalized) ? normalized : null
+}
+
 async function jsonResponse(response) {
   const raw = await response.text()
   try { return JSON.parse(raw) } catch { return {} }
@@ -53,19 +60,25 @@ function scoreId(traceId, sessionId) {
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-4${hex.slice(13, 16)}-a${hex.slice(17, 20)}-${hex.slice(20, 32)}`
 }
 
-export function createApp({ fetcher = fetch } = {}) {
+export function createApp({ fetcher = fetch, production = process.env.NODE_ENV === 'production' } = {}) {
   const app = express()
+  const activeAskIps = new Set()
   app.disable('x-powered-by')
   app.use(express.json({ limit: '8kb' }))
 
   app.post('/api/ask', async (req, res) => {
     const question = typeof req.body?.question === 'string' ? req.body.question.trim() : ''
     if (!question || question.length > 2000) return res.status(400).json({ error: 'Enter a question of up to 2,000 characters.' })
-    const sessionId = sessionFor(req, res)
+    const ip = clientIp(req) || 'unknown'
+    if (production && activeAskIps.has(ip)) {
+      return res.status(429).json({ error: 'A question from this IP address is already in progress. Please try again when it finishes.' })
+    }
+    if (production) activeAskIps.add(ip)
     try {
+      const sessionId = sessionFor(req, res)
       const upstream = await fetcher(`${ragUrl}/ask`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question, session_id: sessionId, source: 'frontend' }),
+        body: JSON.stringify({ question, session_id: sessionId, source: 'frontend', client_ip: ip === 'unknown' ? null : ip }),
         signal: AbortSignal.timeout(960_000),
       })
       const result = await jsonResponse(upstream)
@@ -76,6 +89,8 @@ export function createApp({ fetcher = fetch } = {}) {
         pipelineId: result.pipeline_id || null, pipelineSeconds: result.latency_seconds ?? null })
     } catch (error) {
       res.status(502).json({ error: error?.name === 'TimeoutError' ? 'The answer took too long. Please try again.' : 'The answer service is unavailable.' })
+    } finally {
+      if (production) activeAskIps.delete(ip)
     }
   })
 

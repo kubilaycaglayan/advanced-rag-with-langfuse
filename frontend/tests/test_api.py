@@ -24,11 +24,16 @@ class InteractiveAskContract(TestCase):
 
     def test_frontend_ask_returns_trace_and_pipeline_and_sets_environment(self):
         attributes = []
+        observations = []
 
         @contextmanager
         def propagate(**kwargs):
             attributes.append(kwargs)
             yield
+
+        def observe(*args, **kwargs):
+            observations.append(kwargs)
+            return nullcontext(None)
 
         prompts = {"rag-answer": {"id": "prompt-1", "version": 2, "label": "production"}}
         client = SimpleNamespace(get_current_trace_id=lambda: "a" * 32)
@@ -40,10 +45,11 @@ class InteractiveAskContract(TestCase):
              patch("app.main.prompt_manifests", return_value=prompts), \
              patch("app.main.current_pipeline_setup", return_value={"pipeline_id": "pipeline-123"}), \
              patch("app.main.propagate_attributes", side_effect=propagate), \
-             patch("app.main.observation", return_value=nullcontext(None)), \
+             patch("app.main.observation", side_effect=observe), \
              patch("app.main.get_client", return_value=client), \
              patch("app.main.run_pipeline", return_value={"answer": "A [E1]", "citations": ["[E1]"]}):
-            result = ask(AskRequest(question="Who?", source="frontend", session_id="interactive-ui-browser"))
+            result = ask(AskRequest(question="Who?", source="frontend", session_id="interactive-ui-browser", client_ip="192.0.2.12"))
+            ask(AskRequest(question="Who?", source="api", client_ip="192.0.2.12"))
 
         self.assertEqual(result["trace_id"], "a" * 32)
         self.assertEqual(result["pipeline_id"], "pipeline-123")
@@ -51,3 +57,5 @@ class InteractiveAskContract(TestCase):
         self.assertEqual(attributes[0]["session_id"], "interactive-ui-browser")
         self.assertEqual(attributes[0]["metadata"]["pipeline_id"], "pipeline-123")
         self.assertIn("pipeline:pipeline-123", attributes[0]["tags"])
+        self.assertEqual(observations[0]["metadata"], {"clientIp": "192.0.2.12"})
+        self.assertIsNone(observations[1]["metadata"])

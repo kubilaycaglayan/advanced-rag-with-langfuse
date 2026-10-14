@@ -23,7 +23,7 @@ services:
       EXPERIMENT_DATA_DIR: /data
       CORPUS_DIR: /corpus
       HF_HOME: /model-cache
-    command: ["uvicorn", "main:app", "--app-dir", "app", "--host", "0.0.0.0", "--port", "8001"]
+    command: ["uvicorn", "main:app", "--app-dir", "app", "--host", "127.0.0.1", "--port", "8001"]
     volumes:
       - ./corpus:/corpus:ro
       - ./data:/data

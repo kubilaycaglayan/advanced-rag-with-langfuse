@@ -77,7 +77,7 @@ docker compose up --build -d
 Build the default index once. Each indexing configuration receives its own content-addressed Qdrant collection; the manifest and point counts are stored in `data/experiments.sqlite3`.
 
 ```bash
-curl -sS -X POST http://172.18.0.1:8001/index \
+curl -sS -X POST http://127.0.0.1:8001/index \
   -H 'Content-Type: application/json' -d '{}'
 ```
 
@@ -86,7 +86,7 @@ An interrupted or failed index is left incomplete and will not be silently reuse
 Ask one interactive question through the shared pipeline:
 
 ```bash
-curl -sS -X POST http://172.18.0.1:8001/ask \
+curl -sS -X POST http://127.0.0.1:8001/ask \
   -H 'Content-Type: application/json' \
   -d '{"question":"Did Salander and Mikael have affair?"}'
 ```
@@ -140,7 +140,7 @@ Acceptance checks are classified as mocked automated, live-service integration, 
 | Failure matrix: unavailable Ollama, malformed judge JSON, empty retrieval, invalid citations, partial item failure, telemetry failure, duplicate trigger, worker restart | Mocked automated + live-service integration | Fault injection for each dependency; running queue worker | Passed for all listed cases. Live unavailable generation, evaluator outage, malformed judge JSON, empty retrieval, invalid citation labels, mixed-success item failure, failed trace export, duplicate callback delivery, and worker restart each produced the intended distinct status/artifact. The latest invalid-citation run (`e5ab78dd-efd9-419f-9806-9035c7601a4e`) also verified the deterministic zero score and its linked evaluator observation through the API (`data/comparisons/stage3-invalid-citation-regression.json`). Per-case execution IDs, errors, scores, and run links are in `data/comparisons/stage3-*.json`; the 17-test mocked suite covers failure categorization and worker queue lifecycle. |
 | Per-question comparison across experiments and session trace inspection | Live-service integration + manual UI | At least two runs on the same dataset version | API verified for item `02ad392b-b200-58ce-a96d-f7cd57a5a252`: its 1200 and 600 runs have distinct trace IDs, share the same session, and each expose 13 observations including retrieval, generation, evaluator spans, pipeline/evaluator IDs, dataset version, and managed prompt/evaluator versions. Per-item score/rationale comparisons are in `data/comparisons/stage3-passage-size.json`. The Langfuse UI comparison at `/project/millenium/experiments/results?baseline=d310a89546c94498&c=ae099e92677d1057` displays the 1200 and 600 runs side by side for each question; the first page showed 20 of 35 rows and summary averages. Screenshot: `data/comparisons/stage3-ui-passage-comparison.png`. |
 
-This checkout publishes its app on host port `8001` because port `8000` is already used by the reference app in this environment. The Langfuse UI callback proxy is restricted to the `172.18.0.1` Docker bridge address and forwards only the experiment POST path. After network or deployment changes, verify the bridge and allowlist before enabling the trigger.
+This checkout runs its app on host loopback port `8001` because port `8000` is already used by the reference app in this environment. Remote browser requests must use the frontend on port `43179`; the app API is not exposed remotely. The Langfuse UI callback proxy is restricted to the `172.18.0.1` Docker bridge address and forwards only the experiment POST path to `127.0.0.1:8001`. After network or deployment changes, verify the bridge and allowlist before enabling the trigger.
 
 ## Inputs and reference material
 

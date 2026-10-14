@@ -15,7 +15,7 @@ from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.responses import Response, StreamingResponse
 from starlette.background import BackgroundTask
 from langfuse import Langfuse, get_client, propagate_attributes
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, IPvAnyAddress
 from qdrant_client import QdrantClient
 
 try:
@@ -63,6 +63,7 @@ class AskRequest(BaseModel):
     prompt_label: str | None = None
     session_id: str | None = Field(default=None, min_length=1, max_length=200)
     source: str = Field(default="api", pattern="^(api|frontend)$")
+    client_ip: IPvAnyAddress | None = None
 
 
 class IndexRequest(BaseModel):
@@ -193,8 +194,11 @@ def ask(request: AskRequest) -> dict[str, Any]:
         trace_metadata = {"pipeline_id": pipeline_id, "collection": collection, "source": request.source}
         trace_metadata.update({f"prompt_{name}": f"{asset['id']}@{asset['version']}:{asset['label']}"
                                for name, asset in prompts.items()})
+        root_metadata = {"clientIp": str(request.client_ip)} if request.source == "frontend" and request.client_ip else None
         with propagate_attributes(session_id=session_id, environment=environment, metadata=trace_metadata,
-                                  tags=[f"pipeline:{pipeline_id}"]), observation("rag ask", as_type="span", input={"question": request.question}) as obs:
+                                  tags=[f"pipeline:{pipeline_id}"]), observation("rag ask", as_type="span",
+                                                                                   input={"question": request.question},
+                                                                                   metadata=root_metadata) as obs:
             trace_id = get_client().get_current_trace_id()
             result = run_pipeline(request.question, config, collection=collection, prompt_bundle=bundle)
             result["prompts"] = prompts
