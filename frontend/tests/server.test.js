@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { after, before, test } from 'node:test'
-import { createApp, citedSources, clientIp } from '../server.js'
+import { createApp, citedSources, clientIp, quotaMessage } from '../server.js'
 
 let server
 let base
@@ -32,6 +32,14 @@ test('normalizes the connection IP without trusting forwarding headers', () => {
   assert.equal(clientIp({ socket: { remoteAddress: '::ffff:192.0.2.12' }, headers: { 'x-forwarded-for': '198.51.100.9' } }), '192.0.2.12')
   assert.equal(clientIp({ socket: { remoteAddress: '2001:db8::1' } }), '2001:db8::1')
   assert.equal(clientIp({ socket: { remoteAddress: 'not-an-ip' } }), null)
+})
+
+test('explains quota wait times in plain language', () => {
+  assert.equal(quotaMessage('45'), "You've reached the question limit. Please try again in about 45 seconds.")
+  assert.equal(quotaMessage('60'), "You've reached the question limit. Please try again in about 1 minute.")
+  assert.equal(quotaMessage('3600'), "You've reached the question limit. Please try again in about 1 hour.")
+  assert.equal(quotaMessage('81000'), "You've reached the question limit. Please try again in about 23 hours.")
+  assert.equal(quotaMessage('invalid'), "You've reached the question limit. Please try again later.")
 })
 
 test('passes a stable browser session to the pipeline and returns trace identity', async () => {
@@ -130,7 +138,7 @@ test('forwards the upstream quota response and Retry-After header', async () => 
     })
     assert.equal(response.status, 429)
     assert.equal(response.headers.get('retry-after'), '60')
-    assert.equal((await response.json()).error, 'Question limit reached.')
+    assert.equal((await response.json()).error, "You've reached the question limit. Please try again in about 1 minute.")
   } finally {
     quotaServer.close()
   }

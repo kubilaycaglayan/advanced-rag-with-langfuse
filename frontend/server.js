@@ -59,6 +59,16 @@ export function citedSources(result) {
   })
 }
 
+export function quotaMessage(retryAfter) {
+  const seconds = Number(retryAfter)
+  if (!Number.isFinite(seconds) || seconds <= 0) return "You've reached the question limit. Please try again later."
+  const [count, unit] = seconds < 60 ? [Math.ceil(seconds), 'second']
+    : seconds < 3600 ? [Math.ceil(seconds / 60), 'minute']
+      : seconds < 86400 ? [Math.ceil(seconds / 3600), 'hour']
+        : [Math.ceil(seconds / 86400), 'day']
+  return `You've reached the question limit. Please try again in about ${count} ${unit}${count === 1 ? '' : 's'}.`
+}
+
 function scoreId(traceId, sessionId) {
   const hex = createHash('sha256').update(`user-helpfulness:${traceId}:${sessionId}`).digest('hex')
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-4${hex.slice(13, 16)}-a${hex.slice(17, 20)}-${hex.slice(20, 32)}`
@@ -89,7 +99,11 @@ export function createApp({ fetcher = fetch, production = process.env.NODE_ENV =
       })
       const result = await jsonResponse(upstream)
       if (!upstream.ok) {
-        if (upstream.status === 429 && upstream.headers.get('retry-after')) res.set('Retry-After', upstream.headers.get('retry-after'))
+        const retryAfter = upstream.headers.get('retry-after')
+        if (upstream.status === 429 && retryAfter) {
+          res.set('Retry-After', retryAfter)
+          return res.status(429).json({ error: quotaMessage(retryAfter) })
+        }
         return res.status(upstream.status >= 500 ? 502 : upstream.status).json({ error: typeof result.detail === 'string' ? result.detail : 'The pipeline could not answer this question.' })
       }
       const traceId = typeof result.trace_id === 'string' ? result.trace_id : null
