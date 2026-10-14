@@ -71,3 +71,26 @@ test('links helpfulness feedback to an owned trace in the UI environment', async
     delete process.env.LANGFUSE_SECRET_KEY
   }
 })
+
+test('shows trace steps only to the browser session that created the trace', async () => {
+  process.env.LANGFUSE_PUBLIC_KEY = 'test-public'
+  process.env.LANGFUSE_SECRET_KEY = 'test-secret'
+  try {
+    const own = await fetch(`${base}/api/trace/${traceId}`, {
+      headers: { Cookie: `millennium_session=${sessionId}` },
+    })
+    assert.equal(own.status, 200)
+    const body = await own.json()
+    assert.equal(body.traceId, traceId)
+    assert.equal(body.observations[0].name, 'rag ask')
+    assert.equal(body.observations[0].sessionId, undefined)
+
+    const other = await fetch(`${base}/api/trace/${traceId}`, {
+      headers: { Cookie: 'millennium_session=interactive-ui-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' },
+    })
+    assert.equal(other.status, 403)
+  } finally {
+    delete process.env.LANGFUSE_PUBLIC_KEY
+    delete process.env.LANGFUSE_SECRET_KEY
+  }
+})
