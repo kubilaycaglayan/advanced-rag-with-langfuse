@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from pathlib import Path
 import subprocess
 import unicodedata
@@ -20,6 +21,9 @@ PIPELINE_SOURCE_PATHS = (
 )
 PIPELINE_SOURCE_FILES = (
     "app/requirements.txt",
+    "Dockerfile",
+    "compose.yaml",
+    ".dockerignore",
 )
 PIPELINE_SOURCE_EXCLUDES = (
     ".env and other dot-env files",
@@ -136,12 +140,24 @@ def source_manifest(repo_root: str) -> dict[str, Any]:
     """Fingerprint pipeline code/config files, including tracked and untracked edits."""
     root = str(repo_root)
     pathspecs = [*PIPELINE_SOURCE_PATHS, *PIPELINE_SOURCE_FILES]
-    listed = subprocess.run(
-        ["git", "-C", root, "ls-files", "--cached", "--others", "--exclude-standard", "-z", "--", *pathspecs],
-        check=True,
-        capture_output=True,
-    ).stdout.split(b"\0")
-    relative_paths = sorted({entry.decode("utf-8") for entry in listed if entry})
+    is_git_checkout = (Path(root) / ".git").exists()
+    if is_git_checkout:
+        listed = subprocess.run(
+            ["git", "-C", root, "ls-files", "--cached", "--others", "--exclude-standard", "-z", "--", *pathspecs],
+            check=True,
+            capture_output=True,
+        ).stdout.split(b"\0")
+        relative_paths = {entry.decode("utf-8") for entry in listed if entry}
+    else:
+        relative_paths: set[str] = set()
+        for pathspec in PIPELINE_SOURCE_PATHS:
+            candidate = Path(root, pathspec)
+            if candidate.is_dir():
+                relative_paths.update(str(path.relative_to(root)) for path in candidate.rglob("*"))
+            elif candidate.is_file():
+                relative_paths.add(pathspec)
+        relative_paths.update(path for path in PIPELINE_SOURCE_FILES if Path(root, path).is_file())
+    relative_paths = sorted(relative_paths)
     files: list[dict[str, str]] = []
     for relative in relative_paths:
         path = Path(root, relative)
@@ -158,22 +174,19 @@ def source_manifest(repo_root: str) -> dict[str, Any]:
             "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
         })
 
-    status = subprocess.run(
-        ["git", "-C", root, "status", "--porcelain", "--", *pathspecs],
-        check=True,
-        capture_output=True,
-        text=True,
-    ).stdout
-    revision = subprocess.run(
-        ["git", "-C", root, "rev-parse", "HEAD"],
-        check=True,
-        capture_output=True,
-        text=True,
-    ).stdout.strip()
+    if is_git_checkout:
+        status = subprocess.run(["git", "-C", root, "status", "--porcelain", "--", *pathspecs], check=True,
+                                capture_output=True, text=True).stdout
+        revision = subprocess.run(["git", "-C", root, "rev-parse", "HEAD"], check=True,
+                                  capture_output=True, text=True).stdout.strip()
+        dirty = bool(status.strip())
+    else:
+        revision = os.getenv("GIT_REVISION", "unavailable")
+        dirty = True
     fingerprint = hashlib.sha256(canonical_json(files).encode("utf-8")).hexdigest()
     return {
         "git_revision": revision,
-        "dirty": bool(status.strip()),
+        "dirty": dirty,
         "source_fingerprint": fingerprint,
         "included_paths": [*PIPELINE_SOURCE_PATHS, *PIPELINE_SOURCE_FILES],
         "excluded_patterns": list(PIPELINE_SOURCE_EXCLUDES),

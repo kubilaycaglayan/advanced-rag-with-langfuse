@@ -1,0 +1,34 @@
+services:
+  qdrant:
+    image: qdrant/qdrant:v1.15.1
+    ports:
+      - "6334:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+  app:
+    build:
+      context: .
+      args:
+        GIT_REVISION: ${GIT_REVISION:-unknown}
+    depends_on:
+      - qdrant
+    network_mode: host
+    env_file:
+      - .env
+    environment:
+      QDRANT_URL: http://127.0.0.1:6334
+      OLLAMA_URL: http://127.0.0.1:11434
+      LANGFUSE_BASE_URL: http://127.0.0.1:28420
+      EXPERIMENT_DATA_DIR: /data
+      CORPUS_DIR: /corpus
+      HF_HOME: /model-cache
+    command: ["uvicorn", "main:app", "--app-dir", "app", "--host", "0.0.0.0", "--port", "8001"]
+    volumes:
+      - ./corpus:/corpus:ro
+      - ./data:/data
+      - model_cache:/model-cache
+
+volumes:
+  qdrant_data:
+  model_cache:

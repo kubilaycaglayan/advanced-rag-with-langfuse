@@ -6,3 +6,5 @@
 /outputs/
 /corpus/
 /LANGFUSE_INTEGRATION_PLAN.md
+**/__pycache__/
+*.py[cod]
