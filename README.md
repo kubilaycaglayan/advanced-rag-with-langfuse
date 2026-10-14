@@ -29,7 +29,7 @@ The two evaluator definitions and the typed pipeline configuration/identity help
 
 ## Callback routing
 
-The current Langfuse Docker web container reached the host RAG API through `http://172.18.0.1:8000`. After stage 2 adds the async trigger endpoint, configure the remote experiment URL as `http://172.18.0.1:8000/experiments/run`, with the shared trigger token in a custom header and request signing enabled if available. This gateway is specific to the current Docker network and must be rechecked after deployment changes. UI trigger setup and end-to-end acknowledgement remain pending until the endpoint is implemented and project access is valid.
+The current Langfuse Docker web and worker containers reached the host API through `http://172.18.0.1:8000`. After stage 2 adds the async trigger endpoint, configure the remote experiment URL as `http://172.18.0.1:8000/experiments/run`, send the shared token in `X-Experiment-Trigger-Token`, and enable Langfuse request signing if available (the SDK endpoint should verify `x-langfuse-signature`). This gateway is specific to the current Docker network and must be rechecked after deployment changes. UI trigger setup and end-to-end acknowledgement remain pending until the endpoint is implemented and project access is valid.
 
 ## Inputs and reference material
 
