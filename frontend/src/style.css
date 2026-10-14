@@ -6,21 +6,39 @@ html,body,#app{height:100%;margin:0}
 button,textarea{font:inherit}
 button{cursor:pointer}
 .shell{display:flex;width:100%;height:100vh;height:100dvh;overflow:hidden}
-.sidebar{width:104px;flex:none;min-height:0;background:#202c29;color:#e8eee9;padding:16px 9px;display:flex;flex-direction:column;overflow:hidden}
-.brand{display:flex;justify-content:center;align-items:center;gap:11px;padding:0 0 20px}
+.sidebar{width:52px;flex:none;min-height:0;background:#202c29;color:#e8eee9;padding:12px 6px;display:flex;flex-direction:column;overflow:hidden}
+.sidebar--open{width:278px;margin-right:-226px;position:relative;z-index:11;box-shadow:12px 0 30px #101b1740;padding:12px 14px}
+.sidebar-head{display:flex;flex-direction:column;align-items:center;gap:12px}
+.sidebar-toggle{display:grid;place-items:center;width:40px;height:40px;flex:none;border:0;border-radius:4px;background:transparent;color:#e8eee9;font-size:23px;line-height:1}
+.sidebar-toggle:hover,.sidebar-toggle:focus-visible{background:#354740}
+.sidebar--open .sidebar-head{flex-direction:row;align-items:center;justify-content:flex-start;gap:8px;margin-bottom:18px}
+.sidebar--open .brand{padding:0}
+.sidebar--open .brand strong,.sidebar--open .brand small{display:block}
+.sidebar--open .brand strong{font-size:11px;letter-spacing:.13em}
+.sidebar--open .brand small{font-size:8px;letter-spacing:.1em;color:#b7c4bc;margin-top:4px}
+.sidebar:not(.sidebar--open) .new-question,.sidebar:not(.sidebar--open) .sidebar-scroll,.sidebar:not(.sidebar--open) .sidebar-foot{display:none}
+.sidebar-scrim{position:fixed;inset:0;z-index:10;border:0;background:#14231b99;cursor:default}
+.brand{display:flex;justify-content:center;align-items:center;gap:11px;padding:0}
 .brand-mark{font-family:'Libre Baskerville',serif;display:grid;place-items:center;background:#d4a85c;color:#202c29;width:37px;height:37px;flex:none;font-size:25px}
 .brand strong,.brand small{display:none}
 .new-question{display:flex;align-items:center;justify-content:center;gap:7px;background:#d4a85c;border:0;color:#17211d;padding:11px 5px;border-radius:5px;font-weight:700}
 .new-question:hover{background:#e2bb76}
 .new-question-label{font-size:10px;line-height:1.2}
+.sidebar--open .new-question{justify-content:flex-start;padding:12px 15px}
+.sidebar--open .new-question-label{font-size:13px}
 .sidebar-scroll{min-height:0;flex:1;overflow-y:auto;overscroll-behavior:contain;margin-top:20px;scrollbar-width:thin}
+.sidebar--open .sidebar-scroll{margin-top:22px}
 .history-heading{display:flex;flex-direction:column;align-items:flex-start;gap:6px;margin:0 3px 9px;color:#a8b8af;font-size:9px;font-weight:700;letter-spacing:.08em}
 .history-heading button{background:none;color:#b7c4bc;border:0;padding:0;font-size:11px;letter-spacing:0}
 .history-heading button:hover{color:#fff}
+.sidebar--open .history-heading{flex-direction:row;justify-content:space-between;align-items:center;margin:0 8px 12px;font-size:10px;letter-spacing:.14em}
 .history-item{width:100%;border:0;border-radius:4px;background:transparent;color:#e6ebe7;padding:10px 7px;text-align:left;margin:2px 0}
 .history-item:hover,.history-item.active{background:#354740}
 .history-item span{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere;font-size:11px;line-height:1.35}
 .history-item small{color:#abb9b0;font-size:9px;display:block;margin-top:5px;line-height:1.3}
+.sidebar--open .history-item{padding:12px}
+.sidebar--open .history-item span{font-size:13px;-webkit-line-clamp:2}
+.sidebar--open .history-item small{font-size:10px}
 .empty-history,.sidebar-foot{color:#a9b8ad;font-size:11px;line-height:1.5;padding:0 4px;overflow-wrap:anywhere}
 .sidebar-foot{display:none}
 .main{min-width:0;min-height:0;flex:1;display:flex;flex-direction:column}
@@ -72,14 +90,24 @@ button{cursor:pointer}
 .form-foot span:last-child{display:none}
 .error{background:#fff3ed;border:1px solid #e3bba9;color:#8e3e2d;border-radius:4px;padding:12px 15px;font-size:12px}
 @media(min-width:751px){
-  .sidebar{width:278px;padding:28px 19px}
+  .sidebar,.sidebar--open{width:278px;margin-right:0;position:static;z-index:auto;box-shadow:none;padding:28px 19px}
+  .sidebar-head,.sidebar--open .sidebar-head{display:block;margin:0}
+  .sidebar-toggle,.sidebar-scrim{display:none}
+  .sidebar:not(.sidebar--open) .new-question{display:flex}
+  .sidebar:not(.sidebar--open) .sidebar-scroll{display:block}
+  .sidebar:not(.sidebar--open) .sidebar-foot{display:block}
   .brand{justify-content:flex-start;padding:2px 8px 40px}
+  .sidebar--open .brand{padding:2px 8px 40px}
   .brand strong,.brand small{display:block}
   .brand strong{font-size:12px;letter-spacing:.18em}
   .brand small{font-size:9px;letter-spacing:.15em;color:#b7c4bc;margin-top:4px}
+  .sidebar--open .brand strong{font-size:12px;letter-spacing:.18em}
+  .sidebar--open .brand small{font-size:9px;letter-spacing:.15em}
   .new-question{justify-content:flex-start;padding:13px 15px}
   .new-question-label{font-size:13px}
+  .sidebar--open .new-question{padding:13px 15px}
   .sidebar-scroll{margin-top:38px}
+  .sidebar--open .sidebar-scroll{margin-top:38px}
   .history-heading{flex-direction:row;justify-content:space-between;align-items:center;margin:0 8px 12px;font-size:10px;letter-spacing:.14em}
   .history-item{padding:12px}
   .history-item span{display:block;white-space:nowrap;text-overflow:ellipsis;font-size:13px}

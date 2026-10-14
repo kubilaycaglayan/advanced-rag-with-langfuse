@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { clearHistory, readHistory, writeHistory, type AnswerRecord } from './history'
 
 interface TraceObservation {
@@ -22,6 +22,8 @@ const traceError = ref('')
 const traceObservations = ref<TraceObservation[]>([])
 const traceCloseButton = ref<HTMLButtonElement | null>(null)
 const contentElement = ref<HTMLElement | null>(null)
+const sidebarOpen = ref(false)
+const sidebarToggle = ref<HTMLButtonElement | null>(null)
 const question = ref('')
 const pending = ref(false)
 const feedbackPending = ref(false)
@@ -132,23 +134,41 @@ async function closeTrace(): Promise<void> {
   document.querySelector<HTMLButtonElement>('.trace-button')?.focus()
 }
 
-onBeforeUnmount(() => { if (timer) clearInterval(timer) })
+async function closeSidebar(): Promise<void> {
+  sidebarOpen.value = false
+  await nextTick()
+  sidebarToggle.value?.focus()
+}
+
+function onWindowKeydown(event: KeyboardEvent): void {
+  if (event.key === 'Escape' && sidebarOpen.value) void closeSidebar()
+}
+
+onMounted(() => window.addEventListener('keydown', onWindowKeydown))
+onBeforeUnmount(() => {
+  if (timer) clearInterval(timer)
+  window.removeEventListener('keydown', onWindowKeydown)
+})
 </script>
 
 <template>
   <div class="shell">
-    <aside class="sidebar" aria-label="Question history">
-      <div class="brand"><span class="brand-mark">M</span><div><strong>MILLENNIUM</strong><small>CORPUS EXPLORER</small></div></div>
-      <button class="new-question" type="button" aria-label="New question" @click="selectedId = null; question = ''; error = ''"><span aria-hidden="true">+</span><span class="new-question-label">New question</span></button>
-      <div class="sidebar-scroll">
+    <aside class="sidebar" :class="{ 'sidebar--open': sidebarOpen }" aria-label="Question history">
+      <div class="sidebar-head">
+        <button ref="sidebarToggle" class="sidebar-toggle" type="button" :aria-label="sidebarOpen ? 'Collapse question history' : 'Expand question history'" :aria-expanded="sidebarOpen" aria-controls="question-history-list" @click="sidebarOpen = !sidebarOpen"><span aria-hidden="true">{{ sidebarOpen ? '×' : '☰' }}</span></button>
+        <div class="brand"><span class="brand-mark">M</span><div><strong>MILLENNIUM</strong><small>CORPUS EXPLORER</small></div></div>
+      </div>
+      <button class="new-question" type="button" aria-label="New question" @click="selectedId = null; question = ''; error = ''; sidebarOpen = false"><span aria-hidden="true">+</span><span class="new-question-label">New question</span></button>
+      <div id="question-history-list" class="sidebar-scroll">
         <div class="history-heading"><span>YOUR QUESTIONS</span><button v-if="history.length" type="button" @click="removeHistory">Clear</button></div>
         <p v-if="!history.length" class="empty-history">Your answers will appear here.</p>
-        <button v-for="item in history" :key="item.id" class="history-item" :class="{ active: selectedId === item.id }" type="button" :title="item.question" @click="selectedId = item.id; error = ''">
+        <button v-for="item in history" :key="item.id" class="history-item" :class="{ active: selectedId === item.id }" type="button" :title="item.question" @click="selectedId = item.id; error = ''; sidebarOpen = false">
           <span>{{ item.question }}</span><small>{{ formatDate(item.askedAt) }}</small>
         </button>
       </div>
       <div class="sidebar-foot">Answers are saved in this browser.</div>
     </aside>
+    <button v-if="sidebarOpen" class="sidebar-scrim" type="button" aria-label="Close question history" @click="closeSidebar"></button>
 
     <main class="main">
       <header class="topbar"><span>THE MILLENNIUM BOOKS</span><span class="status"><i></i> Corpus Q&amp;A</span></header>
