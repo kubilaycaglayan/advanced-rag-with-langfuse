@@ -15,10 +15,11 @@ cp .env.example .env
 
 Set the project-scoped `LANGFUSE_PUBLIC_KEY` and `LANGFUSE_SECRET_KEY` in `.env`. Keep `.env` local. Langfuse should be reachable at `http://127.0.0.1:28420` from the host. The required hosted project is named `millenium`; the dataset is named `QA.csv`.
 
-Seed the target-root CSV once:
+Check project/dataset access without changing Langfuse, then seed the target-root CSV once:
 
 ```bash
 set -a; . ./.env; set +a
+python app/seed_dataset.py --check-only
 python app/seed_dataset.py
 ```
 

@@ -60,6 +60,43 @@ def _item_payload(item: Any) -> dict[str, Any]:
     }
 
 
+def _resolve_project_and_dataset(client: Langfuse, dataset_name: str) -> tuple[Any, Any | None]:
+    project_response = client.api.projects.get()
+    projects = getattr(project_response, "data", []) or []
+    matches = [candidate for candidate in projects if candidate.name == "millenium"]
+    if len(matches) != 1:
+        raise RuntimeError("configured credentials do not resolve to exactly one project named 'millenium'")
+    project = matches[0]
+
+    try:
+        dataset = client.get_dataset(dataset_name)
+    except NotFoundError:
+        dataset = None
+    if dataset is not None and dataset.project_id != project.id:
+        raise RuntimeError("dataset is not in the required Langfuse project")
+    return project, dataset
+
+
+def inspect_langfuse(dataset_name: str) -> dict[str, Any]:
+    """Read-only project and dataset access check; never creates or changes data."""
+    client = Langfuse()
+    try:
+        project, dataset = _resolve_project_and_dataset(client, dataset_name)
+        return {
+            "project_name": project.name,
+            "project_id": project.id,
+            "dataset_name": dataset_name,
+            "dataset_id": dataset.id if dataset is not None else None,
+            "dataset_items": len(dataset.items) if dataset is not None else 0,
+            "dataset_exists": dataset is not None,
+        }
+    finally:
+        try:
+            client.flush()
+        finally:
+            client.shutdown()
+
+
 def _seed_dataset(
     csv_path: Path,
     mapping_path: Path,
@@ -76,19 +113,8 @@ def _seed_dataset(
     mapping_path.parent.mkdir(parents=True, exist_ok=True)
     dataset_name = os.getenv("DATASET_NAME", "QA.csv")
 
-    project_response = client.api.projects.get()
-    projects = getattr(project_response, "data", []) or []
-    matches = [candidate for candidate in projects if candidate.name == "millenium"]
-    if len(matches) != 1:
-        raise RuntimeError("configured credentials do not resolve to exactly one project named 'millenium'")
-    project = matches[0]
-
-    try:
-        dataset = client.get_dataset(dataset_name)
-        exists = True
-    except NotFoundError:
-        dataset = None
-        exists = False
+    project, dataset = _resolve_project_and_dataset(client, dataset_name)
+    exists = dataset is not None
 
     if previous and not exists:
         raise RuntimeError("the dataset recorded in the local seed mapping no longer exists; refusing to recreate it")
@@ -182,12 +208,16 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--csv", type=Path, default=Path(__file__).resolve().parents[1] / "QA.csv")
     parser.add_argument("--mapping", type=Path)
+    parser.add_argument("--check-only", action="store_true", help="verify project/dataset access without creating or changing data")
     parser.add_argument("--reconcile-existing", action="store_true", help="verify existing items by their deterministic IDs and provenance")
     args = parser.parse_args()
     data_dir = Path(os.getenv("EXPERIMENT_DATA_DIR", "./data"))
     mapping = args.mapping or data_dir / "seed-mapping.json"
     try:
-        print(json.dumps(seed_dataset(args.csv, mapping, reconcile_existing=args.reconcile_existing), indent=2))
+        if args.check_only:
+            print(json.dumps(inspect_langfuse(os.getenv("DATASET_NAME", "QA.csv")), indent=2))
+        else:
+            print(json.dumps(seed_dataset(args.csv, mapping, reconcile_existing=args.reconcile_existing), indent=2))
     except Exception as exc:
         detail = type(exc).__name__ if type(exc).__module__.startswith("langfuse") else f"{type(exc).__name__}: {exc}"
         print(f"seed failed: {detail}", file=sys.stderr)
