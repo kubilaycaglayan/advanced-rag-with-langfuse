@@ -8,26 +8,37 @@ The book files are **not included** in this repository. The app builds its searc
 
 ```mermaid
 flowchart TD
-    books["Your local EPUBs"] --> passages["Extract and group book passages"]
-    passages --> index["Turn passages into embeddings"]
-    index --> qdrant[(Qdrant search index)]
+    user["User query"] --> routes
 
-    question["Question from the web app or a test dataset"] --> rewrites["Search several ways: original wording, imagined passage, alternative wording, grammar cleanup"]
-    rewrites --> search["Turn each search into an embedding"]
-    search --> qdrant
-    qdrant --> combine["Combine search results and rerank passages"]
-    combine --> evidence["Select the strongest supporting passages"]
-    evidence --> answer["Ollama writes an answer with citations"]
-    answer --> result["Answer in the web app or experiment results"]
+    subgraph query_pool["1 · Query pool"]
+        routes["6 main searches: original + HyDE + 3 alternatives + grammar fix<br/>Optional completed name adds a 7th search"]
+        embed["Embed each search locally<br/>multi-qa-MiniLM-L6-cos-v1 · CPU"]
+        routes --> embed
+    end
 
-    langfuse["Langfuse: prompt versions, traces, datasets, scores"] -. "supplies prompts" .-> rewrites
-    langfuse -. "supplies answer prompt" .-> answer
-    answer -. "records the run" .-> langfuse
+    subgraph candidate_pool["2 · Candidate pool"]
+        lookup["Qdrant dense semantic search<br/>Up to 100 passages per search · no BM25"]
+        fusion["Combine rankings with RRF<br/>Top 30 per main search; keep a wider pool"]
+        lookup --> fusion
+    end
+
+    subgraph evidence_pool["3 · Evidence pool"]
+        rerank["Rerank with local cross-encoder<br/>ms-marco-MiniLM-L-6-v2 · CPU"]
+        select["Choose 10 passages, or 15 when evidence is weak<br/>Admit up to 3 strong wider-pool hits"]
+        rerank --> select
+    end
+
+    embed --> lookup
+    fusion --> rerank
+    select --> generate["Generate cited answer<br/>qwen3:8b via Ollama · original query + evidence"]
+    generate --> output["System output: answer and cited passages shown to user"]
 ```
 
-**Semantic search** looks for passages with a similar meaning to the question, even when the wording differs. The app also tries several ways to phrase a search. One route asks the model to imagine what a useful passage might say (HyDE); another generates alternative searches. A grammar-corrected version can catch awkward wording. When a name is incomplete, the app can search using the fuller name found in the books.
+For a wider view, download the [standalone pipeline diagram](docs/pipeline-diagram.html) and open it in a browser.
 
-The searches are combined, then a second model checks which passages best match the question. If the first set looks weak, the pipeline can consider a wider pool and give the answer model more context. The final answer is based on the selected passages and cites them so you can check it against the source. The same pipeline can also run in simpler modes to show which search methods help.
+The default `full` mode runs six searches: the original query, one imagined answer passage (HyDE), three alternative phrasings, and one grammar-corrected query. If a short name can be completed from the books, a seventh search contributes to the wider candidate pool without changing the main fusion. All searches use dense embeddings against Qdrant; **BM25 keyword search is not part of the current pipeline**.
+
+The embedding and reranking models run locally on CPU by default. `qwen3:8b` runs through Ollama for the search rewrites and the final answer. When evidence looks weak, the pipeline can admit strong passages from a wider pool and give the answer model more context. Model names and endpoints are configurable; the diagram shows the defaults. The final answer cites the selected passages so you can check the source.
 
 ## What Langfuse does here
 
