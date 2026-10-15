@@ -75,6 +75,12 @@ Blomkvist [E1]"). The judge gives 1.0 when the answer also says he detests the n
 for the origin. Getting that detail needs a less concise answer; the wordings tried for that lowered six other
 questions (previous round).
 
+**Follow-up, rejected (not committed):** a separate answer prompt for the low-confidence path only ("keep it concise,
+but include the context the evidence gives, such as origin or cause and reactions"; `rag-answer-weak` v1, label
+`tuning10`), so the 24 questions with strong evidence stay byte-identical. exp75a/b (the 12 low-confidence items
+twice): target still 0.5 in both; Salander's fortune 1.0 → 0.5 and Cecilia 1.0 → 0.5 in both; savior complex
+correctness 0.5 → 1.0 but citation 1.0 → 0.5.
+
 ## 2026-10-15 — Completed names score the wider pool (31b95f1)
 
 **Target:** "What was the nickname of Mikael?" (item 58343746, added to the Langfuse dataset on 2026-10-15; dataset now
