@@ -116,7 +116,6 @@ def _rrf(rankings: list[list[Any]], limit: int, k: int) -> list[dict[str, Any]]:
 
 
 _NAME_WORD = r"[A-ZÅÄÖ][a-zåäöéü]+"
-NAME_COMPLETION_HITS = 5
 
 
 @lru_cache(maxsize=8)
@@ -214,8 +213,8 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
         if config.retrieval_mode == "baseline":
             candidates = [dict(p.payload or {}) | {"id": str(p.id), "similarity": float(p.score)} for p in rankings[0][:config.candidate_count]]
         else:
-            # The name-completed search does not compete in fusion: its top hits are appended to the
-            # fused candidates, so questions it does not change keep exactly the same candidates.
+            # The name-completed search does not compete in fusion: its hits join the wider pool, so the
+            # fused candidates and the usual evidence stay exactly as they were.
             named_hits = rankings.pop() if named != question else []
             with _observe("RRF candidate merge", input={"ranking_count": len(rankings), "rrf_constant": config.rrf_constant}) as merge_obs:
                 candidates = _rrf([ranking[:config.candidate_count] for ranking in rankings], config.candidate_count, config.rrf_constant)
@@ -223,9 +222,9 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
                 # The wider pool only competes after reranking: its passages are admitted if they beat every fused candidate.
                 wide = [row | {"wide_hit": True} for row in _rrf(rankings, config.wide_candidate_count, config.rrf_constant)
                         if row["id"] not in fused_ids] if config.wide_candidate_count > config.candidate_count else []
-                candidates += [dict(point.payload or {}) | {"id": str(point.id), "rrf_score": 0.0, "retrieval_ranks": [rank], "name_completion_hit": True}
-                               for rank, point in enumerate(named_hits[:NAME_COMPLETION_HITS], 1) if str(point.id) not in fused_ids]
-                wide = [row for row in wide if row["id"] not in {c["id"] for c in candidates}]
+                pooled = fused_ids | {row["id"] for row in wide}
+                wide += [dict(point.payload or {}) | {"id": str(point.id), "rrf_score": 0.0, "retrieval_ranks": [rank], "wide_hit": True, "name_completion_hit": True}
+                         for rank, point in enumerate(named_hits, 1) if str(point.id) not in pooled]
                 _update(merge_obs, output=candidates)
         _update(obs, output={"candidate_count": len(candidates), "candidates": candidates, "wide_candidate_count": len(wide)})
     timings["retrieval_seconds"] = round(time.perf_counter() - stage, 4)
@@ -238,21 +237,27 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
                 "candidates": [], "reranked": [], "evidence": "", "latency_seconds": round(time.perf_counter()-started, 2),
                 "generation_model": config.generation_model.name, "timings": timings}
     stage = time.perf_counter()
-    # Fused candidates are scored against the question as asked; passages appended by the name-completed
-    # search are scored against the wording that found them.
-    pairs = [(named if row.get("name_completion_hit") else question, row["text"]) for row in candidates] + [(question, row["text"]) for row in wide]
+    # Fused candidates are scored against the question as asked. When a bare name was completed, the wider pool is
+    # scored against the completed wording (the cross-encoder cannot tell that "Mikael" is the "Blomkvist" of the
+    # passages), and the fused candidates are scored against it too, only to set the bar wider passages must clear.
+    wide_question = named if named != question else question
+    pairs = ([(question, row["text"]) for row in candidates] + [(wide_question, row["text"]) for row in wide]
+             + ([(named, row["text"]) for row in candidates] if named != question and wide else []))
     with _observe("cross encoder reranking", input={"pairs": pairs}, model=config.reranker_model.name) as rerank_obs:
-        scores = _reranker(config.reranker_model.name, config.reranker_model.revision).predict(pairs, show_progress_bar=False)
-        _update(rerank_obs, output=[{"id": row["id"], "score": float(score)} for row, score in zip(candidates + wide, scores)])
+        scores = [float(score) for score in _reranker(config.reranker_model.name, config.reranker_model.revision).predict(pairs, show_progress_bar=False)]
+        _update(rerank_obs, output=[{"id": row["id"], "score": score} for row, score in zip(candidates + wide, scores)])
     timings["reranking_seconds"] = round(time.perf_counter() - stage, 4)
     for row, score in zip(candidates + wide, scores):
-        row["rerank_score"] = float(score)
+        row["rerank_score"] = score
     best_fused = max(row["rerank_score"] for row in candidates)
-    # When the fused candidates hold no near-certain match, a wider-pool passage is added in front of the evidence
-    # if it beats every fused candidate and is itself a confident match; the usual evidence stays as it is.
-    wide_floor = max(best_fused, config.low_confidence_score if config.low_confidence_score is not None else best_fused)
+    # When the fused candidates hold no near-certain match, up to wide_max_hits wider-pool passages are added in front
+    # of the evidence if they beat every fused candidate (under both wordings) and are confident matches; the usual
+    # evidence stays as it is.
+    wide_floor = max([best_fused, *scores[len(candidates) + len(wide):]]
+                     + ([config.low_confidence_score] if config.low_confidence_score is not None else []))
     wide_open = config.wide_trigger_score is None or best_fused < config.wide_trigger_score
-    wide_hits = sorted((row for row in wide if wide_open and row["rerank_score"] > wide_floor), key=lambda row: row["rerank_score"], reverse=True)
+    wide_hits = sorted((row for row in wide if wide_open and row["rerank_score"] > wide_floor),
+                       key=lambda row: row["rerank_score"], reverse=True)[:config.wide_max_hits]
     # When no passage clearly answers the question, give the answer model more evidence and let it reason.
     low_confidence = config.low_confidence_score is not None and best_fused < config.low_confidence_score
     top_k = max(config.top_k, config.low_confidence_top_k) if low_confidence else config.top_k

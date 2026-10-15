@@ -21,6 +21,7 @@ class WorkflowChecks(unittest.TestCase):
         class Qdrant:
             def collection_exists(self, name): return True
             def query_points(self, **kwargs): return SimpleNamespace(points=[])
+            def scroll(self, **kwargs): return [], None
         def encode(query, **kwargs):
             queries.append(query)
             return SimpleNamespace(tolist=lambda: [0.0])
@@ -58,6 +59,7 @@ class WorkflowChecks(unittest.TestCase):
         class Qdrant:
             def collection_exists(self, name): return True
             def query_points(self, **kwargs): return SimpleNamespace(points=[point])
+            def scroll(self, **kwargs): return [], None
         sent = []
         with patch('app.pipeline.qdrant_client', return_value=Qdrant()), \
              patch('app.pipeline._embedder', return_value=SimpleNamespace(encode=lambda q, **k: SimpleNamespace(tolist=lambda: [0.0]))), \

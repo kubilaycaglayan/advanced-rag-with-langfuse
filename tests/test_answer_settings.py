@@ -32,7 +32,8 @@ class NameCompletionChecks(unittest.TestCase):
             self.assertEqual(pipeline._complete_names("Where is Salander?", "c"), "Where is Salander?")
 
     def test_setting_is_validated(self):
-        self.assertTrue(ResolvedPipelineConfig.from_mapping({"name_completion": True}).name_completion)
+        self.assertTrue(ResolvedPipelineConfig().name_completion)
+        self.assertFalse(ResolvedPipelineConfig.from_mapping({"name_completion": False}).name_completion)
         with self.assertRaises(ValueError):
             ResolvedPipelineConfig.from_mapping({"name_completion": 1})
 
@@ -52,20 +53,26 @@ class WideCandidateChecks(unittest.TestCase):
         config = ResolvedPipelineConfig()
         self.assertEqual((config.wide_candidate_count, config.wide_trigger_score), (100, 3.5))
         self.assertIsNone(ResolvedPipelineConfig.from_mapping({"wide_trigger_score": None}).wide_trigger_score)
-        for bad in ({"wide_candidate_count": -1}, {"wide_candidate_count": 201}, {"wide_candidate_count": True}, {"wide_trigger_score": "x"}):
+        self.assertEqual(config.wide_max_hits, 3)
+        for bad in ({"wide_candidate_count": -1}, {"wide_candidate_count": 201}, {"wide_candidate_count": True}, {"wide_trigger_score": "x"},
+                    {"wide_max_hits": -1}, {"wide_max_hits": 31}):
             with self.assertRaises(ValueError):
                 ResolvedPipelineConfig.from_mapping(bad)
 
-    def _run(self, scores, **settings):
+    def _run(self, scores, named_scores=None, **settings):
         # Each search returns p0..p5; the first three are fused candidates, p3..p5 form the wider pool.
-        points = [MagicMock(id=f"p{i}", payload={"text": f"t{i}"}) for i in range(6)]
+        # The name-completed search ("q named") returns p6..p7 only.
+        points = [MagicMock(id=f"p{i}", payload={"text": f"t{i}"}) for i in range(8)]
         client = MagicMock()
-        client.query_points.return_value = MagicMock(points=points)
+        client.query_points.side_effect = lambda **kw: MagicMock(points=points[6:] if kw["query"] == "q named" else points[:6])
+        embedder = MagicMock()
+        embedder.encode.side_effect = lambda text, normalize_embeddings: MagicMock(tolist=lambda: text)
         reranker = MagicMock()
-        reranker.predict.side_effect = lambda pairs, show_progress_bar: [scores[text] for _, text in pairs]
+        reranker.predict.side_effect = lambda pairs, show_progress_bar: [(named_scores if q == "q named" else scores)[text] for q, text in pairs]
         config = ResolvedPipelineConfig(**{"retrieval_mode": "query_expansion", "candidate_count": 3, "top_k": 3, "low_confidence_top_k": 3, "wide_candidate_count": 6} | settings)
-        with patch.object(pipeline, "qdrant_client", return_value=client), patch.object(pipeline, "_embedder"), \
+        with patch.object(pipeline, "qdrant_client", return_value=client), patch.object(pipeline, "_embedder", return_value=embedder), \
                 patch.object(pipeline, "_reranker", return_value=reranker), patch.object(pipeline, "_transform", return_value=(None, ["alt"], None)), \
+                patch.object(pipeline, "_complete_names", return_value="q named" if named_scores else "q"), \
                 patch.object(pipeline, "_ollama", return_value="Answer [E1]."):
             result = pipeline.run_pipeline("q", config, collection="c")
         self.assertEqual(client.query_points.call_args.kwargs["limit"], max(3, config.wide_candidate_count))
@@ -82,6 +89,16 @@ class WideCandidateChecks(unittest.TestCase):
         self.assertEqual(self._run(base | {"t1": 1.5, "t3": 1.9, "t4": 1.8}), (["p1", "p0", "p2"], True))
         # A wider pool no larger than candidate_count adds nothing.
         self.assertEqual(self._run(base, wide_candidate_count=3)[0], ["p1", "p0", "p2"])
+        # At most wide_max_hits passages are admitted, best first.
+        self.assertEqual(self._run(base | {"t4": 3.2}, wide_max_hits=1)[0], ["p3", "p1", "p0", "p2"])
+
+    def test_completed_name_scores_the_wider_pool(self):
+        base = {"t0": 1.0, "t1": 1.5, "t2": 0.5, "t3": -1.0, "t4": -1.0, "t5": -1.0, "t6": -5.0, "t7": -5.0}
+        named = {"t0": 2.0, "t1": 4.0, "t2": 1.0, "t3": 3.0, "t4": 0.0, "t5": 0.0, "t6": 6.0, "t7": 3.9}
+        # p6 is found only by the completed wording and beats every fused candidate under it; p3 and p7 do not
+        # beat the best fused candidate under the completed wording (4.0). The fused evidence is unchanged.
+        self.assertEqual(self._run(base, named), (["p6", "p1", "p0", "p2"], True))
+        self.assertEqual(self._run(base, named, name_completion=False), (["p1", "p0", "p2"], True))
 
 
 class ThinkingFallbackChecks(unittest.TestCase):

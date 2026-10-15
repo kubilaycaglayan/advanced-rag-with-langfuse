@@ -153,6 +153,7 @@ class Stage3Checks(unittest.TestCase):
         class EmptyQdrant:
             def collection_exists(self, _collection): return True
             def query_points(self, **_kwargs): return SimpleNamespace(points=[])
+            def scroll(self, **_kwargs): return [], None
         with patch("app.pipeline.qdrant_client", return_value=EmptyQdrant()), \
              patch("app.pipeline._embedder", return_value=SimpleNamespace(encode=lambda *_args, **_kwargs: SimpleNamespace(tolist=lambda: [0.0]))), \
              patch("app.pipeline._observe", return_value=nullcontext(None)), \

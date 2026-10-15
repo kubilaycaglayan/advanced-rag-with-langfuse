@@ -39,6 +39,7 @@ can touch, shrink that to only what it should touch, then confirm on the full da
 
 | Date | Round | QA.csv correctness | Citation | Improved (answer correctness) | Regressed | Commit |
 |---|---|---|---|---|---|---|
+| 2026-10-15 | Completed names score<br>the wider pool | 0.708 → 0.722<br>(36 items) | 0.861 → 0.861 | "What was the nickname of Mikael?" 0 → 0.5 | — | COMMIT |
 | 2026-10-15 | Wider pool when<br>fused is weak | 0.700 → 0.729 | 0.857 → 0.857 | Blomkvist's media nickname 0 → 1 | — | 34eb712 |
 | 2026-10-15 | More evidence +<br>reasoning when weak | 0.614 → 0.700 | 0.838 → 0.857 | Salander's fortune 0 → 1<br>Cecilia: event that changed Harriet 0 → 1<br>table salt formula 0.5 → 1<br>Armageddon shirt 0.5 → 1 | — | 2d7b030 |
 | 2026-10-14 | 15 passages + reasoning<br>always (superseded) | 0.614 → 0.757 | 0.838 → 0.871 | Salander's fortune 0 → 1<br>Blomkvist's media nickname 0 → 1<br>Cecilia: event that changed Harriet 0 → 1<br>affair 0 → 0.5<br>table salt 0.5 → 1<br>Niedermann's pain 0.5 → 1<br>Dag Svensson's murderer 0.5 → 1<br>prison sentence 0.5 → 1<br>Martin Vanger 0.5 → 1<br>Armageddon shirt 0.5 → 1 | Berger's position 0.5 → 0<br>who killed Harriet 0.5 → 0<br>who tried to shoot Mikael 0.5 → 0 | 88d26af |
@@ -48,6 +49,36 @@ Each row compares the round's defaults against the defaults it replaced: 2d7b030
 defaults (0.614), not against 88d26af, whose defaults it reverted. The correctness judge is noisy on reworded answers
 (identical answers have scored 0 and 1 in different runs), so single 0.5 steps in rows without a repeat run are
 weak evidence.
+
+## 2026-10-15 — Completed names score the wider pool (COMMIT)
+
+**Target:** "What was the nickname of Mikael?" (item 58343746, added to the Langfuse dataset on 2026-10-15; dataset now
+36 items), scored 0: the answer said the evidence mentions no nickname.
+
+**Diagnosis:** retrieval and reranking, caused by the bare first name. The books call him "Blomkvist"; the answer
+passage ("nicknamed Kalle Blomkvist ... to his dismay") ranks >250 for every generated query, and the cross-encoder
+scores it -6.47 against the question as asked but 6.9 against "What was the nickname of Mikael Blomkvist?". The
+existing opt-in name completion produces that wording, but it only appended the completed search's top 5 hits (the
+passage is 14th) and changed the fused evidence of the 7 questions it completes.
+
+**Tried (offline replay of exp64/exp65 queries, `data/tuning/name_sim.py`; replay reproduces both with 0 diffs):**
+- Scoring all candidates against the completed wording, or the max of both wordings: target not fixed, evidence
+  changes on 5–7 items.
+- Fusing the completed search into the wider pool by RRF: the passage appears in one ranking only and drops out.
+- Adding the completed search's hits to the wider pool, scored against the completed wording: passage at E1, but
+  completed-wording scores run higher overall, so 35–46 passages were admitted. Measuring the admission bar on the
+  same wording (best fused candidate scored against the completed question) cut this to 6–9, mostly off-topic.
+
+**Change:** `name_completion` on by default. The completed search does not enter fusion; its hits join the wider
+pool, which is scored against the completed wording, and an admitted passage must also beat the best fused candidate
+scored against it. At most `wide_max_hits` (3) passages are admitted; 3 is the most any question admitted before, so
+the cap alone changes no evidence (checked offline). Fused candidates, their scores and the usual evidence are as
+before.
+
+**Result:** exp66 (full dataset, no config) and exp67 (repeat of the 4 changed items): correctness 0.708 → 0.722,
+citation 0.861 → 0.861, 0 failures. Target 0 → 0.5 in both runs ("Kalle" [E1]; the judge wants the origin and his
+reaction too, an answer-length issue left for another round). 32 answers byte-identical; Cecilia (1.0), savior
+complex (0.5) and who tried to shoot Mikael (0.5) changed wording but kept their scores in both runs.
 
 ## 2026-10-15 — Wider retrieval pool when the fused candidates are weak (34eb712)
 
