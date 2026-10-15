@@ -10,11 +10,15 @@ The two judge definitions are edited in Langfuse **Evaluators**: `millennium-ans
 
 Every dataset item has a stable session `qa-<dataset-id>-<item-id>`. Open **Sessions**, select a question session, and expand a run trace to see the root, all query transformations, six searches and their embedding observations, fusion, reranking, evidence formatting, answer generation, citation extraction, and both judges. Experiments and their scores use `sdk-experiment`; interactive requests use `default`. These are tracing environments, not retrieval variants. `/ask` accepts an optional `session_id`; otherwise it groups repeated normalized questions under a stable `interactive-...` session.
 
-To start the complete pipeline from the dataset's remote experiment dialog, use:
+**Run an experiment on the latest pipeline:** in Langfuse open **Datasets → QA.csv → Run experiment** (remote), and use
+an empty payload:
 
 ```json
-{"variant_label":"full-retrieval", "config":{"retrieval_mode":"full"}, "prompt_label":"production"}
+{}
 ```
+
+That always runs the deployed app's current pipeline with its default settings and the `production` prompts. Add only
+a name if you want one, e.g. `{"variant_label":"my-test"}`; any `config` or `prompt_label` makes it a variant instead.
 
 Or run `python app/experiments.py --dataset QA.csv --variant full-retrieval`. To compare a baseline, explicitly pass a config file containing `{"retrieval_mode":"baseline"}`. Reference answers are provided only to the correctness judge, never to retrieval or answer generation.
 
