@@ -186,3 +186,36 @@ class ThinkingFallbackChecks(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class SceneSummaryNameChecks(unittest.TestCase):
+    def setUp(self):
+        from app import scenes
+        self.scenes = scenes
+        books = (["and Mikael Blomkvist said hello. " * 25 + "Then he saw Blomkvist and Salander. " * 40
+                  + "and Lisbeth Salander left. " * 25 + "and Wadensjöö came, and Armansky too. " * 5
+                  + "Meanwhile it rained. meanwhile it rained. " * 10])
+        self.lexicon = scenes.NameLexicon(books)
+
+    def test_lexicon(self):
+        self.assertTrue(self.lexicon.is_name("Blomkvist"))
+        self.assertTrue(self.lexicon.is_name("Wästberg"))  # not in the books at all: invented
+        self.assertFalse(self.lexicon.is_name("Meanwhile"))
+        self.assertEqual((self.lexicon.partner["Mikael"], self.lexicon.partner["Lisbeth"]), ("Blomkvist", "Salander"))
+
+    def test_names_written_as_the_excerpt_does(self):
+        excerpt = "Blomkvist looked at Salander. Wadensjöö and Armansky waited."
+        repair = lambda text: self.scenes.repair_summary(text, excerpt, self.lexicon)
+        self.assertEqual(repair("Mikael Blomkvist meets Lisbeth."), ("Blomkvist meets Salander.", []))
+        self.assertEqual(repair("Martin Blomkvist and Henrik Armansky talk."), ("Blomkvist and Armansky talk.", []))
+        self.assertEqual(repair("Wadensjö worries."), ("Wadensjöö worries.", []))
+        self.assertEqual(repair("In Chapter 5 of *The Girl with the Dragon Tattoo*, Blomkvist waits."), ("In the excerpt, Blomkvist waits.", []))
+        # An invented person cannot be traced to the excerpt.
+        self.assertEqual(repair("Elin Wästberg greets Salander.")[1], ["Elin", "Wästberg"])
+
+    def test_untraced_summary_is_written_again_with_the_excerpts_names(self):
+        points = [MagicMock(payload={"text": "Blomkvist looked at Salander.", "book": "b"})]
+        with patch.object(self.scenes, "_summarise", return_value="Blomkvist sees Salander.") as summarise:
+            summary, untraced = self.scenes.checked_summary(points, ResolvedPipelineConfig(), self.lexicon, "Elin Wästberg sees Salander.")
+        self.assertEqual((summary, untraced), ("Blomkvist sees Salander.", []))
+        self.assertEqual(summarise.call_args.args[2], ["Blomkvist", "Salander"])

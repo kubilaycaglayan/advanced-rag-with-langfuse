@@ -98,6 +98,18 @@ cigarette case", "Who tried to shoot Mikael?", "Why does Salander first go to Bj
 the other 32 answers byte-identical to exp83. exp88 (the 4 changed questions, repeat): identical answers and scores.
 exp89 (new defaults, no config): byte-identical to exp87.
 
+**Follow-up, name check (not adopted for the index):** 373 of the 1809 summaries name someone the excerpt does not
+(first names it knows from the books, "Martin" for Mikael Blomkvist, an invented "Elin Wästberg"), and 11 open with an
+invented "Chapter N". `app/scenes.py` now checks each new summary: names are written as the excerpt writes them, and a
+summary with a name that cannot be traced to the excerpt is summarised again with the excerpt's names listed
+(`python app/scenes.py` repairs a cache once). On this cache: 373 → 6 untraced (all places or adjectives), 376 summaries
+changed. Rebuilt on the repaired summaries, QA.csv (exp90) gave 0.750 / 0.861: "Did Salander and Mikael have
+affair?" 0.5 → 1.0, but the target went back to 0 (a Bjurman assault scene now beats the answer scene, 6.28 vs 6.16)
+and "Why does Salander decide not to go to the police?" went 1.0 → 0.5. Picking a single scene is fragile when scenes
+about the same people score this close. Admitting two scenes, or scoring each scene against the question's rewordings,
+did not fix it. The index keeps the validated summaries (restored; exp91 reproduces exp89 on the changed questions);
+the repaired cache is kept in `data/tuning/` for a later round.
+
 ## 2026-10-15 — Wider passage over an off-point strong match: "Did Salander and Mikael have affair?" (e0c98f8)
 
 **Target:** "Did Salander and Mikael have affair?" (item 785e319a), scored 0 in every run since 2d7b030: "there is no
