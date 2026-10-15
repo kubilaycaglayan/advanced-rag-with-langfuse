@@ -39,7 +39,7 @@ can touch, shrink that to only what it should touch, then confirm on the full da
 
 | Date | Round | QA.csv correctness | Citation | Improved (answer correctness) | Regressed | Commit |
 |---|---|---|---|---|---|---|
-| 2026-10-15 | Deeper completed-name<br>search | 0.722 → 0.736 | 0.861 → 0.861 | "What was the nickname of Mikael?" 0.5 → 1 | — | COMMIT |
+| 2026-10-15 | Deeper completed-name<br>search | 0.722 → 0.736 | 0.861 → 0.861 | "What was the nickname of Mikael?" 0.5 → 1 | — | 625f100 |
 | 2026-10-15 | Completed question<br>for the answer model | 0.722 → 0.722 | 0.861 → 0.861 | "What was the nickname of Mikael?" stays 0.5, but the answer is now always "Kalle Blomkvist" (offline: "no nickname" in 3 of 3 replays before) | — | 95588dd |
 | 2026-10-15 | Completed names score<br>the wider pool | 0.708 → 0.722<br>(36 items) | 0.861 → 0.861 | "What was the nickname of Mikael?" 0 → 0.5 | — | 31b95f1 |
 | 2026-10-15 | Wider pool when<br>fused is weak | 0.700 → 0.729 | 0.857 → 0.857 | Blomkvist's media nickname 0 → 1 | — | 34eb712 |
@@ -52,7 +52,7 @@ defaults (0.614), not against 88d26af, whose defaults it reverted. The correctne
 (identical answers have scored 0 and 1 in different runs), so single 0.5 steps in rows without a repeat run are
 weak evidence.
 
-## 2026-10-15 — Deeper completed-name search (COMMIT)
+## 2026-10-15 — Deeper completed-name search (625f100)
 
 **Target:** "What was the nickname of Mikael?" (item 58343746), 0.5 after 95588dd: the answer named "Kalle Blomkvist"
 but, per the judge, left out his reaction and the nickname's use in the trilogy.
