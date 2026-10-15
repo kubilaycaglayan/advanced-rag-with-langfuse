@@ -6,39 +6,13 @@ The book files are **not included** in this repository. The app builds its searc
 
 ## How it works
 
-```mermaid
-flowchart TD
-    user["User query"] --> routes
+![Book-inspired diagram of the search pipeline, from user query to cited answer](docs/pipeline-book-inspired.svg)
 
-    subgraph query_pool["1 · Query pool"]
-        routes["6 main searches: original + HyDE + 3 alternatives + grammar fix<br/>Optional completed name adds a 7th search"]
-        embed["Embed each search locally<br/>multi-qa-MiniLM-L6-cos-v1 · CPU"]
-        routes --> embed
-    end
+For a wider view, open the [book-inspired pipeline diagram](docs/pipeline-book-inspired.html) in a browser. The [style gallery](docs/pipeline-style-gallery.html) shows the other treatments using the same pipeline.
 
-    subgraph candidate_pool["2 · Candidate pool"]
-        lookup["Qdrant dense semantic search<br/>Up to 100 passages per search · no BM25"]
-        fusion["Combine rankings with RRF<br/>Top 30 per main search; keep a wider pool"]
-        lookup --> fusion
-    end
+The default `full` mode runs six searches: the original query, one imagined answer passage (HyDE), three alternative phrasings, and one grammar-corrected query. If a short name can be completed from the books, a seventh search contributes extra results without changing the main fusion. All searches use dense embeddings against Qdrant.
 
-    subgraph evidence_pool["3 · Evidence pool"]
-        rerank["Rerank with local cross-encoder<br/>ms-marco-MiniLM-L-6-v2 · CPU"]
-        select["Choose 10 passages, or 15 when evidence is weak<br/>Admit up to 3 strong wider-pool hits"]
-        rerank --> select
-    end
-
-    embed --> lookup
-    fusion --> rerank
-    select --> generate["Generate cited answer<br/>qwen3:8b via Ollama · original query + evidence"]
-    generate --> output["System output: answer and cited passages shown to user"]
-```
-
-For a wider view, download the [standalone pipeline diagram](docs/pipeline-diagram.html) and open it in a browser. To compare visual treatments, open the [diagram style gallery](docs/pipeline-style-gallery.html); it shows six static styles and a step reveal using the same pipeline.
-
-The default `full` mode runs six searches: the original query, one imagined answer passage (HyDE), three alternative phrasings, and one grammar-corrected query. If a short name can be completed from the books, a seventh search contributes to the wider candidate pool without changing the main fusion. All searches use dense embeddings against Qdrant; **BM25 keyword search is not part of the current pipeline**.
-
-The embedding and reranking models run locally on CPU by default. `qwen3:8b` runs through Ollama for the search rewrites and the final answer. When evidence looks weak, the pipeline can admit strong passages from a wider pool and give the answer model more context. Model names and endpoints are configurable; the diagram shows the defaults. The final answer cites the selected passages so you can check the source.
+The embedding and reranking models run in the app process. `qwen3:8b` runs through Ollama for the search rewrites and the final answer; Ollama can use a local GPU when one is available. When evidence looks weak, the pipeline can admit strong passages from the extra results and give the answer model more context. Model names and endpoints are configurable; the diagram shows the defaults. The final answer cites the selected passages so you can check the source.
 
 ## What Langfuse does here
 

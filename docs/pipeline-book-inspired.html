@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>From question to cited answer · book-inspired diagram</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; padding: 32px 24px; background: #f3eee4; color: #231f25; font-family: 'Geist', system-ui, sans-serif; }
+    main { width: 100%; max-width: 1280px; margin: 0 auto; }
+    .eyebrow { margin: 0 0 8px; color: #655d63; font: 500 11px 'Geist Mono', ui-monospace, monospace; letter-spacing: .16em; text-transform: uppercase; }
+    h1 { margin: 0 0 8px; font: 400 clamp(30px, 3vw, 40px) 'Instrument Serif', Georgia, serif; line-height: 1.1; }
+    .intro { margin: 0 0 24px; max-width: 68ch; color: #655d63; line-height: 1.5; }
+    .diagram-container { width: 100%; overflow-x: auto; }
+    svg { display: block; width: 100%; min-width: 1280px; }
+    .zone { fill: rgba(35,31,37,.025); stroke: rgba(35,31,37,.18); stroke-width: 1; }
+    .zone-label { font: 500 10px 'Geist Mono', ui-monospace, monospace; letter-spacing: .12em; fill: #70676d; }
+    .node { fill: #f3eee4; stroke: #beb0ad; stroke-width: 1.2; }
+    .node-strong { fill: #f3eee4; stroke: #231f25; stroke-width: 1.3; }
+    .node-focal { fill: rgba(140,53,71,.10); stroke: #8c3547; stroke-width: 1.5; }
+    .tag { font: 500 8px 'Geist Mono', ui-monospace, monospace; letter-spacing: .12em; fill: #70676d; }
+    .name { font: 600 12px 'Geist', system-ui, sans-serif; fill: #231f25; }
+    .detail { font: 400 9px 'Geist Mono', ui-monospace, monospace; fill: #655d63; }
+    .detail-ink { font: 400 9px 'Geist Mono', ui-monospace, monospace; fill: #231f25; }
+    .focal-tag { fill: #8c3547; }
+    .link { fill: none; stroke: #655d63; stroke-width: 1.5; marker-end: url(#arrow); }
+    .link-focal { fill: none; stroke: #8c3547; stroke-width: 1.5; marker-end: url(#arrow-accent); }
+    .note { margin: 16px 0 0; max-width: 100ch; font-size: 14px; line-height: 1.55; color: #655d63; }
+    @media print { body { padding: 0; } .diagram-container { overflow-x: visible; } svg { min-width: 0; } }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">Millennium semantic search · Book-inspired</p>
+    <h1>From question to cited answer</h1>
+    <p class="intro">The default full mode expands a search, retrieves and ranks passages, then writes a cited answer from selected evidence.</p>
+    <div class="diagram-container">
+      <svg viewBox="0 0 1280 592" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="pipeline-book-inspired-title pipeline-book-inspired-desc">
+        <title id="pipeline-book-inspired-title">From question to cited answer</title>
+        <desc id="pipeline-book-inspired-desc">A user query becomes six main searches and sometimes a seventh name search, then moves through dense Qdrant lookup, candidate fusion, cross-encoder reranking, evidence selection, local Ollama generation, and a cited answer.</desc>
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#655d63"/></marker>
+          <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#8c3547"/></marker>
+        </defs>
+        <rect width="1280" height="592" fill="#f3eee4"/>
+
+        <!-- Three stages hold the work between input and output. -->
+        <rect class="zone" x="224" y="72" width="248" height="472" rx="8"/>
+        <rect class="zone" x="500" y="72" width="248" height="472" rx="8"/>
+        <rect class="zone" x="776" y="72" width="248" height="472" rx="8"/>
+        <rect x="240" y="78" width="106" height="16" fill="#f3eee4"/>
+        <text class="zone-label" x="248" y="90">01  QUERY EXPANSION</text>
+        <rect x="516" y="78" width="128" height="16" fill="#f3eee4"/>
+        <text class="zone-label" x="524" y="90">02  RETRIEVAL &amp; FUSION</text>
+        <rect x="792" y="78" width="118" height="16" fill="#f3eee4"/>
+        <text class="zone-label" x="800" y="90">03  RANKING &amp; EVIDENCE</text>
+
+        <!-- Main data path. Lines are behind all node masks. -->
+        <path class="link" d="M184 322 H204 Q212 322 212 314 V238 Q212 230 220 230 H252"/>
+        <path class="link" d="M344 324 V368"/>
+        <path class="link" d="M436 432 H478 Q486 432 486 424 V218 Q486 210 494 210 H528"/>
+        <path class="link" d="M620 284 V328"/>
+        <path class="link" d="M712 412 H754 Q762 412 762 404 V218 Q762 210 770 210 H804"/>
+        <path class="link" d="M896 284 V328"/>
+        <path class="link-focal" d="M988 412 H1012 Q1020 412 1020 404 V300 Q1020 292 1028 292 H1052"/>
+        <path class="link" d="M1144 360 V408"/>
+
+        <!-- Entry -->
+        <rect class="node-strong" x="32" y="278" width="152" height="88" rx="6"/>
+        <text class="tag" x="48" y="299">ENTRY</text>
+        <text class="name" x="48" y="326">User query</text>
+
+
+        <!-- Query expansion -->
+        <rect class="node" x="252" y="136" width="184" height="188" rx="6"/>
+        <text class="tag" x="268" y="156">01 / PREPARE</text>
+        <text class="name" x="268" y="181">Six main searches</text>
+        <text class="detail-ink" x="268" y="207">1 original question</text>
+        <text class="detail-ink" x="268" y="226">1 HyDE passage</text>
+        <text class="detail-ink" x="268" y="245">3 alternative queries</text>
+        <text class="detail-ink" x="268" y="264">1 grammar correction</text>
+        <line x1="268" y1="281" x2="420" y2="281" stroke="#beb0ad" stroke-width="1"/>
+        <text class="detail" x="268" y="299">+ name route if useful</text>
+        <text class="detail" x="268" y="316">qwen3:8b · Ollama</text>
+
+        <rect class="node" x="252" y="368" width="184" height="128" rx="6"/>
+        <text class="tag" x="268" y="389">02 / ENCODE</text>
+        <text class="name" x="268" y="416">Embed each search</text>
+        <text class="detail" x="268" y="442">multi-qa-MiniLM-L6</text>
+        <text class="detail" x="268" y="461">cos-v1 · local model</text>
+        <text class="detail" x="268" y="481">SentenceTransformers</text>
+
+        <!-- Retrieval and fusion -->
+        <rect class="node" x="528" y="136" width="184" height="148" rx="6"/>
+        <text class="tag" x="544" y="156">03 / LOOKUP</text>
+        <text class="name" x="544" y="182">Dense vector search</text>
+        <text class="detail" x="544" y="207">Qdrant · cosine similarity</text>
+        <text class="detail" x="544" y="227">up to 100 hits / search</text>
+
+
+        <rect class="node-strong" x="528" y="328" width="184" height="168" rx="6"/>
+        <text class="tag" x="544" y="348">04 / FUSE</text>
+        <text class="name" x="544" y="376">Fused results</text>
+        <text class="detail" x="544" y="402">RRF: top 30 / search</text>
+        <text class="detail" x="544" y="421">30 fused candidates</text>
+        <text class="detail" x="544" y="440">extra results kept apart</text>
+        <text class="detail" x="544" y="459">name hits join extra set</text>
+
+        <!-- Ranking and evidence -->
+        <rect class="node" x="804" y="136" width="184" height="148" rx="6"/>
+        <text class="tag" x="820" y="156">05 / RANK</text>
+        <text class="name" x="820" y="182">Cross-encoder</text>
+        <text class="detail" x="820" y="207">ms-marco-MiniLM-L-6-v2</text>
+        <text class="detail" x="820" y="227">scores query + passage</text>
+        <text class="detail" x="820" y="254">SentenceTransformers · local</text>
+
+        <rect class="node" x="804" y="328" width="184" height="168" rx="6"/>
+        <text class="tag" x="820" y="348">06 / SELECT</text>
+        <text class="name" x="820" y="376">Selected passages</text>
+        <text class="detail" x="820" y="401">top 10; 15 if weak</text>
+        <text class="detail" x="820" y="421">up to 3 strong wide hits</text>
+        <text class="detail" x="820" y="441">nearby context if needed</text>
+        <text class="detail" x="820" y="461">passages labeled [E1]...</text>
+
+        <!-- Generation and result -->
+        <rect class="node-focal" x="1052" y="224" width="184" height="136" rx="6"/>
+        <text class="tag focal-tag" x="1068" y="244">07 / GENERATE</text>
+        <text class="name" x="1068" y="270">Cited answer</text>
+        <text class="detail-ink" x="1068" y="297">qwen3:8b via Ollama</text>
+        <text class="detail" x="1068" y="317">question + evidence</text>
+        <text class="detail" x="1068" y="338">local by default</text>
+
+        <rect class="node-strong" x="1052" y="408" width="184" height="88" rx="6"/>
+        <text class="tag" x="1068" y="429">OUTPUT</text>
+        <text class="name" x="1068" y="454">Shown to user</text>
+        <text class="detail" x="1068" y="477">answer + cited sources</text>
+
+      </svg>
+    </div>
+    <p class="note">The optional seventh search completes a name found in the books. Its matches join the extra results and do not change the six-search fusion. Langfuse supplies versioned prompts and records the stages; it does not perform the book lookup. Model names and endpoints can be configured.</p>
+  </main>
+</body>
+</html>

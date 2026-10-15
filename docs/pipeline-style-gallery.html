@@ -29,25 +29,25 @@ main{max-width:1360px;margin:auto;padding:32px 24px 72px;display:grid;gap:30px}
 @media print{body{background:#fff}header{padding:20px}nav{display:none}main{padding:0}.preview{break-inside:avoid;page-break-after:always}.reveal [class*=stage-]{animation:none!important}}
 </style></head><body>
 <header><p class="eyebrow">Millennium semantic search · comparison</p><h1>One pipeline, seven treatments</h1><p>Every preview shows the same query, lookup, ranking, evidence, and answer flow. The six static styles change only its visual language. The last preview reveals that journey once, then settles into the complete diagram.</p><nav aria-label="Jump to a style"><a href="#light">Minimal light</a><a href="#dark">Minimal dark</a><a href="#editorial">Full editorial</a><a href="#sketch">Sketchy</a><a href="#terminal">Terminal</a><a href="#brand">Book-inspired palette</a><a href="#reveal">Step reveal</a></nav></header>
-<main><section id="light" class="preview light" style="--paper:#f5f5f5;--ink:#2d3142;--muted:#4f5d75;--soft:#5a6580;--rule:#bfc0c0;--accent:#bf4520;--tint:rgba(191,69,32,.08);--zone:rgba(45,49,66,.025);--zone-border:rgba(45,49,66,.18)"><div class="preview-heading"><h2>Minimal light</h2><p>The current README companion: quiet paper, fine rules, one coral focus.</p></div><div class="diagram-scroll"><svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="pipeline-light-title pipeline-light-desc">
+<main><section id="light" class="preview light" style="--paper:#f5f5f5;--ink:#2d3142;--muted:#4f5d75;--soft:#5a6580;--rule:#bfc0c0;--accent:#bf4520;--tint:rgba(191,69,32,.08);--zone:rgba(45,49,66,.025);--zone-border:rgba(45,49,66,.18)"><div class="preview-heading"><h2>Minimal light</h2><p>The current README companion: quiet paper, fine rules, one coral focus.</p></div><div class="diagram-scroll"><svg viewBox="0 0 1280 592" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="pipeline-light-title pipeline-light-desc">
         <title id="pipeline-light-title">From question to cited answer</title>
         <desc id="pipeline-light-desc">A user query becomes six main searches and sometimes a seventh name search, then moves through dense Qdrant lookup, candidate fusion, cross-encoder reranking, evidence selection, local Ollama generation, and a cited answer.</desc>
         <defs>
           <marker id="arrow-light" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--muted)"/></marker>
           <marker id="arrow-accent-light" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--accent)"/></marker>
         </defs>
-        <rect width="1280" height="720" fill="var(--paper)"/>
+        <rect width="1280" height="592" fill="var(--paper)"/>
 
-        <!-- Three pools hold the work between input and output. -->
+        <!-- Three stages hold the work between input and output. -->
         <rect class="zone" x="224" y="72" width="248" height="472" rx="8"/>
         <rect class="zone" x="500" y="72" width="248" height="472" rx="8"/>
         <rect class="zone" x="776" y="72" width="248" height="472" rx="8"/>
         <rect x="240" y="78" width="106" height="16" fill="var(--paper)"/>
-        <text class="zone-label" x="248" y="90">01  QUERY POOL</text>
+        <text class="zone-label" x="248" y="90">01  QUERY EXPANSION</text>
         <rect x="516" y="78" width="128" height="16" fill="var(--paper)"/>
-        <text class="zone-label" x="524" y="90">02  CANDIDATE POOL</text>
+        <text class="zone-label" x="524" y="90">02  RETRIEVAL &amp; FUSION</text>
         <rect x="792" y="78" width="118" height="16" fill="var(--paper)"/>
-        <text class="zone-label" x="800" y="90">03  EVIDENCE POOL</text>
+        <text class="zone-label" x="800" y="90">03  RANKING &amp; EVIDENCE</text>
 
         <!-- Main data path. Lines are behind all node masks. -->
         <path class="link" d="M184 322 H204 Q212 322 212 314 V238 Q212 230 220 230 H252"/>
@@ -63,9 +63,9 @@ main{max-width:1360px;margin:auto;padding:32px 24px 72px;display:grid;gap:30px}
         <rect class="node-strong" x="32" y="278" width="152" height="88" rx="6"/>
         <text class="tag" x="48" y="299">ENTRY</text>
         <text class="name" x="48" y="326">User query</text>
-        <text class="detail" x="48" y="348">one question</text>
 
-        <!-- Query pool -->
+
+        <!-- Query expansion -->
         <rect class="node" x="252" y="136" width="184" height="188" rx="6"/>
         <text class="tag" x="268" y="156">01 / PREPARE</text>
         <text class="name" x="268" y="181">Six main searches</text>
@@ -81,36 +81,36 @@ main{max-width:1360px;margin:auto;padding:32px 24px 72px;display:grid;gap:30px}
         <text class="tag" x="268" y="389">02 / ENCODE</text>
         <text class="name" x="268" y="416">Embed each search</text>
         <text class="detail" x="268" y="442">multi-qa-MiniLM-L6</text>
-        <text class="detail" x="268" y="461">cos-v1 · local CPU</text>
+        <text class="detail" x="268" y="461">cos-v1 · local model</text>
         <text class="detail" x="268" y="481">SentenceTransformers</text>
 
-        <!-- Candidate pool -->
+        <!-- Retrieval and fusion -->
         <rect class="node" x="528" y="136" width="184" height="148" rx="6"/>
         <text class="tag" x="544" y="156">03 / LOOKUP</text>
         <text class="name" x="544" y="182">Dense vector search</text>
         <text class="detail" x="544" y="207">Qdrant · cosine similarity</text>
         <text class="detail" x="544" y="227">up to 100 hits / search</text>
-        <text class="detail-ink" x="544" y="254">BM25 is not enabled</text>
+
 
         <rect class="node-strong" x="528" y="328" width="184" height="168" rx="6"/>
         <text class="tag" x="544" y="348">04 / FUSE</text>
-        <text class="name" x="544" y="376">Candidate pool</text>
+        <text class="name" x="544" y="376">Fused results</text>
         <text class="detail" x="544" y="402">RRF: top 30 / search</text>
         <text class="detail" x="544" y="421">30 fused candidates</text>
-        <text class="detail" x="544" y="440">wider pool kept apart</text>
-        <text class="detail" x="544" y="459">name hits join wide pool</text>
+        <text class="detail" x="544" y="440">extra results kept apart</text>
+        <text class="detail" x="544" y="459">name hits join extra set</text>
 
-        <!-- Evidence pool -->
+        <!-- Ranking and evidence -->
         <rect class="node" x="804" y="136" width="184" height="148" rx="6"/>
         <text class="tag" x="820" y="156">05 / RANK</text>
         <text class="name" x="820" y="182">Cross-encoder</text>
         <text class="detail" x="820" y="207">ms-marco-MiniLM-L-6-v2</text>
         <text class="detail" x="820" y="227">scores query + passage</text>
-        <text class="detail" x="820" y="254">SentenceTransformers · CPU</text>
+        <text class="detail" x="820" y="254">SentenceTransformers · local</text>
 
         <rect class="node" x="804" y="328" width="184" height="168" rx="6"/>
         <text class="tag" x="820" y="348">06 / SELECT</text>
-        <text class="name" x="820" y="376">Evidence pool</text>
+        <text class="name" x="820" y="376">Selected passages</text>
         <text class="detail" x="820" y="401">top 10; 15 if weak</text>
         <text class="detail" x="820" y="421">up to 3 strong wide hits</text>
         <text class="detail" x="820" y="441">nearby context if needed</text>
@@ -129,37 +129,26 @@ main{max-width:1360px;margin:auto;padding:32px 24px 72px;display:grid;gap:30px}
         <text class="name" x="1068" y="454">Shown to user</text>
         <text class="detail" x="1068" y="477">answer + cited sources</text>
 
-        <!-- Horizontal reading key. -->
-        <line x1="32" y1="608" x2="1248" y2="608" stroke="var(--rule)" stroke-width="1"/>
-        <text class="legend-title" x="40" y="632">READING KEY</text>
-        <line x1="40" y1="654" x2="78" y2="654" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow-light)"/>
-        <text class="legend-text" x="92" y="658">Data moves along solid arrows</text>
-        <line x1="448" y1="624" x2="448" y2="672" stroke="var(--rule)" stroke-width="1"/>
-        <text class="legend-title" x="472" y="632">LOCAL DEFAULTS</text>
-        <text class="legend-text" x="472" y="658">CPU embedding + ranking; Ollama generation</text>
-        <line x1="876" y1="624" x2="876" y2="672" stroke="var(--rule)" stroke-width="1"/>
-        <text class="legend-title" x="900" y="632">SEARCH METHOD</text>
-        <text class="legend-text" x="900" y="658">Dense semantic only; no BM25</text>
       </svg></div></section>
-<section id="dark" class="preview dark" style="--paper:#171a23;--ink:#f0eee9;--muted:#b5b9c4;--soft:#a7adbc;--rule:#6e7380;--accent:#ef9278;--tint:rgba(239,146,120,.13);--zone:rgba(255,255,255,.025);--zone-border:rgba(255,255,255,.20)"><div class="preview-heading"><h2>Minimal dark</h2><p>The same hierarchy in a restrained charcoal palette.</p></div><div class="diagram-scroll"><svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="pipeline-dark-title pipeline-dark-desc">
+<section id="dark" class="preview dark" style="--paper:#171a23;--ink:#f0eee9;--muted:#b5b9c4;--soft:#a7adbc;--rule:#6e7380;--accent:#ef9278;--tint:rgba(239,146,120,.13);--zone:rgba(255,255,255,.025);--zone-border:rgba(255,255,255,.20)"><div class="preview-heading"><h2>Minimal dark</h2><p>The same hierarchy in a restrained charcoal palette.</p></div><div class="diagram-scroll"><svg viewBox="0 0 1280 592" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="pipeline-dark-title pipeline-dark-desc">
         <title id="pipeline-dark-title">From question to cited answer</title>
         <desc id="pipeline-dark-desc">A user query becomes six main searches and sometimes a seventh name search, then moves through dense Qdrant lookup, candidate fusion, cross-encoder reranking, evidence selection, local Ollama generation, and a cited answer.</desc>
         <defs>
           <marker id="arrow-dark" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--muted)"/></marker>
           <marker id="arrow-accent-dark" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--accent)"/></marker>
         </defs>
-        <rect width="1280" height="720" fill="var(--paper)"/>
+        <rect width="1280" height="592" fill="var(--paper)"/>
 
-        <!-- Three pools hold the work between input and output. -->
+        <!-- Three stages hold the work between input and output. -->
         <rect class="zone" x="224" y="72" width="248" height="472" rx="8"/>
         <rect class="zone" x="500" y="72" width="248" height="472" rx="8"/>
         <rect class="zone" x="776" y="72" width="248" height="472" rx="8"/>
         <rect x="240" y="78" width="106" height="16" fill="var(--paper)"/>
-        <text class="zone-label" x="248" y="90">01  QUERY POOL</text>
+        <text class="zone-label" x="248" y="90">01  QUERY EXPANSION</text>
         <rect x="516" y="78" width="128" height="16" fill="var(--paper)"/>
-        <text class="zone-label" x="524" y="90">02  CANDIDATE POOL</text>
+        <text class="zone-label" x="524" y="90">02  RETRIEVAL &amp; FUSION</text>
         <rect x="792" y="78" width="118" height="16" fill="var(--paper)"/>
-        <text class="zone-label" x="800" y="90">03  EVIDENCE POOL</text>
+        <text class="zone-label" x="800" y="90">03  RANKING &amp; EVIDENCE</text>
 
         <!-- Main data path. Lines are behind all node masks. -->
         <path class="link" d="M184 322 H204 Q212 322 212 314 V238 Q212 230 220 230 H252"/>
@@ -175,9 +164,9 @@ main{max-width:1360px;margin:auto;padding:32px 24px 72px;display:grid;gap:30px}
         <rect class="node-strong" x="32" y="278" width="152" height="88" rx="6"/>
         <text class="tag" x="48" y="299">ENTRY</text>
         <text class="name" x="48" y="326">User query</text>
-        <text class="detail" x="48" y="348">one question</text>
 
-        <!-- Query pool -->
+
+        <!-- Query expansion -->
         <rect class="node" x="252" y="136" width="184" height="188" rx="6"/>
         <text class="tag" x="268" y="156">01 / PREPARE</text>
         <text class="name" x="268" y="181">Six main searches</text>
@@ -193,36 +182,36 @@ main{max-width:1360px;margin:auto;padding:32px 24px 72px;display:grid;gap:30px}
         <text class="tag" x="268" y="389">02 / ENCODE</text>
         <text class="name" x="268" y="416">Embed each search</text>
         <text class="detail" x="268" y="442">multi-qa-MiniLM-L6</text>
-        <text class="detail" x="268" y="461">cos-v1 · local CPU</text>
+        <text class="detail" x="268" y="461">cos-v1 · local model</text>
         <text class="detail" x="268" y="481">SentenceTransformers</text>
 
-        <!-- Candidate pool -->
+        <!-- Retrieval and fusion -->
         <rect class="node" x="528" y="136" width="184" height="148" rx="6"/>
         <text class="tag" x="544" y="156">03 / LOOKUP</text>
         <text class="name" x="544" y="182">Dense vector search</text>
         <text class="detail" x="544" y="207">Qdrant · cosine similarity</text>
         <text class="detail" x="544" y="227">up to 100 hits / search</text>
-        <text class="detail-ink" x="544" y="254">BM25 is not enabled</text>
+
 
         <rect class="node-strong" x="528" y="328" width="184" height="168" rx="6"/>
         <text class="tag" x="544" y="348">04 / FUSE</text>
-        <text class="name" x="544" y="376">Candidate pool</text>
+        <text class="name" x="544" y="376">Fused results</text>
         <text class="detail" x="544" y="402">RRF: top 30 / search</text>
         <text class="detail" x="544" y="421">30 fused candidates</text>
-        <text class="detail" x="544" y="440">wider pool kept apart</text>
-        <text class="detail" x="544" y="459">name hits join wide pool</text>
+        <text class="detail" x="544" y="440">extra results kept apart</text>
+        <text class="detail" x="544" y="459">name hits join extra set</text>
 
-        <!-- Evidence pool -->
+        <!-- Ranking and evidence -->
         <rect class="node" x="804" y="136" width="184" height="148" rx="6"/>
         <text class="tag" x="820" y="156">05 / RANK</text>
         <text class="name" x="820" y="182">Cross-encoder</text>
         <text class="detail" x="820" y="207">ms-marco-MiniLM-L-6-v2</text>
         <text class="detail" x="820" y="227">scores query + passage</text>
-        <text class="detail" x="820" y="254">SentenceTransformers · CPU</text>
+        <text class="detail" x="820" y="254">SentenceTransformers · local</text>
 
         <rect class="node" x="804" y="328" width="184" height="168" rx="6"/>
         <text class="tag" x="820" y="348">06 / SELECT</text>
-        <text class="name" x="820" y="376">Evidence pool</text>
+        <text class="name" x="820" y="376">Selected passages</text>
         <text class="detail" x="820" y="401">top 10; 15 if weak</text>
         <text class="detail" x="820" y="421">up to 3 strong wide hits</text>
         <text class="detail" x="820" y="441">nearby context if needed</text>
@@ -241,37 +230,26 @@ main{max-width:1360px;margin:auto;padding:32px 24px 72px;display:grid;gap:30px}
         <text class="name" x="1068" y="454">Shown to user</text>
         <text class="detail" x="1068" y="477">answer + cited sources</text>
 
-        <!-- Horizontal reading key. -->
-        <line x1="32" y1="608" x2="1248" y2="608" stroke="var(--rule)" stroke-width="1"/>
-        <text class="legend-title" x="40" y="632">READING KEY</text>
-        <line x1="40" y1="654" x2="78" y2="654" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow-dark)"/>
-        <text class="legend-text" x="92" y="658">Data moves along solid arrows</text>
-        <line x1="448" y1="624" x2="448" y2="672" stroke="var(--rule)" stroke-width="1"/>
-        <text class="legend-title" x="472" y="632">LOCAL DEFAULTS</text>
-        <text class="legend-text" x="472" y="658">CPU embedding + ranking; Ollama generation</text>
-        <line x1="876" y1="624" x2="876" y2="672" stroke="var(--rule)" stroke-width="1"/>
-        <text class="legend-title" x="900" y="632">SEARCH METHOD</text>
-        <text class="legend-text" x="900" y="658">Dense semantic only; no BM25</text>
       </svg></div></section>
-<section id="editorial" class="preview editorial" style="--paper:#f7f3ec;--ink:#302d2b;--muted:#625e59;--soft:#756d65;--rule:#c9c0b6;--accent:#a04c31;--tint:rgba(160,76,49,.09);--zone:rgba(48,45,43,.025);--zone-border:rgba(48,45,43,.18)"><div class="preview-heading"><p class="section-kicker">The journey of a question / 03 pools</p><h2>Full editorial</h2><p>A larger story frame with reading context and a brief takeaway.</p></div><div class="diagram-scroll"><svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="pipeline-editorial-title pipeline-editorial-desc">
+<section id="editorial" class="preview editorial" style="--paper:#f7f3ec;--ink:#302d2b;--muted:#625e59;--soft:#756d65;--rule:#c9c0b6;--accent:#a04c31;--tint:rgba(160,76,49,.09);--zone:rgba(48,45,43,.025);--zone-border:rgba(48,45,43,.18)"><div class="preview-heading"><p class="section-kicker">The journey of a query / 03 stages</p><h2>Full editorial</h2><p>A larger story frame with reading context and a brief takeaway.</p></div><div class="diagram-scroll"><svg viewBox="0 0 1280 592" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="pipeline-editorial-title pipeline-editorial-desc">
         <title id="pipeline-editorial-title">From question to cited answer</title>
         <desc id="pipeline-editorial-desc">A user query becomes six main searches and sometimes a seventh name search, then moves through dense Qdrant lookup, candidate fusion, cross-encoder reranking, evidence selection, local Ollama generation, and a cited answer.</desc>
         <defs>
           <marker id="arrow-editorial" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--muted)"/></marker>
           <marker id="arrow-accent-editorial" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--accent)"/></marker>
         </defs>
-        <rect width="1280" height="720" fill="var(--paper)"/>
+        <rect width="1280" height="592" fill="var(--paper)"/>
 
-        <!-- Three pools hold the work between input and output. -->
+        <!-- Three stages hold the work between input and output. -->
         <rect class="zone" x="224" y="72" width="248" height="472" rx="8"/>
         <rect class="zone" x="500" y="72" width="248" height="472" rx="8"/>
         <rect class="zone" x="776" y="72" width="248" height="472" rx="8"/>
         <rect x="240" y="78" width="106" height="16" fill="var(--paper)"/>
-        <text class="zone-label" x="248" y="90">01  QUERY POOL</text>
+        <text class="zone-label" x="248" y="90">01  QUERY EXPANSION</text>
         <rect x="516" y="78" width="128" height="16" fill="var(--paper)"/>
-        <text class="zone-label" x="524" y="90">02  CANDIDATE POOL</text>
+        <text class="zone-label" x="524" y="90">02  RETRIEVAL &amp; FUSION</text>
         <rect x="792" y="78" width="118" height="16" fill="var(--paper)"/>
-        <text class="zone-label" x="800" y="90">03  EVIDENCE POOL</text>
+        <text class="zone-label" x="800" y="90">03  RANKING &amp; EVIDENCE</text>
 
         <!-- Main data path. Lines are behind all node masks. -->
         <path class="link" d="M184 322 H204 Q212 322 212 314 V238 Q212 230 220 230 H252"/>
@@ -287,9 +265,9 @@ main{max-width:1360px;margin:auto;padding:32px 24px 72px;display:grid;gap:30px}
         <rect class="node-strong" x="32" y="278" width="152" height="88" rx="6"/>
         <text class="tag" x="48" y="299">ENTRY</text>
         <text class="name" x="48" y="326">User query</text>
-        <text class="detail" x="48" y="348">one question</text>
 
-        <!-- Query pool -->
+
+        <!-- Query expansion -->
         <rect class="node" x="252" y="136" width="184" height="188" rx="6"/>
         <text class="tag" x="268" y="156">01 / PREPARE</text>
         <text class="name" x="268" y="181">Six main searches</text>
@@ -305,36 +283,36 @@ main{max-width:1360px;margin:auto;padding:32px 24px 72px;display:grid;gap:30px}
         <text class="tag" x="268" y="389">02 / ENCODE</text>
         <text class="name" x="268" y="416">Embed each search</text>
         <text class="detail" x="268" y="442">multi-qa-MiniLM-L6</text>
-        <text class="detail" x="268" y="461">cos-v1 · local CPU</text>
+        <text class="detail" x="268" y="461">cos-v1 · local model</text>
         <text class="detail" x="268" y="481">SentenceTransformers</text>
 
-        <!-- Candidate pool -->
+        <!-- Retrieval and fusion -->
         <rect class="node" x="528" y="136" width="184" height="148" rx="6"/>
         <text class="tag" x="544" y="156">03 / LOOKUP</text>
         <text class="name" x="544" y="182">Dense vector search</text>
         <text class="detail" x="544" y="207">Qdrant · cosine similarity</text>
         <text class="detail" x="544" y="227">up to 100 hits / search</text>
-        <text class="detail-ink" x="544" y="254">BM25 is not enabled</text>
+
 
         <rect class="node-strong" x="528" y="328" width="184" height="168" rx="6"/>
         <text class="tag" x="544" y="348">04 / FUSE</text>
-        <text class="name" x="544" y="376">Candidate pool</text>
+        <text class="name" x="544" y="376">Fused results</text>
         <text class="detail" x="544" y="402">RRF: top 30 / search</text>
         <text class="detail" x="544" y="421">30 fused candidates</text>
-        <text class="detail" x="544" y="440">wider pool kept apart</text>
-        <text class="detail" x="544" y="459">name hits join wide pool</text>
+        <text class="detail" x="544" y="440">extra results kept apart</text>
+        <text class="detail" x="544" y="459">name hits join extra set</text>
 
-        <!-- Evidence pool -->
+        <!-- Ranking and evidence -->
         <rect class="node" x="804" y="136" width="184" height="148" rx="6"/>
         <text class="tag" x="820" y="156">05 / RANK</text>
         <text class="name" x="820" y="182">Cross-encoder</text>
         <text class="detail" x="820" y="207">ms-marco-MiniLM-L-6-v2</text>
         <text class="detail" x="820" y="227">scores query + passage</text>
-        <text class="detail" x="820" y="254">SentenceTransformers · CPU</text>
+        <text class="detail" x="820" y="254">SentenceTransformers · local</text>
 
         <rect class="node" x="804" y="328" width="184" height="168" rx="6"/>
         <text class="tag" x="820" y="348">06 / SELECT</text>
-        <text class="name" x="820" y="376">Evidence pool</text>
+        <text class="name" x="820" y="376">Selected passages</text>
         <text class="detail" x="820" y="401">top 10; 15 if weak</text>
         <text class="detail" x="820" y="421">up to 3 strong wide hits</text>
         <text class="detail" x="820" y="441">nearby context if needed</text>
@@ -353,37 +331,26 @@ main{max-width:1360px;margin:auto;padding:32px 24px 72px;display:grid;gap:30px}
         <text class="name" x="1068" y="454">Shown to user</text>
         <text class="detail" x="1068" y="477">answer + cited sources</text>
 
-        <!-- Horizontal reading key. -->
-        <line x1="32" y1="608" x2="1248" y2="608" stroke="var(--rule)" stroke-width="1"/>
-        <text class="legend-title" x="40" y="632">READING KEY</text>
-        <line x1="40" y1="654" x2="78" y2="654" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow-editorial)"/>
-        <text class="legend-text" x="92" y="658">Data moves along solid arrows</text>
-        <line x1="448" y1="624" x2="448" y2="672" stroke="var(--rule)" stroke-width="1"/>
-        <text class="legend-title" x="472" y="632">LOCAL DEFAULTS</text>
-        <text class="legend-text" x="472" y="658">CPU embedding + ranking; Ollama generation</text>
-        <line x1="876" y1="624" x2="876" y2="672" stroke="var(--rule)" stroke-width="1"/>
-        <text class="legend-title" x="900" y="632">SEARCH METHOD</text>
-        <text class="legend-text" x="900" y="658">Dense semantic only; no BM25</text>
-      </svg></div><p class="editorial-takeaway">One question becomes several local searches, then a ranked set of passages, then a sourced answer.</p></section>
-<section id="sketch" class="preview sketch" style="--paper:#f7f5ef;--ink:#343634;--muted:#60645f;--soft:#6b7068;--rule:#b9bdb4;--accent:#ab5438;--tint:rgba(171,84,56,.08);--zone:rgba(52,54,52,.025);--zone-border:rgba(52,54,52,.18)"><div class="preview-heading"><h2>Sketchy</h2><p>A lightly drawn treatment for an essay or work-in-progress note.</p></div><div class="diagram-scroll"><svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="pipeline-sketch-title pipeline-sketch-desc">
+      </svg></div><p class="editorial-takeaway">A query becomes several local searches, then a ranked set of passages, then a sourced answer.</p></section>
+<section id="sketch" class="preview sketch" style="--paper:#f7f5ef;--ink:#343634;--muted:#60645f;--soft:#6b7068;--rule:#b9bdb4;--accent:#ab5438;--tint:rgba(171,84,56,.08);--zone:rgba(52,54,52,.025);--zone-border:rgba(52,54,52,.18)"><div class="preview-heading"><h2>Sketchy</h2><p>A lightly drawn treatment for an essay or work-in-progress note.</p></div><div class="diagram-scroll"><svg viewBox="0 0 1280 592" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="pipeline-sketch-title pipeline-sketch-desc">
         <title id="pipeline-sketch-title">From question to cited answer</title>
         <desc id="pipeline-sketch-desc">A user query becomes six main searches and sometimes a seventh name search, then moves through dense Qdrant lookup, candidate fusion, cross-encoder reranking, evidence selection, local Ollama generation, and a cited answer.</desc>
         <defs><filter id="sketchy-filter" x="-2%" y="-2%" width="104%" height="104%"><feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="4"/><feDisplacementMap in="SourceGraphic" scale="1.5"/></filter>
           <marker id="arrow-sketch" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--muted)"/></marker>
           <marker id="arrow-accent-sketch" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--accent)"/></marker>
         </defs>
-        <rect width="1280" height="720" fill="var(--paper)"/>
+        <rect width="1280" height="592" fill="var(--paper)"/>
 
-        <!-- Three pools hold the work between input and output. -->
+        <!-- Three stages hold the work between input and output. -->
         <rect class="zone" x="224" y="72" width="248" height="472" rx="8"/>
         <rect class="zone" x="500" y="72" width="248" height="472" rx="8"/>
         <rect class="zone" x="776" y="72" width="248" height="472" rx="8"/>
         <rect x="240" y="78" width="106" height="16" fill="var(--paper)"/>
-        <text class="zone-label" x="248" y="90">01  QUERY POOL</text>
+        <text class="zone-label" x="248" y="90">01  QUERY EXPANSION</text>
         <rect x="516" y="78" width="128" height="16" fill="var(--paper)"/>
-        <text class="zone-label" x="524" y="90">02  CANDIDATE POOL</text>
+        <text class="zone-label" x="524" y="90">02  RETRIEVAL &amp; FUSION</text>
         <rect x="792" y="78" width="118" height="16" fill="var(--paper)"/>
-        <text class="zone-label" x="800" y="90">03  EVIDENCE POOL</text>
+        <text class="zone-label" x="800" y="90">03  RANKING &amp; EVIDENCE</text>
 
         <!-- Main data path. Lines are behind all node masks. -->
         <path class="link" d="M184 322 H204 Q212 322 212 314 V238 Q212 230 220 230 H252"/>
@@ -399,9 +366,9 @@ main{max-width:1360px;margin:auto;padding:32px 24px 72px;display:grid;gap:30px}
         <rect class="node-strong" x="32" y="278" width="152" height="88" rx="6"/>
         <text class="tag" x="48" y="299">ENTRY</text>
         <text class="name" x="48" y="326">User query</text>
-        <text class="detail" x="48" y="348">one question</text>
 
-        <!-- Query pool -->
+
+        <!-- Query expansion -->
         <rect class="node" x="252" y="136" width="184" height="188" rx="6"/>
         <text class="tag" x="268" y="156">01 / PREPARE</text>
         <text class="name" x="268" y="181">Six main searches</text>
@@ -417,36 +384,36 @@ main{max-width:1360px;margin:auto;padding:32px 24px 72px;display:grid;gap:30px}
         <text class="tag" x="268" y="389">02 / ENCODE</text>
         <text class="name" x="268" y="416">Embed each search</text>
         <text class="detail" x="268" y="442">multi-qa-MiniLM-L6</text>
-        <text class="detail" x="268" y="461">cos-v1 · local CPU</text>
+        <text class="detail" x="268" y="461">cos-v1 · local model</text>
         <text class="detail" x="268" y="481">SentenceTransformers</text>
 
-        <!-- Candidate pool -->
+        <!-- Retrieval and fusion -->
         <rect class="node" x="528" y="136" width="184" height="148" rx="6"/>
         <text class="tag" x="544" y="156">03 / LOOKUP</text>
         <text class="name" x="544" y="182">Dense vector search</text>
         <text class="detail" x="544" y="207">Qdrant · cosine similarity</text>
         <text class="detail" x="544" y="227">up to 100 hits / search</text>
-        <text class="detail-ink" x="544" y="254">BM25 is not enabled</text>
+
 
         <rect class="node-strong" x="528" y="328" width="184" height="168" rx="6"/>
         <text class="tag" x="544" y="348">04 / FUSE</text>
-        <text class="name" x="544" y="376">Candidate pool</text>
+        <text class="name" x="544" y="376">Fused results</text>
         <text class="detail" x="544" y="402">RRF: top 30 / search</text>
         <text class="detail" x="544" y="421">30 fused candidates</text>
-        <text class="detail" x="544" y="440">wider pool kept apart</text>
-        <text class="detail" x="544" y="459">name hits join wide pool</text>
+        <text class="detail" x="544" y="440">extra results kept apart</text>
+        <text class="detail" x="544" y="459">name hits join extra set</text>
 
-        <!-- Evidence pool -->
+        <!-- Ranking and evidence -->
         <rect class="node" x="804" y="136" width="184" height="148" rx="6"/>
         <text class="tag" x="820" y="156">05 / RANK</text>
         <text class="name" x="820" y="182">Cross-encoder</text>
         <text class="detail" x="820" y="207">ms-marco-MiniLM-L-6-v2</text>
         <text class="detail" x="820" y="227">scores query + passage</text>
-        <text class="detail" x="820" y="254">SentenceTransformers · CPU</text>
+        <text class="detail" x="820" y="254">SentenceTransformers · local</text>
 
         <rect class="node" x="804" y="328" width="184" height="168" rx="6"/>
         <text class="tag" x="820" y="348">06 / SELECT</text>
-        <text class="name" x="820" y="376">Evidence pool</text>
+        <text class="name" x="820" y="376">Selected passages</text>
         <text class="detail" x="820" y="401">top 10; 15 if weak</text>
         <text class="detail" x="820" y="421">up to 3 strong wide hits</text>
         <text class="detail" x="820" y="441">nearby context if needed</text>
@@ -465,37 +432,26 @@ main{max-width:1360px;margin:auto;padding:32px 24px 72px;display:grid;gap:30px}
         <text class="name" x="1068" y="454">Shown to user</text>
         <text class="detail" x="1068" y="477">answer + cited sources</text>
 
-        <!-- Horizontal reading key. -->
-        <line x1="32" y1="608" x2="1248" y2="608" stroke="var(--rule)" stroke-width="1"/>
-        <text class="legend-title" x="40" y="632">READING KEY</text>
-        <line x1="40" y1="654" x2="78" y2="654" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow-sketch)"/>
-        <text class="legend-text" x="92" y="658">Data moves along solid arrows</text>
-        <line x1="448" y1="624" x2="448" y2="672" stroke="var(--rule)" stroke-width="1"/>
-        <text class="legend-title" x="472" y="632">LOCAL DEFAULTS</text>
-        <text class="legend-text" x="472" y="658">CPU embedding + ranking; Ollama generation</text>
-        <line x1="876" y1="624" x2="876" y2="672" stroke="var(--rule)" stroke-width="1"/>
-        <text class="legend-title" x="900" y="632">SEARCH METHOD</text>
-        <text class="legend-text" x="900" y="658">Dense semantic only; no BM25</text>
       </svg></div></section>
-<section id="terminal" class="preview terminal" style="--paper:#141414;--ink:#f5f5f5;--muted:#9a9a9a;--soft:#858585;--rule:#545454;--accent:#ff5a36;--tint:rgba(255,90,54,.12);--zone:rgba(255,255,255,.025);--zone-border:rgba(255,255,255,.18)"><div class="preview-heading"><div class="titlebar"><span class="dot hot"></span><span class="dot"></span><span class="dot"></span><span class="titlebar-name">pipeline.sh — millennium-search</span></div><div class="terminal-content"><p class="prompt"><b>$</b> diagram-design render --style terminal</p><h2># From question to cited answer</h2><p>A fixed CLI-style skin for developer-facing posts.</p></div></div><div class="diagram-scroll"><svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="pipeline-terminal-title pipeline-terminal-desc">
+<section id="terminal" class="preview terminal" style="--paper:#141414;--ink:#f5f5f5;--muted:#9a9a9a;--soft:#858585;--rule:#545454;--accent:#ff5a36;--tint:rgba(255,90,54,.12);--zone:rgba(255,255,255,.025);--zone-border:rgba(255,255,255,.18)"><div class="preview-heading"><div class="titlebar"><span class="dot hot"></span><span class="dot"></span><span class="dot"></span><span class="titlebar-name">pipeline.sh — millennium-search</span></div><div class="terminal-content"><p class="prompt"><b>$</b> diagram-design render --style terminal</p><h2># From question to cited answer</h2><p>A fixed CLI-style skin for developer-facing posts.</p></div></div><div class="diagram-scroll"><svg viewBox="0 0 1280 592" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="pipeline-terminal-title pipeline-terminal-desc">
         <title id="pipeline-terminal-title">From question to cited answer</title>
         <desc id="pipeline-terminal-desc">A user query becomes six main searches and sometimes a seventh name search, then moves through dense Qdrant lookup, candidate fusion, cross-encoder reranking, evidence selection, local Ollama generation, and a cited answer.</desc>
         <defs>
           <marker id="arrow-terminal" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--muted)"/></marker>
           <marker id="arrow-accent-terminal" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--accent)"/></marker>
         </defs>
-        <rect width="1280" height="720" fill="var(--paper)"/>
+        <rect width="1280" height="592" fill="var(--paper)"/>
 
-        <!-- Three pools hold the work between input and output. -->
+        <!-- Three stages hold the work between input and output. -->
         <rect class="zone" x="224" y="72" width="248" height="472" rx="8"/>
         <rect class="zone" x="500" y="72" width="248" height="472" rx="8"/>
         <rect class="zone" x="776" y="72" width="248" height="472" rx="8"/>
         <rect x="240" y="78" width="106" height="16" fill="var(--paper)"/>
-        <text class="zone-label" x="248" y="90">01  QUERY POOL</text>
+        <text class="zone-label" x="248" y="90">01  QUERY EXPANSION</text>
         <rect x="516" y="78" width="128" height="16" fill="var(--paper)"/>
-        <text class="zone-label" x="524" y="90">02  CANDIDATE POOL</text>
+        <text class="zone-label" x="524" y="90">02  RETRIEVAL &amp; FUSION</text>
         <rect x="792" y="78" width="118" height="16" fill="var(--paper)"/>
-        <text class="zone-label" x="800" y="90">03  EVIDENCE POOL</text>
+        <text class="zone-label" x="800" y="90">03  RANKING &amp; EVIDENCE</text>
 
         <!-- Main data path. Lines are behind all node masks. -->
         <path class="link" d="M184 322 H204 Q212 322 212 314 V238 Q212 230 220 230 H252"/>
@@ -511,9 +467,9 @@ main{max-width:1360px;margin:auto;padding:32px 24px 72px;display:grid;gap:30px}
         <rect class="node-strong" x="32" y="278" width="152" height="88" rx="6"/>
         <text class="tag" x="48" y="299">ENTRY</text>
         <text class="name" x="48" y="326">User query</text>
-        <text class="detail" x="48" y="348">one question</text>
 
-        <!-- Query pool -->
+
+        <!-- Query expansion -->
         <rect class="node" x="252" y="136" width="184" height="188" rx="6"/>
         <text class="tag" x="268" y="156">01 / PREPARE</text>
         <text class="name" x="268" y="181">Six main searches</text>
@@ -529,36 +485,36 @@ main{max-width:1360px;margin:auto;padding:32px 24px 72px;display:grid;gap:30px}
         <text class="tag" x="268" y="389">02 / ENCODE</text>
         <text class="name" x="268" y="416">Embed each search</text>
         <text class="detail" x="268" y="442">multi-qa-MiniLM-L6</text>
-        <text class="detail" x="268" y="461">cos-v1 · local CPU</text>
+        <text class="detail" x="268" y="461">cos-v1 · local model</text>
         <text class="detail" x="268" y="481">SentenceTransformers</text>
 
-        <!-- Candidate pool -->
+        <!-- Retrieval and fusion -->
         <rect class="node" x="528" y="136" width="184" height="148" rx="6"/>
         <text class="tag" x="544" y="156">03 / LOOKUP</text>
         <text class="name" x="544" y="182">Dense vector search</text>
         <text class="detail" x="544" y="207">Qdrant · cosine similarity</text>
         <text class="detail" x="544" y="227">up to 100 hits / search</text>
-        <text class="detail-ink" x="544" y="254">BM25 is not enabled</text>
+
 
         <rect class="node-strong" x="528" y="328" width="184" height="168" rx="6"/>
         <text class="tag" x="544" y="348">04 / FUSE</text>
-        <text class="name" x="544" y="376">Candidate pool</text>
+        <text class="name" x="544" y="376">Fused results</text>
         <text class="detail" x="544" y="402">RRF: top 30 / search</text>
         <text class="detail" x="544" y="421">30 fused candidates</text>
-        <text class="detail" x="544" y="440">wider pool kept apart</text>
-        <text class="detail" x="544" y="459">name hits join wide pool</text>
+        <text class="detail" x="544" y="440">extra results kept apart</text>
+        <text class="detail" x="544" y="459">name hits join extra set</text>
 
-        <!-- Evidence pool -->
+        <!-- Ranking and evidence -->
         <rect class="node" x="804" y="136" width="184" height="148" rx="6"/>
         <text class="tag" x="820" y="156">05 / RANK</text>
         <text class="name" x="820" y="182">Cross-encoder</text>
         <text class="detail" x="820" y="207">ms-marco-MiniLM-L-6-v2</text>
         <text class="detail" x="820" y="227">scores query + passage</text>
-        <text class="detail" x="820" y="254">SentenceTransformers · CPU</text>
+        <text class="detail" x="820" y="254">SentenceTransformers · local</text>
 
         <rect class="node" x="804" y="328" width="184" height="168" rx="6"/>
         <text class="tag" x="820" y="348">06 / SELECT</text>
-        <text class="name" x="820" y="376">Evidence pool</text>
+        <text class="name" x="820" y="376">Selected passages</text>
         <text class="detail" x="820" y="401">top 10; 15 if weak</text>
         <text class="detail" x="820" y="421">up to 3 strong wide hits</text>
         <text class="detail" x="820" y="441">nearby context if needed</text>
@@ -577,37 +533,26 @@ main{max-width:1360px;margin:auto;padding:32px 24px 72px;display:grid;gap:30px}
         <text class="name" x="1068" y="454">Shown to user</text>
         <text class="detail" x="1068" y="477">answer + cited sources</text>
 
-        <!-- Horizontal reading key. -->
-        <line x1="32" y1="608" x2="1248" y2="608" stroke="var(--rule)" stroke-width="1"/>
-        <text class="legend-title" x="40" y="632">READING KEY</text>
-        <line x1="40" y1="654" x2="78" y2="654" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow-terminal)"/>
-        <text class="legend-text" x="92" y="658">Data moves along solid arrows</text>
-        <line x1="448" y1="624" x2="448" y2="672" stroke="var(--rule)" stroke-width="1"/>
-        <text class="legend-title" x="472" y="632">LOCAL DEFAULTS</text>
-        <text class="legend-text" x="472" y="658">CPU embedding + ranking; Ollama generation</text>
-        <line x1="876" y1="624" x2="876" y2="672" stroke="var(--rule)" stroke-width="1"/>
-        <text class="legend-title" x="900" y="632">SEARCH METHOD</text>
-        <text class="legend-text" x="900" y="658">Dense semantic only; no BM25</text>
       </svg></div></section>
-<section id="brand" class="preview brand" style="--paper:#f3eee4;--ink:#231f25;--muted:#655d63;--soft:#70676d;--rule:#beb0ad;--accent:#8c3547;--tint:rgba(140,53,71,.10);--zone:rgba(35,31,37,.025);--zone-border:rgba(35,31,37,.18)"><div class="preview-heading"><p class="section-kicker">Illustrative palette · no existing brand tokens supplied</p><h2>Book-inspired palette</h2><p>An illustrative ink-and-paper direction for this project, not an official brand.</p></div><div class="diagram-scroll"><svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="pipeline-brand-title pipeline-brand-desc">
+<section id="brand" class="preview brand" style="--paper:#f3eee4;--ink:#231f25;--muted:#655d63;--soft:#70676d;--rule:#beb0ad;--accent:#8c3547;--tint:rgba(140,53,71,.10);--zone:rgba(35,31,37,.025);--zone-border:rgba(35,31,37,.18)"><div class="preview-heading"><p class="section-kicker">Illustrative palette · no existing brand tokens supplied</p><h2>Book-inspired palette</h2><p>An illustrative ink-and-paper direction for this project, not an official brand.</p></div><div class="diagram-scroll"><svg viewBox="0 0 1280 592" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="pipeline-brand-title pipeline-brand-desc">
         <title id="pipeline-brand-title">From question to cited answer</title>
         <desc id="pipeline-brand-desc">A user query becomes six main searches and sometimes a seventh name search, then moves through dense Qdrant lookup, candidate fusion, cross-encoder reranking, evidence selection, local Ollama generation, and a cited answer.</desc>
         <defs>
           <marker id="arrow-brand" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--muted)"/></marker>
           <marker id="arrow-accent-brand" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--accent)"/></marker>
         </defs>
-        <rect width="1280" height="720" fill="var(--paper)"/>
+        <rect width="1280" height="592" fill="var(--paper)"/>
 
-        <!-- Three pools hold the work between input and output. -->
+        <!-- Three stages hold the work between input and output. -->
         <rect class="zone" x="224" y="72" width="248" height="472" rx="8"/>
         <rect class="zone" x="500" y="72" width="248" height="472" rx="8"/>
         <rect class="zone" x="776" y="72" width="248" height="472" rx="8"/>
         <rect x="240" y="78" width="106" height="16" fill="var(--paper)"/>
-        <text class="zone-label" x="248" y="90">01  QUERY POOL</text>
+        <text class="zone-label" x="248" y="90">01  QUERY EXPANSION</text>
         <rect x="516" y="78" width="128" height="16" fill="var(--paper)"/>
-        <text class="zone-label" x="524" y="90">02  CANDIDATE POOL</text>
+        <text class="zone-label" x="524" y="90">02  RETRIEVAL &amp; FUSION</text>
         <rect x="792" y="78" width="118" height="16" fill="var(--paper)"/>
-        <text class="zone-label" x="800" y="90">03  EVIDENCE POOL</text>
+        <text class="zone-label" x="800" y="90">03  RANKING &amp; EVIDENCE</text>
 
         <!-- Main data path. Lines are behind all node masks. -->
         <path class="link" d="M184 322 H204 Q212 322 212 314 V238 Q212 230 220 230 H252"/>
@@ -623,9 +568,9 @@ main{max-width:1360px;margin:auto;padding:32px 24px 72px;display:grid;gap:30px}
         <rect class="node-strong" x="32" y="278" width="152" height="88" rx="6"/>
         <text class="tag" x="48" y="299">ENTRY</text>
         <text class="name" x="48" y="326">User query</text>
-        <text class="detail" x="48" y="348">one question</text>
 
-        <!-- Query pool -->
+
+        <!-- Query expansion -->
         <rect class="node" x="252" y="136" width="184" height="188" rx="6"/>
         <text class="tag" x="268" y="156">01 / PREPARE</text>
         <text class="name" x="268" y="181">Six main searches</text>
@@ -641,36 +586,36 @@ main{max-width:1360px;margin:auto;padding:32px 24px 72px;display:grid;gap:30px}
         <text class="tag" x="268" y="389">02 / ENCODE</text>
         <text class="name" x="268" y="416">Embed each search</text>
         <text class="detail" x="268" y="442">multi-qa-MiniLM-L6</text>
-        <text class="detail" x="268" y="461">cos-v1 · local CPU</text>
+        <text class="detail" x="268" y="461">cos-v1 · local model</text>
         <text class="detail" x="268" y="481">SentenceTransformers</text>
 
-        <!-- Candidate pool -->
+        <!-- Retrieval and fusion -->
         <rect class="node" x="528" y="136" width="184" height="148" rx="6"/>
         <text class="tag" x="544" y="156">03 / LOOKUP</text>
         <text class="name" x="544" y="182">Dense vector search</text>
         <text class="detail" x="544" y="207">Qdrant · cosine similarity</text>
         <text class="detail" x="544" y="227">up to 100 hits / search</text>
-        <text class="detail-ink" x="544" y="254">BM25 is not enabled</text>
+
 
         <rect class="node-strong" x="528" y="328" width="184" height="168" rx="6"/>
         <text class="tag" x="544" y="348">04 / FUSE</text>
-        <text class="name" x="544" y="376">Candidate pool</text>
+        <text class="name" x="544" y="376">Fused results</text>
         <text class="detail" x="544" y="402">RRF: top 30 / search</text>
         <text class="detail" x="544" y="421">30 fused candidates</text>
-        <text class="detail" x="544" y="440">wider pool kept apart</text>
-        <text class="detail" x="544" y="459">name hits join wide pool</text>
+        <text class="detail" x="544" y="440">extra results kept apart</text>
+        <text class="detail" x="544" y="459">name hits join extra set</text>
 
-        <!-- Evidence pool -->
+        <!-- Ranking and evidence -->
         <rect class="node" x="804" y="136" width="184" height="148" rx="6"/>
         <text class="tag" x="820" y="156">05 / RANK</text>
         <text class="name" x="820" y="182">Cross-encoder</text>
         <text class="detail" x="820" y="207">ms-marco-MiniLM-L-6-v2</text>
         <text class="detail" x="820" y="227">scores query + passage</text>
-        <text class="detail" x="820" y="254">SentenceTransformers · CPU</text>
+        <text class="detail" x="820" y="254">SentenceTransformers · local</text>
 
         <rect class="node" x="804" y="328" width="184" height="168" rx="6"/>
         <text class="tag" x="820" y="348">06 / SELECT</text>
-        <text class="name" x="820" y="376">Evidence pool</text>
+        <text class="name" x="820" y="376">Selected passages</text>
         <text class="detail" x="820" y="401">top 10; 15 if weak</text>
         <text class="detail" x="820" y="421">up to 3 strong wide hits</text>
         <text class="detail" x="820" y="441">nearby context if needed</text>
@@ -689,37 +634,26 @@ main{max-width:1360px;margin:auto;padding:32px 24px 72px;display:grid;gap:30px}
         <text class="name" x="1068" y="454">Shown to user</text>
         <text class="detail" x="1068" y="477">answer + cited sources</text>
 
-        <!-- Horizontal reading key. -->
-        <line x1="32" y1="608" x2="1248" y2="608" stroke="var(--rule)" stroke-width="1"/>
-        <text class="legend-title" x="40" y="632">READING KEY</text>
-        <line x1="40" y1="654" x2="78" y2="654" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow-brand)"/>
-        <text class="legend-text" x="92" y="658">Data moves along solid arrows</text>
-        <line x1="448" y1="624" x2="448" y2="672" stroke="var(--rule)" stroke-width="1"/>
-        <text class="legend-title" x="472" y="632">LOCAL DEFAULTS</text>
-        <text class="legend-text" x="472" y="658">CPU embedding + ranking; Ollama generation</text>
-        <line x1="876" y1="624" x2="876" y2="672" stroke="var(--rule)" stroke-width="1"/>
-        <text class="legend-title" x="900" y="632">SEARCH METHOD</text>
-        <text class="legend-text" x="900" y="658">Dense semantic only; no BM25</text>
       </svg></div></section>
-<section id="reveal" class="preview reveal" style="--paper:#f5f5f5;--ink:#2d3142;--muted:#4f5d75;--soft:#5a6580;--rule:#bfc0c0;--accent:#bf4520;--tint:rgba(191,69,32,.08);--zone:rgba(45,49,66,.025);--zone-border:rgba(45,49,66,.18)"><div class="preview-heading"><h2>Step reveal</h2><p>The default light skin, with the journey appearing in order once.</p></div><div class="diagram-scroll"><svg viewBox="0 0 1280 720" data-motion-mode="reveal" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="pipeline-reveal-title pipeline-reveal-desc">
+<section id="reveal" class="preview reveal" style="--paper:#f5f5f5;--ink:#2d3142;--muted:#4f5d75;--soft:#5a6580;--rule:#bfc0c0;--accent:#bf4520;--tint:rgba(191,69,32,.08);--zone:rgba(45,49,66,.025);--zone-border:rgba(45,49,66,.18)"><div class="preview-heading"><h2>Step reveal</h2><p>The default light skin, with the journey appearing in order once.</p></div><div class="diagram-scroll"><svg viewBox="0 0 1280 592" data-motion-mode="reveal" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="pipeline-reveal-title pipeline-reveal-desc">
         <title id="pipeline-reveal-title">From question to cited answer</title>
         <desc id="pipeline-reveal-desc">A user query becomes six main searches and sometimes a seventh name search, then moves through dense Qdrant lookup, candidate fusion, cross-encoder reranking, evidence selection, local Ollama generation, and a cited answer.</desc>
         <defs>
           <marker id="arrow-reveal" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--muted)"/></marker>
           <marker id="arrow-accent-reveal" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--accent)"/></marker>
         </defs>
-        <rect width="1280" height="720" fill="var(--paper)"/>
+        <rect width="1280" height="592" fill="var(--paper)"/>
 
-        <!-- Three pools hold the work between input and output. -->
+        <!-- Three stages hold the work between input and output. -->
         <rect class="stage-2 zone" x="224" y="72" width="248" height="472" rx="8"/>
         <rect class="stage-3 zone" x="500" y="72" width="248" height="472" rx="8"/>
         <rect class="stage-4 zone" x="776" y="72" width="248" height="472" rx="8"/>
         <rect x="240" y="78" width="106" height="16" fill="var(--paper)"/>
-        <text class="stage-2 zone-label" x="248" y="90">01  QUERY POOL</text>
+        <text class="stage-2 zone-label" x="248" y="90">01  QUERY EXPANSION</text>
         <rect x="516" y="78" width="128" height="16" fill="var(--paper)"/>
-        <text class="stage-3 zone-label" x="524" y="90">02  CANDIDATE POOL</text>
+        <text class="stage-3 zone-label" x="524" y="90">02  RETRIEVAL &amp; FUSION</text>
         <rect x="792" y="78" width="118" height="16" fill="var(--paper)"/>
-        <text class="stage-4 zone-label" x="800" y="90">03  EVIDENCE POOL</text>
+        <text class="stage-4 zone-label" x="800" y="90">03  RANKING &amp; EVIDENCE</text>
 
         <!-- Main data path. Lines are behind all node masks. -->
         <path class="link stage-2" d="M184 322 H204 Q212 322 212 314 V238 Q212 230 220 230 H252"/>
@@ -735,9 +669,9 @@ main{max-width:1360px;margin:auto;padding:32px 24px 72px;display:grid;gap:30px}
         <rect class="stage-1 node-strong" x="32" y="278" width="152" height="88" rx="6"/>
         <text class="stage-1 tag" x="48" y="299">ENTRY</text>
         <text class="stage-1 name" x="48" y="326">User query</text>
-        <text class="stage-1 detail" x="48" y="348">one question</text>
 
-        <!-- Query pool -->
+
+        <!-- Query expansion -->
         <rect class="stage-2 node" x="252" y="136" width="184" height="188" rx="6"/>
         <text class="stage-2 tag" x="268" y="156">01 / PREPARE</text>
         <text class="stage-2 name" x="268" y="181">Six main searches</text>
@@ -753,36 +687,36 @@ main{max-width:1360px;margin:auto;padding:32px 24px 72px;display:grid;gap:30px}
         <text class="stage-2 tag" x="268" y="389">02 / ENCODE</text>
         <text class="stage-2 name" x="268" y="416">Embed each search</text>
         <text class="stage-2 detail" x="268" y="442">multi-qa-MiniLM-L6</text>
-        <text class="stage-2 detail" x="268" y="461">cos-v1 · local CPU</text>
+        <text class="stage-2 detail" x="268" y="461">cos-v1 · local model</text>
         <text class="stage-2 detail" x="268" y="481">SentenceTransformers</text>
 
-        <!-- Candidate pool -->
+        <!-- Retrieval and fusion -->
         <rect class="stage-3 node" x="528" y="136" width="184" height="148" rx="6"/>
         <text class="stage-3 tag" x="544" y="156">03 / LOOKUP</text>
         <text class="stage-3 name" x="544" y="182">Dense vector search</text>
         <text class="stage-3 detail" x="544" y="207">Qdrant · cosine similarity</text>
         <text class="stage-3 detail" x="544" y="227">up to 100 hits / search</text>
-        <text class="stage-3 detail-ink" x="544" y="254">BM25 is not enabled</text>
+
 
         <rect class="stage-3 node-strong" x="528" y="328" width="184" height="168" rx="6"/>
         <text class="stage-3 tag" x="544" y="348">04 / FUSE</text>
-        <text class="stage-3 name" x="544" y="376">Candidate pool</text>
+        <text class="stage-3 name" x="544" y="376">Fused results</text>
         <text class="stage-3 detail" x="544" y="402">RRF: top 30 / search</text>
         <text class="stage-3 detail" x="544" y="421">30 fused candidates</text>
-        <text class="stage-3 detail" x="544" y="440">wider pool kept apart</text>
-        <text class="stage-3 detail" x="544" y="459">name hits join wide pool</text>
+        <text class="stage-3 detail" x="544" y="440">extra results kept apart</text>
+        <text class="stage-3 detail" x="544" y="459">name hits join extra set</text>
 
-        <!-- Evidence pool -->
+        <!-- Ranking and evidence -->
         <rect class="stage-4 node" x="804" y="136" width="184" height="148" rx="6"/>
         <text class="stage-4 tag" x="820" y="156">05 / RANK</text>
         <text class="stage-4 name" x="820" y="182">Cross-encoder</text>
         <text class="stage-4 detail" x="820" y="207">ms-marco-MiniLM-L-6-v2</text>
         <text class="stage-4 detail" x="820" y="227">scores query + passage</text>
-        <text class="stage-4 detail" x="820" y="254">SentenceTransformers · CPU</text>
+        <text class="stage-4 detail" x="820" y="254">SentenceTransformers · local</text>
 
         <rect class="stage-4 node" x="804" y="328" width="184" height="168" rx="6"/>
         <text class="stage-4 tag" x="820" y="348">06 / SELECT</text>
-        <text class="stage-4 name" x="820" y="376">Evidence pool</text>
+        <text class="stage-4 name" x="820" y="376">Selected passages</text>
         <text class="stage-4 detail" x="820" y="401">top 10; 15 if weak</text>
         <text class="stage-4 detail" x="820" y="421">up to 3 strong wide hits</text>
         <text class="stage-4 detail" x="820" y="441">nearby context if needed</text>
@@ -801,15 +735,4 @@ main{max-width:1360px;margin:auto;padding:32px 24px 72px;display:grid;gap:30px}
         <text class="stage-5 name" x="1068" y="454">Shown to user</text>
         <text class="stage-5 detail" x="1068" y="477">answer + cited sources</text>
 
-        <!-- Horizontal reading key. -->
-        <line x1="32" y1="608" x2="1248" y2="608" stroke="var(--rule)" stroke-width="1"/>
-        <text class="stage-1 legend-title" x="40" y="632">READING KEY</text>
-        <line x1="40" y1="654" x2="78" y2="654" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow-reveal)"/>
-        <text class="stage-1 legend-text" x="92" y="658">Data moves along solid arrows</text>
-        <line x1="448" y1="624" x2="448" y2="672" stroke="var(--rule)" stroke-width="1"/>
-        <text class="stage-2 legend-title" x="472" y="632">LOCAL DEFAULTS</text>
-        <text class="stage-2 legend-text" x="472" y="658">CPU embedding + ranking; Ollama generation</text>
-        <line x1="876" y1="624" x2="876" y2="672" stroke="var(--rule)" stroke-width="1"/>
-        <text class="stage-4 legend-title" x="900" y="632">SEARCH METHOD</text>
-        <text class="stage-4 legend-text" x="900" y="658">Dense semantic only; no BM25</text>
       </svg></div></section></main></body></html>
