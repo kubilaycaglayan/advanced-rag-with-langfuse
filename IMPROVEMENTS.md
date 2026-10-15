@@ -39,6 +39,7 @@ can touch, shrink that to only what it should touch, then confirm on the full da
 
 | Date | Round | QA.csv correctness | Citation | Improved (answer correctness) | Regressed | Commit |
 |---|---|---|---|---|---|---|
+| 2026-10-15 | Completed question<br>for the answer model | 0.722 → 0.722 | 0.861 → 0.861 | "What was the nickname of Mikael?" stays 0.5, but the answer is now always "Kalle Blomkvist" (offline: "no nickname" in 3 of 3 replays before) | — | 95588dd |
 | 2026-10-15 | Completed names score<br>the wider pool | 0.708 → 0.722<br>(36 items) | 0.861 → 0.861 | "What was the nickname of Mikael?" 0 → 0.5 | — | 31b95f1 |
 | 2026-10-15 | Wider pool when<br>fused is weak | 0.700 → 0.729 | 0.857 → 0.857 | Blomkvist's media nickname 0 → 1 | — | 34eb712 |
 | 2026-10-15 | More evidence +<br>reasoning when weak | 0.614 → 0.700 | 0.838 → 0.857 | Salander's fortune 0 → 1<br>Cecilia: event that changed Harriet 0 → 1<br>table salt formula 0.5 → 1<br>Armageddon shirt 0.5 → 1 | — | 2d7b030 |
@@ -49,6 +50,30 @@ Each row compares the round's defaults against the defaults it replaced: 2d7b030
 defaults (0.614), not against 88d26af, whose defaults it reverted. The correctness judge is noisy on reworded answers
 (identical answers have scored 0 and 1 in different runs), so single 0.5 steps in rows without a repeat run are
 weak evidence.
+
+## 2026-10-15 — Completed question for the answer model (95588dd)
+
+**Target:** "What was the nickname of Mikael?" (item 58343746) after 31b95f1: correct passage at E1, judged 0.5.
+
+**Diagnosis:** the passage says "Blomkvist had never in life used the name Carl ... nicknamed Kalle Blomkvist", and the
+question says only "Mikael". Replaying the recorded evidence with the question as asked, the answer model said "no
+nickname for Mikael; Kalle Blomkvist refers to Carl Blomkvist" in 3 of 3 replays, so the 0.5 runs were partly luck.
+With the completed question it answered "Mikael Blomkvist's nickname was Kalle Blomkvist" in 3 of 3.
+
+**Tried:** the completed question for all 7 questions name completion changes (exp72a/b, those 7 items twice): target
+1.0 / 0.5 and affair 0 → 0.5, but "According to Cecilia..." 1.0 → 0 in both runs and savior complex citation
+1.0 → 0.5. Completing names in every generated query, not just the question, brought no more answer passages into
+the pool (offline).
+
+**Change:** the answer model sees the completed question only when the evidence includes a passage that only the
+completed-name search found (it needs that wording to read the passage); otherwise it sees the question as asked.
+On this dataset that is the target and "Who tried to shoot Mikael?".
+
+**Result:** exp73 and exp74 (full dataset, defaults): 0.722 / 0.861 in both, 0 failures, 32 answers byte-identical to
+exp66, the other changed items kept their scores. Target 0.5 in both ("Mikael Blomkvist's nickname was Kalle
+Blomkvist [E1]"). The judge gives 1.0 when the answer also says he detests the nickname (exp72a) and otherwise asks
+for the origin. Getting that detail needs a less concise answer; the wordings tried for that lowered six other
+questions (previous round).
 
 ## 2026-10-15 — Completed names score the wider pool (31b95f1)
 
