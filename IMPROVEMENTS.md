@@ -39,7 +39,7 @@ can touch, shrink that to only what it should touch, then confirm on the full da
 
 | Date | Round | QA.csv correctness | Citation | Improved (answer correctness) | Regressed | Commit |
 |---|---|---|---|---|---|---|
-| 2026-10-15 | Completed names score<br>the wider pool | 0.708 → 0.722<br>(36 items) | 0.861 → 0.861 | "What was the nickname of Mikael?" 0 → 0.5 | — | ca9a317 |
+| 2026-10-15 | Completed names score<br>the wider pool | 0.708 → 0.722<br>(36 items) | 0.861 → 0.861 | "What was the nickname of Mikael?" 0 → 0.5 | — | 31b95f1 |
 | 2026-10-15 | Wider pool when<br>fused is weak | 0.700 → 0.729 | 0.857 → 0.857 | Blomkvist's media nickname 0 → 1 | — | 34eb712 |
 | 2026-10-15 | More evidence +<br>reasoning when weak | 0.614 → 0.700 | 0.838 → 0.857 | Salander's fortune 0 → 1<br>Cecilia: event that changed Harriet 0 → 1<br>table salt formula 0.5 → 1<br>Armageddon shirt 0.5 → 1 | — | 2d7b030 |
 | 2026-10-14 | 15 passages + reasoning<br>always (superseded) | 0.614 → 0.757 | 0.838 → 0.871 | Salander's fortune 0 → 1<br>Blomkvist's media nickname 0 → 1<br>Cecilia: event that changed Harriet 0 → 1<br>affair 0 → 0.5<br>table salt 0.5 → 1<br>Niedermann's pain 0.5 → 1<br>Dag Svensson's murderer 0.5 → 1<br>prison sentence 0.5 → 1<br>Martin Vanger 0.5 → 1<br>Armageddon shirt 0.5 → 1 | Berger's position 0.5 → 0<br>who killed Harriet 0.5 → 0<br>who tried to shoot Mikael 0.5 → 0 | 88d26af |
@@ -50,7 +50,7 @@ defaults (0.614), not against 88d26af, whose defaults it reverted. The correctne
 (identical answers have scored 0 and 1 in different runs), so single 0.5 steps in rows without a repeat run are
 weak evidence.
 
-## 2026-10-15 — Completed names score the wider pool (ca9a317)
+## 2026-10-15 — Completed names score the wider pool (31b95f1)
 
 **Target:** "What was the nickname of Mikael?" (item 58343746, added to the Langfuse dataset on 2026-10-15; dataset now
 36 items), scored 0: the answer said the evidence mentions no nickname.
