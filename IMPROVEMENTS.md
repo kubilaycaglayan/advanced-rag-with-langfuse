@@ -77,8 +77,19 @@ before.
 
 **Result:** exp66 (full dataset, no config) and exp67 (repeat of the 4 changed items): correctness 0.708 → 0.722,
 citation 0.861 → 0.861, 0 failures. Target 0 → 0.5 in both runs ("Kalle" [E1]; the judge wants the origin and his
-reaction too, an answer-length issue left for another round). 32 answers byte-identical; Cecilia (1.0), savior
-complex (0.5) and who tried to shoot Mikael (0.5) changed wording but kept their scores in both runs.
+reaction too). 32 answers byte-identical; Cecilia (1.0), savior complex (0.5) and who tried to shoot Mikael (0.5)
+changed wording but kept their scores in both runs.
+
+**Follow-up, rejected (not committed):** the origin of the nickname is in the passage just before the admitted one.
+- Adding that preceding passage (same EPUB section) to each admitted passage, separately or joined into one
+  passage: the evidence then held the origin, but the answer model still wrote one line under "Keep the answer
+  concise". Joined (exp69, full dataset): target 1.0 once, then 0.5 in two repeats (exp71a/b); savior complex
+  citation 1.0 → 0.5 in all three runs (the joined context added a "Practical Pig complex" line that the model
+  over-read).
+- Answer prompt "keep it concise, but include the context the evidence gives (origin or cause, reactions)"
+  (`rag-answer` v11, label `tuning9`), with the joined passage (exp70): target 1.0 but 0.708 → 0.681, 6 items
+  dropped (Zalachenko, Salander's fortune, Dag Svensson's murderer, police after assault, Henrik hires Blomkvist,
+  Blomkvist's conviction). The production prompt is unchanged.
 
 ## 2026-10-15 — Wider retrieval pool when the fused candidates are weak (34eb712)
 
