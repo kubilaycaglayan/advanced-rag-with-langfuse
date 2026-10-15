@@ -55,7 +55,7 @@ class EvaluatorSettings:
 class ResolvedPipelineConfig:
     retrieval_mode: str = "full"
     candidate_count: int = 30
-    top_k: int = 15
+    top_k: int = 10
     passage_chars: int = 1200
     embedding_model: ModelIdentity = ModelIdentity("sentence-transformers/multi-qa-MiniLM-L6-cos-v1")
     reranker_model: ModelIdentity = ModelIdentity("cross-encoder/ms-marco-MiniLM-L-6-v2")
@@ -65,8 +65,10 @@ class ResolvedPipelineConfig:
     min_passage_chars: int = 400
     passage_overlap: int = 0
     expansion_count: int = 3
-    answer_thinking: bool = True
+    answer_thinking: bool = False
     name_completion: bool = False
+    low_confidence_score: float | None = 2.0
+    low_confidence_top_k: int = 15
     corpus_checksum: str = ""
     prompt_hashes: Mapping[str, str] | None = None
 
@@ -76,13 +78,17 @@ class ResolvedPipelineConfig:
         if not isinstance(self.generation, GenerationSettings):
             raise ValueError("generation must be GenerationSettings")
         for name, number in (("candidate_count", self.candidate_count), ("top_k", self.top_k), ("passage_chars", self.passage_chars), ("rrf_constant", self.rrf_constant),
-                             ("min_passage_chars", self.min_passage_chars), ("passage_overlap", self.passage_overlap), ("expansion_count", self.expansion_count)):
+                             ("min_passage_chars", self.min_passage_chars), ("passage_overlap", self.passage_overlap), ("expansion_count", self.expansion_count),
+                             ("low_confidence_top_k", self.low_confidence_top_k)):
             if isinstance(number, bool) or not isinstance(number, int):
                 raise ValueError(f"{name} must be an integer")
         if not isinstance(self.retrieval_mode, str):
             raise ValueError("retrieval_mode must be a string")
         if not isinstance(self.answer_thinking, bool) or not isinstance(self.name_completion, bool):
             raise ValueError("answer_thinking and name_completion must be booleans")
+        if self.low_confidence_score is not None and (isinstance(self.low_confidence_score, bool) or not isinstance(self.low_confidence_score, (int, float))
+                                                      or not math.isfinite(self.low_confidence_score)):
+            raise ValueError("low_confidence_score must be a finite number or null")
         if not isinstance(self.corpus_checksum, str):
             raise ValueError("corpus_checksum must be a string")
         if self.prompt_hashes is not None and (not isinstance(self.prompt_hashes, Mapping) or not all(isinstance(k, str) and isinstance(v, str) for k, v in self.prompt_hashes.items())):
@@ -93,6 +99,8 @@ class ResolvedPipelineConfig:
             raise ValueError("candidate_count must be between 1 and 100")
         if not 1 <= self.top_k <= self.candidate_count:
             raise ValueError("top_k must be between 1 and candidate_count")
+        if not 1 <= self.low_confidence_top_k <= self.candidate_count:
+            raise ValueError("low_confidence_top_k must be between 1 and candidate_count")
         if self.passage_chars < 1 or self.rrf_constant < 1:
             raise ValueError("passage_chars and rrf_constant must be positive")
         if self.min_passage_chars < 0:
@@ -117,7 +125,7 @@ class ResolvedPipelineConfig:
         defaults: dict[str, Any] = {
             "retrieval_mode": "full",
             "candidate_count": 30,
-            "top_k": 15,
+            "top_k": 10,
             "passage_chars": int(os.getenv("PASSAGE_CHARS", "1200")),
             "min_passage_chars": int(os.getenv("MIN_PASSAGE_CHARS", "400")),
             "embedding_model": os.getenv("EMBEDDING_MODEL", "sentence-transformers/multi-qa-MiniLM-L6-cos-v1"),
@@ -127,7 +135,8 @@ class ResolvedPipelineConfig:
         defaults.update(value)
         value = defaults
         allowed = {"retrieval_mode", "candidate_count", "top_k", "passage_chars", "embedding_model", "reranker_model", "generation_model", "generation", "rrf_constant",
-                   "min_passage_chars", "passage_overlap", "expansion_count", "answer_thinking", "name_completion", "corpus_checksum", "prompt_hashes"}
+                   "min_passage_chars", "passage_overlap", "expansion_count", "answer_thinking", "name_completion",
+                   "low_confidence_score", "low_confidence_top_k", "corpus_checksum", "prompt_hashes"}
         unknown = set(value) - allowed
         if unknown:
             raise ValueError(f"unknown config fields: {', '.join(sorted(unknown))}")

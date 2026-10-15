@@ -120,33 +120,42 @@ NAME_COMPLETION_HITS = 5
 
 
 @lru_cache(maxsize=8)
-def _name_pairs(collection: str) -> dict[str, tuple[str, int, int]]:
+def _name_pairs(collection: str) -> tuple[dict[str, tuple[str, int, int]], Counter]:
     """Map each capitalized word to its most frequent two-word name in the indexed passages.
 
-    Values are (full name, count of that name, count of all names containing the word).
+    Returns ({word: (full name, count of that name, count of all names containing the word)}, word counts).
     """
     by_word: dict[str, Counter] = defaultdict(Counter)
+    words: Counter = Counter()
     offset = None
     while True:
         points, offset = qdrant_client().scroll(collection_name=collection, limit=1000, offset=offset, with_payload=["text"])
         for point in points:
-            for first, last in re.findall(rf"\b({_NAME_WORD}) ({_NAME_WORD})\b", (point.payload or {}).get("text", "")):
+            text = (point.payload or {}).get("text", "")
+            words.update(re.findall(rf"\b{_NAME_WORD}\b", text))
+            for first, last in re.findall(rf"\b({_NAME_WORD}) ({_NAME_WORD})\b", text):
                 by_word[first][f"{first} {last}"] += 1
                 by_word[last][f"{first} {last}"] += 1
         if offset is None:
             break
-    return {word: (*names.most_common(1)[0], sum(names.values())) for word, names in by_word.items()}
+    return {word: (*names.most_common(1)[0], sum(names.values())) for word, names in by_word.items()}, words
 
 
-def _complete_names(question: str, collection: str, min_count: int = 20, min_share: float = 0.5) -> str:
-    """Expand a bare first name or surname to the full name the corpus predominantly uses (Mikael -> Mikael Blomkvist)."""
-    pairs = _name_pairs(collection)
+def _complete_names(question: str, collection: str, min_count: int = 20, min_share: float = 0.5, min_other_ratio: float = 3.0) -> str:
+    """Expand a bare name the books rarely use for that character to the full name (Mikael -> Mikael Blomkvist).
+
+    A word is completed only when one two-word name dominates its pairings and the books use the
+    other half of that name at least ``min_other_ratio`` times as often as the word itself.
+    """
+    pairs, words = _name_pairs(collection)
     completed = question
     for word in dict.fromkeys(re.findall(rf"\b{_NAME_WORD}\b", question)):
         if word not in pairs:
             continue
         full, count, total = pairs[word]
-        if count < min_count or count / total < min_share or any(part in question for part in full.split() if part != word):
+        other = " ".join(part for part in full.split() if part != word)
+        if (count < min_count or count / total < min_share or other in question
+                or words[other] < min_other_ratio * words[word]):
             continue
         completed = re.sub(rf"\b{word}\b", full, completed, count=1)
     return completed
@@ -184,8 +193,7 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
             named = _complete_names(question, collection)
             _update(obs, output=named)
         if named != question:
-            # Searched as an extra query; reranking keeps each passage's better score for either wording,
-            # and the answer model sees the full names so it can match them to the passages.
+            # Only retrieval uses the completed wording; the answer model sees the question as asked.
             queries.append(named)
             query_names.append("name completed question")
     rankings = []
@@ -225,29 +233,32 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
                 "candidates": [], "reranked": [], "evidence": "", "latency_seconds": round(time.perf_counter()-started, 2),
                 "generation_model": config.generation_model.name, "timings": timings}
     stage = time.perf_counter()
-    rerank_questions = list(dict.fromkeys([question, named]))
-    pairs = [(rerank_question, row["text"]) for rerank_question in rerank_questions for row in candidates]
+    # Fused candidates are scored against the question as asked; passages appended by the name-completed
+    # search are scored against the wording that found them.
+    pairs = [(named if row.get("name_completion_hit") else question, row["text"]) for row in candidates]
     with _observe("cross encoder reranking", input={"pairs": pairs}, model=config.reranker_model.name) as rerank_obs:
-        pair_scores = _reranker(config.reranker_model.name, config.reranker_model.revision).predict(pairs, show_progress_bar=False)
-        scores = [max(pair_scores[i::len(candidates)]) for i in range(len(candidates))]
+        scores = _reranker(config.reranker_model.name, config.reranker_model.revision).predict(pairs, show_progress_bar=False)
         _update(rerank_obs, output=[{"id": row["id"], "score": float(score)} for row, score in zip(candidates, scores)])
     timings["reranking_seconds"] = round(time.perf_counter() - stage, 4)
     for row, score in zip(candidates, scores):
         row["rerank_score"] = float(score)
-    reranked = sorted(candidates, key=lambda row: row["rerank_score"], reverse=True)[:config.top_k]
+    # When no passage clearly answers the question, give the answer model more evidence and let it reason.
+    low_confidence = config.low_confidence_score is not None and max(row["rerank_score"] for row in candidates) < config.low_confidence_score
+    top_k = max(config.top_k, config.low_confidence_top_k) if low_confidence else config.top_k
+    reranked = sorted(candidates, key=lambda row: row["rerank_score"], reverse=True)[:top_k]
     baseline = sorted(candidates, key=lambda row: row.get("similarity", 0), reverse=True)[:config.top_k] if "similarity" in candidates[0] else []
     stage = time.perf_counter()
     with _observe("evidence formatting", input=reranked) as obs:
         evidence = _format_evidence(reranked)
         _update(obs, output=evidence)
     timings["evidence_formatting_seconds"] = round(time.perf_counter() - stage, 4)
-    messages = (prompt_bundle["rag-answer"]["client"].compile(question=named, evidence=evidence) if prompt_bundle else [
+    messages = (prompt_bundle["rag-answer"]["client"].compile(question=question, evidence=evidence) if prompt_bundle else [
         {"role": "system", "content": PROMPT_TEMPLATES["answer_system"]},
-        {"role": "user", "content": f"Question: {named}\n\nEvidence passages:\n{evidence}"}])
+        {"role": "user", "content": f"Question: {question}\n\nEvidence passages:\n{evidence}"}])
     stage = time.perf_counter()
     answer = _ollama(messages,
                      config.generation_model.name, config.generation.output_budgets, config.generation.temperature, config.generation.context_length,
-                     prompt=prompt_bundle["rag-answer"]["client"] if prompt_bundle else None, think=config.answer_thinking)
+                     prompt=prompt_bundle["rag-answer"]["client"] if prompt_bundle else None, think=config.answer_thinking or low_confidence)
     timings["generation_seconds"] = round(time.perf_counter() - stage, 4)
     citations = list(dict.fromkeys(re.findall(r"\[E\d+\]", answer)))
     stage = time.perf_counter()
@@ -256,7 +267,7 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
     timings["citation_extraction_seconds"] = round(time.perf_counter() - stage, 4)
     return {"question": question, "mode": config.retrieval_mode, "generated_queries": queries,
             "hypothetical_answer": hypothetical, "query_alternatives": alternatives, "grammar_corrected_query": corrected,
-            "name_completed_question": named, "answer": answer,
+            "name_completed_question": named, "low_confidence": low_confidence, "answer": answer,
             "citations": citations, "baseline": baseline, "candidates": candidates, "reranked": reranked,
             "evidence": evidence, "generation_model": config.generation_model.name,
             "latency_seconds": round(time.perf_counter()-started, 2), "timings": timings}
