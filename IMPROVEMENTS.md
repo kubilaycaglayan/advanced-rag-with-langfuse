@@ -110,6 +110,18 @@ about the same people score this close. Admitting two scenes, or scoring each sc
 did not fix it. The index keeps the validated summaries (restored; exp91 reproduces exp89 on the changed questions);
 the repaired cache is kept in `data/tuning/` for a later round.
 
+**Follow-up, summarising model (measured, not adopted yet):** on 60 sample windows (the target's 10 retrieved scenes,
+15 with known name errors, 35 random), same prompt, thinking off:
+
+| | qwen3:8b | gemma4:26b |
+|---|---|---|
+| Seconds per window (warm mean / median) | 5.77 / 3.94 | 3.28 / 3.30 |
+| Summaries naming someone absent from the excerpt | 29 / 60 | 3 / 60 |
+| Target: answer scene vs best other scene | 6.00 vs 6.01 | 8.05 vs 6.61 |
+
+qwen3.6:35b and nemotron-3.5-lightning:30b each got a fact wrong in a 3-window smoke test and were not run further.
+A full rebuild with gemma4:26b (about 1.7 h) still needs a QA.csv run before it can replace the validated summaries.
+
 ## 2026-10-15 — Wider passage over an off-point strong match: "Did Salander and Mikael have affair?" (e0c98f8)
 
 **Target:** "Did Salander and Mikael have affair?" (item 785e319a), scored 0 in every run since 2d7b030: "there is no
