@@ -23,7 +23,7 @@ try:
     from .experiment_store import (enqueue, get_execution, initialize, mark_interrupted,
                                    pending_jobs, update_execution)
     from .identity import (canonical_json, dataset_snapshot, evaluator_identity,
-                           pipeline_identity, question_session_id, source_manifest)
+                           pipeline_identity, question_label, question_session_id, source_manifest)
     from .indexer import build_index, corpus_paths
     from .evaluator_specs import evaluator_manifest
     from .observability import use_client
@@ -35,7 +35,7 @@ except ImportError:
     from experiment_store import (enqueue, get_execution, initialize, mark_interrupted,
                                   pending_jobs, update_execution)
     from identity import (canonical_json, dataset_snapshot, evaluator_identity,
-                         pipeline_identity, question_session_id, source_manifest)
+                         pipeline_identity, question_label, question_session_id, source_manifest)
     from indexer import build_index, corpus_paths
     from evaluator_specs import evaluator_manifest
     from observability import use_client
@@ -48,15 +48,26 @@ _worker: threading.Thread | None = None
 _active_lock = threading.Lock()
 
 
+def _item_question(item: Any) -> Any:
+    return item.input.get("question") if isinstance(item.input, dict) else item.input
+
+
+def _item_session(dataset_name: str, item: Any) -> str:
+    return question_session_id(dataset_name, item.id, item.metadata, _item_question(item))
+
+
 class ExperimentLangfuse(Langfuse):
     """Scope the SDK's entire item tree, including root and judges, to one question.
+
+    The question tag also reaches the item's scores: score charts filter on their trace's tags.
 
     This adapter targets the pinned Langfuse 4.17 SDK. Its item hook is covered by
     a regression test and the live observation/session acceptance check.
     """
     async def _process_experiment_item(self, item: Any, *args: Any, **kwargs: Any) -> Any:
-        session = question_session_id(item.dataset_id, item.id)
-        with propagate_attributes(session_id=session, environment="sdk-experiment"):
+        session = _item_session(item.dataset_name, item)
+        tags = [f"question:{question_label(item.dataset_name, item.id, item.metadata)}"]
+        with propagate_attributes(session_id=session, tags=tags, environment="sdk-experiment"):
             return await super()._process_experiment_item(item, *args, **kwargs)
 
 
@@ -271,8 +282,8 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
         manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, sort_keys=True, indent=2), encoding="utf-8")
 
         def task(*, item: Any, **kwargs: Any) -> dict[str, Any]:
-            question = item.input.get("question") if isinstance(item.input, dict) else item.input
-            session = question_session_id(dataset.id, item.id)
+            question = _item_question(item)
+            session = _item_session(dataset.name, item)
             try:
                 with use_client(client):
                     trace_metadata = {"execution_id": execution_id, "dataset_id": dataset.id,
@@ -335,7 +346,7 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
                 value = _get(score, "value")
                 if name in score_values and isinstance(value, (float, int)) and not isinstance(value, bool):
                     score_values[name].append(float(value))
-            item_results.append({"item_id": item_result.item.id, "session_id": question_session_id(dataset.id, item_result.item.id),
+            item_results.append({"item_id": item_result.item.id, "session_id": _item_session(dataset.name, item_result.item),
                                  "trace_id": item_result.trace_id, "output": _jsonable(out), "evaluations": scores,
                                  "failed": failed})
         means = {name: (sum(values) / len(values) if values else None) for name, values in score_values.items()}

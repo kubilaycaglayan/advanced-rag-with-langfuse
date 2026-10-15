@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import subprocess
 import unicodedata
@@ -55,15 +56,25 @@ def seeded_item_id(dataset_name: str, source_checksum: str, row_key: str) -> str
     return str(uuid.uuid5(SEED_ITEM_NAMESPACE, name))
 
 
-def question_session_id(dataset_id: str, item_id: str, max_length: int = 200) -> str:
-    session_id = f"qa-{dataset_id}-{item_id}"
-    if len(session_id) <= max_length:
-        return session_id
-    suffix = hashlib.sha256(session_id.encode("utf-8")).hexdigest()[:24]
-    prefix_len = max_length - len(suffix) - 1
-    if prefix_len < 1:
-        raise ValueError("max_length is too short for a stable session identifier")
-    return f"{session_id[:prefix_len]}-{suffix}"
+def question_label(dataset_name: str, item_id: str, metadata: Any = None) -> str:
+    """Short stable question name such as ``QA1``: CSV data row number, or a ``label`` set in item metadata."""
+    metadata = metadata if isinstance(metadata, Mapping) else {}
+    label = metadata.get("label")
+    if isinstance(label, str) and label.strip():
+        return " ".join(label.split())
+    prefix = re.sub(r"[^A-Za-z0-9]+", "", Path(dataset_name).stem) or "item"
+    row = metadata.get("source_row")
+    if isinstance(row, int) and not isinstance(row, bool) and row >= 2:
+        return f"{prefix}{row - 1}"
+    return f"{prefix}-{item_id[:8]}"
+
+
+def question_session_id(dataset_name: str, item_id: str, metadata: Any = None, question: Any = None,
+                        max_length: int = 200) -> str:
+    """Readable per-question session, e.g. ``QA1-did-salander-and-mikael-have-affair``, stable across runs."""
+    snippet = re.sub(r"[\W_]+", "-", " ".join(str(question or "").split())[:45].lower()).strip("-")
+    session_id = "-".join(part for part in (question_label(dataset_name, item_id, metadata), snippet) if part)
+    return session_id[:max_length].rstrip("-")
 
 
 def dataset_snapshot(

@@ -95,10 +95,12 @@ class WorkflowChecks(unittest.TestCase):
             yield
             active.pop()
         async def process(item, *args, **kwargs):
-            self.assertEqual(active, [{'session_id':'qa-dataset-item', 'environment':'sdk-experiment'}])
+            self.assertEqual(active, [{'session_id':'QA1-did-salander-and-mikael-have-affair', 'tags':['question:QA1'], 'environment':'sdk-experiment'}])
             return 'entire SDK tree'
         client = object.__new__(ExperimentLangfuse)
+        item = SimpleNamespace(dataset_id='dataset', dataset_name='QA.csv', id='item', metadata={'source_row': 2},
+                               input={'question': 'Did Salander and Mikael have affair?'})
         with patch('app.experiments.propagate_attributes', side_effect=propagate), \
              patch('langfuse.Langfuse._process_experiment_item', new=AsyncMock(side_effect=process)):
-            self.assertEqual(asyncio.run(client._process_experiment_item(SimpleNamespace(dataset_id='dataset', id='item'))), 'entire SDK tree')
+            self.assertEqual(asyncio.run(client._process_experiment_item(item)), 'entire SDK tree')
         self.assertEqual(active, [])

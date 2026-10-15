@@ -14,7 +14,7 @@ from unittest.mock import patch
 os.environ["LANGFUSE_TRACING_ENABLED"] = "false"
 from langfuse.api import NotFoundError
 
-from app.identity import pipeline_identity, question_session_id
+from app.identity import pipeline_identity, question_label, question_session_id
 from app.resolved_config import ResolvedPipelineConfig
 from app.experiment_store import enqueue, get_execution, initialize, mark_interrupted, update_execution
 from app.seed_dataset import _seed_dataset
@@ -99,7 +99,17 @@ class Stage3Checks(unittest.TestCase):
         c = pipeline_identity(git_revision="r", dirty=True, source_fingerprint="s", resolved_config={"x": 2}, corpus_checksum="c")
         self.assertEqual(a["pipeline_id"], b["pipeline_id"])
         self.assertNotEqual(a["pipeline_id"], c["pipeline_id"])
-        self.assertEqual(question_session_id("d", "i"), question_session_id("d", "i"))
+
+    def test_question_sessions_are_readable_and_stable(self):
+        meta = {"source_row": 2}
+        self.assertEqual(question_session_id("QA.csv", "i", meta, "Did Salander and Mikael have affair?"), "QA1-did-salander-and-mikael-have-affair")
+        self.assertEqual(question_session_id("QA.csv", "i", {"source_row": 36}, "What is the  standard? chemical formula for table salt?"), "QA35-what-is-the-standard-chemical-formula-for-ta")
+        self.assertEqual(question_session_id("QA.csv", "i", meta, "Säpo’s unit_name"), "QA1-säpo-s-unit-name")
+        self.assertEqual(question_session_id("QA.csv", "i", meta, "Q?"), question_session_id("QA.csv", "other-id", meta, "Q?"))
+        self.assertEqual(question_label("QA.csv", "i", {"source_row": 2, "label": " QA 36 "}), "QA 36")
+        self.assertEqual(question_label("Additional Questions", "58343746-a482", None), "AdditionalQuestions-58343746")
+        self.assertEqual(question_session_id("QA.csv", "58343746-a482", {}, ""), "QA-58343746")
+        self.assertLessEqual(len(question_session_id("x" * 300, "i", None, "q")), 200)
 
     def test_configuration_rejects_unknown_fields(self):
         with self.assertRaisesRegex(ValueError, "unknown config fields"):
