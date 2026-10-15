@@ -34,7 +34,7 @@ flowchart TD
     generate --> output["System output: answer and cited passages shown to user"]
 ```
 
-For a wider view, download the [standalone pipeline diagram](docs/pipeline-diagram.html) and open it in a browser.
+For a wider view, download the [standalone pipeline diagram](docs/pipeline-diagram.html) and open it in a browser. To compare visual treatments, open the [diagram style gallery](docs/pipeline-style-gallery.html); it shows six static styles and a step reveal using the same pipeline.
 
 The default `full` mode runs six searches: the original query, one imagined answer passage (HyDE), three alternative phrasings, and one grammar-corrected query. If a short name can be completed from the books, a seventh search contributes to the wider candidate pool without changing the main fusion. All searches use dense embeddings against Qdrant; **BM25 keyword search is not part of the current pipeline**.
 

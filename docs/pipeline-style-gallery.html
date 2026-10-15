@@ -1,0 +1,815 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pipeline diagram · style gallery</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth}body{margin:0;background:#e9e9e6;color:#2d3142;font-family:'Geist',system-ui,sans-serif}
+header{padding:44px max(24px,calc((100vw - 1300px)/2));background:#f5f5f5;border-bottom:1px solid #d3d3d0}
+header .eyebrow{margin:0 0 10px;font:500 11px 'Geist Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#666b73}
+header h1{font:400 clamp(34px,4vw,56px) 'Instrument Serif',Georgia,serif;margin:0 0 12px}
+header p{max-width:72ch;line-height:1.6;margin:0;color:#525964}
+nav{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}nav a{color:#2d3142;text-decoration:none;border:1px solid #bfc0c0;border-radius:4px;padding:8px 12px;font-size:13px;background:#fff}nav a:hover,nav a:focus-visible{border-color:#bf4520;outline:2px solid transparent;color:#a23c1c}
+main{max-width:1360px;margin:auto;padding:32px 24px 72px;display:grid;gap:30px}
+.preview{--paper:#f5f5f5;--ink:#2d3142;--muted:#4f5d75;--soft:#5a6580;--rule:#bfc0c0;--accent:#bf4520;--tint:rgba(191,69,32,.08);--zone:rgba(45,49,66,.025);--zone-border:rgba(45,49,66,.18);background:var(--paper);color:var(--ink);border:1px solid var(--rule);padding:28px 24px 20px;scroll-margin-top:20px}
+.preview-heading{padding:0 10px 18px}.preview h2{margin:0 0 6px;font:400 34px 'Instrument Serif',Georgia,serif}.preview-heading p{margin:0;color:var(--muted);font-size:14px;line-height:1.5}.section-kicker{font:500 11px 'Geist Mono',monospace!important;letter-spacing:.12em;text-transform:uppercase;margin-bottom:12px!important}
+.diagram-scroll{overflow-x:auto;width:100%}.preview svg{display:block;width:100%;min-width:1280px}
+.preview .zone{fill:var(--zone);stroke:var(--zone-border);stroke-width:1}.preview .zone-label{font:500 10px 'Geist Mono',monospace;letter-spacing:.12em;fill:var(--soft)}
+.preview .node{fill:var(--paper);stroke:var(--rule);stroke-width:1.2}.preview .node-strong{fill:var(--paper);stroke:var(--ink);stroke-width:1.3}.preview .node-focal{fill:var(--tint);stroke:var(--accent);stroke-width:1.5}
+.preview .tag{font:500 8px 'Geist Mono',monospace;letter-spacing:.12em;fill:var(--soft)}.preview .name{font:600 12px 'Geist',system-ui,sans-serif;fill:var(--ink)}.preview .detail{font:400 9px 'Geist Mono',monospace;fill:var(--muted)}.preview .detail-ink{font:400 9px 'Geist Mono',monospace;fill:var(--ink)}.preview .focal-tag{fill:var(--accent)}
+.preview .link{fill:none;stroke:var(--muted);stroke-width:1.5}.preview .link-focal{fill:none;stroke:var(--accent);stroke-width:1.5}.preview .legend-title{font:500 8px 'Geist Mono',monospace;letter-spacing:.12em;fill:var(--soft)}.preview .legend-text{font:400 10px 'Geist',system-ui,sans-serif;fill:var(--ink)}
+.editorial{padding-top:44px}.editorial .preview-heading{border-top:3px solid var(--ink);padding-top:18px;display:grid;grid-template-columns:1fr 1fr;align-items:end}.editorial .preview-heading .section-kicker{grid-column:1/-1}.editorial .preview-heading p:last-child{max-width:42ch}.editorial-takeaway{font:italic 24px 'Instrument Serif',Georgia,serif;border-top:1px solid var(--rule);padding:22px 10px 0;margin:0}
+.sketch .diagram-scroll{border-top:1px dashed var(--rule);border-bottom:1px dashed var(--rule)}.sketch svg rect:not(:first-of-type),.sketch svg path,.sketch svg line{filter:url(#sketchy-filter)}
+.terminal{background:#141414;border:1px solid #2b2b2b;border-radius:10px;padding:0;overflow:hidden}.terminal .preview-heading{padding:0}.titlebar{height:42px;background:#1b1b1b;border-bottom:1px solid #2b2b2b;display:flex;align-items:center;gap:7px;padding:0 16px}.dot{width:10px;height:10px;border-radius:50%;background:#5c5c5c}.dot.hot{background:#ff5a36}.titlebar-name{margin-left:10px;font:500 11px 'Geist Mono',monospace;color:#9a9a9a}.terminal-content{padding:24px 28px 12px}.terminal .prompt{font:500 12px 'Geist Mono',monospace;color:#9a9a9a;margin:0 0 14px}.terminal .prompt b{color:#ff5a36}.terminal h2{font:700 26px 'Geist Mono',monospace}.terminal .diagram-scroll{padding:0 12px 12px}.terminal .name,.terminal .legend-text{font-family:'Geist Mono',monospace;font-size:11px}.terminal .detail,.terminal .detail-ink{font-size:9.5px}
+.brand .preview-heading{border-left:4px solid var(--accent);padding-left:18px}.brand h2{font-style:italic}
+.reveal .stage-1{animation:stage-in .48s .1s both}.reveal .stage-2{animation:stage-in .48s .8s both}.reveal .stage-3{animation:stage-in .48s 1.5s both}.reveal .stage-4{animation:stage-in .48s 2.2s both}.reveal .stage-5{animation:stage-in .48s 2.9s both}@keyframes stage-in{from{opacity:.06}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.reveal [class*=stage-]{animation:none!important}}
+@media print{body{background:#fff}header{padding:20px}nav{display:none}main{padding:0}.preview{break-inside:avoid;page-break-after:always}.reveal [class*=stage-]{animation:none!important}}
+</style></head><body>
+<header><p class="eyebrow">Millennium semantic search · comparison</p><h1>One pipeline, seven treatments</h1><p>Every preview shows the same query, lookup, ranking, evidence, and answer flow. The six static styles change only its visual language. The last preview reveals that journey once, then settles into the complete diagram.</p><nav aria-label="Jump to a style"><a href="#light">Minimal light</a><a href="#dark">Minimal dark</a><a href="#editorial">Full editorial</a><a href="#sketch">Sketchy</a><a href="#terminal">Terminal</a><a href="#brand">Book-inspired palette</a><a href="#reveal">Step reveal</a></nav></header>
+<main><section id="light" class="preview light" style="--paper:#f5f5f5;--ink:#2d3142;--muted:#4f5d75;--soft:#5a6580;--rule:#bfc0c0;--accent:#bf4520;--tint:rgba(191,69,32,.08);--zone:rgba(45,49,66,.025);--zone-border:rgba(45,49,66,.18)"><div class="preview-heading"><h2>Minimal light</h2><p>The current README companion: quiet paper, fine rules, one coral focus.</p></div><div class="diagram-scroll"><svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="pipeline-light-title pipeline-light-desc">
+        <title id="pipeline-light-title">From question to cited answer</title>
+        <desc id="pipeline-light-desc">A user query becomes six main searches and sometimes a seventh name search, then moves through dense Qdrant lookup, candidate fusion, cross-encoder reranking, evidence selection, local Ollama generation, and a cited answer.</desc>
+        <defs>
+          <marker id="arrow-light" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--muted)"/></marker>
+          <marker id="arrow-accent-light" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--accent)"/></marker>
+        </defs>
+        <rect width="1280" height="720" fill="var(--paper)"/>
+
+        <!-- Three pools hold the work between input and output. -->
+        <rect class="zone" x="224" y="72" width="248" height="472" rx="8"/>
+        <rect class="zone" x="500" y="72" width="248" height="472" rx="8"/>
+        <rect class="zone" x="776" y="72" width="248" height="472" rx="8"/>
+        <rect x="240" y="78" width="106" height="16" fill="var(--paper)"/>
+        <text class="zone-label" x="248" y="90">01  QUERY POOL</text>
+        <rect x="516" y="78" width="128" height="16" fill="var(--paper)"/>
+        <text class="zone-label" x="524" y="90">02  CANDIDATE POOL</text>
+        <rect x="792" y="78" width="118" height="16" fill="var(--paper)"/>
+        <text class="zone-label" x="800" y="90">03  EVIDENCE POOL</text>
+
+        <!-- Main data path. Lines are behind all node masks. -->
+        <path class="link" d="M184 322 H204 Q212 322 212 314 V238 Q212 230 220 230 H252"/>
+        <path class="link" d="M344 324 V368"/>
+        <path class="link" d="M436 432 H478 Q486 432 486 424 V218 Q486 210 494 210 H528"/>
+        <path class="link" d="M620 284 V328"/>
+        <path class="link" d="M712 412 H754 Q762 412 762 404 V218 Q762 210 770 210 H804"/>
+        <path class="link" d="M896 284 V328"/>
+        <path class="link-focal" d="M988 412 H1012 Q1020 412 1020 404 V300 Q1020 292 1028 292 H1052"/>
+        <path class="link" d="M1144 360 V408"/>
+
+        <!-- Entry -->
+        <rect class="node-strong" x="32" y="278" width="152" height="88" rx="6"/>
+        <text class="tag" x="48" y="299">ENTRY</text>
+        <text class="name" x="48" y="326">User query</text>
+        <text class="detail" x="48" y="348">one question</text>
+
+        <!-- Query pool -->
+        <rect class="node" x="252" y="136" width="184" height="188" rx="6"/>
+        <text class="tag" x="268" y="156">01 / PREPARE</text>
+        <text class="name" x="268" y="181">Six main searches</text>
+        <text class="detail-ink" x="268" y="207">1 original question</text>
+        <text class="detail-ink" x="268" y="226">1 HyDE passage</text>
+        <text class="detail-ink" x="268" y="245">3 alternative queries</text>
+        <text class="detail-ink" x="268" y="264">1 grammar correction</text>
+        <line x1="268" y1="281" x2="420" y2="281" stroke="var(--rule)" stroke-width="1"/>
+        <text class="detail" x="268" y="299">+ name route if useful</text>
+        <text class="detail" x="268" y="316">qwen3:8b · Ollama</text>
+
+        <rect class="node" x="252" y="368" width="184" height="128" rx="6"/>
+        <text class="tag" x="268" y="389">02 / ENCODE</text>
+        <text class="name" x="268" y="416">Embed each search</text>
+        <text class="detail" x="268" y="442">multi-qa-MiniLM-L6</text>
+        <text class="detail" x="268" y="461">cos-v1 · local CPU</text>
+        <text class="detail" x="268" y="481">SentenceTransformers</text>
+
+        <!-- Candidate pool -->
+        <rect class="node" x="528" y="136" width="184" height="148" rx="6"/>
+        <text class="tag" x="544" y="156">03 / LOOKUP</text>
+        <text class="name" x="544" y="182">Dense vector search</text>
+        <text class="detail" x="544" y="207">Qdrant · cosine similarity</text>
+        <text class="detail" x="544" y="227">up to 100 hits / search</text>
+        <text class="detail-ink" x="544" y="254">BM25 is not enabled</text>
+
+        <rect class="node-strong" x="528" y="328" width="184" height="168" rx="6"/>
+        <text class="tag" x="544" y="348">04 / FUSE</text>
+        <text class="name" x="544" y="376">Candidate pool</text>
+        <text class="detail" x="544" y="402">RRF: top 30 / search</text>
+        <text class="detail" x="544" y="421">30 fused candidates</text>
+        <text class="detail" x="544" y="440">wider pool kept apart</text>
+        <text class="detail" x="544" y="459">name hits join wide pool</text>
+
+        <!-- Evidence pool -->
+        <rect class="node" x="804" y="136" width="184" height="148" rx="6"/>
+        <text class="tag" x="820" y="156">05 / RANK</text>
+        <text class="name" x="820" y="182">Cross-encoder</text>
+        <text class="detail" x="820" y="207">ms-marco-MiniLM-L-6-v2</text>
+        <text class="detail" x="820" y="227">scores query + passage</text>
+        <text class="detail" x="820" y="254">SentenceTransformers · CPU</text>
+
+        <rect class="node" x="804" y="328" width="184" height="168" rx="6"/>
+        <text class="tag" x="820" y="348">06 / SELECT</text>
+        <text class="name" x="820" y="376">Evidence pool</text>
+        <text class="detail" x="820" y="401">top 10; 15 if weak</text>
+        <text class="detail" x="820" y="421">up to 3 strong wide hits</text>
+        <text class="detail" x="820" y="441">nearby context if needed</text>
+        <text class="detail" x="820" y="461">passages labeled [E1]...</text>
+
+        <!-- Generation and result -->
+        <rect class="node-focal" x="1052" y="224" width="184" height="136" rx="6"/>
+        <text class="tag focal-tag" x="1068" y="244">07 / GENERATE</text>
+        <text class="name" x="1068" y="270">Cited answer</text>
+        <text class="detail-ink" x="1068" y="297">qwen3:8b via Ollama</text>
+        <text class="detail" x="1068" y="317">question + evidence</text>
+        <text class="detail" x="1068" y="338">local by default</text>
+
+        <rect class="node-strong" x="1052" y="408" width="184" height="88" rx="6"/>
+        <text class="tag" x="1068" y="429">OUTPUT</text>
+        <text class="name" x="1068" y="454">Shown to user</text>
+        <text class="detail" x="1068" y="477">answer + cited sources</text>
+
+        <!-- Horizontal reading key. -->
+        <line x1="32" y1="608" x2="1248" y2="608" stroke="var(--rule)" stroke-width="1"/>
+        <text class="legend-title" x="40" y="632">READING KEY</text>
+        <line x1="40" y1="654" x2="78" y2="654" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow-light)"/>
+        <text class="legend-text" x="92" y="658">Data moves along solid arrows</text>
+        <line x1="448" y1="624" x2="448" y2="672" stroke="var(--rule)" stroke-width="1"/>
+        <text class="legend-title" x="472" y="632">LOCAL DEFAULTS</text>
+        <text class="legend-text" x="472" y="658">CPU embedding + ranking; Ollama generation</text>
+        <line x1="876" y1="624" x2="876" y2="672" stroke="var(--rule)" stroke-width="1"/>
+        <text class="legend-title" x="900" y="632">SEARCH METHOD</text>
+        <text class="legend-text" x="900" y="658">Dense semantic only; no BM25</text>
+      </svg></div></section>
+<section id="dark" class="preview dark" style="--paper:#171a23;--ink:#f0eee9;--muted:#b5b9c4;--soft:#a7adbc;--rule:#6e7380;--accent:#ef9278;--tint:rgba(239,146,120,.13);--zone:rgba(255,255,255,.025);--zone-border:rgba(255,255,255,.20)"><div class="preview-heading"><h2>Minimal dark</h2><p>The same hierarchy in a restrained charcoal palette.</p></div><div class="diagram-scroll"><svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="pipeline-dark-title pipeline-dark-desc">
+        <title id="pipeline-dark-title">From question to cited answer</title>
+        <desc id="pipeline-dark-desc">A user query becomes six main searches and sometimes a seventh name search, then moves through dense Qdrant lookup, candidate fusion, cross-encoder reranking, evidence selection, local Ollama generation, and a cited answer.</desc>
+        <defs>
+          <marker id="arrow-dark" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--muted)"/></marker>
+          <marker id="arrow-accent-dark" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--accent)"/></marker>
+        </defs>
+        <rect width="1280" height="720" fill="var(--paper)"/>
+
+        <!-- Three pools hold the work between input and output. -->
+        <rect class="zone" x="224" y="72" width="248" height="472" rx="8"/>
+        <rect class="zone" x="500" y="72" width="248" height="472" rx="8"/>
+        <rect class="zone" x="776" y="72" width="248" height="472" rx="8"/>
+        <rect x="240" y="78" width="106" height="16" fill="var(--paper)"/>
+        <text class="zone-label" x="248" y="90">01  QUERY POOL</text>
+        <rect x="516" y="78" width="128" height="16" fill="var(--paper)"/>
+        <text class="zone-label" x="524" y="90">02  CANDIDATE POOL</text>
+        <rect x="792" y="78" width="118" height="16" fill="var(--paper)"/>
+        <text class="zone-label" x="800" y="90">03  EVIDENCE POOL</text>
+
+        <!-- Main data path. Lines are behind all node masks. -->
+        <path class="link" d="M184 322 H204 Q212 322 212 314 V238 Q212 230 220 230 H252"/>
+        <path class="link" d="M344 324 V368"/>
+        <path class="link" d="M436 432 H478 Q486 432 486 424 V218 Q486 210 494 210 H528"/>
+        <path class="link" d="M620 284 V328"/>
+        <path class="link" d="M712 412 H754 Q762 412 762 404 V218 Q762 210 770 210 H804"/>
+        <path class="link" d="M896 284 V328"/>
+        <path class="link-focal" d="M988 412 H1012 Q1020 412 1020 404 V300 Q1020 292 1028 292 H1052"/>
+        <path class="link" d="M1144 360 V408"/>
+
+        <!-- Entry -->
+        <rect class="node-strong" x="32" y="278" width="152" height="88" rx="6"/>
+        <text class="tag" x="48" y="299">ENTRY</text>
+        <text class="name" x="48" y="326">User query</text>
+        <text class="detail" x="48" y="348">one question</text>
+
+        <!-- Query pool -->
+        <rect class="node" x="252" y="136" width="184" height="188" rx="6"/>
+        <text class="tag" x="268" y="156">01 / PREPARE</text>
+        <text class="name" x="268" y="181">Six main searches</text>
+        <text class="detail-ink" x="268" y="207">1 original question</text>
+        <text class="detail-ink" x="268" y="226">1 HyDE passage</text>
+        <text class="detail-ink" x="268" y="245">3 alternative queries</text>
+        <text class="detail-ink" x="268" y="264">1 grammar correction</text>
+        <line x1="268" y1="281" x2="420" y2="281" stroke="var(--rule)" stroke-width="1"/>
+        <text class="detail" x="268" y="299">+ name route if useful</text>
+        <text class="detail" x="268" y="316">qwen3:8b · Ollama</text>
+
+        <rect class="node" x="252" y="368" width="184" height="128" rx="6"/>
+        <text class="tag" x="268" y="389">02 / ENCODE</text>
+        <text class="name" x="268" y="416">Embed each search</text>
+        <text class="detail" x="268" y="442">multi-qa-MiniLM-L6</text>
+        <text class="detail" x="268" y="461">cos-v1 · local CPU</text>
+        <text class="detail" x="268" y="481">SentenceTransformers</text>
+
+        <!-- Candidate pool -->
+        <rect class="node" x="528" y="136" width="184" height="148" rx="6"/>
+        <text class="tag" x="544" y="156">03 / LOOKUP</text>
+        <text class="name" x="544" y="182">Dense vector search</text>
+        <text class="detail" x="544" y="207">Qdrant · cosine similarity</text>
+        <text class="detail" x="544" y="227">up to 100 hits / search</text>
+        <text class="detail-ink" x="544" y="254">BM25 is not enabled</text>
+
+        <rect class="node-strong" x="528" y="328" width="184" height="168" rx="6"/>
+        <text class="tag" x="544" y="348">04 / FUSE</text>
+        <text class="name" x="544" y="376">Candidate pool</text>
+        <text class="detail" x="544" y="402">RRF: top 30 / search</text>
+        <text class="detail" x="544" y="421">30 fused candidates</text>
+        <text class="detail" x="544" y="440">wider pool kept apart</text>
+        <text class="detail" x="544" y="459">name hits join wide pool</text>
+
+        <!-- Evidence pool -->
+        <rect class="node" x="804" y="136" width="184" height="148" rx="6"/>
+        <text class="tag" x="820" y="156">05 / RANK</text>
+        <text class="name" x="820" y="182">Cross-encoder</text>
+        <text class="detail" x="820" y="207">ms-marco-MiniLM-L-6-v2</text>
+        <text class="detail" x="820" y="227">scores query + passage</text>
+        <text class="detail" x="820" y="254">SentenceTransformers · CPU</text>
+
+        <rect class="node" x="804" y="328" width="184" height="168" rx="6"/>
+        <text class="tag" x="820" y="348">06 / SELECT</text>
+        <text class="name" x="820" y="376">Evidence pool</text>
+        <text class="detail" x="820" y="401">top 10; 15 if weak</text>
+        <text class="detail" x="820" y="421">up to 3 strong wide hits</text>
+        <text class="detail" x="820" y="441">nearby context if needed</text>
+        <text class="detail" x="820" y="461">passages labeled [E1]...</text>
+
+        <!-- Generation and result -->
+        <rect class="node-focal" x="1052" y="224" width="184" height="136" rx="6"/>
+        <text class="tag focal-tag" x="1068" y="244">07 / GENERATE</text>
+        <text class="name" x="1068" y="270">Cited answer</text>
+        <text class="detail-ink" x="1068" y="297">qwen3:8b via Ollama</text>
+        <text class="detail" x="1068" y="317">question + evidence</text>
+        <text class="detail" x="1068" y="338">local by default</text>
+
+        <rect class="node-strong" x="1052" y="408" width="184" height="88" rx="6"/>
+        <text class="tag" x="1068" y="429">OUTPUT</text>
+        <text class="name" x="1068" y="454">Shown to user</text>
+        <text class="detail" x="1068" y="477">answer + cited sources</text>
+
+        <!-- Horizontal reading key. -->
+        <line x1="32" y1="608" x2="1248" y2="608" stroke="var(--rule)" stroke-width="1"/>
+        <text class="legend-title" x="40" y="632">READING KEY</text>
+        <line x1="40" y1="654" x2="78" y2="654" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow-dark)"/>
+        <text class="legend-text" x="92" y="658">Data moves along solid arrows</text>
+        <line x1="448" y1="624" x2="448" y2="672" stroke="var(--rule)" stroke-width="1"/>
+        <text class="legend-title" x="472" y="632">LOCAL DEFAULTS</text>
+        <text class="legend-text" x="472" y="658">CPU embedding + ranking; Ollama generation</text>
+        <line x1="876" y1="624" x2="876" y2="672" stroke="var(--rule)" stroke-width="1"/>
+        <text class="legend-title" x="900" y="632">SEARCH METHOD</text>
+        <text class="legend-text" x="900" y="658">Dense semantic only; no BM25</text>
+      </svg></div></section>
+<section id="editorial" class="preview editorial" style="--paper:#f7f3ec;--ink:#302d2b;--muted:#625e59;--soft:#756d65;--rule:#c9c0b6;--accent:#a04c31;--tint:rgba(160,76,49,.09);--zone:rgba(48,45,43,.025);--zone-border:rgba(48,45,43,.18)"><div class="preview-heading"><p class="section-kicker">The journey of a question / 03 pools</p><h2>Full editorial</h2><p>A larger story frame with reading context and a brief takeaway.</p></div><div class="diagram-scroll"><svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="pipeline-editorial-title pipeline-editorial-desc">
+        <title id="pipeline-editorial-title">From question to cited answer</title>
+        <desc id="pipeline-editorial-desc">A user query becomes six main searches and sometimes a seventh name search, then moves through dense Qdrant lookup, candidate fusion, cross-encoder reranking, evidence selection, local Ollama generation, and a cited answer.</desc>
+        <defs>
+          <marker id="arrow-editorial" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--muted)"/></marker>
+          <marker id="arrow-accent-editorial" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--accent)"/></marker>
+        </defs>
+        <rect width="1280" height="720" fill="var(--paper)"/>
+
+        <!-- Three pools hold the work between input and output. -->
+        <rect class="zone" x="224" y="72" width="248" height="472" rx="8"/>
+        <rect class="zone" x="500" y="72" width="248" height="472" rx="8"/>
+        <rect class="zone" x="776" y="72" width="248" height="472" rx="8"/>
+        <rect x="240" y="78" width="106" height="16" fill="var(--paper)"/>
+        <text class="zone-label" x="248" y="90">01  QUERY POOL</text>
+        <rect x="516" y="78" width="128" height="16" fill="var(--paper)"/>
+        <text class="zone-label" x="524" y="90">02  CANDIDATE POOL</text>
+        <rect x="792" y="78" width="118" height="16" fill="var(--paper)"/>
+        <text class="zone-label" x="800" y="90">03  EVIDENCE POOL</text>
+
+        <!-- Main data path. Lines are behind all node masks. -->
+        <path class="link" d="M184 322 H204 Q212 322 212 314 V238 Q212 230 220 230 H252"/>
+        <path class="link" d="M344 324 V368"/>
+        <path class="link" d="M436 432 H478 Q486 432 486 424 V218 Q486 210 494 210 H528"/>
+        <path class="link" d="M620 284 V328"/>
+        <path class="link" d="M712 412 H754 Q762 412 762 404 V218 Q762 210 770 210 H804"/>
+        <path class="link" d="M896 284 V328"/>
+        <path class="link-focal" d="M988 412 H1012 Q1020 412 1020 404 V300 Q1020 292 1028 292 H1052"/>
+        <path class="link" d="M1144 360 V408"/>
+
+        <!-- Entry -->
+        <rect class="node-strong" x="32" y="278" width="152" height="88" rx="6"/>
+        <text class="tag" x="48" y="299">ENTRY</text>
+        <text class="name" x="48" y="326">User query</text>
+        <text class="detail" x="48" y="348">one question</text>
+
+        <!-- Query pool -->
+        <rect class="node" x="252" y="136" width="184" height="188" rx="6"/>
+        <text class="tag" x="268" y="156">01 / PREPARE</text>
+        <text class="name" x="268" y="181">Six main searches</text>
+        <text class="detail-ink" x="268" y="207">1 original question</text>
+        <text class="detail-ink" x="268" y="226">1 HyDE passage</text>
+        <text class="detail-ink" x="268" y="245">3 alternative queries</text>
+        <text class="detail-ink" x="268" y="264">1 grammar correction</text>
+        <line x1="268" y1="281" x2="420" y2="281" stroke="var(--rule)" stroke-width="1"/>
+        <text class="detail" x="268" y="299">+ name route if useful</text>
+        <text class="detail" x="268" y="316">qwen3:8b · Ollama</text>
+
+        <rect class="node" x="252" y="368" width="184" height="128" rx="6"/>
+        <text class="tag" x="268" y="389">02 / ENCODE</text>
+        <text class="name" x="268" y="416">Embed each search</text>
+        <text class="detail" x="268" y="442">multi-qa-MiniLM-L6</text>
+        <text class="detail" x="268" y="461">cos-v1 · local CPU</text>
+        <text class="detail" x="268" y="481">SentenceTransformers</text>
+
+        <!-- Candidate pool -->
+        <rect class="node" x="528" y="136" width="184" height="148" rx="6"/>
+        <text class="tag" x="544" y="156">03 / LOOKUP</text>
+        <text class="name" x="544" y="182">Dense vector search</text>
+        <text class="detail" x="544" y="207">Qdrant · cosine similarity</text>
+        <text class="detail" x="544" y="227">up to 100 hits / search</text>
+        <text class="detail-ink" x="544" y="254">BM25 is not enabled</text>
+
+        <rect class="node-strong" x="528" y="328" width="184" height="168" rx="6"/>
+        <text class="tag" x="544" y="348">04 / FUSE</text>
+        <text class="name" x="544" y="376">Candidate pool</text>
+        <text class="detail" x="544" y="402">RRF: top 30 / search</text>
+        <text class="detail" x="544" y="421">30 fused candidates</text>
+        <text class="detail" x="544" y="440">wider pool kept apart</text>
+        <text class="detail" x="544" y="459">name hits join wide pool</text>
+
+        <!-- Evidence pool -->
+        <rect class="node" x="804" y="136" width="184" height="148" rx="6"/>
+        <text class="tag" x="820" y="156">05 / RANK</text>
+        <text class="name" x="820" y="182">Cross-encoder</text>
+        <text class="detail" x="820" y="207">ms-marco-MiniLM-L-6-v2</text>
+        <text class="detail" x="820" y="227">scores query + passage</text>
+        <text class="detail" x="820" y="254">SentenceTransformers · CPU</text>
+
+        <rect class="node" x="804" y="328" width="184" height="168" rx="6"/>
+        <text class="tag" x="820" y="348">06 / SELECT</text>
+        <text class="name" x="820" y="376">Evidence pool</text>
+        <text class="detail" x="820" y="401">top 10; 15 if weak</text>
+        <text class="detail" x="820" y="421">up to 3 strong wide hits</text>
+        <text class="detail" x="820" y="441">nearby context if needed</text>
+        <text class="detail" x="820" y="461">passages labeled [E1]...</text>
+
+        <!-- Generation and result -->
+        <rect class="node-focal" x="1052" y="224" width="184" height="136" rx="6"/>
+        <text class="tag focal-tag" x="1068" y="244">07 / GENERATE</text>
+        <text class="name" x="1068" y="270">Cited answer</text>
+        <text class="detail-ink" x="1068" y="297">qwen3:8b via Ollama</text>
+        <text class="detail" x="1068" y="317">question + evidence</text>
+        <text class="detail" x="1068" y="338">local by default</text>
+
+        <rect class="node-strong" x="1052" y="408" width="184" height="88" rx="6"/>
+        <text class="tag" x="1068" y="429">OUTPUT</text>
+        <text class="name" x="1068" y="454">Shown to user</text>
+        <text class="detail" x="1068" y="477">answer + cited sources</text>
+
+        <!-- Horizontal reading key. -->
+        <line x1="32" y1="608" x2="1248" y2="608" stroke="var(--rule)" stroke-width="1"/>
+        <text class="legend-title" x="40" y="632">READING KEY</text>
+        <line x1="40" y1="654" x2="78" y2="654" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow-editorial)"/>
+        <text class="legend-text" x="92" y="658">Data moves along solid arrows</text>
+        <line x1="448" y1="624" x2="448" y2="672" stroke="var(--rule)" stroke-width="1"/>
+        <text class="legend-title" x="472" y="632">LOCAL DEFAULTS</text>
+        <text class="legend-text" x="472" y="658">CPU embedding + ranking; Ollama generation</text>
+        <line x1="876" y1="624" x2="876" y2="672" stroke="var(--rule)" stroke-width="1"/>
+        <text class="legend-title" x="900" y="632">SEARCH METHOD</text>
+        <text class="legend-text" x="900" y="658">Dense semantic only; no BM25</text>
+      </svg></div><p class="editorial-takeaway">One question becomes several local searches, then a ranked set of passages, then a sourced answer.</p></section>
+<section id="sketch" class="preview sketch" style="--paper:#f7f5ef;--ink:#343634;--muted:#60645f;--soft:#6b7068;--rule:#b9bdb4;--accent:#ab5438;--tint:rgba(171,84,56,.08);--zone:rgba(52,54,52,.025);--zone-border:rgba(52,54,52,.18)"><div class="preview-heading"><h2>Sketchy</h2><p>A lightly drawn treatment for an essay or work-in-progress note.</p></div><div class="diagram-scroll"><svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="pipeline-sketch-title pipeline-sketch-desc">
+        <title id="pipeline-sketch-title">From question to cited answer</title>
+        <desc id="pipeline-sketch-desc">A user query becomes six main searches and sometimes a seventh name search, then moves through dense Qdrant lookup, candidate fusion, cross-encoder reranking, evidence selection, local Ollama generation, and a cited answer.</desc>
+        <defs><filter id="sketchy-filter" x="-2%" y="-2%" width="104%" height="104%"><feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="4"/><feDisplacementMap in="SourceGraphic" scale="1.5"/></filter>
+          <marker id="arrow-sketch" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--muted)"/></marker>
+          <marker id="arrow-accent-sketch" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--accent)"/></marker>
+        </defs>
+        <rect width="1280" height="720" fill="var(--paper)"/>
+
+        <!-- Three pools hold the work between input and output. -->
+        <rect class="zone" x="224" y="72" width="248" height="472" rx="8"/>
+        <rect class="zone" x="500" y="72" width="248" height="472" rx="8"/>
+        <rect class="zone" x="776" y="72" width="248" height="472" rx="8"/>
+        <rect x="240" y="78" width="106" height="16" fill="var(--paper)"/>
+        <text class="zone-label" x="248" y="90">01  QUERY POOL</text>
+        <rect x="516" y="78" width="128" height="16" fill="var(--paper)"/>
+        <text class="zone-label" x="524" y="90">02  CANDIDATE POOL</text>
+        <rect x="792" y="78" width="118" height="16" fill="var(--paper)"/>
+        <text class="zone-label" x="800" y="90">03  EVIDENCE POOL</text>
+
+        <!-- Main data path. Lines are behind all node masks. -->
+        <path class="link" d="M184 322 H204 Q212 322 212 314 V238 Q212 230 220 230 H252"/>
+        <path class="link" d="M344 324 V368"/>
+        <path class="link" d="M436 432 H478 Q486 432 486 424 V218 Q486 210 494 210 H528"/>
+        <path class="link" d="M620 284 V328"/>
+        <path class="link" d="M712 412 H754 Q762 412 762 404 V218 Q762 210 770 210 H804"/>
+        <path class="link" d="M896 284 V328"/>
+        <path class="link-focal" d="M988 412 H1012 Q1020 412 1020 404 V300 Q1020 292 1028 292 H1052"/>
+        <path class="link" d="M1144 360 V408"/>
+
+        <!-- Entry -->
+        <rect class="node-strong" x="32" y="278" width="152" height="88" rx="6"/>
+        <text class="tag" x="48" y="299">ENTRY</text>
+        <text class="name" x="48" y="326">User query</text>
+        <text class="detail" x="48" y="348">one question</text>
+
+        <!-- Query pool -->
+        <rect class="node" x="252" y="136" width="184" height="188" rx="6"/>
+        <text class="tag" x="268" y="156">01 / PREPARE</text>
+        <text class="name" x="268" y="181">Six main searches</text>
+        <text class="detail-ink" x="268" y="207">1 original question</text>
+        <text class="detail-ink" x="268" y="226">1 HyDE passage</text>
+        <text class="detail-ink" x="268" y="245">3 alternative queries</text>
+        <text class="detail-ink" x="268" y="264">1 grammar correction</text>
+        <line x1="268" y1="281" x2="420" y2="281" stroke="var(--rule)" stroke-width="1"/>
+        <text class="detail" x="268" y="299">+ name route if useful</text>
+        <text class="detail" x="268" y="316">qwen3:8b · Ollama</text>
+
+        <rect class="node" x="252" y="368" width="184" height="128" rx="6"/>
+        <text class="tag" x="268" y="389">02 / ENCODE</text>
+        <text class="name" x="268" y="416">Embed each search</text>
+        <text class="detail" x="268" y="442">multi-qa-MiniLM-L6</text>
+        <text class="detail" x="268" y="461">cos-v1 · local CPU</text>
+        <text class="detail" x="268" y="481">SentenceTransformers</text>
+
+        <!-- Candidate pool -->
+        <rect class="node" x="528" y="136" width="184" height="148" rx="6"/>
+        <text class="tag" x="544" y="156">03 / LOOKUP</text>
+        <text class="name" x="544" y="182">Dense vector search</text>
+        <text class="detail" x="544" y="207">Qdrant · cosine similarity</text>
+        <text class="detail" x="544" y="227">up to 100 hits / search</text>
+        <text class="detail-ink" x="544" y="254">BM25 is not enabled</text>
+
+        <rect class="node-strong" x="528" y="328" width="184" height="168" rx="6"/>
+        <text class="tag" x="544" y="348">04 / FUSE</text>
+        <text class="name" x="544" y="376">Candidate pool</text>
+        <text class="detail" x="544" y="402">RRF: top 30 / search</text>
+        <text class="detail" x="544" y="421">30 fused candidates</text>
+        <text class="detail" x="544" y="440">wider pool kept apart</text>
+        <text class="detail" x="544" y="459">name hits join wide pool</text>
+
+        <!-- Evidence pool -->
+        <rect class="node" x="804" y="136" width="184" height="148" rx="6"/>
+        <text class="tag" x="820" y="156">05 / RANK</text>
+        <text class="name" x="820" y="182">Cross-encoder</text>
+        <text class="detail" x="820" y="207">ms-marco-MiniLM-L-6-v2</text>
+        <text class="detail" x="820" y="227">scores query + passage</text>
+        <text class="detail" x="820" y="254">SentenceTransformers · CPU</text>
+
+        <rect class="node" x="804" y="328" width="184" height="168" rx="6"/>
+        <text class="tag" x="820" y="348">06 / SELECT</text>
+        <text class="name" x="820" y="376">Evidence pool</text>
+        <text class="detail" x="820" y="401">top 10; 15 if weak</text>
+        <text class="detail" x="820" y="421">up to 3 strong wide hits</text>
+        <text class="detail" x="820" y="441">nearby context if needed</text>
+        <text class="detail" x="820" y="461">passages labeled [E1]...</text>
+
+        <!-- Generation and result -->
+        <rect class="node-focal" x="1052" y="224" width="184" height="136" rx="6"/>
+        <text class="tag focal-tag" x="1068" y="244">07 / GENERATE</text>
+        <text class="name" x="1068" y="270">Cited answer</text>
+        <text class="detail-ink" x="1068" y="297">qwen3:8b via Ollama</text>
+        <text class="detail" x="1068" y="317">question + evidence</text>
+        <text class="detail" x="1068" y="338">local by default</text>
+
+        <rect class="node-strong" x="1052" y="408" width="184" height="88" rx="6"/>
+        <text class="tag" x="1068" y="429">OUTPUT</text>
+        <text class="name" x="1068" y="454">Shown to user</text>
+        <text class="detail" x="1068" y="477">answer + cited sources</text>
+
+        <!-- Horizontal reading key. -->
+        <line x1="32" y1="608" x2="1248" y2="608" stroke="var(--rule)" stroke-width="1"/>
+        <text class="legend-title" x="40" y="632">READING KEY</text>
+        <line x1="40" y1="654" x2="78" y2="654" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow-sketch)"/>
+        <text class="legend-text" x="92" y="658">Data moves along solid arrows</text>
+        <line x1="448" y1="624" x2="448" y2="672" stroke="var(--rule)" stroke-width="1"/>
+        <text class="legend-title" x="472" y="632">LOCAL DEFAULTS</text>
+        <text class="legend-text" x="472" y="658">CPU embedding + ranking; Ollama generation</text>
+        <line x1="876" y1="624" x2="876" y2="672" stroke="var(--rule)" stroke-width="1"/>
+        <text class="legend-title" x="900" y="632">SEARCH METHOD</text>
+        <text class="legend-text" x="900" y="658">Dense semantic only; no BM25</text>
+      </svg></div></section>
+<section id="terminal" class="preview terminal" style="--paper:#141414;--ink:#f5f5f5;--muted:#9a9a9a;--soft:#858585;--rule:#545454;--accent:#ff5a36;--tint:rgba(255,90,54,.12);--zone:rgba(255,255,255,.025);--zone-border:rgba(255,255,255,.18)"><div class="preview-heading"><div class="titlebar"><span class="dot hot"></span><span class="dot"></span><span class="dot"></span><span class="titlebar-name">pipeline.sh — millennium-search</span></div><div class="terminal-content"><p class="prompt"><b>$</b> diagram-design render --style terminal</p><h2># From question to cited answer</h2><p>A fixed CLI-style skin for developer-facing posts.</p></div></div><div class="diagram-scroll"><svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="pipeline-terminal-title pipeline-terminal-desc">
+        <title id="pipeline-terminal-title">From question to cited answer</title>
+        <desc id="pipeline-terminal-desc">A user query becomes six main searches and sometimes a seventh name search, then moves through dense Qdrant lookup, candidate fusion, cross-encoder reranking, evidence selection, local Ollama generation, and a cited answer.</desc>
+        <defs>
+          <marker id="arrow-terminal" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--muted)"/></marker>
+          <marker id="arrow-accent-terminal" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--accent)"/></marker>
+        </defs>
+        <rect width="1280" height="720" fill="var(--paper)"/>
+
+        <!-- Three pools hold the work between input and output. -->
+        <rect class="zone" x="224" y="72" width="248" height="472" rx="8"/>
+        <rect class="zone" x="500" y="72" width="248" height="472" rx="8"/>
+        <rect class="zone" x="776" y="72" width="248" height="472" rx="8"/>
+        <rect x="240" y="78" width="106" height="16" fill="var(--paper)"/>
+        <text class="zone-label" x="248" y="90">01  QUERY POOL</text>
+        <rect x="516" y="78" width="128" height="16" fill="var(--paper)"/>
+        <text class="zone-label" x="524" y="90">02  CANDIDATE POOL</text>
+        <rect x="792" y="78" width="118" height="16" fill="var(--paper)"/>
+        <text class="zone-label" x="800" y="90">03  EVIDENCE POOL</text>
+
+        <!-- Main data path. Lines are behind all node masks. -->
+        <path class="link" d="M184 322 H204 Q212 322 212 314 V238 Q212 230 220 230 H252"/>
+        <path class="link" d="M344 324 V368"/>
+        <path class="link" d="M436 432 H478 Q486 432 486 424 V218 Q486 210 494 210 H528"/>
+        <path class="link" d="M620 284 V328"/>
+        <path class="link" d="M712 412 H754 Q762 412 762 404 V218 Q762 210 770 210 H804"/>
+        <path class="link" d="M896 284 V328"/>
+        <path class="link-focal" d="M988 412 H1012 Q1020 412 1020 404 V300 Q1020 292 1028 292 H1052"/>
+        <path class="link" d="M1144 360 V408"/>
+
+        <!-- Entry -->
+        <rect class="node-strong" x="32" y="278" width="152" height="88" rx="6"/>
+        <text class="tag" x="48" y="299">ENTRY</text>
+        <text class="name" x="48" y="326">User query</text>
+        <text class="detail" x="48" y="348">one question</text>
+
+        <!-- Query pool -->
+        <rect class="node" x="252" y="136" width="184" height="188" rx="6"/>
+        <text class="tag" x="268" y="156">01 / PREPARE</text>
+        <text class="name" x="268" y="181">Six main searches</text>
+        <text class="detail-ink" x="268" y="207">1 original question</text>
+        <text class="detail-ink" x="268" y="226">1 HyDE passage</text>
+        <text class="detail-ink" x="268" y="245">3 alternative queries</text>
+        <text class="detail-ink" x="268" y="264">1 grammar correction</text>
+        <line x1="268" y1="281" x2="420" y2="281" stroke="var(--rule)" stroke-width="1"/>
+        <text class="detail" x="268" y="299">+ name route if useful</text>
+        <text class="detail" x="268" y="316">qwen3:8b · Ollama</text>
+
+        <rect class="node" x="252" y="368" width="184" height="128" rx="6"/>
+        <text class="tag" x="268" y="389">02 / ENCODE</text>
+        <text class="name" x="268" y="416">Embed each search</text>
+        <text class="detail" x="268" y="442">multi-qa-MiniLM-L6</text>
+        <text class="detail" x="268" y="461">cos-v1 · local CPU</text>
+        <text class="detail" x="268" y="481">SentenceTransformers</text>
+
+        <!-- Candidate pool -->
+        <rect class="node" x="528" y="136" width="184" height="148" rx="6"/>
+        <text class="tag" x="544" y="156">03 / LOOKUP</text>
+        <text class="name" x="544" y="182">Dense vector search</text>
+        <text class="detail" x="544" y="207">Qdrant · cosine similarity</text>
+        <text class="detail" x="544" y="227">up to 100 hits / search</text>
+        <text class="detail-ink" x="544" y="254">BM25 is not enabled</text>
+
+        <rect class="node-strong" x="528" y="328" width="184" height="168" rx="6"/>
+        <text class="tag" x="544" y="348">04 / FUSE</text>
+        <text class="name" x="544" y="376">Candidate pool</text>
+        <text class="detail" x="544" y="402">RRF: top 30 / search</text>
+        <text class="detail" x="544" y="421">30 fused candidates</text>
+        <text class="detail" x="544" y="440">wider pool kept apart</text>
+        <text class="detail" x="544" y="459">name hits join wide pool</text>
+
+        <!-- Evidence pool -->
+        <rect class="node" x="804" y="136" width="184" height="148" rx="6"/>
+        <text class="tag" x="820" y="156">05 / RANK</text>
+        <text class="name" x="820" y="182">Cross-encoder</text>
+        <text class="detail" x="820" y="207">ms-marco-MiniLM-L-6-v2</text>
+        <text class="detail" x="820" y="227">scores query + passage</text>
+        <text class="detail" x="820" y="254">SentenceTransformers · CPU</text>
+
+        <rect class="node" x="804" y="328" width="184" height="168" rx="6"/>
+        <text class="tag" x="820" y="348">06 / SELECT</text>
+        <text class="name" x="820" y="376">Evidence pool</text>
+        <text class="detail" x="820" y="401">top 10; 15 if weak</text>
+        <text class="detail" x="820" y="421">up to 3 strong wide hits</text>
+        <text class="detail" x="820" y="441">nearby context if needed</text>
+        <text class="detail" x="820" y="461">passages labeled [E1]...</text>
+
+        <!-- Generation and result -->
+        <rect class="node-focal" x="1052" y="224" width="184" height="136" rx="6"/>
+        <text class="tag focal-tag" x="1068" y="244">07 / GENERATE</text>
+        <text class="name" x="1068" y="270">Cited answer</text>
+        <text class="detail-ink" x="1068" y="297">qwen3:8b via Ollama</text>
+        <text class="detail" x="1068" y="317">question + evidence</text>
+        <text class="detail" x="1068" y="338">local by default</text>
+
+        <rect class="node-strong" x="1052" y="408" width="184" height="88" rx="6"/>
+        <text class="tag" x="1068" y="429">OUTPUT</text>
+        <text class="name" x="1068" y="454">Shown to user</text>
+        <text class="detail" x="1068" y="477">answer + cited sources</text>
+
+        <!-- Horizontal reading key. -->
+        <line x1="32" y1="608" x2="1248" y2="608" stroke="var(--rule)" stroke-width="1"/>
+        <text class="legend-title" x="40" y="632">READING KEY</text>
+        <line x1="40" y1="654" x2="78" y2="654" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow-terminal)"/>
+        <text class="legend-text" x="92" y="658">Data moves along solid arrows</text>
+        <line x1="448" y1="624" x2="448" y2="672" stroke="var(--rule)" stroke-width="1"/>
+        <text class="legend-title" x="472" y="632">LOCAL DEFAULTS</text>
+        <text class="legend-text" x="472" y="658">CPU embedding + ranking; Ollama generation</text>
+        <line x1="876" y1="624" x2="876" y2="672" stroke="var(--rule)" stroke-width="1"/>
+        <text class="legend-title" x="900" y="632">SEARCH METHOD</text>
+        <text class="legend-text" x="900" y="658">Dense semantic only; no BM25</text>
+      </svg></div></section>
+<section id="brand" class="preview brand" style="--paper:#f3eee4;--ink:#231f25;--muted:#655d63;--soft:#70676d;--rule:#beb0ad;--accent:#8c3547;--tint:rgba(140,53,71,.10);--zone:rgba(35,31,37,.025);--zone-border:rgba(35,31,37,.18)"><div class="preview-heading"><p class="section-kicker">Illustrative palette · no existing brand tokens supplied</p><h2>Book-inspired palette</h2><p>An illustrative ink-and-paper direction for this project, not an official brand.</p></div><div class="diagram-scroll"><svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="pipeline-brand-title pipeline-brand-desc">
+        <title id="pipeline-brand-title">From question to cited answer</title>
+        <desc id="pipeline-brand-desc">A user query becomes six main searches and sometimes a seventh name search, then moves through dense Qdrant lookup, candidate fusion, cross-encoder reranking, evidence selection, local Ollama generation, and a cited answer.</desc>
+        <defs>
+          <marker id="arrow-brand" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--muted)"/></marker>
+          <marker id="arrow-accent-brand" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--accent)"/></marker>
+        </defs>
+        <rect width="1280" height="720" fill="var(--paper)"/>
+
+        <!-- Three pools hold the work between input and output. -->
+        <rect class="zone" x="224" y="72" width="248" height="472" rx="8"/>
+        <rect class="zone" x="500" y="72" width="248" height="472" rx="8"/>
+        <rect class="zone" x="776" y="72" width="248" height="472" rx="8"/>
+        <rect x="240" y="78" width="106" height="16" fill="var(--paper)"/>
+        <text class="zone-label" x="248" y="90">01  QUERY POOL</text>
+        <rect x="516" y="78" width="128" height="16" fill="var(--paper)"/>
+        <text class="zone-label" x="524" y="90">02  CANDIDATE POOL</text>
+        <rect x="792" y="78" width="118" height="16" fill="var(--paper)"/>
+        <text class="zone-label" x="800" y="90">03  EVIDENCE POOL</text>
+
+        <!-- Main data path. Lines are behind all node masks. -->
+        <path class="link" d="M184 322 H204 Q212 322 212 314 V238 Q212 230 220 230 H252"/>
+        <path class="link" d="M344 324 V368"/>
+        <path class="link" d="M436 432 H478 Q486 432 486 424 V218 Q486 210 494 210 H528"/>
+        <path class="link" d="M620 284 V328"/>
+        <path class="link" d="M712 412 H754 Q762 412 762 404 V218 Q762 210 770 210 H804"/>
+        <path class="link" d="M896 284 V328"/>
+        <path class="link-focal" d="M988 412 H1012 Q1020 412 1020 404 V300 Q1020 292 1028 292 H1052"/>
+        <path class="link" d="M1144 360 V408"/>
+
+        <!-- Entry -->
+        <rect class="node-strong" x="32" y="278" width="152" height="88" rx="6"/>
+        <text class="tag" x="48" y="299">ENTRY</text>
+        <text class="name" x="48" y="326">User query</text>
+        <text class="detail" x="48" y="348">one question</text>
+
+        <!-- Query pool -->
+        <rect class="node" x="252" y="136" width="184" height="188" rx="6"/>
+        <text class="tag" x="268" y="156">01 / PREPARE</text>
+        <text class="name" x="268" y="181">Six main searches</text>
+        <text class="detail-ink" x="268" y="207">1 original question</text>
+        <text class="detail-ink" x="268" y="226">1 HyDE passage</text>
+        <text class="detail-ink" x="268" y="245">3 alternative queries</text>
+        <text class="detail-ink" x="268" y="264">1 grammar correction</text>
+        <line x1="268" y1="281" x2="420" y2="281" stroke="var(--rule)" stroke-width="1"/>
+        <text class="detail" x="268" y="299">+ name route if useful</text>
+        <text class="detail" x="268" y="316">qwen3:8b · Ollama</text>
+
+        <rect class="node" x="252" y="368" width="184" height="128" rx="6"/>
+        <text class="tag" x="268" y="389">02 / ENCODE</text>
+        <text class="name" x="268" y="416">Embed each search</text>
+        <text class="detail" x="268" y="442">multi-qa-MiniLM-L6</text>
+        <text class="detail" x="268" y="461">cos-v1 · local CPU</text>
+        <text class="detail" x="268" y="481">SentenceTransformers</text>
+
+        <!-- Candidate pool -->
+        <rect class="node" x="528" y="136" width="184" height="148" rx="6"/>
+        <text class="tag" x="544" y="156">03 / LOOKUP</text>
+        <text class="name" x="544" y="182">Dense vector search</text>
+        <text class="detail" x="544" y="207">Qdrant · cosine similarity</text>
+        <text class="detail" x="544" y="227">up to 100 hits / search</text>
+        <text class="detail-ink" x="544" y="254">BM25 is not enabled</text>
+
+        <rect class="node-strong" x="528" y="328" width="184" height="168" rx="6"/>
+        <text class="tag" x="544" y="348">04 / FUSE</text>
+        <text class="name" x="544" y="376">Candidate pool</text>
+        <text class="detail" x="544" y="402">RRF: top 30 / search</text>
+        <text class="detail" x="544" y="421">30 fused candidates</text>
+        <text class="detail" x="544" y="440">wider pool kept apart</text>
+        <text class="detail" x="544" y="459">name hits join wide pool</text>
+
+        <!-- Evidence pool -->
+        <rect class="node" x="804" y="136" width="184" height="148" rx="6"/>
+        <text class="tag" x="820" y="156">05 / RANK</text>
+        <text class="name" x="820" y="182">Cross-encoder</text>
+        <text class="detail" x="820" y="207">ms-marco-MiniLM-L-6-v2</text>
+        <text class="detail" x="820" y="227">scores query + passage</text>
+        <text class="detail" x="820" y="254">SentenceTransformers · CPU</text>
+
+        <rect class="node" x="804" y="328" width="184" height="168" rx="6"/>
+        <text class="tag" x="820" y="348">06 / SELECT</text>
+        <text class="name" x="820" y="376">Evidence pool</text>
+        <text class="detail" x="820" y="401">top 10; 15 if weak</text>
+        <text class="detail" x="820" y="421">up to 3 strong wide hits</text>
+        <text class="detail" x="820" y="441">nearby context if needed</text>
+        <text class="detail" x="820" y="461">passages labeled [E1]...</text>
+
+        <!-- Generation and result -->
+        <rect class="node-focal" x="1052" y="224" width="184" height="136" rx="6"/>
+        <text class="tag focal-tag" x="1068" y="244">07 / GENERATE</text>
+        <text class="name" x="1068" y="270">Cited answer</text>
+        <text class="detail-ink" x="1068" y="297">qwen3:8b via Ollama</text>
+        <text class="detail" x="1068" y="317">question + evidence</text>
+        <text class="detail" x="1068" y="338">local by default</text>
+
+        <rect class="node-strong" x="1052" y="408" width="184" height="88" rx="6"/>
+        <text class="tag" x="1068" y="429">OUTPUT</text>
+        <text class="name" x="1068" y="454">Shown to user</text>
+        <text class="detail" x="1068" y="477">answer + cited sources</text>
+
+        <!-- Horizontal reading key. -->
+        <line x1="32" y1="608" x2="1248" y2="608" stroke="var(--rule)" stroke-width="1"/>
+        <text class="legend-title" x="40" y="632">READING KEY</text>
+        <line x1="40" y1="654" x2="78" y2="654" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow-brand)"/>
+        <text class="legend-text" x="92" y="658">Data moves along solid arrows</text>
+        <line x1="448" y1="624" x2="448" y2="672" stroke="var(--rule)" stroke-width="1"/>
+        <text class="legend-title" x="472" y="632">LOCAL DEFAULTS</text>
+        <text class="legend-text" x="472" y="658">CPU embedding + ranking; Ollama generation</text>
+        <line x1="876" y1="624" x2="876" y2="672" stroke="var(--rule)" stroke-width="1"/>
+        <text class="legend-title" x="900" y="632">SEARCH METHOD</text>
+        <text class="legend-text" x="900" y="658">Dense semantic only; no BM25</text>
+      </svg></div></section>
+<section id="reveal" class="preview reveal" style="--paper:#f5f5f5;--ink:#2d3142;--muted:#4f5d75;--soft:#5a6580;--rule:#bfc0c0;--accent:#bf4520;--tint:rgba(191,69,32,.08);--zone:rgba(45,49,66,.025);--zone-border:rgba(45,49,66,.18)"><div class="preview-heading"><h2>Step reveal</h2><p>The default light skin, with the journey appearing in order once.</p></div><div class="diagram-scroll"><svg viewBox="0 0 1280 720" data-motion-mode="reveal" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="pipeline-reveal-title pipeline-reveal-desc">
+        <title id="pipeline-reveal-title">From question to cited answer</title>
+        <desc id="pipeline-reveal-desc">A user query becomes six main searches and sometimes a seventh name search, then moves through dense Qdrant lookup, candidate fusion, cross-encoder reranking, evidence selection, local Ollama generation, and a cited answer.</desc>
+        <defs>
+          <marker id="arrow-reveal" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--muted)"/></marker>
+          <marker id="arrow-accent-reveal" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--accent)"/></marker>
+        </defs>
+        <rect width="1280" height="720" fill="var(--paper)"/>
+
+        <!-- Three pools hold the work between input and output. -->
+        <rect class="stage-2 zone" x="224" y="72" width="248" height="472" rx="8"/>
+        <rect class="stage-3 zone" x="500" y="72" width="248" height="472" rx="8"/>
+        <rect class="stage-4 zone" x="776" y="72" width="248" height="472" rx="8"/>
+        <rect x="240" y="78" width="106" height="16" fill="var(--paper)"/>
+        <text class="stage-2 zone-label" x="248" y="90">01  QUERY POOL</text>
+        <rect x="516" y="78" width="128" height="16" fill="var(--paper)"/>
+        <text class="stage-3 zone-label" x="524" y="90">02  CANDIDATE POOL</text>
+        <rect x="792" y="78" width="118" height="16" fill="var(--paper)"/>
+        <text class="stage-4 zone-label" x="800" y="90">03  EVIDENCE POOL</text>
+
+        <!-- Main data path. Lines are behind all node masks. -->
+        <path class="link stage-2" d="M184 322 H204 Q212 322 212 314 V238 Q212 230 220 230 H252"/>
+        <path class="link stage-2" d="M344 324 V368"/>
+        <path class="link stage-3" d="M436 432 H478 Q486 432 486 424 V218 Q486 210 494 210 H528"/>
+        <path class="link stage-3" d="M620 284 V328"/>
+        <path class="link stage-4" d="M712 412 H754 Q762 412 762 404 V218 Q762 210 770 210 H804"/>
+        <path class="link stage-4" d="M896 284 V328"/>
+        <path class="link-focal stage-5" d="M988 412 H1012 Q1020 412 1020 404 V300 Q1020 292 1028 292 H1052"/>
+        <path class="link stage-5" d="M1144 360 V408"/>
+
+        <!-- Entry -->
+        <rect class="stage-1 node-strong" x="32" y="278" width="152" height="88" rx="6"/>
+        <text class="stage-1 tag" x="48" y="299">ENTRY</text>
+        <text class="stage-1 name" x="48" y="326">User query</text>
+        <text class="stage-1 detail" x="48" y="348">one question</text>
+
+        <!-- Query pool -->
+        <rect class="stage-2 node" x="252" y="136" width="184" height="188" rx="6"/>
+        <text class="stage-2 tag" x="268" y="156">01 / PREPARE</text>
+        <text class="stage-2 name" x="268" y="181">Six main searches</text>
+        <text class="stage-2 detail-ink" x="268" y="207">1 original question</text>
+        <text class="stage-2 detail-ink" x="268" y="226">1 HyDE passage</text>
+        <text class="stage-2 detail-ink" x="268" y="245">3 alternative queries</text>
+        <text class="stage-2 detail-ink" x="268" y="264">1 grammar correction</text>
+        <line x1="268" y1="281" x2="420" y2="281" stroke="var(--rule)" stroke-width="1"/>
+        <text class="stage-2 detail" x="268" y="299">+ name route if useful</text>
+        <text class="stage-2 detail" x="268" y="316">qwen3:8b · Ollama</text>
+
+        <rect class="stage-2 node" x="252" y="368" width="184" height="128" rx="6"/>
+        <text class="stage-2 tag" x="268" y="389">02 / ENCODE</text>
+        <text class="stage-2 name" x="268" y="416">Embed each search</text>
+        <text class="stage-2 detail" x="268" y="442">multi-qa-MiniLM-L6</text>
+        <text class="stage-2 detail" x="268" y="461">cos-v1 · local CPU</text>
+        <text class="stage-2 detail" x="268" y="481">SentenceTransformers</text>
+
+        <!-- Candidate pool -->
+        <rect class="stage-3 node" x="528" y="136" width="184" height="148" rx="6"/>
+        <text class="stage-3 tag" x="544" y="156">03 / LOOKUP</text>
+        <text class="stage-3 name" x="544" y="182">Dense vector search</text>
+        <text class="stage-3 detail" x="544" y="207">Qdrant · cosine similarity</text>
+        <text class="stage-3 detail" x="544" y="227">up to 100 hits / search</text>
+        <text class="stage-3 detail-ink" x="544" y="254">BM25 is not enabled</text>
+
+        <rect class="stage-3 node-strong" x="528" y="328" width="184" height="168" rx="6"/>
+        <text class="stage-3 tag" x="544" y="348">04 / FUSE</text>
+        <text class="stage-3 name" x="544" y="376">Candidate pool</text>
+        <text class="stage-3 detail" x="544" y="402">RRF: top 30 / search</text>
+        <text class="stage-3 detail" x="544" y="421">30 fused candidates</text>
+        <text class="stage-3 detail" x="544" y="440">wider pool kept apart</text>
+        <text class="stage-3 detail" x="544" y="459">name hits join wide pool</text>
+
+        <!-- Evidence pool -->
+        <rect class="stage-4 node" x="804" y="136" width="184" height="148" rx="6"/>
+        <text class="stage-4 tag" x="820" y="156">05 / RANK</text>
+        <text class="stage-4 name" x="820" y="182">Cross-encoder</text>
+        <text class="stage-4 detail" x="820" y="207">ms-marco-MiniLM-L-6-v2</text>
+        <text class="stage-4 detail" x="820" y="227">scores query + passage</text>
+        <text class="stage-4 detail" x="820" y="254">SentenceTransformers · CPU</text>
+
+        <rect class="stage-4 node" x="804" y="328" width="184" height="168" rx="6"/>
+        <text class="stage-4 tag" x="820" y="348">06 / SELECT</text>
+        <text class="stage-4 name" x="820" y="376">Evidence pool</text>
+        <text class="stage-4 detail" x="820" y="401">top 10; 15 if weak</text>
+        <text class="stage-4 detail" x="820" y="421">up to 3 strong wide hits</text>
+        <text class="stage-4 detail" x="820" y="441">nearby context if needed</text>
+        <text class="stage-4 detail" x="820" y="461">passages labeled [E1]...</text>
+
+        <!-- Generation and result -->
+        <rect class="stage-5 node-focal" x="1052" y="224" width="184" height="136" rx="6"/>
+        <text class="stage-5 tag focal-tag" x="1068" y="244">07 / GENERATE</text>
+        <text class="stage-5 name" x="1068" y="270">Cited answer</text>
+        <text class="stage-5 detail-ink" x="1068" y="297">qwen3:8b via Ollama</text>
+        <text class="stage-5 detail" x="1068" y="317">question + evidence</text>
+        <text class="stage-5 detail" x="1068" y="338">local by default</text>
+
+        <rect class="stage-5 node-strong" x="1052" y="408" width="184" height="88" rx="6"/>
+        <text class="stage-5 tag" x="1068" y="429">OUTPUT</text>
+        <text class="stage-5 name" x="1068" y="454">Shown to user</text>
+        <text class="stage-5 detail" x="1068" y="477">answer + cited sources</text>
+
+        <!-- Horizontal reading key. -->
+        <line x1="32" y1="608" x2="1248" y2="608" stroke="var(--rule)" stroke-width="1"/>
+        <text class="stage-1 legend-title" x="40" y="632">READING KEY</text>
+        <line x1="40" y1="654" x2="78" y2="654" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow-reveal)"/>
+        <text class="stage-1 legend-text" x="92" y="658">Data moves along solid arrows</text>
+        <line x1="448" y1="624" x2="448" y2="672" stroke="var(--rule)" stroke-width="1"/>
+        <text class="stage-2 legend-title" x="472" y="632">LOCAL DEFAULTS</text>
+        <text class="stage-2 legend-text" x="472" y="658">CPU embedding + ranking; Ollama generation</text>
+        <line x1="876" y1="624" x2="876" y2="672" stroke="var(--rule)" stroke-width="1"/>
+        <text class="stage-4 legend-title" x="900" y="632">SEARCH METHOD</text>
+        <text class="stage-4 legend-text" x="900" y="658">Dense semantic only; no BM25</text>
+      </svg></div></section></main></body></html>
