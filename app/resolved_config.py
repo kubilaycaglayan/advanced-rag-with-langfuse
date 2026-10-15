@@ -69,6 +69,8 @@ class ResolvedPipelineConfig:
     name_completion: bool = False
     low_confidence_score: float | None = 2.0
     low_confidence_top_k: int = 15
+    wide_candidate_count: int = 100
+    wide_trigger_score: float | None = 3.5
     corpus_checksum: str = ""
     prompt_hashes: Mapping[str, str] | None = None
 
@@ -79,7 +81,7 @@ class ResolvedPipelineConfig:
             raise ValueError("generation must be GenerationSettings")
         for name, number in (("candidate_count", self.candidate_count), ("top_k", self.top_k), ("passage_chars", self.passage_chars), ("rrf_constant", self.rrf_constant),
                              ("min_passage_chars", self.min_passage_chars), ("passage_overlap", self.passage_overlap), ("expansion_count", self.expansion_count),
-                             ("low_confidence_top_k", self.low_confidence_top_k)):
+                             ("low_confidence_top_k", self.low_confidence_top_k), ("wide_candidate_count", self.wide_candidate_count)):
             if isinstance(number, bool) or not isinstance(number, int):
                 raise ValueError(f"{name} must be an integer")
         if not isinstance(self.retrieval_mode, str):
@@ -89,6 +91,9 @@ class ResolvedPipelineConfig:
         if self.low_confidence_score is not None and (isinstance(self.low_confidence_score, bool) or not isinstance(self.low_confidence_score, (int, float))
                                                       or not math.isfinite(self.low_confidence_score)):
             raise ValueError("low_confidence_score must be a finite number or null")
+        if self.wide_trigger_score is not None and (isinstance(self.wide_trigger_score, bool) or not isinstance(self.wide_trigger_score, (int, float))
+                                                    or not math.isfinite(self.wide_trigger_score)):
+            raise ValueError("wide_trigger_score must be a finite number or null")
         if not isinstance(self.corpus_checksum, str):
             raise ValueError("corpus_checksum must be a string")
         if self.prompt_hashes is not None and (not isinstance(self.prompt_hashes, Mapping) or not all(isinstance(k, str) and isinstance(v, str) for k, v in self.prompt_hashes.items())):
@@ -101,6 +106,8 @@ class ResolvedPipelineConfig:
             raise ValueError("top_k must be between 1 and candidate_count")
         if not 1 <= self.low_confidence_top_k <= self.candidate_count:
             raise ValueError("low_confidence_top_k must be between 1 and candidate_count")
+        if not 0 <= self.wide_candidate_count <= 200:
+            raise ValueError("wide_candidate_count must be between 0 and 200")
         if self.passage_chars < 1 or self.rrf_constant < 1:
             raise ValueError("passage_chars and rrf_constant must be positive")
         if self.min_passage_chars < 0:
@@ -136,7 +143,7 @@ class ResolvedPipelineConfig:
         value = defaults
         allowed = {"retrieval_mode", "candidate_count", "top_k", "passage_chars", "embedding_model", "reranker_model", "generation_model", "generation", "rrf_constant",
                    "min_passage_chars", "passage_overlap", "expansion_count", "answer_thinking", "name_completion",
-                   "low_confidence_score", "low_confidence_top_k", "corpus_checksum", "prompt_hashes"}
+                   "low_confidence_score", "low_confidence_top_k", "wide_candidate_count", "wide_trigger_score", "corpus_checksum", "prompt_hashes"}
         unknown = set(value) - allowed
         if unknown:
             raise ValueError(f"unknown config fields: {', '.join(sorted(unknown))}")

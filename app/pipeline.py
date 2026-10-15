@@ -206,23 +206,28 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
                 with _observe("query embedding", as_type="embedding", input=query, model=config.embedding_model.name) as embedding_obs:
                     vector = _embedder(config.embedding_model.name, config.embedding_model.revision).encode(query, normalize_embeddings=True).tolist()
                     _update(embedding_obs, output={"dimensions": len(vector)})
-                points = qdrant.query_points(collection_name=collection, query=vector, limit=config.candidate_count, with_payload=True).points
+                points = qdrant.query_points(collection_name=collection, query=vector, limit=max(config.candidate_count, config.wide_candidate_count), with_payload=True).points
                 rankings.append(points)
                 _update(search_obs, output={"hits": [{"id": str(point.id), "score": float(point.score), "payload": dict(point.payload or {})} for point in points]})
             vector_search_timings.append(round(time.perf_counter() - search_started, 4))
+        wide: list[dict[str, Any]] = []
         if config.retrieval_mode == "baseline":
-            candidates = [dict(p.payload or {}) | {"id": str(p.id), "similarity": float(p.score)} for p in rankings[0]]
+            candidates = [dict(p.payload or {}) | {"id": str(p.id), "similarity": float(p.score)} for p in rankings[0][:config.candidate_count]]
         else:
             # The name-completed search does not compete in fusion: its top hits are appended to the
             # fused candidates, so questions it does not change keep exactly the same candidates.
             named_hits = rankings.pop() if named != question else []
             with _observe("RRF candidate merge", input={"ranking_count": len(rankings), "rrf_constant": config.rrf_constant}) as merge_obs:
-                candidates = _rrf(rankings, config.candidate_count, config.rrf_constant)
+                candidates = _rrf([ranking[:config.candidate_count] for ranking in rankings], config.candidate_count, config.rrf_constant)
                 fused_ids = {row["id"] for row in candidates}
+                # The wider pool only competes after reranking: its passages are admitted if they beat every fused candidate.
+                wide = [row | {"wide_hit": True} for row in _rrf(rankings, config.wide_candidate_count, config.rrf_constant)
+                        if row["id"] not in fused_ids] if config.wide_candidate_count > config.candidate_count else []
                 candidates += [dict(point.payload or {}) | {"id": str(point.id), "rrf_score": 0.0, "retrieval_ranks": [rank], "name_completion_hit": True}
                                for rank, point in enumerate(named_hits[:NAME_COMPLETION_HITS], 1) if str(point.id) not in fused_ids]
+                wide = [row for row in wide if row["id"] not in {c["id"] for c in candidates}]
                 _update(merge_obs, output=candidates)
-        _update(obs, output={"candidate_count": len(candidates), "candidates": candidates})
+        _update(obs, output={"candidate_count": len(candidates), "candidates": candidates, "wide_candidate_count": len(wide)})
     timings["retrieval_seconds"] = round(time.perf_counter() - stage, 4)
     timings["vector_search_seconds"] = vector_search_timings
 
@@ -235,17 +240,24 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
     stage = time.perf_counter()
     # Fused candidates are scored against the question as asked; passages appended by the name-completed
     # search are scored against the wording that found them.
-    pairs = [(named if row.get("name_completion_hit") else question, row["text"]) for row in candidates]
+    pairs = [(named if row.get("name_completion_hit") else question, row["text"]) for row in candidates] + [(question, row["text"]) for row in wide]
     with _observe("cross encoder reranking", input={"pairs": pairs}, model=config.reranker_model.name) as rerank_obs:
         scores = _reranker(config.reranker_model.name, config.reranker_model.revision).predict(pairs, show_progress_bar=False)
-        _update(rerank_obs, output=[{"id": row["id"], "score": float(score)} for row, score in zip(candidates, scores)])
+        _update(rerank_obs, output=[{"id": row["id"], "score": float(score)} for row, score in zip(candidates + wide, scores)])
     timings["reranking_seconds"] = round(time.perf_counter() - stage, 4)
-    for row, score in zip(candidates, scores):
+    for row, score in zip(candidates + wide, scores):
         row["rerank_score"] = float(score)
+    best_fused = max(row["rerank_score"] for row in candidates)
+    # When the fused candidates hold no near-certain match, a wider-pool passage is added in front of the evidence
+    # if it beats every fused candidate and is itself a confident match; the usual evidence stays as it is.
+    wide_floor = max(best_fused, config.low_confidence_score if config.low_confidence_score is not None else best_fused)
+    wide_open = config.wide_trigger_score is None or best_fused < config.wide_trigger_score
+    wide_hits = sorted((row for row in wide if wide_open and row["rerank_score"] > wide_floor), key=lambda row: row["rerank_score"], reverse=True)
     # When no passage clearly answers the question, give the answer model more evidence and let it reason.
-    low_confidence = config.low_confidence_score is not None and max(row["rerank_score"] for row in candidates) < config.low_confidence_score
+    low_confidence = config.low_confidence_score is not None and best_fused < config.low_confidence_score
     top_k = max(config.top_k, config.low_confidence_top_k) if low_confidence else config.top_k
-    reranked = sorted(candidates, key=lambda row: row["rerank_score"], reverse=True)[:top_k]
+    reranked = wide_hits + sorted(candidates, key=lambda row: row["rerank_score"], reverse=True)[:top_k]
+    candidates += wide_hits
     baseline = sorted(candidates, key=lambda row: row.get("similarity", 0), reverse=True)[:config.top_k] if "similarity" in candidates[0] else []
     stage = time.perf_counter()
     with _observe("evidence formatting", input=reranked) as obs:
