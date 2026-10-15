@@ -5,12 +5,17 @@ from the reference answer in prompts, queries or code) and checks the full QA.cs
 Scores are means of the Langfuse judges `answer_correctness_v1` / `citation_support_v1`. Raw run outputs, per-run
 configs and the analysis scripts live in `data/tuning/` (not tracked; full notes in `data/tuning/LOG.md`).
 
-| Date | Round | QA.csv correctness | Citation | Commit |
-|---|---|---|---|---|
-| 2026-10-15 | Wider retrieval pool for weak fused candidates | 0.700 → 0.729 | 0.857 → 0.857 | 34eb712 |
-| 2026-10-15 | Extra evidence + reasoning only on low-confidence retrieval | 0.614 → 0.700 | 0.838 → 0.857 | 2d7b030 |
-| 2026-10-14 | 15 passages + reasoning for every question (superseded) | 0.614 → 0.757 | 0.838 → 0.871 | 88d26af |
-| 2026-10-14 | Paragraph merging, tuned HyDE / query-expansion prompts | 0.529 → 0.614 | 0.848 → 0.838 | 7224441 |
+| Date | Round | QA.csv correctness | Citation | Improved (answer correctness) | Regressed | Commit |
+|---|---|---|---|---|---|---|
+| 2026-10-15 | Wider pool when<br>fused is weak | 0.700 → 0.729 | 0.857 → 0.857 | Blomkvist's media nickname 0 → 1 | — | 34eb712 |
+| 2026-10-15 | More evidence +<br>reasoning when weak | 0.614 → 0.700 | 0.838 → 0.857 | Salander's fortune 0 → 1<br>Cecilia: event that changed Harriet 0 → 1<br>table salt formula 0.5 → 1<br>Armageddon shirt 0.5 → 1 | — | 2d7b030 |
+| 2026-10-14 | 15 passages + reasoning<br>always (superseded) | 0.614 → 0.757 | 0.838 → 0.871 | Salander's fortune 0 → 1<br>Blomkvist's media nickname 0 → 1<br>Cecilia: event that changed Harriet 0 → 1<br>affair 0 → 0.5<br>table salt 0.5 → 1<br>Niedermann's pain 0.5 → 1<br>Dag Svensson's murderer 0.5 → 1<br>prison sentence 0.5 → 1<br>Martin Vanger 0.5 → 1<br>Armageddon shirt 0.5 → 1 | Berger's position 0.5 → 0<br>who killed Harriet 0.5 → 0<br>who tried to shoot Mikael 0.5 → 0 | 88d26af |
+| 2026-10-14 | Paragraph merging,<br>tuned prompts | 0.529 → 0.614 | 0.848 → 0.838 | Mona Lisa 0 → 1<br>Fiskargatan doorplate name 0 → 1<br>Harriet flees to 0 → 1<br>Dag Svensson's murderer 0 → 0.5<br>who killed Harriet 0 → 0.5<br>who tried to shoot Mikael 0 → 0.5<br>police after assault 0.5 → 1<br>Henrik hires Blomkvist 0.5 → 1 | table salt 1 → 0.5<br>Berger's position 1 → 0.5<br>Salander's fortune 0.5 → 0<br>affair 0.5 → 0<br>Bjurman demand — → 0 (not scored before) | 7224441 |
+
+Each row compares the round's defaults against the defaults it replaced: 2d7b030 is measured against 7224441's
+defaults (0.614), not against 88d26af, whose defaults it reverted. The correctness judge is noisy on reworded answers
+(identical answers have scored 0 and 1 in different runs), so single 0.5 steps in rows without a repeat run are
+weak evidence.
 
 ## 2026-10-15 — Wider retrieval pool when the fused candidates are weak (34eb712)
 
