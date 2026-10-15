@@ -39,9 +39,7 @@ can touch, shrink that to only what it should touch, then confirm on the full da
 
 | Date | Round | QA.csv correctness | Citation | Improved (answer correctness) | Regressed | Commit |
 |---|---|---|---|---|---|---|
-| 2026-10-15 | Deeper completed-name<br>search | 0.722 → 0.736 | 0.861 → 0.861 | "What was the nickname of Mikael?" 0.5 → 1 | — | 625f100 |
-| 2026-10-15 | Completed question<br>for the answer model | 0.722 → 0.722 | 0.861 → 0.861 | "What was the nickname of Mikael?" stays 0.5, but the answer is now always "Kalle Blomkvist" (offline: "no nickname" in 3 of 3 replays before) | — | 95588dd |
-| 2026-10-15 | Completed names score<br>the wider pool | 0.708 → 0.722<br>(36 items) | 0.861 → 0.861 | "What was the nickname of Mikael?" 0 → 0.5 | — | 31b95f1 |
+| 2026-10-15 | Bare first names<br>("Mikael") | 0.708 → 0.736<br>(36 items) | 0.861 → 0.861 | "What was the nickname of Mikael?" 0 → 1 | — | 31b95f1<br>95588dd<br>625f100 |
 | 2026-10-15 | Wider pool when<br>fused is weak | 0.700 → 0.729 | 0.857 → 0.857 | Blomkvist's media nickname 0 → 1 | — | 34eb712 |
 | 2026-10-15 | More evidence +<br>reasoning when weak | 0.614 → 0.700 | 0.838 → 0.857 | Salander's fortune 0 → 1<br>Cecilia: event that changed Harriet 0 → 1<br>table salt formula 0.5 → 1<br>Armageddon shirt 0.5 → 1 | — | 2d7b030 |
 | 2026-10-14 | 15 passages + reasoning<br>always (superseded) | 0.614 → 0.757 | 0.838 → 0.871 | Salander's fortune 0 → 1<br>Blomkvist's media nickname 0 → 1<br>Cecilia: event that changed Harriet 0 → 1<br>affair 0 → 0.5<br>table salt 0.5 → 1<br>Niedermann's pain 0.5 → 1<br>Dag Svensson's murderer 0.5 → 1<br>prison sentence 0.5 → 1<br>Martin Vanger 0.5 → 1<br>Armageddon shirt 0.5 → 1 | Berger's position 0.5 → 0<br>who killed Harriet 0.5 → 0<br>who tried to shoot Mikael 0.5 → 0 | 88d26af |
@@ -52,104 +50,49 @@ defaults (0.614), not against 88d26af, whose defaults it reverted. The correctne
 (identical answers have scored 0 and 1 in different runs), so single 0.5 steps in rows without a repeat run are
 weak evidence.
 
-## 2026-10-15 — Deeper completed-name search (625f100)
-
-**Target:** "What was the nickname of Mikael?" (item 58343746), 0.5 after 95588dd: the answer named "Kalle Blomkvist"
-but, per the judge, left out his reaction and the nickname's use in the trilogy.
-
-**Diagnosis:** evidence, not the answer prompt. Of the three admitted passages, two were off-topic (Miriam Wu's
-"journalist creep", Isabella Vanger), because the other nickname passages rank 100–300 for the one completed-name
-query and never reached the pool. One of them is Salander naming a file "[Kalle Blomkvist]", "the nickname she knew
-he loathed".
-
-**Tried (all rejected, see the previous rounds' follow-ups):** answer-prompt wordings (global or only for weak
-evidence), preceding-passage context, completing names in every query, and the larger `qwen3.5:9b-q8_0` answer model
-(9 up, 9 down).
-
-**Change:** the completed-name search returns `name_completion_hits` (300) hits instead of 100: it is a single query
-that does not compete in fusion, so it needs a deeper list. Admission rules and the cap of 3 are unchanged. Offline
-(`data/tuning/allq_sim2.py`), 200 hits changed nothing useful, and 300 and 500 gave the same admissions; only the
-target's evidence changed. The depth is calibrated on this dataset and configurable.
-
-**Result:** exp77a/b (target twice): 1.0 / 1.0, identical answers ("Mikael Blomkvist's nickname was Kalle Blomkvist,
-which his peers used tauntingly ... he detested the nickname [E1] ... Lisbeth Salander uses it to tease him [E2]").
-exp78 and exp79 (full dataset, defaults): 0.736 / 0.861 in both, 0 failures, the other 35 answers byte-identical to
-exp73/exp74.
-
-## 2026-10-15 — Completed question for the answer model (95588dd)
-
-**Target:** "What was the nickname of Mikael?" (item 58343746) after 31b95f1: correct passage at E1, judged 0.5.
-
-**Diagnosis:** the passage says "Blomkvist had never in life used the name Carl ... nicknamed Kalle Blomkvist", and the
-question says only "Mikael". Replaying the recorded evidence with the question as asked, the answer model said "no
-nickname for Mikael; Kalle Blomkvist refers to Carl Blomkvist" in 3 of 3 replays, so the 0.5 runs were partly luck.
-With the completed question it answered "Mikael Blomkvist's nickname was Kalle Blomkvist" in 3 of 3.
-
-**Tried:** the completed question for all 7 questions name completion changes (exp72a/b, those 7 items twice): target
-1.0 / 0.5 and affair 0 → 0.5, but "According to Cecilia..." 1.0 → 0 in both runs and savior complex citation
-1.0 → 0.5. Completing names in every generated query, not just the question, brought no more answer passages into
-the pool (offline).
-
-**Change:** the answer model sees the completed question only when the evidence includes a passage that only the
-completed-name search found (it needs that wording to read the passage); otherwise it sees the question as asked.
-On this dataset that is the target and "Who tried to shoot Mikael?".
-
-**Result:** exp73 and exp74 (full dataset, defaults): 0.722 / 0.861 in both, 0 failures, 32 answers byte-identical to
-exp66, the other changed items kept their scores. Target 0.5 in both ("Mikael Blomkvist's nickname was Kalle
-Blomkvist [E1]"). The judge gives 1.0 when the answer also says he detests the nickname (exp72a) and otherwise asks
-for the origin. Getting that detail needs a less concise answer; the wordings tried for that lowered six other
-questions (previous round).
-
-**Follow-up, rejected (not committed):** a separate answer prompt for the low-confidence path only ("keep it concise,
-but include the context the evidence gives, such as origin or cause and reactions"; `rag-answer-weak` v1, label
-`tuning10`), so the 24 questions with strong evidence stay byte-identical. exp75a/b (the 12 low-confidence items
-twice): target still 0.5 in both; Salander's fortune 1.0 → 0.5 and Cecilia 1.0 → 0.5 in both; savior complex
-correctness 0.5 → 1.0 but citation 1.0 → 0.5.
-- Larger installed answer model `qwen3.5:9b-q8_0` (config override only; exp76, full dataset): the only model whose
-  offline replay of the recorded evidence mentioned his dislike and Astrid Lindgren. In the full run the target still
-  answered in one line (0.5). Mean correctness 0.722 → 0.764 with 9 items up, but 9 items lower (e.g. Zalachenko
-  1.0 → 0, Salander's fortune 1.0 → 0.5, citation drops on table salt, eclipse, cigarette case). Not adopted.
-
-## 2026-10-15 — Completed names score the wider pool (31b95f1)
+## 2026-10-15 — Bare first names: "What was the nickname of Mikael?" (31b95f1, 95588dd, 625f100)
 
 **Target:** "What was the nickname of Mikael?" (item 58343746, added to the Langfuse dataset on 2026-10-15; dataset now
 36 items), scored 0: the answer said the evidence mentions no nickname.
 
-**Diagnosis:** retrieval and reranking, caused by the bare first name. The books call him "Blomkvist"; the answer
-passage ("nicknamed Kalle Blomkvist ... to his dismay") ranks >250 for every generated query, and the cross-encoder
-scores it -6.47 against the question as asked but 6.9 against "What was the nickname of Mikael Blomkvist?". The
-existing opt-in name completion produces that wording, but it only appended the completed search's top 5 hits (the
-passage is 14th) and changed the fused evidence of the 7 questions it completes.
+**Diagnosis:** the books call him "Blomkvist", so the bare first name failed at three stages.
+- *Retrieval and reranking:* the answer passage ("nicknamed Kalle Blomkvist ... to his dismay") ranked >250 for every
+  generated query, and the cross-encoder scored it -6.47 against the question as asked but 6.9 against "What was the
+  nickname of Mikael Blomkvist?".
+- *Answer:* even with that passage first, the answer model read "Blomkvist had never in life used the name Carl ...
+  nicknamed Kalle Blomkvist" as being about a Carl and said there was no nickname (3 of 3 offline replays).
+- *Evidence depth:* the passages about his reaction and the nickname's use (Salander naming a file "[Kalle
+  Blomkvist]", "the nickname she knew he loathed") ranked 100–300 for the completed-name search, so two of the three
+  admitted passages were off-topic.
 
-**Tried (offline replay of exp64/exp65 queries, `data/tuning/name_sim.py`; replay reproduces both with 0 diffs):**
-- Scoring all candidates against the completed wording, or the max of both wordings: target not fixed, evidence
-  changes on 5–7 items.
-- Fusing the completed search into the wider pool by RRF: the passage appears in one ranking only and drops out.
-- Adding the completed search's hits to the wider pool, scored against the completed wording: passage at E1, but
-  completed-wording scores run higher overall, so 35–46 passages were admitted. Measuring the admission bar on the
-  same wording (best fused candidate scored against the completed question) cut this to 6–9, mostly off-topic.
+**Change (three commits):**
+1. *31b95f1:* name completion on by default (Mikael → Mikael Blomkvist, derived from name counts in the books). The
+   completed search does not enter fusion; its hits join the wider pool, which is scored against the completed
+   wording, and an admitted passage must also beat the best fused candidate scored against that wording. At most
+   `wide_max_hits` (3) passages are admitted (3 is the most any question admitted before, so the cap alone changes no
+   evidence). The fused candidates and usual evidence are unchanged.
+2. *95588dd:* the answer model sees the completed question only when the evidence includes a passage that only the
+   completed-name search found; otherwise the question as asked.
+3. *625f100:* the completed-name search returns `name_completion_hits` (300) hits instead of 100, since it is a single
+   query that does not compete in fusion. 300 and 500 gave the same admissions offline; calibrated on this dataset and
+   configurable.
 
-**Change:** `name_completion` on by default. The completed search does not enter fusion; its hits join the wider
-pool, which is scored against the completed wording, and an admitted passage must also beat the best fused candidate
-scored against it. At most `wide_max_hits` (3) passages are admitted; 3 is the most any question admitted before, so
-the cap alone changes no evidence (checked offline). Fused candidates, their scores and the usual evidence are as
-before.
+**Tried and rejected:**
+- Scoring all candidates against the completed wording (or the max of both): target not fixed, 5–7 items changed.
+- Unbounded admissions from the completed search: 35–46 passages, mostly off-topic.
+- The completed question for all 7 completed questions: "According to Cecilia..." 1.0 → 0 twice.
+- Adding the passage just before each admitted one (separate or joined): not reproducible on the target, and savior
+  complex citation 1.0 → 0.5 in every run.
+- Answer prompt asking for context (origin, reactions), globally (`rag-answer` v11, label `tuning9`): 6 items lower;
+  only on the low-confidence path (`rag-answer-weak` v1, label `tuning10`): target unchanged, 2 items lower.
+- Completing names in every generated query: no more answer passages reached the pool.
+- Larger answer model `qwen3.5:9b-q8_0`: 0.722 → 0.764 but 9 items lower.
 
-**Result:** exp66 (full dataset, no config) and exp67 (repeat of the 4 changed items): correctness 0.708 → 0.722,
-citation 0.861 → 0.861, 0 failures. Target 0 → 0.5 in both runs ("Kalle" [E1]; the judge wants the origin and his
-reaction too). 32 answers byte-identical; Cecilia (1.0), savior complex (0.5) and who tried to shoot Mikael (0.5)
-changed wording but kept their scores in both runs.
-
-**Follow-up, rejected (not committed):** the origin of the nickname is in the passage just before the admitted one.
-- Adding that preceding passage (same EPUB section) to each admitted passage, separately or joined into one
-  passage: the evidence then held the origin, but the answer model still wrote one line under "Keep the answer
-  concise". Joined (exp69, full dataset): target 1.0 once, then 0.5 in two repeats (exp71a/b); savior complex
-  citation 1.0 → 0.5 in all three runs (the joined context added a "Practical Pig complex" line that the model
-  over-read).
-- Answer prompt "keep it concise, but include the context the evidence gives (origin or cause, reactions)"
-  (`rag-answer` v11, label `tuning9`), with the joined passage (exp70): target 1.0 but 0.708 → 0.681, 6 items
-  dropped (Zalachenko, Salander's fortune, Dag Svensson's murderer, police after assault, Henrik hires Blomkvist,
-  Blomkvist's conviction). The production prompt is unchanged.
+**Result:** target 0 → 0.5 (31b95f1) → 0.5 with an always-correct "Kalle Blomkvist" (95588dd) → 1.0 (625f100), in
+every repeat: "Mikael Blomkvist's nickname was Kalle Blomkvist, which his peers used tauntingly ... he detested the
+nickname [E1] ... Lisbeth Salander uses it to tease him [E2]". Final full runs exp78 and exp79: 0.736 / 0.861 each,
+0 failures, the other 35 answers byte-identical to before the deeper search; no item lower than at the start of the
+round in any accepted step.
 
 ## 2026-10-15 — Wider retrieval pool when the fused candidates are weak (34eb712)
 
