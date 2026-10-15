@@ -15,6 +15,8 @@ const projectId = process.env.LANGFUSE_PROJECT_ID || 'millenium'
 const cookieName = 'millennium_session'
 const environment = 'interactive-ui'
 
+// The browser ID only identifies who asked: traces carry it as their Langfuse user ID, and a browser may view and rate
+// only its own traces. The Langfuse session groups questions by client IP instead.
 export function sessionFromCookie(header = '') {
   const value = header.split(';').map(part => part.trim()).find(part => part.startsWith(`${cookieName}=`))?.slice(cookieName.length + 1)
   return value && /^interactive-ui-[0-9a-f-]{36}$/.test(value) ? value : null
@@ -26,6 +28,10 @@ function sessionFor(req, res) {
   const session = `interactive-ui-${randomUUID()}`
   res.cookie(cookieName, session, { httpOnly: true, sameSite: 'lax', secure: req.secure || process.env.COOKIE_SECURE === 'true', maxAge: 365 * 24 * 60 * 60 * 1000, path: '/' })
   return session
+}
+
+export function ipSession(ip) {
+  return `ui-${ip.replace(/[.:]/g, '-')}`
 }
 
 function authHeader() {
@@ -95,10 +101,11 @@ export function createApp({ fetcher = fetch, production = process.env.NODE_ENV =
     }
     if (limited) activeAskIps.add(ip)
     try {
-      const sessionId = sessionFor(req, res)
+      const browserId = sessionFor(req, res)
       const upstream = await fetcher(`${ragUrl}/ask`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question, session_id: sessionId, source: 'frontend', client_ip: ip === 'unknown' ? null : ip,
+        body: JSON.stringify({ question, session_id: ip === 'unknown' ? browserId : ipSession(ip), user_id: browserId,
+          source: 'frontend', client_ip: ip === 'unknown' ? null : ip,
           production }),
         signal: AbortSignal.timeout(960_000),
       })
@@ -136,11 +143,11 @@ export function createApp({ fetcher = fetch, production = process.env.NODE_ENV =
         if (!traceResponse.ok) throw new Error(`Trace lookup failed: ${traceResponse.status}`)
         const observations = (await jsonResponse(traceResponse)).data || []
         root = observations.find(item => item.isRootObservation && item.name === 'rag ask')
-        if (root?.sessionId === sessionId && root.environment === environment) break
+        if (root?.userId === sessionId && root.environment === environment) break
         if (attempt < 5) await new Promise(resolve => setTimeout(resolve, 1000))
       }
       if (!root) return res.status(409).json({ error: 'The trace is still being recorded. Please retry in a moment.' })
-      if (root.sessionId !== sessionId || root.environment !== environment) return res.status(403).json({ error: 'That trace does not belong to this browser session.' })
+      if (root.userId !== sessionId || root.environment !== environment) return res.status(403).json({ error: 'That trace does not belong to this browser session.' })
       const scoreResponse = await fetcher(`${langfuseUrl}/api/public/scores`, {
         method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: scoreId(traceId, sessionId), traceId, name: 'user_helpfulness',
@@ -177,7 +184,7 @@ export function createApp({ fetcher = fetch, production = process.env.NODE_ENV =
       }
       const root = observations.find(item => item.isRootObservation && item.name === 'rag ask')
       if (!root) return res.status(409).json({ error: 'The trace is still being recorded. Please retry in a moment.' })
-      if (root.sessionId !== sessionId || root.environment !== environment) {
+      if (root.userId !== sessionId || root.environment !== environment) {
         return res.status(403).json({ error: 'That trace does not belong to this browser session.' })
       }
       res.json({ traceId, observations: observations.map(item => ({

@@ -60,14 +60,16 @@ class InteractiveAskContract(TestCase):
              patch("app.main.run_pipeline", return_value={"answer": "A [E1]", "citations": ["[E1]"]}), \
              patch.dict("os.environ", {"FRONTEND_RATE_LIMIT_ENABLED": "true"}), \
              patch("app.main.reserve_request") as reserve:
-            result = ask(AskRequest(question="Who?", source="frontend", session_id="interactive-ui-browser", client_ip="127.0.0.1"))
+            result = ask(AskRequest(question="Who?", source="frontend", session_id="ui-127-0-0-1", user_id="interactive-ui-browser", client_ip="127.0.0.1"))
             ask(AskRequest(question="Who?", source="api", client_ip="192.0.2.12"))
             reserve.assert_not_called()
 
         self.assertEqual(result["trace_id"], "a" * 32)
         self.assertEqual(result["pipeline_id"], "pipeline-123")
         self.assertEqual(attributes[0]["environment"], "interactive-ui")
-        self.assertEqual(attributes[0]["session_id"], "interactive-ui-browser")
+        self.assertEqual(attributes[0]["session_id"], "ui-127-0-0-1")
+        self.assertEqual(attributes[0]["user_id"], "interactive-ui-browser")
+        self.assertIsNone(attributes[1]["user_id"])
         self.assertEqual(attributes[0]["metadata"]["pipeline_id"], "pipeline-123")
         self.assertIn("pipeline:pipeline-123", attributes[0]["tags"])
         self.assertEqual(observations[0]["metadata"], {"clientIp": "127.0.0.1"})

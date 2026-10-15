@@ -64,6 +64,7 @@ class AskRequest(BaseModel):
     collection: str | None = None
     prompt_label: str | None = None
     session_id: str | None = Field(default=None, min_length=1, max_length=200)
+    user_id: str | None = Field(default=None, min_length=1, max_length=200)
     source: str = Field(default="api", pattern="^(api|frontend)$")
     client_ip: IPvAnyAddress | None = None
     production: bool = False
@@ -204,7 +205,7 @@ def ask(request: AskRequest) -> dict[str, Any]:
         trace_metadata.update({f"prompt_{name}": f"{asset['id']}@{asset['version']}:{asset['label']}"
                                for name, asset in prompts.items()})
         root_metadata = {"clientIp": str(request.client_ip)} if request.source == "frontend" and request.client_ip else None
-        with propagate_attributes(session_id=session_id, environment=environment, metadata=trace_metadata,
+        with propagate_attributes(session_id=session_id, user_id=request.user_id, environment=environment, metadata=trace_metadata,
                                   tags=[f"pipeline:{pipeline_id}"]), observation("rag ask", as_type="span",
                                                                                    input={"question": request.question},
                                                                                    metadata=root_metadata) as obs:

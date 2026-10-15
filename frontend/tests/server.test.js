@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { after, before, test } from 'node:test'
-import { createApp, citedSources, clientIp, quotaMessage } from '../server.js'
+import { createApp, citedSources, clientIp, ipSession, quotaMessage } from '../server.js'
 
 let server
 let base
@@ -14,7 +14,7 @@ before(async () => {
     if (url.endsWith('/ask')) return new Response(JSON.stringify({ answer: 'Answer [E2]', citations: ['[E2]'],
       reranked: [{ book: 'One', text: 'first' }, { book: 'Two', chapter: 'Chapter 2', paragraph: 8, text: 'second' }],
       trace_id: traceId, pipeline_id: 'pipeline-123', latency_seconds: 3.4 }), { status: 200 })
-    if (url.includes('/v2/observations?')) return new Response(JSON.stringify({ data: [{ isRootObservation: true, name: 'rag ask', sessionId, environment: 'interactive-ui' }] }), { status: 200 })
+    if (url.includes('/v2/observations?')) return new Response(JSON.stringify({ data: [{ isRootObservation: true, name: 'rag ask', sessionId: 'ui-127-0-0-1', userId: sessionId, environment: 'interactive-ui' }] }), { status: 200 })
     if (url.endsWith('/scores')) return new Response(JSON.stringify({ id: 'score-1' }), { status: 200 })
     return new Response('{}', { status: 404 })
   } })
@@ -56,7 +56,12 @@ test('explains quota wait times in plain language', () => {
   assert.equal(quotaMessage('invalid'), "You've reached the question limit. Please try again later.")
 })
 
-test('passes a stable browser session to the pipeline and returns trace identity', async () => {
+test('names the session after the client IP', () => {
+  assert.equal(ipSession('78.163.48.13'), 'ui-78-163-48-13')
+  assert.equal(ipSession('2a00:1d34::bc40'), 'ui-2a00-1d34--bc40')
+})
+
+test('groups questions by IP and passes the stable browser ID as the user', async () => {
   const first = await fetch(`${base}/api/ask`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Forwarded-For': '198.51.100.9' }, body: JSON.stringify({ question: 'Who is Salander?' }) })
   assert.equal(first.status, 200)
   const cookie = first.headers.get('set-cookie')
@@ -69,7 +74,10 @@ test('passes a stable browser session to the pipeline and returns trace identity
   const second = await fetch(`${base}/api/ask`, { method: 'POST', headers: { 'Content-Type': 'application/json', Cookie: cookie }, body: JSON.stringify({ question: 'And Mikael?' }) })
   assert.equal(second.status, 200)
   const sent = calls.filter(call => call.url.endsWith('/ask')).map(call => JSON.parse(call.options.body))
-  assert.equal(sent[0].session_id, sent[1].session_id)
+  assert.equal(sent[0].session_id, 'ui-127-0-0-1')
+  assert.equal(sent[1].session_id, 'ui-127-0-0-1')
+  assert.match(sent[0].user_id, /^interactive-ui-[0-9a-f-]{36}$/)
+  assert.equal(sent[0].user_id, sent[1].user_id)
   assert.equal(sent[0].source, 'frontend')
   assert.equal(sent[0].client_ip, '127.0.0.1')
 })
