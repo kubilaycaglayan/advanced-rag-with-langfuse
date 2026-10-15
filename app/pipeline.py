@@ -4,6 +4,7 @@ from __future__ import annotations
 import os
 import re
 import time
+from collections import Counter, defaultdict
 from functools import lru_cache
 from typing import Any
 
@@ -61,6 +62,9 @@ def _ollama(messages: list[dict[str, str]], model: str, budgets: tuple[int, ...]
             except requests.RequestException as exc:
                 last_error = exc
                 break
+        if think and last_error is None:
+            # Reasoning can fill the context window before any answer is written; answer directly instead.
+            return _ollama(messages, model, budgets[-1:], temperature, context_length, prompt=prompt, name=name)
         raise RuntimeError(f"Ollama request failed or returned empty content: {last_error or 'empty response'}")
 
 
@@ -111,6 +115,43 @@ def _rrf(rankings: list[list[Any]], limit: int, k: int) -> list[dict[str, Any]]:
     return sorted(fused.values(), key=lambda row: row["rrf_score"], reverse=True)[:limit]
 
 
+_NAME_WORD = r"[A-ZÅÄÖ][a-zåäöéü]+"
+NAME_COMPLETION_HITS = 5
+
+
+@lru_cache(maxsize=8)
+def _name_pairs(collection: str) -> dict[str, tuple[str, int, int]]:
+    """Map each capitalized word to its most frequent two-word name in the indexed passages.
+
+    Values are (full name, count of that name, count of all names containing the word).
+    """
+    by_word: dict[str, Counter] = defaultdict(Counter)
+    offset = None
+    while True:
+        points, offset = qdrant_client().scroll(collection_name=collection, limit=1000, offset=offset, with_payload=["text"])
+        for point in points:
+            for first, last in re.findall(rf"\b({_NAME_WORD}) ({_NAME_WORD})\b", (point.payload or {}).get("text", "")):
+                by_word[first][f"{first} {last}"] += 1
+                by_word[last][f"{first} {last}"] += 1
+        if offset is None:
+            break
+    return {word: (*names.most_common(1)[0], sum(names.values())) for word, names in by_word.items()}
+
+
+def _complete_names(question: str, collection: str, min_count: int = 20, min_share: float = 0.5) -> str:
+    """Expand a bare first name or surname to the full name the corpus predominantly uses (Mikael -> Mikael Blomkvist)."""
+    pairs = _name_pairs(collection)
+    completed = question
+    for word in dict.fromkeys(re.findall(rf"\b{_NAME_WORD}\b", question)):
+        if word not in pairs:
+            continue
+        full, count, total = pairs[word]
+        if count < min_count or count / total < min_share or any(part in question for part in full.split() if part != word):
+            continue
+        completed = re.sub(rf"\b{word}\b", full, completed, count=1)
+    return completed
+
+
 def _format_evidence(rows: list[dict[str, Any]]) -> str:
     return "\n\n".join(
         f"[E{i}] Book: {row.get('book')} | Chapter: {row.get('chapter') or 'unavailable'} | Paragraph: {row.get('paragraph', 'unavailable')} | Page: {row.get('page') or 'unavailable'}\nPassage: {row['text']}"
@@ -136,11 +177,21 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
     hypothetical, alternatives, corrected = _transform(question, config, prompt_bundle)
     timings["transformation_seconds"] = round(time.perf_counter() - stage, 4)
     queries = [question] + ([hypothetical] if hypothetical else []) + alternatives + ([corrected] if corrected else [])
+    query_names = ["original question"] + (["hypothetical document"] if hypothetical else []) + [f"literary alternative {i}" for i in range(1, len(alternatives) + 1)] + (["grammar corrected question"] if corrected else [])
+    named = question
+    if config.name_completion:
+        with _observe("name completion", input=question) as obs:
+            named = _complete_names(question, collection)
+            _update(obs, output=named)
+        if named != question:
+            # Searched as an extra query; reranking keeps each passage's better score for either wording,
+            # and the answer model sees the full names so it can match them to the passages.
+            queries.append(named)
+            query_names.append("name completed question")
     rankings = []
     stage = time.perf_counter()
     vector_search_timings: list[float] = []
     with _observe("candidate retrieval", input={"question": question, "queries": queries}) as obs:
-        query_names = ["original question"] + (["hypothetical document"] if hypothetical else []) + [f"literary alternative {i}" for i in range(1, len(alternatives) + 1)] + (["grammar corrected question"] if corrected else [])
         for query, query_name in zip(queries, query_names):
             search_started = time.perf_counter()
             with _observe(f"search: {query_name}", as_type="retriever", input=query) as search_obs:
@@ -154,8 +205,14 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
         if config.retrieval_mode == "baseline":
             candidates = [dict(p.payload or {}) | {"id": str(p.id), "similarity": float(p.score)} for p in rankings[0]]
         else:
+            # The name-completed search does not compete in fusion: its top hits are appended to the
+            # fused candidates, so questions it does not change keep exactly the same candidates.
+            named_hits = rankings.pop() if named != question else []
             with _observe("RRF candidate merge", input={"ranking_count": len(rankings), "rrf_constant": config.rrf_constant}) as merge_obs:
                 candidates = _rrf(rankings, config.candidate_count, config.rrf_constant)
+                fused_ids = {row["id"] for row in candidates}
+                candidates += [dict(point.payload or {}) | {"id": str(point.id), "rrf_score": 0.0, "retrieval_ranks": [rank], "name_completion_hit": True}
+                               for rank, point in enumerate(named_hits[:NAME_COMPLETION_HITS], 1) if str(point.id) not in fused_ids]
                 _update(merge_obs, output=candidates)
         _update(obs, output={"candidate_count": len(candidates), "candidates": candidates})
     timings["retrieval_seconds"] = round(time.perf_counter() - stage, 4)
@@ -168,9 +225,11 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
                 "candidates": [], "reranked": [], "evidence": "", "latency_seconds": round(time.perf_counter()-started, 2),
                 "generation_model": config.generation_model.name, "timings": timings}
     stage = time.perf_counter()
-    pairs = [(question, row["text"]) for row in candidates]
+    rerank_questions = list(dict.fromkeys([question, named]))
+    pairs = [(rerank_question, row["text"]) for rerank_question in rerank_questions for row in candidates]
     with _observe("cross encoder reranking", input={"pairs": pairs}, model=config.reranker_model.name) as rerank_obs:
-        scores = _reranker(config.reranker_model.name, config.reranker_model.revision).predict(pairs, show_progress_bar=False)
+        pair_scores = _reranker(config.reranker_model.name, config.reranker_model.revision).predict(pairs, show_progress_bar=False)
+        scores = [max(pair_scores[i::len(candidates)]) for i in range(len(candidates))]
         _update(rerank_obs, output=[{"id": row["id"], "score": float(score)} for row, score in zip(candidates, scores)])
     timings["reranking_seconds"] = round(time.perf_counter() - stage, 4)
     for row, score in zip(candidates, scores):
@@ -182,9 +241,9 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
         evidence = _format_evidence(reranked)
         _update(obs, output=evidence)
     timings["evidence_formatting_seconds"] = round(time.perf_counter() - stage, 4)
-    messages = (prompt_bundle["rag-answer"]["client"].compile(question=question, evidence=evidence) if prompt_bundle else [
+    messages = (prompt_bundle["rag-answer"]["client"].compile(question=named, evidence=evidence) if prompt_bundle else [
         {"role": "system", "content": PROMPT_TEMPLATES["answer_system"]},
-        {"role": "user", "content": f"Question: {question}\n\nEvidence passages:\n{evidence}"}])
+        {"role": "user", "content": f"Question: {named}\n\nEvidence passages:\n{evidence}"}])
     stage = time.perf_counter()
     answer = _ollama(messages,
                      config.generation_model.name, config.generation.output_budgets, config.generation.temperature, config.generation.context_length,
@@ -196,7 +255,8 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
         _update(obs, output=citations)
     timings["citation_extraction_seconds"] = round(time.perf_counter() - stage, 4)
     return {"question": question, "mode": config.retrieval_mode, "generated_queries": queries,
-            "hypothetical_answer": hypothetical, "query_alternatives": alternatives, "grammar_corrected_query": corrected, "answer": answer,
+            "hypothetical_answer": hypothetical, "query_alternatives": alternatives, "grammar_corrected_query": corrected,
+            "name_completed_question": named, "answer": answer,
             "citations": citations, "baseline": baseline, "candidates": candidates, "reranked": reranked,
             "evidence": evidence, "generation_model": config.generation_model.name,
             "latency_seconds": round(time.perf_counter()-started, 2), "timings": timings}

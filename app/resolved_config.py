@@ -66,6 +66,7 @@ class ResolvedPipelineConfig:
     passage_overlap: int = 0
     expansion_count: int = 3
     answer_thinking: bool = True
+    name_completion: bool = False
     corpus_checksum: str = ""
     prompt_hashes: Mapping[str, str] | None = None
 
@@ -80,8 +81,8 @@ class ResolvedPipelineConfig:
                 raise ValueError(f"{name} must be an integer")
         if not isinstance(self.retrieval_mode, str):
             raise ValueError("retrieval_mode must be a string")
-        if not isinstance(self.answer_thinking, bool):
-            raise ValueError("answer_thinking must be a boolean")
+        if not isinstance(self.answer_thinking, bool) or not isinstance(self.name_completion, bool):
+            raise ValueError("answer_thinking and name_completion must be booleans")
         if not isinstance(self.corpus_checksum, str):
             raise ValueError("corpus_checksum must be a string")
         if self.prompt_hashes is not None and (not isinstance(self.prompt_hashes, Mapping) or not all(isinstance(k, str) and isinstance(v, str) for k, v in self.prompt_hashes.items())):
@@ -126,7 +127,7 @@ class ResolvedPipelineConfig:
         defaults.update(value)
         value = defaults
         allowed = {"retrieval_mode", "candidate_count", "top_k", "passage_chars", "embedding_model", "reranker_model", "generation_model", "generation", "rrf_constant",
-                   "min_passage_chars", "passage_overlap", "expansion_count", "answer_thinking", "corpus_checksum", "prompt_hashes"}
+                   "min_passage_chars", "passage_overlap", "expansion_count", "answer_thinking", "name_completion", "corpus_checksum", "prompt_hashes"}
         unknown = set(value) - allowed
         if unknown:
             raise ValueError(f"unknown config fields: {', '.join(sorted(unknown))}")
