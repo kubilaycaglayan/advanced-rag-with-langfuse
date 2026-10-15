@@ -73,8 +73,9 @@ class WideCandidateChecks(unittest.TestCase):
         with patch.object(pipeline, "qdrant_client", return_value=client), patch.object(pipeline, "_embedder", return_value=embedder), \
                 patch.object(pipeline, "_reranker", return_value=reranker), patch.object(pipeline, "_transform", return_value=(None, ["alt"], None)), \
                 patch.object(pipeline, "_complete_names", return_value="q named" if named_scores else "q"), \
-                patch.object(pipeline, "_ollama", return_value="Answer [E1]."):
+                patch.object(pipeline, "_ollama", return_value="Answer [E1].") as ollama:
             result = pipeline.run_pipeline("q", config, collection="c")
+        self.sent = [call.args[0] for call in ollama.call_args_list]
         self.assertEqual(client.query_points.call_args.kwargs["limit"], max(3, config.wide_candidate_count))
         return [row["id"] for row in result["reranked"]], result["low_confidence"]
 
@@ -99,6 +100,15 @@ class WideCandidateChecks(unittest.TestCase):
         # beat the best fused candidate under the completed wording (4.0). The fused evidence is unchanged.
         self.assertEqual(self._run(base, named), (["p6", "p1", "p0", "p2"], True))
         self.assertEqual(self._run(base, named, name_completion=False), (["p1", "p0", "p2"], True))
+
+    def test_answer_model_sees_completed_question_only_for_completed_name_evidence(self):
+        base = {"t0": 1.0, "t1": 1.5, "t2": 0.5, "t3": -1.0, "t4": -1.0, "t5": -1.0, "t6": -5.0, "t7": -5.0}
+        named = {"t0": 2.0, "t1": 4.0, "t2": 1.0, "t3": 3.0, "t4": 0.0, "t5": 0.0, "t6": 6.0, "t7": 3.9}
+        self._run(base, named)
+        self.assertIn("Question: q named\n", self.sent[-1][-1]["content"])
+        # The completed wording admits nothing: the answer model sees the question as asked.
+        self._run(base, named | {"t6": 3.0})
+        self.assertIn("Question: q\n", self.sent[-1][-1]["content"])
 
 
 class ThinkingFallbackChecks(unittest.TestCase):

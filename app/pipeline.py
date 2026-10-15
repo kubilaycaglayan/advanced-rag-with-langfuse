@@ -192,7 +192,6 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
             named = _complete_names(question, collection)
             _update(obs, output=named)
         if named != question:
-            # Only retrieval uses the completed wording; the answer model sees the question as asked.
             queries.append(named)
             query_names.append("name completed question")
     rankings = []
@@ -269,9 +268,13 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
         evidence = _format_evidence(reranked)
         _update(obs, output=evidence)
     timings["evidence_formatting_seconds"] = round(time.perf_counter() - stage, 4)
-    messages = (prompt_bundle["rag-answer"]["client"].compile(question=question, evidence=evidence) if prompt_bundle else [
+    # When the evidence holds passages that only the completed-name search found, the answer model sees the completed
+    # question: those passages use the other half of the name, and given only the bare name the model may not connect
+    # them to the person asked about. Otherwise it sees the question as asked.
+    answer_question = named if any(row.get("name_completion_hit") for row in reranked) else question
+    messages = (prompt_bundle["rag-answer"]["client"].compile(question=answer_question, evidence=evidence) if prompt_bundle else [
         {"role": "system", "content": PROMPT_TEMPLATES["answer_system"]},
-        {"role": "user", "content": f"Question: {question}\n\nEvidence passages:\n{evidence}"}])
+        {"role": "user", "content": f"Question: {answer_question}\n\nEvidence passages:\n{evidence}"}])
     stage = time.perf_counter()
     answer = _ollama(messages,
                      config.generation_model.name, config.generation.output_budgets, config.generation.temperature, config.generation.context_length,
