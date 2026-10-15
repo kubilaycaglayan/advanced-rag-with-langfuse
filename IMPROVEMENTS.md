@@ -39,7 +39,7 @@ can touch, shrink that to only what it should touch, then confirm on the full da
 
 | Date | Round | QA.csv correctness | Citation | Improved (answer correctness) | Regressed | Commit |
 |---|---|---|---|---|---|---|
-| 2026-10-15 | Scene summaries by<br>gemma4:26b | 0.764 → 0.764 | 0.847 → 0.861 | — (citation: "Henrik hires Blomkvist" 0.5 → 1.0) | — | (this commit) |
+| 2026-10-15 | Scene summaries by<br>gemma4:26b | 0.764 → 0.764 | 0.847 → 0.861 | — (citation: "Henrik hires Blomkvist" 0.5 → 1.0) | — | 51b2554 |
 | 2026-10-15 | Scene summaries for<br>unnamed dialogue | 0.750 → 0.764 | 0.847 → 0.847 | "What does Salander ultimately demand from Bjurman?" 0 → 0.5 | — | b36115a |
 | 2026-10-15 | Wider passage over an<br>off-point strong match | 0.736 → 0.750 | 0.861 → 0.847 | "Did Salander and Mikael have affair?" 0 → 0.5 | — (that item's citation 1.0 → 0.5) | e0c98f8 |
 | 2026-10-15 | Bare first names<br>("Mikael") | 0.708 → 0.736<br>(36 items) | 0.861 → 0.861 | "What was the nickname of Mikael?" 0 → 1 | — | 31b95f1<br>95588dd<br>625f100 |
