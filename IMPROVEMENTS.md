@@ -39,6 +39,7 @@ can touch, shrink that to only what it should touch, then confirm on the full da
 
 | Date | Round | QA.csv correctness | Citation | Improved (answer correctness) | Regressed | Commit |
 |---|---|---|---|---|---|---|
+| 2026-10-15 | Deeper completed-name<br>search | 0.722 → 0.736 | 0.861 → 0.861 | "What was the nickname of Mikael?" 0.5 → 1 | — | COMMIT |
 | 2026-10-15 | Completed question<br>for the answer model | 0.722 → 0.722 | 0.861 → 0.861 | "What was the nickname of Mikael?" stays 0.5, but the answer is now always "Kalle Blomkvist" (offline: "no nickname" in 3 of 3 replays before) | — | 95588dd |
 | 2026-10-15 | Completed names score<br>the wider pool | 0.708 → 0.722<br>(36 items) | 0.861 → 0.861 | "What was the nickname of Mikael?" 0 → 0.5 | — | 31b95f1 |
 | 2026-10-15 | Wider pool when<br>fused is weak | 0.700 → 0.729 | 0.857 → 0.857 | Blomkvist's media nickname 0 → 1 | — | 34eb712 |
@@ -50,6 +51,30 @@ Each row compares the round's defaults against the defaults it replaced: 2d7b030
 defaults (0.614), not against 88d26af, whose defaults it reverted. The correctness judge is noisy on reworded answers
 (identical answers have scored 0 and 1 in different runs), so single 0.5 steps in rows without a repeat run are
 weak evidence.
+
+## 2026-10-15 — Deeper completed-name search (COMMIT)
+
+**Target:** "What was the nickname of Mikael?" (item 58343746), 0.5 after 95588dd: the answer named "Kalle Blomkvist"
+but, per the judge, left out his reaction and the nickname's use in the trilogy.
+
+**Diagnosis:** evidence, not the answer prompt. Of the three admitted passages, two were off-topic (Miriam Wu's
+"journalist creep", Isabella Vanger), because the other nickname passages rank 100–300 for the one completed-name
+query and never reached the pool. One of them is Salander naming a file "[Kalle Blomkvist]", "the nickname she knew
+he loathed".
+
+**Tried (all rejected, see the previous rounds' follow-ups):** answer-prompt wordings (global or only for weak
+evidence), preceding-passage context, completing names in every query, and the larger `qwen3.5:9b-q8_0` answer model
+(9 up, 9 down).
+
+**Change:** the completed-name search returns `name_completion_hits` (300) hits instead of 100: it is a single query
+that does not compete in fusion, so it needs a deeper list. Admission rules and the cap of 3 are unchanged. Offline
+(`data/tuning/allq_sim2.py`), 200 hits changed nothing useful, and 300 and 500 gave the same admissions; only the
+target's evidence changed. The depth is calibrated on this dataset and configurable.
+
+**Result:** exp77a/b (target twice): 1.0 / 1.0, identical answers ("Mikael Blomkvist's nickname was Kalle Blomkvist,
+which his peers used tauntingly ... he detested the nickname [E1] ... Lisbeth Salander uses it to tease him [E2]").
+exp78 and exp79 (full dataset, defaults): 0.736 / 0.861 in both, 0 failures, the other 35 answers byte-identical to
+exp73/exp74.
 
 ## 2026-10-15 — Completed question for the answer model (95588dd)
 

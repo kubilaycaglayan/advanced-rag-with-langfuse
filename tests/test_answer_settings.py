@@ -76,7 +76,10 @@ class WideCandidateChecks(unittest.TestCase):
                 patch.object(pipeline, "_ollama", return_value="Answer [E1].") as ollama:
             result = pipeline.run_pipeline("q", config, collection="c")
         self.sent = [call.args[0] for call in ollama.call_args_list]
-        self.assertEqual(client.query_points.call_args.kwargs["limit"], max(3, config.wide_candidate_count))
+        limits = [call.kwargs["limit"] for call in client.query_points.call_args_list]
+        # The completed-name search, when there is one, is the last search and looks deeper.
+        named_search = bool(named_scores) and config.name_completion
+        self.assertEqual(limits, [max(3, config.wide_candidate_count)] * 2 + ([max(3, config.wide_candidate_count, config.name_completion_hits)] if named_search else []))
         return [row["id"] for row in result["reranked"]], result["low_confidence"]
 
     def test_wide_passage_added_in_front_only_when_it_beats_fused_candidates(self):

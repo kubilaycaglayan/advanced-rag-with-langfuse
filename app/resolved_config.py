@@ -67,6 +67,7 @@ class ResolvedPipelineConfig:
     expansion_count: int = 3
     answer_thinking: bool = False
     name_completion: bool = True
+    name_completion_hits: int = 300
     low_confidence_score: float | None = 2.0
     low_confidence_top_k: int = 15
     wide_candidate_count: int = 100
@@ -82,7 +83,7 @@ class ResolvedPipelineConfig:
             raise ValueError("generation must be GenerationSettings")
         for name, number in (("candidate_count", self.candidate_count), ("top_k", self.top_k), ("passage_chars", self.passage_chars), ("rrf_constant", self.rrf_constant),
                              ("min_passage_chars", self.min_passage_chars), ("passage_overlap", self.passage_overlap), ("expansion_count", self.expansion_count),
-                             ("low_confidence_top_k", self.low_confidence_top_k), ("wide_candidate_count", self.wide_candidate_count), ("wide_max_hits", self.wide_max_hits)):
+                             ("low_confidence_top_k", self.low_confidence_top_k), ("wide_candidate_count", self.wide_candidate_count), ("wide_max_hits", self.wide_max_hits), ("name_completion_hits", self.name_completion_hits)):
             if isinstance(number, bool) or not isinstance(number, int):
                 raise ValueError(f"{name} must be an integer")
         if not isinstance(self.retrieval_mode, str):
@@ -109,6 +110,8 @@ class ResolvedPipelineConfig:
             raise ValueError("low_confidence_top_k must be between 1 and candidate_count")
         if not 0 <= self.wide_candidate_count <= 200:
             raise ValueError("wide_candidate_count must be between 0 and 200")
+        if not 0 <= self.name_completion_hits <= 1000:
+            raise ValueError("name_completion_hits must be between 0 and 1000")
         if not 0 <= self.wide_max_hits <= 30:
             raise ValueError("wide_max_hits must be between 0 and 30")
         if self.passage_chars < 1 or self.rrf_constant < 1:
@@ -145,7 +148,7 @@ class ResolvedPipelineConfig:
         defaults.update(value)
         value = defaults
         allowed = {"retrieval_mode", "candidate_count", "top_k", "passage_chars", "embedding_model", "reranker_model", "generation_model", "generation", "rrf_constant",
-                   "min_passage_chars", "passage_overlap", "expansion_count", "answer_thinking", "name_completion",
+                   "min_passage_chars", "passage_overlap", "expansion_count", "answer_thinking", "name_completion", "name_completion_hits",
                    "low_confidence_score", "low_confidence_top_k", "wide_candidate_count", "wide_trigger_score", "wide_max_hits", "corpus_checksum", "prompt_hashes"}
         unknown = set(value) - allowed
         if unknown:

@@ -204,7 +204,9 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
                 with _observe("query embedding", as_type="embedding", input=query, model=config.embedding_model.name) as embedding_obs:
                     vector = _embedder(config.embedding_model.name, config.embedding_model.revision).encode(query, normalize_embeddings=True).tolist()
                     _update(embedding_obs, output={"dimensions": len(vector)})
-                points = qdrant.query_points(collection_name=collection, query=vector, limit=max(config.candidate_count, config.wide_candidate_count), with_payload=True).points
+                # The name-completed search is one query that does not compete in fusion, so it looks deeper.
+                limit = max(config.candidate_count, config.wide_candidate_count, config.name_completion_hits if query_name == "name completed question" else 0)
+                points = qdrant.query_points(collection_name=collection, query=vector, limit=limit, with_payload=True).points
                 rankings.append(points)
                 _update(search_obs, output={"hits": [{"id": str(point.id), "score": float(point.score), "payload": dict(point.payload or {})} for point in points]})
             vector_search_timings.append(round(time.perf_counter() - search_started, 4))
