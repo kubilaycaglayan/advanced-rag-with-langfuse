@@ -1,6 +1,7 @@
 """Reusable Millennium RAG answer pipeline shared by HTTP and experiments."""
 from __future__ import annotations
 
+import math
 import os
 import re
 import time
@@ -256,8 +257,11 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
     # evidence stays as it is.
     wide_floor = max([best_fused, *scores[len(candidates) + len(wide):]]
                      + ([config.low_confidence_score] if config.low_confidence_score is not None else []))
+    # A strong fused match can still be off the point (on topic, but not answering); a wider passage that beats every
+    # fused candidate by wide_override_margin is admitted even then.
     wide_open = config.wide_trigger_score is None or best_fused < config.wide_trigger_score
-    wide_hits = sorted((row for row in wide if wide_open and row["rerank_score"] > wide_floor),
+    wide_bar = wide_floor if wide_open else (wide_floor + config.wide_override_margin if config.wide_override_margin is not None else math.inf)
+    wide_hits = sorted((row | ({} if wide_open else {"wide_override": True}) for row in wide if row["rerank_score"] > wide_bar),
                        key=lambda row: row["rerank_score"], reverse=True)[:config.wide_max_hits]
     # When no passage clearly answers the question, give the answer model more evidence and let it reason.
     low_confidence = config.low_confidence_score is not None and best_fused < config.low_confidence_score
@@ -273,7 +277,8 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
     # When the evidence holds passages that only the completed-name search found, the answer model sees the completed
     # question: those passages use the other half of the name, and given only the bare name the model may not connect
     # them to the person asked about. Otherwise it sees the question as asked.
-    answer_question = named if any(row.get("name_completion_hit") for row in reranked) else question
+    # Passages admitted over a confident fused match won on the completed wording, so the model sees it too.
+    answer_question = named if any(row.get("name_completion_hit") or row.get("wide_override") for row in reranked) else question
     messages = (prompt_bundle["rag-answer"]["client"].compile(question=answer_question, evidence=evidence) if prompt_bundle else [
         {"role": "system", "content": PROMPT_TEMPLATES["answer_system"]},
         {"role": "user", "content": f"Question: {answer_question}\n\nEvidence passages:\n{evidence}"}])

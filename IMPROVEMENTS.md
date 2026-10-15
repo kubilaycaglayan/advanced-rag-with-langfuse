@@ -39,6 +39,7 @@ can touch, shrink that to only what it should touch, then confirm on the full da
 
 | Date | Round | QA.csv correctness | Citation | Improved (answer correctness) | Regressed | Commit |
 |---|---|---|---|---|---|---|
+| 2026-10-15 | Wider passage over an<br>off-point strong match | 0.736 → 0.750 | 0.861 → 0.847 | "Did Salander and Mikael have affair?" 0 → 0.5 | — (that item's citation 1.0 → 0.5) | COMMIT |
 | 2026-10-15 | Bare first names<br>("Mikael") | 0.708 → 0.736<br>(36 items) | 0.861 → 0.861 | "What was the nickname of Mikael?" 0 → 1 | — | 31b95f1<br>95588dd<br>625f100 |
 | 2026-10-15 | Wider pool when<br>fused is weak | 0.700 → 0.729 | 0.857 → 0.857 | Blomkvist's media nickname 0 → 1 | — | 34eb712 |
 | 2026-10-15 | More evidence +<br>reasoning when weak | 0.614 → 0.700 | 0.838 → 0.857 | Salander's fortune 0 → 1<br>Cecilia: event that changed Harriet 0 → 1<br>table salt formula 0.5 → 1<br>Armageddon shirt 0.5 → 1 | — | 2d7b030 |
@@ -49,6 +50,43 @@ Each row compares the round's defaults against the defaults it replaced: 2d7b030
 defaults (0.614), not against 88d26af, whose defaults it reverted. The correctness judge is noisy on reworded answers
 (identical answers have scored 0 and 1 in different runs), so single 0.5 steps in rows without a repeat run are
 weak evidence.
+
+## 2026-10-15 — Wider passage over an off-point strong match: "Did Salander and Mikael have affair?" (COMMIT)
+
+**Target:** "Did Salander and Mikael have affair?" (item 785e319a), scored 0 in every run since 2d7b030: "there is no
+direct indication that Salander and Mikael had an affair".
+
+**Diagnosis:** retrieval found the answer, the wider-pool gate dropped it, and the answer model then needed the
+completed name.
+- *Answer passage:* Fire, paragraph 43, "Blomkvist and Salander had slept together ... the relationship had lasted for
+  half a year ... end the affair". Dense ranks 45-277 for the six fused queries (outside the top 30 fused), rank 1 for
+  the completed-name search; it is in the wider pool and scores 8.63 against the completed question (5.83 as asked).
+- *Gate:* the best fused candidate (Hornet's Nest ch. 28, "you fell for him, didn't you?") scores 5.14, above
+  `wide_trigger_score` (3.5), so the wider pool was not considered at all. That passage is on topic but does not
+  answer; the same score also kept the low-confidence path off.
+- *Answer:* with the passage admitted first, the model given the question as asked still answered "no direct
+  indication" (2 of 2 runs, offline replay identical): the passage says "Blomkvist", the question "Mikael". Given the
+  completed question it answers "yes ... [E1]".
+
+**Change:** above `wide_trigger_score`, a wider-pool passage is still admitted when it beats the usual admission bar
+(every fused candidate under both wordings, and `low_confidence_score`) by more than `wide_override_margin` (2.0,
+calibrated on this dataset, configurable, null disables). When the evidence holds such a passage, the answer model
+sees the completed question, as it already does for passages only the completed search found. No extra searches or
+reranking: latency is unchanged (mean 17.73 s → 17.83 s, within run-to-run noise of 0.05 s).
+
+**Tried and rejected (offline replay of d1353eb8, reproduces it with 0 diffs):**
+- Margin 1.0: also admits a "Wennerström affair" passage on the target; 3.0: admits nothing.
+- Letting only completed-search hits bypass the gate: misses the answer passage (it is a wider-pool hit) and admits
+  "Wennerström affair" passages; also changes "Henrik hires Blomkvist".
+- The completed question whenever any wider-pool passage is in the evidence: "According to Cecilia..." answers "her
+  disappearance" (wrong) in replay, as in exp72.
+- The completed question when it raises the passage's score by a margin: does not separate the target (+2.80) from
+  "According to Cecilia..." (+2.39).
+
+**Result:** exp80a/b (target, override only): 0, 0. exp81a/b (target, final): 0.5, 0.5, citation 0.5 ("Yes ... slept
+together ... half a year [E1]"; an extra claim from E9; no Hedeby or New Year's Eve detail). exp82 (6 items with name
+completion or wider-pool evidence): byte-identical answers and scores. exp83 (QA.csv, defaults): 0.750 / 0.847, 0
+failures; the other 35 answers byte-identical with identical scores.
 
 ## 2026-10-15 — Bare first names: "What was the nickname of Mikael?" (31b95f1, 95588dd, 625f100)
 

@@ -53,9 +53,11 @@ class WideCandidateChecks(unittest.TestCase):
         config = ResolvedPipelineConfig()
         self.assertEqual((config.wide_candidate_count, config.wide_trigger_score), (100, 3.5))
         self.assertIsNone(ResolvedPipelineConfig.from_mapping({"wide_trigger_score": None}).wide_trigger_score)
-        self.assertEqual(config.wide_max_hits, 3)
+        self.assertEqual((config.wide_max_hits, config.wide_override_margin), (3, 2.0))
+        self.assertIsNone(ResolvedPipelineConfig.from_mapping({"wide_override_margin": None}).wide_override_margin)
         for bad in ({"wide_candidate_count": -1}, {"wide_candidate_count": 201}, {"wide_candidate_count": True}, {"wide_trigger_score": "x"},
-                    {"wide_max_hits": -1}, {"wide_max_hits": 31}):
+                    {"wide_max_hits": -1}, {"wide_max_hits": 31}, {"wide_override_margin": -1}, {"wide_override_margin": "x"},
+                    {"wide_override_margin": float("nan")}, {"wide_override_margin": True}):
             with self.assertRaises(ValueError):
                 ResolvedPipelineConfig.from_mapping(bad)
 
@@ -89,6 +91,10 @@ class WideCandidateChecks(unittest.TestCase):
         # A strong fused match (>= wide_trigger_score) keeps the evidence unchanged.
         self.assertEqual(self._run(base | {"t1": 3.6}), (["p1", "p0", "p2"], False))
         self.assertEqual(self._run(base | {"t1": 3.6}, wide_trigger_score=None), (["p3", "p1", "p0", "p2"], False))
+        # Unless a wider passage beats it by more than wide_override_margin.
+        self.assertEqual(self._run(base | {"t1": 3.6, "t3": 5.7}), (["p3", "p1", "p0", "p2"], False))
+        self.assertEqual(self._run(base | {"t1": 3.6, "t3": 5.5}), (["p1", "p0", "p2"], False))
+        self.assertEqual(self._run(base | {"t1": 3.6, "t3": 5.7}, wide_override_margin=None), (["p1", "p0", "p2"], False))
         # Beating the fused candidates is not enough below the low-confidence threshold.
         self.assertEqual(self._run(base | {"t1": 1.5, "t3": 1.9, "t4": 1.8}), (["p1", "p0", "p2"], True))
         # A wider pool no larger than candidate_count adds nothing.
@@ -111,6 +117,15 @@ class WideCandidateChecks(unittest.TestCase):
         self.assertIn("Question: q named\n", self.sent[-1][-1]["content"])
         # The completed wording admits nothing: the answer model sees the question as asked.
         self._run(base, named | {"t6": 3.0})
+        self.assertIn("Question: q\n", self.sent[-1][-1]["content"])
+
+    def test_answer_model_sees_completed_question_for_passages_admitted_over_a_strong_match(self):
+        base = {"t0": 1.0, "t1": 4.0, "t2": 0.5, "t3": -1.0, "t4": -1.0, "t5": -1.0, "t6": -5.0, "t7": -5.0}
+        named = {"t0": 1.0, "t1": 3.0, "t2": 0.0, "t3": 7.0, "t4": 0.0, "t5": 0.0, "t6": -5.0, "t7": -5.0}
+        # p3 is in the wider pool (not only the completed search) and clears the strong fused match by the margin.
+        self.assertEqual(self._run(base, named), (["p3", "p1", "p0", "p2"], False))
+        self.assertIn("Question: q named\n", self.sent[-1][-1]["content"])
+        self.assertEqual(self._run(base, named | {"t3": 5.5}), (["p1", "p0", "p2"], False))
         self.assertIn("Question: q\n", self.sent[-1][-1]["content"])
 
 

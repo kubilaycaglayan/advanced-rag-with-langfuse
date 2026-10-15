@@ -72,6 +72,7 @@ class ResolvedPipelineConfig:
     low_confidence_top_k: int = 15
     wide_candidate_count: int = 100
     wide_trigger_score: float | None = 3.5
+    wide_override_margin: float | None = 2.0
     wide_max_hits: int = 3
     corpus_checksum: str = ""
     prompt_hashes: Mapping[str, str] | None = None
@@ -96,6 +97,9 @@ class ResolvedPipelineConfig:
         if self.wide_trigger_score is not None and (isinstance(self.wide_trigger_score, bool) or not isinstance(self.wide_trigger_score, (int, float))
                                                     or not math.isfinite(self.wide_trigger_score)):
             raise ValueError("wide_trigger_score must be a finite number or null")
+        if self.wide_override_margin is not None and (isinstance(self.wide_override_margin, bool) or not isinstance(self.wide_override_margin, (int, float))
+                                                      or not math.isfinite(self.wide_override_margin) or self.wide_override_margin < 0):
+            raise ValueError("wide_override_margin must be a non-negative finite number or null")
         if not isinstance(self.corpus_checksum, str):
             raise ValueError("corpus_checksum must be a string")
         if self.prompt_hashes is not None and (not isinstance(self.prompt_hashes, Mapping) or not all(isinstance(k, str) and isinstance(v, str) for k, v in self.prompt_hashes.items())):
@@ -149,7 +153,7 @@ class ResolvedPipelineConfig:
         value = defaults
         allowed = {"retrieval_mode", "candidate_count", "top_k", "passage_chars", "embedding_model", "reranker_model", "generation_model", "generation", "rrf_constant",
                    "min_passage_chars", "passage_overlap", "expansion_count", "answer_thinking", "name_completion", "name_completion_hits",
-                   "low_confidence_score", "low_confidence_top_k", "wide_candidate_count", "wide_trigger_score", "wide_max_hits", "corpus_checksum", "prompt_hashes"}
+                   "low_confidence_score", "low_confidence_top_k", "wide_candidate_count", "wide_trigger_score", "wide_override_margin", "wide_max_hits", "corpus_checksum", "prompt_hashes"}
         unknown = set(value) - allowed
         if unknown:
             raise ValueError(f"unknown config fields: {', '.join(sorted(unknown))}")
