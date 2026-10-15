@@ -80,6 +80,10 @@ but include the context the evidence gives, such as origin or cause and reaction
 `tuning10`), so the 24 questions with strong evidence stay byte-identical. exp75a/b (the 12 low-confidence items
 twice): target still 0.5 in both; Salander's fortune 1.0 → 0.5 and Cecilia 1.0 → 0.5 in both; savior complex
 correctness 0.5 → 1.0 but citation 1.0 → 0.5.
+- Larger installed answer model `qwen3.5:9b-q8_0` (config override only; exp76, full dataset): the only model whose
+  offline replay of the recorded evidence mentioned his dislike and Astrid Lindgren. In the full run the target still
+  answered in one line (0.5). Mean correctness 0.722 → 0.764 with 9 items up, but 9 items lower (e.g. Zalachenko
+  1.0 → 0, Salander's fortune 1.0 → 0.5, citation drops on table salt, eclipse, cigarette case). Not adopted.
 
 ## 2026-10-15 — Completed names score the wider pool (31b95f1)
 
