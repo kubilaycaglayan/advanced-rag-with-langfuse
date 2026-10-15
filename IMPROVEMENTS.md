@@ -5,6 +5,38 @@ from the reference answer in prompts, queries or code) and checks the full QA.cs
 Scores are means of the Langfuse judges `answer_correctness_v1` / `citation_support_v1`. Raw run outputs, per-run
 configs and the analysis scripts live in `data/tuning/` (not tracked; full notes in `data/tuning/LOG.md`).
 
+## Methodology
+
+1. **Diagnose before changing anything.** Read the failing run's answer, cited evidence, judge comment and generated
+   queries. Confirm the reference answer exists in the corpus and find the passages that hold it. Locate the failing
+   stage (retrieval, fusion, reranking, generation), e.g. "the answer passage never reaches the candidates, but the
+   reranker ranks it first when present" means a recall problem, so prompt changes are ruled out.
+2. **Keep the fix general.** Nothing from the reference answer or the question goes into prompts, queries or code;
+   answer text is used only in offline scripts that check whether the right passage was retrieved. A fix must be a
+   rule that makes sense for any question. Thresholds tuned on this dataset are configurable and documented as
+   calibrated on it.
+3. **Test offline first.** Replay the recorded queries through retrieval, fusion and reranking (no LLM), after checking
+   that the replay reproduces the recorded run exactly. For each candidate change measure:
+   - *Fix:* does the answer passage reach the evidence?
+   - *Blast radius:* how many other questions get different evidence? Unchanged evidence gives a byte-identical answer,
+     so this bounds how many questions can regress.
+   Re-check the target with a second set of generated queries so the fix does not depend on one phrasing.
+4. **Narrow the change.** Drop options that change evidence for most questions. When something regresses, find out
+   why and add a principled condition, not a special case (e.g. admit only passages that beat every candidate, are
+   confident matches, and are added in front of the existing evidence rather than displacing it).
+5. **Validate on the full dataset, repeatedly.** Run all QA.csv items and compare each one against the previous
+   defaults' run, by score and by whether the answer text is identical. Repeat runs to separate real regressions from
+   judge noise. Accept only zero drops; a higher mean with drops is rejected (see 88d26af). After promoting a change to
+   the defaults, confirm with a run that passes no config.
+6. **Record and ship.** Add tests, update the README, and write a commit message that states the evidence. Add an entry
+   here: diagnosis, what was tried and failed, the final change, and the improved/regressed questions. Deploy only
+   after approval, then check `/health` and ask the target question through the live service.
+
+In short: find the stage that actually failed, fix it with a general rule, measure offline how many other questions it
+can touch, shrink that to only what it should touch, then confirm on the full dataset with repeat runs.
+
+## Rounds
+
 | Date | Round | QA.csv correctness | Citation | Improved (answer correctness) | Regressed | Commit |
 |---|---|---|---|---|---|---|
 | 2026-10-15 | Wider pool when<br>fused is weak | 0.700 → 0.729 | 0.857 → 0.857 | Blomkvist's media nickname 0 → 1 | — | 34eb712 |
