@@ -58,7 +58,11 @@ test('explains quota wait times in plain language', () => {
 
 test('names the session after the client IP', () => {
   assert.equal(ipSession('78.163.48.13'), 'ui-78-163-48-13')
-  assert.equal(ipSession('2a00:1d34::bc40'), 'ui-2a00-1d34--bc40')
+  assert.equal(ipSession('2a00:1d34:cf1e:9701:9471:f827:b074:bc40'), 'ui-2a00-1d34-cf1e-9701')
+  assert.equal(ipSession('2a00:1d34:cf1e:9701:9ec7:d3ff:fee3:4bf8'), 'ui-2a00-1d34-cf1e-9701')
+  assert.equal(ipSession('2A00:1D34:0:0::1'), 'ui-2a00-1d34-0-0')
+  assert.equal(ipSession('2001:db8::1'), 'ui-2001-db8-0-0')
+  assert.equal(ipSession('::1'), 'ui-0-0-0-0')
 })
 
 test('groups questions by IP and passes the stable browser ID as the user', async () => {

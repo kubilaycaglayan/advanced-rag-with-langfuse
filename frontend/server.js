@@ -30,8 +30,14 @@ function sessionFor(req, res) {
   return session
 }
 
+// IPv6 devices rotate the last 64 bits of their address for privacy; the first 64 bits identify their network.
 export function ipSession(ip) {
-  return `ui-${ip.replace(/[.:]/g, '-')}`
+  if (isIP(ip) !== 6) return `ui-${ip.replace(/[.:]/g, '-')}`
+  const [head, tail = ''] = ip.toLowerCase().split('::')
+  const left = head ? head.split(':') : []
+  const right = ip.includes('::') && tail ? tail.split(':') : []
+  const groups = [...left, ...Array(8 - left.length - right.length).fill('0'), ...right]
+  return `ui-${groups.slice(0, 4).map(group => group.replace(/^0+(?=.)/, '')).join('-')}`
 }
 
 function authHeader() {
