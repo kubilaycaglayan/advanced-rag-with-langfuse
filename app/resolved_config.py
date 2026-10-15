@@ -74,6 +74,10 @@ class ResolvedPipelineConfig:
     wide_trigger_score: float | None = 3.5
     wide_override_margin: float | None = 2.0
     wide_max_hits: int = 3
+    scene_margin: float | None = 1.0
+    scene_window: int = 6
+    scene_stride: int = 3
+    scene_search_hits: int = 10
     corpus_checksum: str = ""
     prompt_hashes: Mapping[str, str] | None = None
 
@@ -84,7 +88,8 @@ class ResolvedPipelineConfig:
             raise ValueError("generation must be GenerationSettings")
         for name, number in (("candidate_count", self.candidate_count), ("top_k", self.top_k), ("passage_chars", self.passage_chars), ("rrf_constant", self.rrf_constant),
                              ("min_passage_chars", self.min_passage_chars), ("passage_overlap", self.passage_overlap), ("expansion_count", self.expansion_count),
-                             ("low_confidence_top_k", self.low_confidence_top_k), ("wide_candidate_count", self.wide_candidate_count), ("wide_max_hits", self.wide_max_hits), ("name_completion_hits", self.name_completion_hits)):
+                             ("low_confidence_top_k", self.low_confidence_top_k), ("wide_candidate_count", self.wide_candidate_count), ("wide_max_hits", self.wide_max_hits), ("name_completion_hits", self.name_completion_hits),
+                             ("scene_window", self.scene_window), ("scene_stride", self.scene_stride), ("scene_search_hits", self.scene_search_hits)):
             if isinstance(number, bool) or not isinstance(number, int):
                 raise ValueError(f"{name} must be an integer")
         if not isinstance(self.retrieval_mode, str):
@@ -100,6 +105,13 @@ class ResolvedPipelineConfig:
         if self.wide_override_margin is not None and (isinstance(self.wide_override_margin, bool) or not isinstance(self.wide_override_margin, (int, float))
                                                       or not math.isfinite(self.wide_override_margin) or self.wide_override_margin < 0):
             raise ValueError("wide_override_margin must be a non-negative finite number or null")
+        if self.scene_margin is not None and (isinstance(self.scene_margin, bool) or not isinstance(self.scene_margin, (int, float))
+                                              or not math.isfinite(self.scene_margin) or self.scene_margin < 0):
+            raise ValueError("scene_margin must be a non-negative finite number or null")
+        if not 1 <= self.scene_stride <= self.scene_window <= 20:
+            raise ValueError("scene_window must be between 1 and 20 and scene_stride between 1 and scene_window")
+        if not 1 <= self.scene_search_hits <= 100:
+            raise ValueError("scene_search_hits must be between 1 and 100")
         if not isinstance(self.corpus_checksum, str):
             raise ValueError("corpus_checksum must be a string")
         if self.prompt_hashes is not None and (not isinstance(self.prompt_hashes, Mapping) or not all(isinstance(k, str) and isinstance(v, str) for k, v in self.prompt_hashes.items())):
@@ -153,7 +165,8 @@ class ResolvedPipelineConfig:
         value = defaults
         allowed = {"retrieval_mode", "candidate_count", "top_k", "passage_chars", "embedding_model", "reranker_model", "generation_model", "generation", "rrf_constant",
                    "min_passage_chars", "passage_overlap", "expansion_count", "answer_thinking", "name_completion", "name_completion_hits",
-                   "low_confidence_score", "low_confidence_top_k", "wide_candidate_count", "wide_trigger_score", "wide_override_margin", "wide_max_hits", "corpus_checksum", "prompt_hashes"}
+                   "low_confidence_score", "low_confidence_top_k", "wide_candidate_count", "wide_trigger_score", "wide_override_margin", "wide_max_hits",
+                   "scene_margin", "scene_window", "scene_stride", "scene_search_hits", "corpus_checksum", "prompt_hashes"}
         unknown = set(value) - allowed
         if unknown:
             raise ValueError(f"unknown config fields: {', '.join(sorted(unknown))}")

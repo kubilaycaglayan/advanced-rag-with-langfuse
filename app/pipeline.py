@@ -13,14 +13,18 @@ import requests
 from qdrant_client import QdrantClient
 from sentence_transformers import CrossEncoder, SentenceTransformer
 
+from qdrant_client import models
+
 try:
     from .resolved_config import ResolvedPipelineConfig
     from .observability import observation as _observe, update as _update
     from .prompt_templates import PROMPT_HASHES, PROMPT_TEMPLATES
+    from .scenes import scene_collection
 except ImportError:
     from resolved_config import ResolvedPipelineConfig
     from observability import observation as _observe, update as _update
     from prompt_templates import PROMPT_HASHES, PROMPT_TEMPLATES
+    from scenes import scene_collection
 
 
 def qdrant_client() -> QdrantClient:
@@ -161,6 +165,38 @@ def _complete_names(question: str, collection: str, min_count: int = 20, min_sha
     return completed
 
 
+def _scene_hits(question: str, config: ResolvedPipelineConfig, collection: str, qdrant: QdrantClient,
+                evidence: list[dict[str, Any]], present: set[str]) -> list[dict[str, Any]]:
+    """Passages of the scene whose summary best matches the question, when it beats every scene the evidence already
+    comes from by more than scene_margin and is a confident match.
+
+    Summaries and passages are not scored on the same scale (a summary names everyone and states what happens), so
+    the bar is set by the scenes that hold the current evidence, not by the passages themselves.
+    """
+    name = scene_collection(collection, config)
+    vector = _embedder(config.embedding_model.name, config.embedding_model.revision).encode(question, normalize_embeddings=True).tolist()
+    found = qdrant.query_points(collection_name=name, query=vector, limit=config.scene_search_hits, with_payload=True).points
+    covering, _ = qdrant.scroll(collection_name=name, limit=1000, with_payload=True, scroll_filter=models.Filter(
+        must=[models.FieldCondition(key="members", match=models.MatchAny(any=[row["id"] for row in evidence]))]))
+    scenes = list({str(point.id): point for point in [*found, *covering]}.values())
+    scores = {str(point.id): float(score) for point, score in zip(scenes, _reranker(config.reranker_model.name, config.reranker_model.revision).predict(
+        [(question, point.payload["summary"]) for point in scenes], show_progress_bar=False))}
+    best = max(found, key=lambda point: scores[str(point.id)])
+    covered = max((scores[str(point.id)] for point in covering), default=-math.inf)
+    floor = config.low_confidence_score if config.low_confidence_score is not None else -math.inf
+    if scores[str(best.id)] <= max(covered + config.scene_margin, floor):
+        return []
+    members = [member for member in best.payload["members"] if member not in present]
+    rows = [dict(point.payload or {}) | {"id": str(point.id), "scene_hit": True, "scene_summary": best.payload["summary"],
+                                          "scene_score": scores[str(best.id)]}
+            for point in qdrant.retrieve(collection_name=collection, ids=members, with_payload=True)]
+    rows.sort(key=lambda row: members.index(row["id"]))
+    for row, score in zip(rows, _reranker(config.reranker_model.name, config.reranker_model.revision).predict(
+            [(question, row["text"]) for row in rows], show_progress_bar=False)):
+        row["rerank_score"] = float(score)
+    return rows
+
+
 def _format_evidence(rows: list[dict[str, Any]]) -> str:
     return "\n\n".join(
         f"[E{i}] Book: {row.get('book')} | Chapter: {row.get('chapter') or 'unavailable'} | Paragraph: {row.get('paragraph', 'unavailable')} | Page: {row.get('page') or 'unavailable'}\nPassage: {row['text']}"
@@ -268,6 +304,19 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
     top_k = max(config.top_k, config.low_confidence_top_k) if low_confidence else config.top_k
     reranked = wide_hits + sorted(candidates, key=lambda row: row["rerank_score"], reverse=True)[:top_k]
     candidates += wide_hits
+    # A scene whose passages the question cannot match one by one (dialogue that never names the people involved) can
+    # still match its summary; its passages go after the usual evidence, which stays as it is. Like the wider-pool
+    # override, this is for confident evidence that may be off the point: weak evidence already gets the low-confidence
+    # path (more passages and reasoning), and a whole scene on top of that crowds the answer.
+    if config.scene_margin is not None and config.retrieval_mode != "baseline" and not low_confidence:
+        stage = time.perf_counter()
+        with _observe("scene search", input=question) as obs:
+            scene_hits = _scene_hits(question, config, collection, qdrant, reranked[:config.top_k], {row["id"] for row in reranked})
+            _update(obs, output={"summary": scene_hits[0]["scene_summary"], "score": scene_hits[0]["scene_score"],
+                                 "passages": [row["id"] for row in scene_hits]} if scene_hits else None)
+        timings["scene_search_seconds"] = round(time.perf_counter() - stage, 4)
+        reranked += scene_hits
+        candidates += scene_hits
     baseline = sorted(candidates, key=lambda row: row.get("similarity", 0), reverse=True)[:config.top_k] if "similarity" in candidates[0] else []
     stage = time.perf_counter()
     with _observe("evidence formatting", input=reranked) as obs:

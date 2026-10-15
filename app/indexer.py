@@ -18,10 +18,12 @@ try:
     from .experiment_store import get_index_manifest, get_ready_manifest, save_index_manifest
     from .identity import canonical_json
     from .resolved_config import ResolvedPipelineConfig
+    from .scenes import build_scene_index, scene_collection
 except ImportError:
     from experiment_store import get_index_manifest, get_ready_manifest, save_index_manifest
     from identity import canonical_json
     from resolved_config import ResolvedPipelineConfig
+    from scenes import build_scene_index, scene_collection
 
 SPLITTER_VERSION = "sentence-word-splitter-v1"
 
@@ -205,10 +207,18 @@ def index_identity(config: ResolvedPipelineConfig) -> tuple[str, str, dict[str, 
 
 
 def build_index(config: ResolvedPipelineConfig, qdrant: QdrantClient | None = None, *, explicit_rebuild: bool = False) -> dict[str, Any]:
+    qdrant = qdrant or QdrantClient(url=os.getenv("QDRANT_URL", "http://127.0.0.1:6333"), timeout=30)
+    result = _build_passage_index(config, qdrant, explicit_rebuild=explicit_rebuild)
+    if config.scene_margin is not None:
+        encoder = SentenceTransformer(config.embedding_model.name, device="cpu", revision=config.embedding_model.revision)
+        result["scenes"] = build_scene_index(result["collection"], config, qdrant, encoder)
+    return result
+
+
+def _build_passage_index(config: ResolvedPipelineConfig, qdrant: QdrantClient, *, explicit_rebuild: bool = False) -> dict[str, Any]:
     collection, fingerprint, manifest, corpus = index_identity(config)
     paths = corpus_paths()
     model_id = config.embedding_model.name
-    qdrant = qdrant or QdrantClient(url=os.getenv("QDRANT_URL", "http://127.0.0.1:6333"), timeout=30)
     prior = get_ready_manifest(collection, fingerprint)
     if prior:
         if not qdrant.collection_exists(collection):
@@ -273,4 +283,6 @@ def validate_index(collection: str, config: ResolvedPipelineConfig, qdrant: Qdra
     count = qdrant.count(collection_name=collection, exact=True).count
     if count != row["actual_point_count"] or count != row["expected_point_count"]:
         raise RuntimeError(f"index point count mismatch: expected={row['expected_point_count']} actual={count}")
+    if config.scene_margin is not None and not qdrant.collection_exists(scene_collection(collection, config)):
+        raise RuntimeError(f"scene search is on but the scene index for {collection!r} is not built")
     return row

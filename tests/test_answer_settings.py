@@ -71,7 +71,8 @@ class WideCandidateChecks(unittest.TestCase):
         embedder.encode.side_effect = lambda text, normalize_embeddings: MagicMock(tolist=lambda: text)
         reranker = MagicMock()
         reranker.predict.side_effect = lambda pairs, show_progress_bar: [(named_scores if q == "q named" else scores)[text] for q, text in pairs]
-        config = ResolvedPipelineConfig(**{"retrieval_mode": "query_expansion", "candidate_count": 3, "top_k": 3, "low_confidence_top_k": 3, "wide_candidate_count": 6} | settings)
+        config = ResolvedPipelineConfig(**{"retrieval_mode": "query_expansion", "candidate_count": 3, "top_k": 3, "low_confidence_top_k": 3, "wide_candidate_count": 6,
+                                            "scene_margin": None} | settings)
         with patch.object(pipeline, "qdrant_client", return_value=client), patch.object(pipeline, "_embedder", return_value=embedder), \
                 patch.object(pipeline, "_reranker", return_value=reranker), patch.object(pipeline, "_transform", return_value=(None, ["alt"], None)), \
                 patch.object(pipeline, "_complete_names", return_value="q named" if named_scores else "q"), \
@@ -127,6 +128,45 @@ class WideCandidateChecks(unittest.TestCase):
         self.assertIn("Question: q named\n", self.sent[-1][-1]["content"])
         self.assertEqual(self._run(base, named | {"t3": 5.5}), (["p1", "p0", "p2"], False))
         self.assertIn("Question: q\n", self.sent[-1][-1]["content"])
+
+
+class SceneSearchChecks(unittest.TestCase):
+    def test_validation(self):
+        config = ResolvedPipelineConfig()
+        self.assertEqual((config.scene_margin, config.scene_window, config.scene_stride, config.scene_search_hits), (1.0, 6, 3, 10))
+        self.assertIsNone(ResolvedPipelineConfig.from_mapping({"scene_margin": None}).scene_margin)
+        for bad in ({"scene_margin": -1}, {"scene_margin": "x"}, {"scene_margin": True}, {"scene_margin": float("nan")},
+                    {"scene_window": 0}, {"scene_stride": 7}, {"scene_window": 21, "scene_stride": 3}, {"scene_search_hits": 0}):
+            with self.assertRaises(ValueError):
+                ResolvedPipelineConfig.from_mapping(bad)
+
+    def _hits(self, scene_scores, evidence=("p1",), present=("p1",), **settings):
+        # Scenes s0..s2 hold passages p0..p8 three at a time; s0 holds the evidence passage p1.
+        scenes = [MagicMock(id=f"s{i}", payload={"members": [f"p{3 * i + j}" for j in range(3)], "summary": f"sum{i}"}) for i in range(3)]
+        client = MagicMock()
+        client.query_points.return_value = MagicMock(points=scenes)
+        client.scroll.side_effect = lambda **kw: ([s for s in scenes if set(s.payload["members"]) & set(kw["scroll_filter"].must[0].match.any)], None)
+        client.retrieve.side_effect = lambda collection_name, ids, with_payload: [MagicMock(id=i, payload={"text": f"t{i}"}) for i in reversed(ids)]
+        reranker = MagicMock()
+        reranker.predict.side_effect = lambda pairs, show_progress_bar: [scene_scores.get(text, 0.0) for _, text in pairs]
+        embedder = MagicMock()
+        embedder.encode.return_value = MagicMock(tolist=lambda: [0.0])
+        config = ResolvedPipelineConfig(**{"scene_margin": 1.0} | settings)
+        with patch.object(pipeline, "_embedder", return_value=embedder), patch.object(pipeline, "_reranker", return_value=reranker):
+            rows = pipeline._scene_hits("q", config, "c", client, [{"id": i} for i in evidence], set(present))
+        return [row["id"] for row in rows]
+
+    def test_scene_admitted_only_when_it_beats_the_scenes_holding_the_evidence(self):
+        # s1 beats s0 (the scene of the evidence) by more than the margin: its passages are added in reading order.
+        self.assertEqual(self._hits({"sum0": 3.0, "sum1": 4.5, "sum2": 1.0}), ["p3", "p4", "p5"])
+        # Not by more than the margin, or the evidence's own scene is the best: nothing is added.
+        self.assertEqual(self._hits({"sum0": 3.6, "sum1": 4.5}), [])
+        self.assertEqual(self._hits({"sum0": 5.0, "sum1": 4.5}), [])
+        # A scene that is not a confident match is not added even if nothing covers the evidence.
+        self.assertEqual(self._hits({"sum1": 1.5}, evidence=("p9",)), [])
+        self.assertEqual(self._hits({"sum1": 2.5}, evidence=("p9",)), ["p3", "p4", "p5"])
+        # Passages already in the evidence are not repeated.
+        self.assertEqual(self._hits({"sum0": 3.0, "sum1": 4.5}, present=("p1", "p4")), ["p3", "p5"])
 
 
 class ThinkingFallbackChecks(unittest.TestCase):

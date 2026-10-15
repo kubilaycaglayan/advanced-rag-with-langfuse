@@ -12,7 +12,7 @@ For a wider view, open the [book-inspired pipeline diagram](docs/pipeline-book-i
 
 The default `full` mode runs six searches: the original query, one imagined answer passage (HyDE), three alternative phrasings, and one grammar-corrected query. If a short name can be completed from the books, a seventh search contributes extra results without changing the main fusion. All searches use dense embeddings against Qdrant.
 
-The embedding and reranking models run in the app process. `qwen3:8b` runs through Ollama for the search rewrites and the final answer; Ollama can use a local GPU when one is available. When evidence looks weak, the pipeline can admit strong passages from the extra results and give the answer model more context. Model names and endpoints are configurable; the diagram shows the defaults. The final answer cites the selected passages so you can check the source.
+The embedding and reranking models run in the app process. `qwen3:8b` runs through Ollama for the search rewrites and the final answer; Ollama can use a local GPU when one is available. When evidence looks weak, the pipeline can admit strong passages from the extra results and give the answer model more context. Some answers are a whole scene of dialogue in which no passage names the people involved; a second index of LLM-written scene summaries (built once with the index) lets such a scene be found, and its passages are added after the usual evidence when its summary clearly beats the scenes the evidence already comes from. Model names and endpoints are configurable; the diagram shows the defaults. The final answer cites the selected passages so you can check the source.
 
 ## What Langfuse does here
 

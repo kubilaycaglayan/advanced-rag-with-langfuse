@@ -39,6 +39,7 @@ can touch, shrink that to only what it should touch, then confirm on the full da
 
 | Date | Round | QA.csv correctness | Citation | Improved (answer correctness) | Regressed | Commit |
 |---|---|---|---|---|---|---|
+| 2026-10-15 | Scene summaries for<br>unnamed dialogue | 0.750 → 0.764 | 0.847 → 0.847 | "What does Salander ultimately demand from Bjurman?" 0 → 0.5 | — | (this commit) |
 | 2026-10-15 | Wider passage over an<br>off-point strong match | 0.736 → 0.750 | 0.861 → 0.847 | "Did Salander and Mikael have affair?" 0 → 0.5 | — (that item's citation 1.0 → 0.5) | e0c98f8 |
 | 2026-10-15 | Bare first names<br>("Mikael") | 0.708 → 0.736<br>(36 items) | 0.861 → 0.861 | "What was the nickname of Mikael?" 0 → 1 | — | 31b95f1<br>95588dd<br>625f100 |
 | 2026-10-15 | Wider pool when<br>fused is weak | 0.700 → 0.729 | 0.857 → 0.857 | Blomkvist's media nickname 0 → 1 | — | 34eb712 |
@@ -50,6 +51,52 @@ Each row compares the round's defaults against the defaults it replaced: 2d7b030
 defaults (0.614), not against 88d26af, whose defaults it reverted. The correctness judge is noisy on reworded answers
 (identical answers have scored 0 and 1 in different runs), so single 0.5 steps in rows without a repeat run are
 weak evidence.
+
+## 2026-10-15 — Scene summaries for answers spread over unnamed dialogue
+
+**Target:** "What does Salander ultimately demand from Bjurman?" (item 72d2d675), scored 0 in every run where the
+evidence did not hold the answer: "she wants him to disappear from her life" (from the chapter where she plans his
+death). Earlier 1.0 scores were "the evidence does not state ..." answers (judge noise).
+
+**Diagnosis:** retrieval at both stages, and no single-passage fix can reach it.
+- *Answer passages:* Dragon Tattoo ch. 14, six consecutive passages (bank access, no contact, faked welfare reports,
+  rescinding her incompetence declaration, spare keys, no other women). They are dialogue ("you will ...", "I want your
+  spare set of keys") that never name Salander or Bjurman.
+- *Dense search:* ranks 140 to over 1000 for every generated query.
+- *Cross-encoder:* −6.2 to −11.5 against the question; the best fused (off-point) passage scores 3.30. No other local
+  reranker (MiniLM-L12, bge-reranker-base, bge-reranker-v2-m3, mxbai-rerank-base) ranks an answer passage first.
+- *Answer:* with those passages in the evidence, the production prompt lists the reports, keys and incompetence
+  declaration, cited. Generation is not the problem.
+
+**Change:** a second index of LLM summaries over windows of `scene_window` (6) consecutive passages of one EPUB section,
+every `scene_stride` (3) passages (1809 windows; qwen3:8b, one call per window, about 2 h once, cached in
+`/data/scene-summaries.jsonl`). The summaries name who does what. The question is searched against them
+(`scene_search_hits` 10) and the summaries are scored with the cross-encoder. Summaries score systematically higher
+than passages, so the bar compares like with like: the best scene must beat every scene that holds one of the top
+evidence passages by more than `scene_margin` (1.0, calibrated on this dataset, configurable, null disables), and score
+above `low_confidence_score`. Its passages that are not already in the evidence go after the usual evidence, which is
+unchanged. No scene search on the low-confidence path, which already widens the evidence and reasons. Latency
++0.11 s per question (17.83 s → 18.14 s).
+
+**Tried and rejected (offline replay of exp83, reproduces it with 0 diffs):**
+- Names from neighbouring passages as a header ("Also in this scene: ..."), for embedding and/or reranking: answer
+  passages rise to about +0.5 in the reranker but not in dense search; evidence changes on 36 of 36 questions.
+- An LLM description of each passage: an answer passage rises to 3.66, but the off-point candidates rise as much (4.26).
+- Including neighbouring passages: the nearest retrieved passage is 17 passages before the answer, with a flashback in
+  between.
+- Scene margin over the best fused *passage*: admits 8–23 questions at margins 3–0.
+- Scene passages in front of the evidence: "Who tried to shoot Mikael?" drops Miro Nikolich in offline replay; after
+  the evidence it keeps him.
+- Scene search on the low-confidence path (exp86): "Harriet flees to what country?" 1.0 → 0.5 (the scene added
+  unsupported details).
+- exp85 is invalid: another job used Ollama at the same time, and answers changed with identical evidence.
+
+**Result:** exp84a (target, fresh queries): 0.5 / 1.0. exp87 (QA, `scene_margin` 1.0): 0.764 / 0.847, 0 failures;
+the 4 predicted questions changed (target 0 → 0.5: "monthly reports on her welfare ... declaration of incompetence
+rescinded ... spare keys ... video public" [E12–E15]; still missing bank control and "no other women"; "Who gave the
+cigarette case", "Who tried to shoot Mikael?", "Why does Salander first go to Bjurman for money?" kept their scores),
+the other 32 answers byte-identical to exp83. exp88 (the 4 changed questions, repeat): identical answers and scores.
+exp89 (new defaults, no config): byte-identical to exp87.
 
 ## 2026-10-15 — Wider passage over an off-point strong match: "Did Salander and Mikael have affair?" (e0c98f8)
 
