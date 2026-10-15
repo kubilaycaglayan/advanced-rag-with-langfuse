@@ -1,0 +1,66 @@
+# Pipeline improvement log
+
+One entry per tuning round, newest first. Each round targets one failing question, uses general changes only (nothing
+from the reference answer in prompts, queries or code) and checks the full QA.csv dataset (35 items) for regressions.
+Scores are means of the Langfuse judges `answer_correctness_v1` / `citation_support_v1`. Raw run outputs, per-run
+configs and the analysis scripts live in `data/tuning/` (not tracked; full notes in `data/tuning/LOG.md`).
+
+| Date | Round | QA.csv correctness | Citation | Commit |
+|---|---|---|---|---|
+| 2026-10-15 | Wider retrieval pool for weak fused candidates | 0.700 → 0.729 | 0.857 → 0.857 | 34eb712 |
+| 2026-10-15 | Extra evidence + reasoning only on low-confidence retrieval | 0.614 → 0.700 | 0.838 → 0.857 | 2d7b030 |
+| 2026-10-14 | 15 passages + reasoning for every question (superseded) | 0.614 → 0.757 | 0.838 → 0.871 | 88d26af |
+| 2026-10-14 | Paragraph merging, tuned HyDE / query-expansion prompts | 0.529 → 0.614 | 0.848 → 0.838 | 7224441 |
+
+## 2026-10-15 — Wider retrieval pool when the fused candidates are weak (34eb712)
+
+**Target:** "What media nickname is given to Mikael Blomkvist that he intensely dislikes?" (item a1915174), scored 0
+("journalist creep", an insult from one scene).
+
+**Diagnosis:** retrieval, not generation. The answer passages ("nicknamed Kalle Blomkvist ... to his dismay") never
+reached the 30 fused candidates; when present, the cross-encoder ranks one first (3.52 vs 3.04). Their dense ranks vary
+14–120 with query wording, and RRF over six queries drops them. HyDE invented a nickname.
+
+**Tried:**
+- `candidate_count` 40–100: fixes the item but changes evidence on 28–34 of 35 items.
+- Union of each query's top 5/10/20: needs 20, changes 28 items.
+- Wider pool admitted only when a passage beats every fused candidate: a 50-hit pool depended on one query wording;
+  100 hits was robust. Displacing evidence (0.686) or appending it lowered "police after assault" (1 → 0.5) and
+  "who tried to shoot Mikael" (0.5 → 0), reproducibly.
+- BM25 on the question also finds the passages (kept as an option, not adopted).
+
+**Change:** each search returns 100 hits; fusion of the first 30 is unchanged. When the best fused candidate scores
+below `wide_trigger_score` (3.5), wider-pool passages scoring above every fused candidate and above
+`low_confidence_score` (2.0) are placed in front of the usual evidence. 3.5 sits in the widest gap of this dataset's
+best-fused scores (3.30 → 3.81), so it is dataset-calibrated; configurable.
+
+**Result:** two runs (exp63, exp64): 0.729 / 0.857, 0 failures. Target 0 → 1.0 ("Kalle Blomkvist"). 33 answers
+byte-identical to before; the one other changed item kept its scores.
+
+## 2026-10-15 — More evidence and reasoning only when retrieval is weak (2d7b030)
+
+**Target:** "How does Lisbeth Salander acquire her massive personal fortune?" (item 2b47ac9a), scored 0.
+
+**Diagnosis:** the one answer-bearing passage reranked 14th, below top_k 10; given only "inheritance" passages, the
+answer model equated a small deposit with the fortune. Heist passages use her aliases, so no query reaches them.
+
+**Tried:** pseudo-relevance feedback, BM25 hybrid, sentence-level retrieval, LLM follow-up queries, answer-prompt
+wordings, bge-base embedder + bge reranker (fixes retrieval but 0.557 overall), corpus-derived name completion
+(best 0.786 but with a systematic drop). 15 passages + reasoning for every question (88d26af) gave 0.757 but lowered
+three items.
+
+**Change:** defaults back to 10 passages without reasoning; when the best cross-encoder score is below 2.0, use 15
+passages and let the model reason. Name completion and `answer_thinking` stay opt-in.
+
+**Result:** two runs (exp56, exp57): 0.700 / 0.857, 4 up / 0 down; 23 items byte-identical to before.
+
+## 2026-10-14 — Paragraph merging and tuned prompts (7224441)
+
+**Target:** "Who is Salander's mother?" (Additional Questions dataset).
+
+**Diagnosis:** name-bearing passages ranked >100; short "her mother" paragraphs outranked them.
+
+**Change:** merge consecutive short paragraphs to at least 400 characters (`min_passage_chars`); HyDE prompt v3
+(no invented names) and query-expansion v4 (keep names as written) promoted to `production`.
+
+**Result:** target correct; QA.csv 0.529 → 0.614.
