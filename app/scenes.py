@@ -36,6 +36,11 @@ except ImportError:
     from resolved_config import ResolvedPipelineConfig
 
 
+def summary_model(config: ResolvedPipelineConfig) -> str:
+    """The model that writes the summaries: scene_summary_model, or the generation model when it is not set."""
+    return (config.scene_summary_model or config.generation_model).name
+
+
 def _cache_path() -> Path:
     return Path(os.getenv("SCENE_SUMMARY_CACHE", "/data/scene-summaries.jsonl"))
 
@@ -46,12 +51,12 @@ def _prompt_hash() -> str:
 
 def scene_collection(collection: str, config: ResolvedPipelineConfig) -> str:
     identity = {"passages": collection, "window": config.scene_window, "stride": config.scene_stride,
-                "prompt": _prompt_hash(), "model": config.generation_model.name, "embedding_model": config.embedding_model.__dict__}
+                "prompt": _prompt_hash(), "model": summary_model(config), "embedding_model": config.embedding_model.__dict__}
     return f"{collection}_scenes_{hashlib.sha256(canonical_json(identity).encode()).hexdigest()[:12]}"
 
 
 def _summary_key(members: list[str], config: ResolvedPipelineConfig) -> str:
-    return hashlib.sha256(canonical_json({"members": members, "prompt": _prompt_hash(), "model": config.generation_model.name}).encode()).hexdigest()
+    return hashlib.sha256(canonical_json({"members": members, "prompt": _prompt_hash(), "model": summary_model(config)}).encode()).hexdigest()
 
 
 def passages_in_order(qdrant: QdrantClient, collection: str) -> list[Any]:
@@ -146,7 +151,7 @@ def _summarise(points: list[Any], config: ResolvedPipelineConfig, names: list[st
     body = "\n".join(point.payload["text"] for point in points)
     listed = f"Names used in the excerpt (use only these): {', '.join(names) or 'none'}\n\n" if names is not None else ""
     response = requests.post(os.getenv("OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/") + "/api/chat", json={
-        "model": config.generation_model.name, "think": False, "stream": False,
+        "model": summary_model(config), "think": False, "stream": False,
         "messages": [{"role": "system", "content": PROMPT_TEMPLATES["scene_summary_system"]},
                      {"role": "user", "content": f"Book: {points[0].payload['book']}\n\n{listed}EXCERPT:\n{body}"}],
         "options": {"temperature": 0, "num_ctx": 4096, "num_predict": 220}}, timeout=(10, 600))
@@ -155,6 +160,14 @@ def _summarise(points: list[Any], config: ResolvedPipelineConfig, names: list[st
     if not text:
         raise RuntimeError("scene summary came back empty")
     return text
+
+
+def _release_summary_model(config: ResolvedPipelineConfig) -> None:
+    """Unload a separate summarising model once its calls are done, so it does not stay resident next to the
+    generation model."""
+    if summary_model(config) != config.generation_model.name:
+        requests.post(os.getenv("OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/") + "/api/generate",
+                      json={"model": summary_model(config), "keep_alive": 0}, timeout=(10, 60))
 
 
 def checked_summary(points: list[Any], config: ResolvedPipelineConfig, lexicon: NameLexicon, summary: str | None = None,
@@ -192,6 +205,8 @@ def build_scene_index(collection: str, config: ResolvedPipelineConfig, qdrant: Q
                 out.write(json.dumps(cache[key]) + "\n")
                 out.flush()
             summaries.append((members, cache[key]["summary"]))
+    if lexicon is not None:
+        _release_summary_model(config)
     if qdrant.collection_exists(name) and qdrant.count(collection_name=name, exact=True).count == len(windows):
         indexed, offset = {}, None
         while True:
@@ -241,6 +256,8 @@ def repair_cache(collection: str, config: ResolvedPipelineConfig, qdrant: Qdrant
             stats["untraced"] += bool(untraced)
             out.write(json.dumps(row | {"summary": summary, "checked": True, "untraced": untraced}) + "\n")
             out.flush()
+    if stats["untraced"]:
+        _release_summary_model(config)
     return dict(stats)
 
 

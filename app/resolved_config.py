@@ -78,12 +78,15 @@ class ResolvedPipelineConfig:
     scene_window: int = 6
     scene_stride: int = 3
     scene_search_hits: int = 10
+    scene_summary_model: ModelIdentity | None = ModelIdentity("gemma4:26b")
     corpus_checksum: str = ""
     prompt_hashes: Mapping[str, str] | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.embedding_model, ModelIdentity) or not isinstance(self.reranker_model, ModelIdentity) or not isinstance(self.generation_model, ModelIdentity):
             raise ValueError("embedding_model, reranker_model, and generation_model must be model identities")
+        if self.scene_summary_model is not None and not isinstance(self.scene_summary_model, ModelIdentity):
+            raise ValueError("scene_summary_model must be a model identity or null")
         if not isinstance(self.generation, GenerationSettings):
             raise ValueError("generation must be GenerationSettings")
         for name, number in (("candidate_count", self.candidate_count), ("top_k", self.top_k), ("passage_chars", self.passage_chars), ("rrf_constant", self.rrf_constant),
@@ -166,11 +169,13 @@ class ResolvedPipelineConfig:
         allowed = {"retrieval_mode", "candidate_count", "top_k", "passage_chars", "embedding_model", "reranker_model", "generation_model", "generation", "rrf_constant",
                    "min_passage_chars", "passage_overlap", "expansion_count", "answer_thinking", "name_completion", "name_completion_hits",
                    "low_confidence_score", "low_confidence_top_k", "wide_candidate_count", "wide_trigger_score", "wide_override_margin", "wide_max_hits",
-                   "scene_margin", "scene_window", "scene_stride", "scene_search_hits", "corpus_checksum", "prompt_hashes"}
+                   "scene_margin", "scene_window", "scene_stride", "scene_search_hits", "scene_summary_model", "corpus_checksum", "prompt_hashes"}
         unknown = set(value) - allowed
         if unknown:
             raise ValueError(f"unknown config fields: {', '.join(sorted(unknown))}")
-        for key in ("embedding_model", "reranker_model", "generation_model"):
+        for key in ("embedding_model", "reranker_model", "generation_model", "scene_summary_model"):
+            if key == "scene_summary_model" and value.get(key) is None:
+                continue
             if key in value and isinstance(value[key], str):
                 value[key] = ModelIdentity(value[key])
             elif key in value and isinstance(value[key], Mapping):

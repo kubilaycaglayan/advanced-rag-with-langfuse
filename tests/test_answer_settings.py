@@ -135,6 +135,11 @@ class SceneSearchChecks(unittest.TestCase):
         config = ResolvedPipelineConfig()
         self.assertEqual((config.scene_margin, config.scene_window, config.scene_stride, config.scene_search_hits), (1.0, 6, 3, 10))
         self.assertIsNone(ResolvedPipelineConfig.from_mapping({"scene_margin": None}).scene_margin)
+        from app import scenes
+        self.assertEqual(scenes.summary_model(config), "gemma4:26b")
+        # null: the generation model writes the summaries, as before the setting existed.
+        self.assertEqual(scenes.summary_model(ResolvedPipelineConfig.from_mapping({"scene_summary_model": None})), "qwen3:8b")
+        self.assertNotEqual(scenes.scene_collection("c", config), scenes.scene_collection("c", ResolvedPipelineConfig.from_mapping({"scene_summary_model": None})))
         for bad in ({"scene_margin": -1}, {"scene_margin": "x"}, {"scene_margin": True}, {"scene_margin": float("nan")},
                     {"scene_window": 0}, {"scene_stride": 7}, {"scene_window": 21, "scene_stride": 3}, {"scene_search_hits": 0}):
             with self.assertRaises(ValueError):

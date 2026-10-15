@@ -39,6 +39,7 @@ can touch, shrink that to only what it should touch, then confirm on the full da
 
 | Date | Round | QA.csv correctness | Citation | Improved (answer correctness) | Regressed | Commit |
 |---|---|---|---|---|---|---|
+| 2026-10-15 | Scene summaries by<br>gemma4:26b | 0.764 → 0.764 | 0.847 → 0.861 | — (citation: "Henrik hires Blomkvist" 0.5 → 1.0) | — | (this commit) |
 | 2026-10-15 | Scene summaries for<br>unnamed dialogue | 0.750 → 0.764 | 0.847 → 0.847 | "What does Salander ultimately demand from Bjurman?" 0 → 0.5 | — | b36115a |
 | 2026-10-15 | Wider passage over an<br>off-point strong match | 0.736 → 0.750 | 0.861 → 0.847 | "Did Salander and Mikael have affair?" 0 → 0.5 | — (that item's citation 1.0 → 0.5) | e0c98f8 |
 | 2026-10-15 | Bare first names<br>("Mikael") | 0.708 → 0.736<br>(36 items) | 0.861 → 0.861 | "What was the nickname of Mikael?" 0 → 1 | — | 31b95f1<br>95588dd<br>625f100 |
@@ -110,7 +111,7 @@ about the same people score this close. Admitting two scenes, or scoring each sc
 did not fix it. The index keeps the validated summaries (restored; exp91 reproduces exp89 on the changed questions);
 the repaired cache is kept in `data/tuning/` for a later round.
 
-**Follow-up, summarising model (measured, not adopted yet):** on 60 sample windows (the target's 10 retrieved scenes,
+**Follow-up, summarising model (adopted, see the next paragraph):** on 60 sample windows (the target's 10 retrieved scenes,
 15 with known name errors, 35 random), same prompt, thinking off:
 
 | | qwen3:8b | gemma4:26b |
@@ -120,7 +121,16 @@ the repaired cache is kept in `data/tuning/` for a later round.
 | Target: answer scene vs best other scene | 6.00 vs 6.01 | 8.05 vs 6.61 |
 
 qwen3.6:35b and nemotron-3.5-lightning:30b each got a fact wrong in a 3-window smoke test and were not run further.
-A full rebuild with gemma4:26b (about 1.7 h) still needs a QA.csv run before it can replace the validated summaries.
+A full rebuild with gemma4:26b (about 1.7 h) was then validated:
+
+**Adopted: gemma4:26b writes the summaries** (`scene_summary_model`, default `gemma4:26b`; null uses the generation
+model). Full build: 1809 windows in about 1.7 h; 11 summaries keep a capitalised word the excerpt lacks, all ordinary
+words ("Amidst", "Separately", "Swedish"), against 373 untraced names in the qwen3:8b summaries. The summarising model
+is unloaded when the build ends and is never used while answering, so answer latency is unchanged (17.98 s). exp92
+(QA, gemma summaries): 0.764 / 0.861, 0 failures, 0 drops against exp89 and exp83; target unchanged (0.5, same
+answer); "Henrik hires Blomkvist" citation 0.5 → 1.0; "Who gave the cigarette case" no longer gets an unrelated scene
+(answer as in exp83); 3 other answers changed with the same scores. exp93 (the 6 changed questions, repeat): identical.
+exp94 (new defaults, no config): byte-identical to exp92.
 
 ## 2026-10-15 — Wider passage over an off-point strong match: "Did Salander and Mikael have affair?" (e0c98f8)
 
