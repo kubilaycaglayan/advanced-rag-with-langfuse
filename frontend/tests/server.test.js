@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict'
 import { after, before, test } from 'node:test'
+import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { createApp, citedSources, clientIp, ipSession, quotaMessage } from '../server.js'
 
 let server
@@ -217,5 +220,33 @@ test('shows trace steps only to the browser session that created the trace', asy
   } finally {
     delete process.env.LANGFUSE_PUBLIC_KEY
     delete process.env.LANGFUSE_SECRET_KEY
+  }
+})
+
+test('serves the built UI, falls back to it for app paths, and keeps API and asset misses as 404s', async () => {
+  const uiDir = mkdtempSync(join(tmpdir(), 'millennium-ui-'))
+  mkdirSync(join(uiDir, 'assets'))
+  writeFileSync(join(uiDir, 'index.html'), '<!doctype html><title>Millennium Project</title>')
+  writeFileSync(join(uiDir, 'assets', 'app-abc123.js'), 'console.log(1)')
+  const uiServer = createApp({ uiDir }).listen(0)
+  await new Promise(resolve => uiServer.once('listening', resolve))
+  const url = path => `http://127.0.0.1:${uiServer.address().port}${path}`
+  try {
+    for (const path of ['/', '/some/client/route']) {
+      const page = await fetch(url(path))
+      assert.equal(page.status, 200)
+      assert.match(await page.text(), /Millennium Project/)
+      assert.equal(page.headers.get('cache-control'), 'no-cache')
+    }
+    const asset = await fetch(url('/assets/app-abc123.js'))
+    assert.equal(asset.status, 200)
+    assert.match(asset.headers.get('cache-control'), /immutable/)
+    assert.equal((await fetch(url('/assets/missing.js'))).status, 404)
+    const api = await fetch(url('/api/unknown'))
+    assert.equal(api.status, 404)
+    assert.deepEqual(await api.json(), { error: 'Not found.' })
+  } finally {
+    uiServer.close()
+    rmSync(uiDir, { recursive: true, force: true })
   }
 })

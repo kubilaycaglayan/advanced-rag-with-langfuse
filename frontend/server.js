@@ -3,6 +3,7 @@ import { createHash, randomUUID } from 'node:crypto'
 import { fileURLToPath } from 'node:url'
 import { dirname, join, resolve } from 'node:path'
 import { isIP } from 'node:net'
+import { spawn } from 'node:child_process'
 
 const root = dirname(fileURLToPath(import.meta.url))
 const dev = process.argv.includes('--dev')
@@ -12,6 +13,9 @@ const ragUrl = (process.env.RAG_API_URL || 'http://127.0.0.1:8001').replace(/\/$
 const langfuseUrl = (process.env.LANGFUSE_BASE_URL || 'http://127.0.0.1:28420').replace(/\/$/, '')
 const langfuseUiUrl = (process.env.LANGFUSE_UI_URL || langfuseUrl).replace(/\/$/, '')
 const projectId = process.env.LANGFUSE_PROJECT_ID || 'millenium'
+// The UI is the dragon-tattoo-oracle submodule in ./ui, built as a static app (see the Dockerfile).
+const uiDist = join(root, 'ui', 'dist', 'client')
+const uiDevPort = Number(process.env.UI_DEV_PORT || 43180)
 const cookieName = 'millennium_session'
 const environment = 'interactive-ui'
 
@@ -91,7 +95,7 @@ function scoreId(traceId, sessionId) {
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-4${hex.slice(13, 16)}-a${hex.slice(17, 20)}-${hex.slice(20, 32)}`
 }
 
-export function createApp({ fetcher = fetch, production = process.env.NODE_ENV === 'production', clientIpForRequest = clientIp } = {}) {
+export function createApp({ fetcher = fetch, production = process.env.NODE_ENV === 'production', clientIpForRequest = clientIp, uiDir = uiDist } = {}) {
   const app = express()
   const activeAskIps = new Set()
   app.disable('x-powered-by')
@@ -203,18 +207,32 @@ export function createApp({ fetcher = fetch, production = process.env.NODE_ENV =
     }
   })
 
-  if (dev) {
-    return import('vite').then(async ({ createServer }) => {
-      const vite = await createServer({ root, server: { middlewareMode: true }, appType: 'spa' })
-      app.use(vite.middlewares)
-      return app
-    })
-  }
-  app.use(express.static(join(root, 'dist')))
-  app.get('/{*path}', (_req, res) => res.sendFile(join(root, 'dist', 'index.html')))
+  app.use('/api', (_req, res) => res.status(404).json({ error: 'Not found.' }))
+  if (dev) return app
+  // Built asset names carry a content hash, so they can be cached for good; a missing asset is a 404, not the app.
+  app.use('/assets', express.static(join(uiDir, 'assets'), { immutable: true, maxAge: '1y' }), (_req, res) => res.sendStatus(404))
+  app.use(express.static(uiDir, { index: false }))
+  app.get('/{*path}', (_req, res) => res.set('Cache-Control', 'no-cache').sendFile(join(uiDir, 'index.html')))
   return app
 }
 
+// In development the UI runs on its own Vite dev server, which proxies /api to this server.
+function startUiDevServer() {
+  const ui = spawn('npm', ['run', 'dev', '--', '--host', host, '--port', String(uiDevPort), '--strictPort'], {
+    cwd: join(root, 'ui'), stdio: 'inherit', env: { ...process.env, MILLENNIUM_API_PROXY: `http://${host}:${port}` },
+  })
+  const stop = () => ui.kill()
+  process.on('exit', stop)
+  for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => { stop(); process.exit(0) })
+  ui.on('exit', code => process.exit(code ?? 0))
+}
+
 if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
-  Promise.resolve(createApp()).then(app => app.listen(port, host, () => console.log(`Millennium frontend listening on http://${host}:${port}`)))
+  createApp().listen(port, host, () => {
+    console.log(`Millennium frontend listening on http://${host}:${port}`)
+    if (dev) {
+      console.log(`Open the UI at http://${host}:${uiDevPort}`)
+      startUiDevServer()
+    }
+  })
 }

@@ -26,4 +26,4 @@ Langfuse helps explain *why* an answer changed when a prompt or search setting c
 
 ## Explore the project
 
-The Vue web app is for asking questions. The Python API handles indexing, search, answers, and experiment runs. See the [technical guide](TECHNICAL_GUIDE.md) for setup and configuration, the [frontend guide](frontend/README.md) for the UI, and the [improvement log](IMPROVEMENTS.md) for examples of how the pipeline was tuned.
+The web app is for asking questions; its UI lives in the [dragon-tattoo-oracle](https://github.com/kubilaycaglayan/dragon-tattoo-oracle) repository, included as the `frontend/ui` submodule (clone with `git clone --recurse-submodules`, or run `git submodule update --init` in an existing checkout). The Python API handles indexing, search, answers, and experiment runs. See the [technical guide](TECHNICAL_GUIDE.md) for setup and configuration, the [frontend guide](frontend/README.md) for the UI, and the [improvement log](IMPROVEMENTS.md) for examples of how the pipeline was tuned.

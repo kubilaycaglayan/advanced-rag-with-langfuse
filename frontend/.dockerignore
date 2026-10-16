@@ -2,3 +2,8 @@ node_modules
 dist
 .env
 tests
+ui/node_modules
+ui/dist
+ui/.output
+ui/.wrangler
+ui/.git

@@ -1,12 +1,21 @@
 # Millennium Corpus frontend
 
-This Vue app asks the existing `/ask` pipeline. The Node server serves the UI, keeps Langfuse credentials off the browser, and sends user ratings to Langfuse. Answers and question history stay in this browser.
+The web app has two parts:
 
-Requires Node 22. Copy `example.env` to `.env`, fill in the Langfuse project keys, and make sure the existing API, Qdrant, Ollama, Langfuse, and corpus index are running. Start the development UI with `npm install && npm run dev` from this directory. The default address is `http://127.0.0.1:43179`. For a built UI, run `npm run build && npm start`.
+- **`ui/`** is the user interface: a React (TanStack Start) app in the [dragon-tattoo-oracle](https://github.com/kubilaycaglayan/dragon-tattoo-oracle) repository, included here as a git submodule. That repository is connected to Lovable, so commits pushed to its `main` show up in the Lovable editor. Lovable's preview answers with built-in sample answers; it never reaches the pipeline.
+- **`server.js`** is a small Express server. It serves the built UI, asks the existing `/ask` pipeline, keeps Langfuse credentials off the browser, and sends user ratings to Langfuse. Answers and question history stay in the browser.
+
+Requires Node 22. Fetch the UI with `git submodule update --init` (or clone this repository with `--recurse-submodules`). The UI repository is private, so git needs GitHub credentials for it; `gh auth setup-git` configures them when the GitHub CLI is signed in.
+
+Copy `example.env` to `.env`, fill in the Langfuse project keys, and make sure the existing API, Qdrant, Ollama, Langfuse, and corpus index are running. Install both parts with `npm install && npm --prefix ui ci`, then start development with `npm run dev` from this directory. The Express server listens on `http://127.0.0.1:43179` and starts the UI's Vite dev server on `http://127.0.0.1:43180` (`UI_DEV_PORT`), which reloads on change and sends `/api` requests to Express; open the second address. For a built UI, run `npm run build && npm start` and open `http://127.0.0.1:43179`. `npm test` runs the server tests and the UI tests.
+
+The build sets `STATIC_SPA=true`, which turns the UI into a static single-page app in `ui/dist/client`; the Express server serves those files and every `/api` route. Without it, the UI builds for Lovable's own hosting.
+
+To update the UI, commit inside `ui/`, push it to the UI repository, then commit the new submodule pointer here (`git add frontend/ui`).
 
 The server reads `frontend/.env` when present. `RAG_API_URL` is the server-side API address; `LANGFUSE_BASE_URL` is the server-side Langfuse address; `LANGFUSE_UI_URL` is the browser-reachable Langfuse address.
 
-For Docker, run `docker compose up -d --build --no-deps frontend` from the repository root after the API is running. The frontend service uses host networking and listens on `127.0.0.1:43179`. It reads the existing root `.env` for Langfuse keys and connects to the existing API on port `8001`.
+For Docker, check out the submodule, then run `docker compose up -d --build --no-deps frontend` from the repository root after the API is running. The image builds the UI from `ui/` and serves it with the Express server. The frontend service uses host networking and listens on `127.0.0.1:43179`. It reads the existing root `.env` for Langfuse keys and connects to the existing API on port `8001`.
 
 To publish the frontend through a dashboard-managed Cloudflare Tunnel, set `CLOUDFLARE_PRODUCTION_TUNNEL_TOKEN` in the root `.env` and run `docker compose --profile cloudflare up -d --build --no-deps frontend cloudflared` after the API is running. In Cloudflare, configure a published application route for your chosen hostname with service URL `http://127.0.0.1:43179`. The tunnel connector and frontend share the host network; the frontend stays bound to loopback. The tunnel UUID is not needed to run this connector.
 
