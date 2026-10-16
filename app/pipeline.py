@@ -73,6 +73,25 @@ def _ollama(messages: list[dict[str, str]], model: str, budgets: tuple[int, ...]
         raise RuntimeError(f"Ollama request failed or returned empty content: {last_error or 'empty response'}")
 
 
+def _translate(question: str, config: ResolvedPipelineConfig, prompt_bundle: dict[str, Any] | None = None) -> str | None:
+    """The question in English when it is asked in another language, otherwise None.
+
+    Names are kept as written, except translated forms of the novels' own names, which become the English edition's.
+    """
+    with _observe("query translation", input=question) as obs:
+        messages = (prompt_bundle["rag-query-translation"]["client"].compile(question=question) if prompt_bundle else [
+            {"role": "system", "content": PROMPT_TEMPLATES["query_translation_system"]}, {"role": "user", "content": question}])
+        reply = _ollama(messages, config.generation_model.name, config.generation.output_budgets, config.generation.temperature, config.generation.context_length,
+                        prompt=prompt_bundle["rag-query-translation"]["client"] if prompt_bundle else None, name="English translation generation")
+        fields = {key.strip().upper(): value.strip().strip('"') for key, _, value in (line.partition(":") for line in reply.splitlines())}
+        # Asked to judge the language first, the model leaves English questions alone; their wording is never replaced.
+        english = fields.get("ENGLISH", "")
+        translated = (None if fields.get("LANGUAGE", "english").casefold().strip(" .") == "english" or english.casefold() == question.strip().casefold()
+                      else english or None)
+        _update(obs, output=translated)
+    return translated
+
+
 def _transform(question: str, config: ResolvedPipelineConfig, prompt_bundle: dict[str, Any] | None = None) -> tuple[str | None, list[str], str | None]:
     mode = config.retrieval_mode
     hypothetical = None
@@ -220,10 +239,17 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
         raise RuntimeError(f"index collection {collection!r} does not exist")
 
     stage = time.perf_counter()
+    # The search models and the cross-encoder are English, so a question asked in another language is translated and
+    # every later step (rewrites, reranking, scene search) uses the translation; it is also searched on its own. The
+    # answer model still sees the question as asked, so it answers in that language.
+    asked = question
+    translated = _translate(question, config, prompt_bundle) if config.query_translation and config.retrieval_mode != "baseline" else None
+    question = translated or question
     hypothetical, alternatives, corrected = _transform(question, config, prompt_bundle)
     timings["transformation_seconds"] = round(time.perf_counter() - stage, 4)
-    queries = [question] + ([hypothetical] if hypothetical else []) + alternatives + ([corrected] if corrected else [])
-    query_names = ["original question"] + (["hypothetical document"] if hypothetical else []) + [f"literary alternative {i}" for i in range(1, len(alternatives) + 1)] + (["grammar corrected question"] if corrected else [])
+    queries = [asked] + ([translated] if translated else []) + ([hypothetical] if hypothetical else []) + alternatives + ([corrected] if corrected else [])
+    query_names = (["original question"] + (["English translation"] if translated else []) + (["hypothetical document"] if hypothetical else [])
+                   + [f"literary alternative {i}" for i in range(1, len(alternatives) + 1)] + (["grammar corrected question"] if corrected else []))
     named = question
     if config.name_completion:
         with _observe("name completion", input=question) as obs:
@@ -270,7 +296,7 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
     timings["vector_search_seconds"] = vector_search_timings
 
     if not candidates:
-        return {"question": question, "mode": config.retrieval_mode, "generated_queries": queries,
+        return {"question": asked, "translated_question": translated, "mode": config.retrieval_mode, "generated_queries": queries,
                 "hypothetical_answer": hypothetical, "query_alternatives": alternatives, "grammar_corrected_query": corrected,
                 "answer": "I could not find supporting passages.", "citations": [], "baseline": [],
                 "candidates": [], "reranked": [], "evidence": "", "latency_seconds": round(time.perf_counter()-started, 2),
@@ -336,6 +362,8 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
     # them to the person asked about. Otherwise it sees the question as asked.
     # Passages admitted over a confident fused match won on the completed wording, so the model sees it too.
     answer_question = named if any(row.get("name_completion_hit") or row.get("wide_override") for row in reranked) else question
+    if translated:
+        answer_question = asked if answer_question == translated else f"{asked} ({answer_question})"
     messages = (prompt_bundle["rag-answer"]["client"].compile(question=answer_question, evidence=evidence) if prompt_bundle else [
         {"role": "system", "content": PROMPT_TEMPLATES["answer_system"]},
         {"role": "user", "content": f"Question: {answer_question}\n\nEvidence passages:\n{evidence}"}])
@@ -349,7 +377,7 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
     with _observe("citation extraction", input=answer) as obs:
         _update(obs, output=citations)
     timings["citation_extraction_seconds"] = round(time.perf_counter() - stage, 4)
-    return {"question": question, "mode": config.retrieval_mode, "generated_queries": queries,
+    return {"question": asked, "translated_question": translated, "mode": config.retrieval_mode, "generated_queries": queries,
             "hypothetical_answer": hypothetical, "query_alternatives": alternatives, "grammar_corrected_query": corrected,
             "name_completed_question": named, "low_confidence": low_confidence, "answer": answer,
             "citations": citations, "baseline": baseline, "candidates": candidates, "reranked": reranked,

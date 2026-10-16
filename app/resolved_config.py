@@ -69,6 +69,7 @@ class ResolvedPipelineConfig:
     answer_thinking: bool = False
     name_completion: bool = True
     name_completion_hits: int = 300
+    query_translation: bool = True
     low_confidence_score: float | None = 2.0
     low_confidence_top_k: int = 15
     wide_candidate_count: int = 100
@@ -103,6 +104,8 @@ class ResolvedPipelineConfig:
             raise ValueError("scene_thinking must be a boolean")
         if not isinstance(self.hyde, bool):
             raise ValueError("hyde must be a boolean")
+        if not isinstance(self.query_translation, bool):
+            raise ValueError("query_translation must be a boolean")
         if not isinstance(self.answer_thinking, bool) or not isinstance(self.name_completion, bool):
             raise ValueError("answer_thinking and name_completion must be booleans")
         if self.low_confidence_score is not None and (isinstance(self.low_confidence_score, bool) or not isinstance(self.low_confidence_score, (int, float))
@@ -173,7 +176,7 @@ class ResolvedPipelineConfig:
         defaults.update(value)
         value = defaults
         allowed = {"retrieval_mode", "candidate_count", "top_k", "passage_chars", "embedding_model", "reranker_model", "generation_model", "generation", "rrf_constant",
-                   "min_passage_chars", "passage_overlap", "expansion_count", "hyde", "answer_thinking", "name_completion", "name_completion_hits",
+                   "min_passage_chars", "passage_overlap", "expansion_count", "hyde", "answer_thinking", "name_completion", "name_completion_hits", "query_translation",
                    "low_confidence_score", "low_confidence_top_k", "wide_candidate_count", "wide_trigger_score", "wide_override_margin", "wide_max_hits",
                    "scene_margin", "scene_window", "scene_stride", "scene_search_hits", "scene_summary_model", "scene_thinking", "corpus_checksum", "prompt_hashes"}
         unknown = set(value) - allowed

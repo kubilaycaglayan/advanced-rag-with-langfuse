@@ -39,6 +39,7 @@ can touch, shrink that to only what it should touch, then confirm on the full da
 
 | Date | Round | QA.csv correctness | Citation | Improved (answer correctness) | Regressed | Commit |
 |---|---|---|---|---|---|---|
+| 2026-10-16 | English translation of<br>non-English questions<br>(`query_translation`) | 4 random items:<br>0.75 → 0.75 | 0.875 → 0.875 | Turkish and Spanish questions<br>abstained → answered | none (English path unchanged) | see section |
 | 2026-10-16 | Answer model only:<br>qwen3.5:9b-q8_0, gemma4:26b<br>(controlled, rejected) | 0.736 (qwen3:8b control)<br>→ 0.667 / 0.597 | 0.792 → 0.764 / 0.765 | qwen3.5: 4 up<br>gemma4: 4 up | qwen3.5: 7 down<br>gemma4: 12 down | not adopted (no code change) |
 | 2026-10-16 | Without HyDE<br>(ablation, rejected) | 0.764 → 0.722<br>(0.653 uncontrolled) | 0.861 → 0.806 | "Did Salander and Mikael have affair?" 0.5 → 1 | Zalachenko's killer 1 → 0.5<br>Salander's fortune 1 → 0.5<br>Henrik hires Blomkvist 1 → 0.5<br>who killed Harriet 0.5 → 0 | not adopted (`hyde` flag only) |
 | 2026-10-15 | Scene summaries by<br>gemma4:26b | 0.764 → 0.764 | 0.847 → 0.861 | — (citation: "Henrik hires Blomkvist" 0.5 → 1.0) | — | 51b2554 |
@@ -54,6 +55,26 @@ Each row compares the round's defaults against the defaults it replaced: 2d7b030
 defaults (0.614), not against 88d26af, whose defaults it reverted. The correctness judge is noisy on reworded answers
 (identical answers have scored 0 and 1 in different runs), so single 0.5 steps in rows without a repeat run are
 weak evidence.
+
+## 2026-10-16 — English translation of questions asked in another language (`query_translation`)
+
+**Target:** questions asked in another language. The embedder and cross-encoder are English-only, so "Salander'a
+sigara tabakasını kim verdi?" (Turkish for QA4, "Who gave the cigarette case to Salander?") and "¿Salander y Mikael
+tuvieron una aventura?" (Spanish for QA1) both went to the low-confidence path and abstained or hedged.
+
+**Change:** one generation request (`rag-query-translation`) replies `LANGUAGE:` and `ENGLISH:` lines. Names are kept
+as written; only translated forms of the novels' own names (a translated book title or nickname) become the English
+edition's. For a non-English question the translation is searched next to the question as asked and replaces it for
+the rewrites, name completion, reranking and scene search; the answer model still sees the question as asked. When the
+model says the question is English, its wording is never used, so English questions search exactly as before; a
+version that only asked for "ENGLISH or the translation" reworded English questions ("Mikael" → "Blomkvist") and was
+dropped.
+
+**Result:** 4 random QA.csv items (QA1, QA4, QA10, QA28), on (execution `6ba652d1`) vs off (`2b0b7829`): correctness
+0.75 / 0.75, citation 0.875 / 0.875, 0 failures, no translation made; the per-item swaps (QA1 1 vs 0.5, QA28 0.5 vs 1
+with identical evidence) are Ollama run-to-run noise. Foreign questions: the Turkish one now answers Miriam Wu (was
+"no evidence"), the Spanish one now cites the half-year affair (was hedged); both left the low-confidence path and
+took about 14 s instead of 22–47 s. Cost: one more short generation request per question.
 
 ## 2026-10-16 — Answer model only: qwen3.5:9b-q8_0 and gemma4:26b (controlled, not adopted)
 

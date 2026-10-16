@@ -31,7 +31,7 @@ class WorkflowChecks(unittest.TestCase):
         with patch('app.pipeline.qdrant_client', return_value=Qdrant()), \
              patch('app.pipeline._embedder', return_value=SimpleNamespace(encode=encode)), \
              patch('app.pipeline._observe', side_effect=observe), \
-             patch('app.pipeline._ollama', side_effect=['hypothetical document', 'alternative one\nalternative two\nalternative three', 'corrected question']):
+             patch('app.pipeline._ollama', side_effect=['LANGUAGE: English\nENGLISH: original question', 'hypothetical document', 'alternative one\nalternative two\nalternative three', 'corrected question']):
             result = run_pipeline('original question', collection='test')
         self.assertEqual(queries, ['original question', 'hypothetical document', 'alternative one', 'alternative two', 'alternative three', 'corrected question'])
         self.assertEqual(result['grammar_corrected_query'], 'corrected question')
@@ -50,12 +50,31 @@ class WorkflowChecks(unittest.TestCase):
             return SimpleNamespace(tolist=lambda: [0.0])
         with patch('app.pipeline.qdrant_client', return_value=Qdrant()), \
              patch('app.pipeline._embedder', return_value=SimpleNamespace(encode=encode)), \
-             patch('app.pipeline._ollama', side_effect=['alternative one\nalternative two\nalternative three', 'corrected question']):
+             patch('app.pipeline._ollama', side_effect=['LANGUAGE: English\nENGLISH: original question', 'alternative one\nalternative two\nalternative three', 'corrected question']):
             result = run_pipeline('original question', ResolvedPipelineConfig.from_mapping({'hyde': False}), collection='test')
         self.assertEqual(queries, ['original question', 'alternative one', 'alternative two', 'alternative three', 'corrected question'])
         self.assertIsNone(result['hypothetical_answer'])
         with self.assertRaises(ValueError):
             ResolvedPipelineConfig.from_mapping({'hyde': 'no'})
+
+    def test_foreign_question_is_searched_and_rewritten_in_english(self):
+        queries, sent = [], []
+        class Qdrant:
+            def collection_exists(self, name): return True
+            def query_points(self, **kwargs): return SimpleNamespace(points=[])
+            def scroll(self, **kwargs): return [], None
+        def encode(query, **kwargs):
+            queries.append(query)
+            return SimpleNamespace(tolist=lambda: [0.0])
+        replies = iter(['LANGUAGE: Turkish\nENGLISH: english question', 'hypothetical document', 'alternative one\nalternative two\nalternative three', 'corrected question'])
+        with patch('app.pipeline.qdrant_client', return_value=Qdrant()), \
+             patch('app.pipeline._embedder', return_value=SimpleNamespace(encode=encode)), \
+             patch('app.pipeline._ollama', side_effect=lambda messages, *a, **k: sent.append(messages) or next(replies)):
+            result = run_pipeline('soru', ResolvedPipelineConfig.from_mapping({'name_completion': False}), collection='test')
+        self.assertEqual(queries, ['soru', 'english question', 'hypothetical document', 'alternative one', 'alternative two', 'alternative three', 'corrected question'])
+        # The rewrites start from the translation.
+        self.assertTrue(all(messages[-1]['content'] == 'english question' for messages in sent[1:]))
+        self.assertEqual((result['question'], result['translated_question']), ('soru', 'english question'))
 
     def test_prompt_bundle_disables_cache_on_every_run(self):
         calls = []

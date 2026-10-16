@@ -40,6 +40,10 @@ PROMPT_CATALOG: dict[str, dict[str, Any]] = {
         {"role": "system", "content": PROMPT_TEMPLATES["query_expansion_system"]},
         {"role": "user", "content": "{{question}}"},
     ]},
+    "rag-query-translation": {"type": "chat", "prompt": [
+        {"role": "system", "content": PROMPT_TEMPLATES["query_translation_system"]},
+        {"role": "user", "content": "{{question}}"},
+    ]},
 }
 
 
