@@ -308,6 +308,7 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
     # still match its summary; its passages go after the usual evidence, which stays as it is. Like the wider-pool
     # override, this is for confident evidence that may be off the point: weak evidence already gets the low-confidence
     # path (more passages and reasoning), and a whole scene on top of that crowds the answer.
+    scene_hits: list[dict[str, Any]] = []
     if config.scene_margin is not None and config.retrieval_mode != "baseline" and not low_confidence:
         stage = time.perf_counter()
         with _observe("scene search", input=question) as obs:
@@ -321,6 +322,12 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
     stage = time.perf_counter()
     with _observe("evidence formatting", input=reranked) as obs:
         evidence = _format_evidence(reranked)
+        if scene_hits and config.scene_thinking:
+            # Scene passages are dialogue that rarely names who speaks; read as loose snippets, the answer model picks a
+            # few. Saying they are one continuous scene, and letting it reason, makes it go through all of them
+            # (opt-in: on QA.csv it made answers more complete but did not raise correctness, and costs ~50 s each).
+            first = len(reranked) - len(scene_hits) + 1
+            evidence += f"\n\n[E{first}]–[E{len(reranked)}] are consecutive passages of one scene, in reading order."
         _update(obs, output=evidence)
     timings["evidence_formatting_seconds"] = round(time.perf_counter() - stage, 4)
     # When the evidence holds passages that only the completed-name search found, the answer model sees the completed
@@ -334,7 +341,7 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
     stage = time.perf_counter()
     answer = _ollama(messages,
                      config.generation_model.name, config.generation.output_budgets, config.generation.temperature, config.generation.context_length,
-                     prompt=prompt_bundle["rag-answer"]["client"] if prompt_bundle else None, think=config.answer_thinking or low_confidence)
+                     prompt=prompt_bundle["rag-answer"]["client"] if prompt_bundle else None, think=config.answer_thinking or low_confidence or bool(scene_hits and config.scene_thinking))
     timings["generation_seconds"] = round(time.perf_counter() - stage, 4)
     citations = list(dict.fromkeys(re.findall(r"\[E\d+\]", answer)))
     stage = time.perf_counter()

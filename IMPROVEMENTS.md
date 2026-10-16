@@ -132,6 +132,16 @@ answer); "Henrik hires Blomkvist" citation 0.5 → 1.0; "Who gave the cigarette 
 (answer as in exp83); 3 other answers changed with the same scores. exp93 (the 6 changed questions, repeat): identical.
 exp94 (new defaults, no config): byte-identical to exp92.
 
+**Follow-up, the remaining gap (opt-in, not default):** with gemma4:26b summaries the target's evidence already holds
+the bank-access and "no other women" passages; the answer model lists only some demands from six unnamed dialogue
+passages. Joining the scene into one evidence item, or a note that the passages are one scene, changed nothing alone
+(joining dropped the Harriet investigation from "Henrik hires Blomkvist"). The note plus reasoning (`scene_thinking`)
+recovered the bank demand: exp95 (QA): 0.750 / 0.875; target still 0.5 (the judge wants "full financial control", "no
+psychiatric interference" and "no abuse of other women" stated); "Why does Salander first go to Bjurman for money?"
+citation 0.5 → 1.0; "What was the nickname of Mikael?" 1.0 → 0.5 from different generated queries (Ollama
+nondeterminism, no scene); mean latency 17.98 s → 25.28 s. Kept as an option, off by default; exp96 (defaults, 6
+changed questions) reproduces exp94.
+
 ## 2026-10-15 — Wider passage over an off-point strong match: "Did Salander and Mikael have affair?" (e0c98f8)
 
 **Target:** "Did Salander and Mikael have affair?" (item 785e319a), scored 0 in every run since 2d7b030: "there is no
