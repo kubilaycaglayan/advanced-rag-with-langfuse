@@ -142,6 +142,10 @@ citation 0.5 → 1.0; "What was the nickname of Mikael?" 1.0 → 0.5 from differ
 nondeterminism, no scene); mean latency 17.98 s → 25.28 s. Kept as an option, off by default; exp96 (defaults, 6
 changed questions) reproduces exp94.
 
+**Diagnostic, a second judge (official scores unchanged):** the same correctness prompt run with gemma4:26b as the
+judge scores the target's answer 0 before this round (exp83), 0.83 with the current defaults (exp94) and 1.0 with
+`scene_thinking` (exp95); the official qwen3:8b judge gives 0.5 to the last two. The remaining 0.5 is partly the judge.
+
 ## 2026-10-15 — Wider passage over an off-point strong match: "Did Salander and Mikael have affair?" (e0c98f8)
 
 **Target:** "Did Salander and Mikael have affair?" (item 785e319a), scored 0 in every run since 2d7b030: "there is no
