@@ -39,6 +39,7 @@ can touch, shrink that to only what it should touch, then confirm on the full da
 
 | Date | Round | QA.csv correctness | Citation | Improved (answer correctness) | Regressed | Commit |
 |---|---|---|---|---|---|---|
+| 2026-10-16 | Answer model only:<br>qwen3.5:9b-q8_0, gemma4:26b<br>(controlled, rejected) | 0.736 (qwen3:8b control)<br>→ 0.667 / 0.597 | 0.792 → 0.764 / 0.765 | qwen3.5: 4 up<br>gemma4: 4 up | qwen3.5: 7 down<br>gemma4: 12 down | not adopted (no code change) |
 | 2026-10-16 | Without HyDE<br>(ablation, rejected) | 0.764 → 0.722<br>(0.653 uncontrolled) | 0.861 → 0.806 | "Did Salander and Mikael have affair?" 0.5 → 1 | Zalachenko's killer 1 → 0.5<br>Salander's fortune 1 → 0.5<br>Henrik hires Blomkvist 1 → 0.5<br>who killed Harriet 0.5 → 0 | not adopted (`hyde` flag only) |
 | 2026-10-15 | Scene summaries by<br>gemma4:26b | 0.764 → 0.764 | 0.847 → 0.861 | — (citation: "Henrik hires Blomkvist" 0.5 → 1.0) | — | 51b2554 |
 | 2026-10-15 | Scene summaries for<br>unnamed dialogue | 0.750 → 0.764 | 0.847 → 0.847 | "What does Salander ultimately demand from Bjurman?" 0 → 0.5 | — | b36115a |
@@ -53,6 +54,51 @@ Each row compares the round's defaults against the defaults it replaced: 2d7b030
 defaults (0.614), not against 88d26af, whose defaults it reverted. The correctness judge is noisy on reworded answers
 (identical answers have scored 0 and 1 in different runs), so single 0.5 steps in rows without a repeat run are
 weak evidence.
+
+## 2026-10-16 — Answer model only: qwen3.5:9b-q8_0 and gemma4:26b (controlled, not adopted)
+
+**Question:** is another local model better or faster at writing the final answer, with retrieval held fixed? The
+earlier qwen3.5 run (exp76, 0.764, 9 items lower) changed `generation_model`, which also writes the HyDE document,
+query alternatives and grammar-corrected question, so it tested retrieval and answers together.
+
+**Setup** (`data/tuning/scripts-2026-10-16-answer-model/`): every arm replays exp100's recorded queries, so retrieval,
+reranking, scene search and the evidence are the same; only the model behind the answer request changes (same
+`rag-answer` v1 prompt, temperature 0, 8192 context, budgets, reasoning rules).
+1. *Answers, no judging, one model loaded:* the evidence was byte-identical to exp100 on 36/36 items in all six runs,
+   and each model's repeat run gave byte-identical answers. Timing is warm (the model is loaded before the first item).
+2. *Official judging:* a normal experiment run per arm (managed qwen3:8b judges) whose answer call returns the stored
+   answer only if the request matches it exactly.
+qwen3:8b runs through the same harness as the control. Without the preceding query requests it writes different text
+on 23/36 items (the order sensitivity noted in the HyDE ablation), so the control scores 0.736 / 0.792, not exp100's
+0.764 / 0.861.
+
+| Answer model | Correctness | Citation | vs control | Answer time mean / median / p90 | Reasoning path (13 items) | Decode |
+|---|---|---|---|---|---|---|
+| qwen3:8b (control, exp101) | 0.736 | 0.792 | — | 10.6 / 4.7 / 21.5 s | 22.6 s | 35 tok/s |
+| qwen3.5:9b-q8_0 (exp102) | 0.667 | 0.764 | 4 up / 7 down | 90.0 / 14.6 / 417 s | 229 s | 21 tok/s |
+| gemma4:26b (exp103) | 0.597 | 0.765 | 4 up / 12 down | 7.5 / 4.1 / 14.2 s | 14.6 s | 69 tok/s |
+
+Retrieval and the other steps add about 8.7 s per question, so end-to-end latency would be about 19 s (qwen3:8b),
+about 99 s (qwen3.5) and about 16 s (gemma4).
+
+**Findings:**
+- *qwen3.5:9b-q8_0:* reasons about 7× longer on the weak-evidence path (≈4800 tokens per item against ≈670); 7 answer
+  calls hit the 4096-token budget and 5 items needed the 8192 retry or the no-reasoning fallback (400–460 s each).
+  Gains (prison months, who killed Harriet, digging tool, affair) are offset by losses on Cecilia, Armageddon shirt,
+  what is Armageddon, Henrik's family, Henrik hires Blomkvist, Dag Svensson's murderer, cigarette case.
+- *gemma4:26b:* faster than qwen3:8b everywhere (reasoning path 22.6 → 14.6 s) and never hit a budget, but it commits
+  less: with the same evidence it lists every candidate instead of choosing (Säpo unit: "Zalachenko club / unit /
+  faction / inner circle"; Dag Svensson's murderer: several suspects), says the evidence lacks the answer or gives
+  an off-point one where qwen3:8b scored (Cecilia, Armageddon shirt, Bjurman money), and some drops are judge strictness (libel conviction
+  1 → 0.5 for adding "fifteen counts"). The judge is qwen3:8b, so a preference for its own style cannot be excluded;
+  the earlier gemma4 second-judge diagnostic suggests the judge matters.
+- Both candidates raise the same three items 0.5 → 1 (prison months, who killed Harriet, digging tool; plus affair
+  for qwen3.5 and Niedermann for gemma4), so qwen3:8b's partial answers there are a weakness the evidence can fix.
+
+**Decision:** keep qwen3:8b for answers (default unchanged; no code change). gemma4:26b is the only faster option;
+it would need prompt work on committing to one supported answer before it is worth another round. Runs: exp101
+http://127.0.0.1:28420/project/millenium/datasets/cmv7zo6nw0007pa7t55mno068/runs/ce11af8cf5a7cdbc, exp102
+.../runs/3ed1b61b954f2b24, exp103 .../runs/e51e6d747b155e35.
 
 ## 2026-10-16 — Ablation: no hypothetical document (HyDE) (not adopted)
 
