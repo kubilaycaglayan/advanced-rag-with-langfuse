@@ -39,6 +39,7 @@ can touch, shrink that to only what it should touch, then confirm on the full da
 
 | Date | Round | QA.csv correctness | Citation | Improved (answer correctness) | Regressed | Commit |
 |---|---|---|---|---|---|---|
+| 2026-10-16 | Without HyDE<br>(ablation, rejected) | 0.764 → 0.722<br>(0.653 uncontrolled) | 0.861 → 0.806 | "Did Salander and Mikael have affair?" 0.5 → 1 | Zalachenko's killer 1 → 0.5<br>Salander's fortune 1 → 0.5<br>Henrik hires Blomkvist 1 → 0.5<br>who killed Harriet 0.5 → 0 | not adopted (`hyde` flag only) |
 | 2026-10-15 | Scene summaries by<br>gemma4:26b | 0.764 → 0.764 | 0.847 → 0.861 | — (citation: "Henrik hires Blomkvist" 0.5 → 1.0) | — | 51b2554 |
 | 2026-10-15 | Scene summaries for<br>unnamed dialogue | 0.750 → 0.764 | 0.847 → 0.847 | "What does Salander ultimately demand from Bjurman?" 0 → 0.5 | — | b36115a |
 | 2026-10-15 | Wider passage over an<br>off-point strong match | 0.736 → 0.750 | 0.861 → 0.847 | "Did Salander and Mikael have affair?" 0 → 0.5 | — (that item's citation 1.0 → 0.5) | e0c98f8 |
@@ -52,6 +53,42 @@ Each row compares the round's defaults against the defaults it replaced: 2d7b030
 defaults (0.614), not against 88d26af, whose defaults it reverted. The correctness judge is noisy on reworded answers
 (identical answers have scored 0 and 1 in different runs), so single 0.5 steps in rows without a repeat run are
 weak evidence.
+
+## 2026-10-16 — Ablation: no hypothetical document (HyDE) (not adopted)
+
+**Question:** what does the HyDE query (a generated passage that "could answer" the question, searched alongside the
+question, three literary alternatives and the grammar-corrected question) contribute to retrieval and answers?
+
+**Setup:** new `hyde` setting (default true); `{"hyde": false}` drops only that query. The `query_expansion` mode was
+not used because it also drops grammar correction. Same-day control exp100 (defaults) reproduced exp94 (35 of 36
+answers byte-identical, same scores), so exp94/exp100 is the baseline.
+- exp98, `{"hyde": false}` as deployed: 0.653 / 0.861, 8 down (1 → 0.5: Zalachenko's killer, fortune, Palmgren's
+  condition, why not go to police, Henrik hires Blomkvist; who killed Harriet 0.5 → 0; Armageddon shirt 1 → 0;
+  what is Armageddon 1 → 0.5), 1 up (affair 0.5 → 1).
+- exp99, controlled: the same alternatives and grammar-corrected query as exp100, replayed from the recorded run
+  (`data/tuning/scripts-2026-10-16-no-hyde/replay_no_hyde.py`), so the only difference is the missing query:
+  0.722 / 0.806, 5 down / 2 up.
+
+**Findings:**
+- *Retrieval:* HyDE is a minor contributor. Without it 21 of 36 items get different evidence, almost always one
+  passage swapped out of 10–15; the best reranker score is unchanged on every item but one. On two items (QA13, QA16)
+  the scene gate no longer admits a scene (16 → 10 passages), with no score change. In the four items that dropped
+  in the controlled run, the lost passage was not one the HyDE-on answer cited.
+- *Answers:* the drops come from the 8B answer model reacting to small evidence changes, not from losing the passage
+  with the answer: e.g. "Henrik hires Blomkvist" still has the Harriet passage but now answers only "family chronicle".
+  Answers are slightly shorter (48.5 → 44–46 words); citations per answer and the low-confidence (reasoning) path
+  (13 items) are unchanged.
+- *Order sensitivity:* qwen3:8b's greedy (temperature 0) output depends on the request before it (llama.cpp prompt
+  cache). Replaying a recorded answer request after its recorded HyDE → expansion → grammar sequence reproduces the
+  recorded answer; after only a grammar request it does not (`sequence_probe.py`). So removing any LLM call changes
+  some answers even with identical evidence (exp99: 4 such items, correctness 1 up / 1 down), and in exp98 it also
+  changed the query alternatives of 18 items. That is why the uncontrolled run (0.653) is worse than the controlled
+  one (0.722): part of the difference is this instability, not HyDE's retrieval value.
+- *Speed:* mean latency 18.06 → 15.38 s (exp98; median 14.5 → 10.7 s); query transformation 7.0 → 3.9 s.
+
+**Decision:** keep HyDE on (default unchanged). The `hyde` flag stays as an opt-out for latency-sensitive use. Runs:
+exp98 http://127.0.0.1:28420/project/millenium/datasets/cmv7zo6nw0007pa7t55mno068/runs/ad1026f5143e167b, exp99
+.../runs/2f935c488054ab73, exp100 .../runs/cbd669e81da30a74.
 
 ## 2026-10-15 — Scene summaries for answers spread over unnamed dialogue (b36115a)
 

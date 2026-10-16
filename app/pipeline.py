@@ -78,7 +78,8 @@ def _transform(question: str, config: ResolvedPipelineConfig, prompt_bundle: dic
     hypothetical = None
     corrected = None
     alternatives: list[str] = []
-    if mode in {"hyde", "hyde_query_expansion", "full"}:
+    # hyde=false keeps every other step of the mode and only drops the hypothetical document.
+    if config.hyde and mode in {"hyde", "hyde_query_expansion", "full"}:
         with _observe("HyDE transformation", input=question) as obs:
             messages = (prompt_bundle["rag-hyde"]["client"].compile(question=question) if prompt_bundle else [
                 {"role": "system", "content": PROMPT_TEMPLATES["hyde_system"]}, {"role": "user", "content": question}])

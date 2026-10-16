@@ -39,6 +39,24 @@ class WorkflowChecks(unittest.TestCase):
         self.assertTrue(all(f'search: literary alternative {i}' in spans for i in (1, 2, 3)))
         self.assertIn('grammar correction', spans)
 
+    def test_hyde_off_keeps_alternatives_and_grammar(self):
+        queries = []
+        class Qdrant:
+            def collection_exists(self, name): return True
+            def query_points(self, **kwargs): return SimpleNamespace(points=[])
+            def scroll(self, **kwargs): return [], None
+        def encode(query, **kwargs):
+            queries.append(query)
+            return SimpleNamespace(tolist=lambda: [0.0])
+        with patch('app.pipeline.qdrant_client', return_value=Qdrant()), \
+             patch('app.pipeline._embedder', return_value=SimpleNamespace(encode=encode)), \
+             patch('app.pipeline._ollama', side_effect=['alternative one\nalternative two\nalternative three', 'corrected question']):
+            result = run_pipeline('original question', ResolvedPipelineConfig.from_mapping({'hyde': False}), collection='test')
+        self.assertEqual(queries, ['original question', 'alternative one', 'alternative two', 'alternative three', 'corrected question'])
+        self.assertIsNone(result['hypothetical_answer'])
+        with self.assertRaises(ValueError):
+            ResolvedPipelineConfig.from_mapping({'hyde': 'no'})
+
     def test_prompt_bundle_disables_cache_on_every_run(self):
         calls = []
         client = SimpleNamespace(get_prompt=lambda name, **kwargs: calls.append(kwargs) or object())
