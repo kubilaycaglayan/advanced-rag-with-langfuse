@@ -9,7 +9,7 @@
 /data/
 /outputs/
 /corpus/
-/LANGFUSE_INTEGRATION_PLAN.md
+/docs/plans/LANGFUSE_INTEGRATION_PLAN.md
 **/__pycache__/
 *.py[cod]
 Notes.md

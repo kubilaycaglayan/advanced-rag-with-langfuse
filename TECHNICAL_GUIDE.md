@@ -23,7 +23,7 @@ a name if you want one, e.g. `{"variant_label":"my-test"}`; any `config` or `pro
 Or run `python app/experiments.py --dataset QA.csv --variant full-retrieval`. To compare a baseline, explicitly pass a config file containing `{"retrieval_mode":"baseline"}`. Reference answers are provided only to the correctness judge, never to retrieval or answer generation.
 
 
-This repository root is the implementation target for the Langfuse hosted dataset experiment workflow. The plan and current preparation findings are in [the integration handoff](LANGFUSE_INTEGRATION_PLAN.md). The legacy repository is reference material only; the target project is implemented directly here.
+This repository root is the implementation target for the Langfuse hosted dataset experiment workflow. The plan and current preparation findings are in [the integration handoff](docs/plans/LANGFUSE_INTEGRATION_PLAN.md). The legacy repository is reference material only; the target project is implemented directly here.
 
 ## Stage 1 setup
 
