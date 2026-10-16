@@ -146,6 +146,15 @@ changed questions) reproduces exp94.
 judge scores the target's answer 0 before this round (exp83), 0.83 with the current defaults (exp94) and 1.0 with
 `scene_thinking` (exp95); the official qwen3:8b judge gives 0.5 to the last two. The remaining 0.5 is partly the judge.
 
+**Closed and deployed (2026-10-16):** the target's evidence (exp94) holds a passage for every point of the reference
+answer: bank access (E11), welfare and faked meeting reports (E12, E13), the shrink who will swear she is normal (E13),
+spare keys (E15) and no other women (E16). The answer cites E13–E15 only, so the remaining gap is in generation and
+the judge, not retrieval. The round was closed with retrieval as the goal. Untried general ideas for a later round:
+extract every supported claim and then answer from that list, or check the draft against the evidence for missed
+points, only when a scene is admitted. Deployed at 42d3d32 (`docker compose up --build -d app`); the live `/ask` gives
+the exp94 answer with the 6 scene passages in 17 s. gemma4:26b must stay installed to summarise new windows when the
+index is rebuilt.
+
 ## 2026-10-15 — Wider passage over an off-point strong match: "Did Salander and Mikael have affair?" (e0c98f8)
 
 **Target:** "Did Salander and Mikael have affair?" (item 785e319a), scored 0 in every run since 2d7b030: "there is no
