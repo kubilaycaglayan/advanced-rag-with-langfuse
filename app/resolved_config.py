@@ -77,7 +77,7 @@ class ResolvedPipelineConfig:
     wide_trigger_score: float | None = 3.5
     wide_override_margin: float | None = 2.0
     wide_max_hits: int = 3
-    keyword_hits: int = 0
+    keyword_hits: int = 30
     keyword_margin: float | None = 4.0
     keyword_max_hits: int = 5
     scene_margin: float | None = 1.0

@@ -47,7 +47,7 @@ class KeywordSearchChecks(unittest.TestCase):
 
     def test_validation(self):
         config = ResolvedPipelineConfig()
-        self.assertEqual((config.keyword_hits, config.keyword_margin, config.keyword_max_hits), (0, 4.0, 5))
+        self.assertEqual((config.keyword_hits, config.keyword_margin, config.keyword_max_hits), (30, 4.0, 5))
         self.assertIsNone(ResolvedPipelineConfig.from_mapping({"keyword_margin": None}).keyword_margin)
         for bad in ({"keyword_hits": -1}, {"keyword_hits": 201}, {"keyword_hits": True}, {"keyword_margin": -1}, {"keyword_margin": "x"},
                     {"keyword_margin": float("nan")}, {"keyword_margin": True}, {"keyword_max_hits": -1}, {"keyword_max_hits": 31}):
@@ -115,7 +115,7 @@ class WideCandidateChecks(unittest.TestCase):
         reranker = MagicMock()
         reranker.predict.side_effect = lambda pairs, show_progress_bar: [(named_scores if q == "q named" else scores)[text] for q, text in pairs]
         config = ResolvedPipelineConfig(**{"retrieval_mode": "query_expansion", "candidate_count": 3, "top_k": 3, "low_confidence_top_k": 3, "wide_candidate_count": 6,
-                                            "scene_margin": None, "query_translation": False} | settings)
+                                            "scene_margin": None, "query_translation": False, "keyword_hits": 0} | settings)
         with patch.object(pipeline, "qdrant_client", return_value=client), patch.object(pipeline, "_embedder", return_value=embedder), \
                 patch.object(pipeline, "_reranker", return_value=reranker), patch.object(pipeline, "_transform", return_value=(None, ["alt"], None)), \
                 patch.object(pipeline, "_complete_names", return_value="q named" if named_scores else "q"), \

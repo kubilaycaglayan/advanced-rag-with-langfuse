@@ -39,7 +39,7 @@ can touch, shrink that to only what it should touch, then confirm on the full da
 
 | Date | Round | QA.csv correctness | Citation | Improved (answer correctness) | Regressed | Commit |
 |---|---|---|---|---|---|---|
-| 2026-10-16 | Keyword (BM25) search<br>for words dense search misses<br>(opt-in `keyword_hits`) | 0.722 → 0.736<br>(evidence identical 36/36) | 0.875 → 0.875 | "What is 'no compromises'?" (Additional Questions) 0 → 0.5<br>nickname 0.5 → 1 (answer drift, same evidence) | none in correctness<br>(target's citation 1.0 → 0.5: its old abstention scored 1.0) | see section |
+| 2026-10-16 | Keyword (BM25) search<br>for words dense search misses<br>(`keyword_hits`, on by default) | 0.722 → 0.736<br>(evidence identical 36/36) | 0.875 → 0.875 | "What is 'no compromises'?" (Additional Questions) 0 → 0.5<br>nickname 0.5 → 1 (answer drift, same evidence) | none in correctness<br>(target's citation 1.0 → 0.5: its old abstention scored 1.0) | see section |
 | 2026-10-16 | English translation of<br>non-English questions<br>(`query_translation`) | 4 random items:<br>0.75 → 0.75 | 0.875 → 0.875 | Turkish and Spanish questions<br>abstained → answered | none (English path unchanged) | see section |
 | 2026-10-16 | Moment scene path on +<br>no translation request<br>for plainly English questions | 0.694 → 0.722<br>(exp100: 0.764) | 0.833 → 0.875<br>(exp100: 0.861) | T-shirt at the first meeting (Additional Questions) 0 → 1<br>Martin Vanger citation 0.5 → 1 | vs exp100, identical evidence: nickname 1 → 0.5, Zalachenko's killer 1 → 0.5 (answer-text drift)<br>police after assault 1 → 0.5 (controlled A/B: key points kept) | this commit |
 | 2026-10-16 | Answer model only:<br>qwen3.5:9b-q8_0, gemma4:26b<br>(controlled, rejected) | 0.736 (qwen3:8b control)<br>→ 0.667 / 0.597 | 0.792 → 0.764 / 0.765 | qwen3.5: 4 up<br>gemma4: 4 up | qwen3.5: 7 down<br>gemma4: 12 down | not adopted (no code change) |
@@ -98,8 +98,8 @@ takes about 0.2 s per question (the index is built once per process).
 **Result:** exp119 QA.csv 0.736 / 0.875 vs exp112 0.722 / 0.875: evidence identical on 36/36, answers identical on
 35/36; the one changed answer (nickname, same evidence) is answer drift and went 0.5 → 1. exp120 Additional Questions
 0.429 / 0.929 vs exp113 0.357 / 1.0: only the target changed (0 → 0.5 correctness; citation 1.0 → 0.5 because the
-judge would not credit *Dragon Tattoo* "you don't compromise" as support for the trait). The default stays off pending
-approval.
+judge would not credit *Dragon Tattoo* "you don't compromise" as support for the trait). Approved and turned on by
+default (`keyword_hits` 30) on 2026-10-16, the setting of exp119/exp120.
 
 ## 2026-10-16 — English translation of questions asked in another language (`query_translation`)
 
