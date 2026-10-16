@@ -39,6 +39,7 @@ can touch, shrink that to only what it should touch, then confirm on the full da
 
 | Date | Round | QA.csv correctness | Citation | Improved (answer correctness) | Regressed | Commit |
 |---|---|---|---|---|---|---|
+| 2026-10-16 | Keyword (BM25) search<br>for words dense search misses<br>(opt-in `keyword_hits`) | 0.722 → 0.736<br>(evidence identical 36/36) | 0.875 → 0.875 | "What is 'no compromises'?" (Additional Questions) 0 → 0.5<br>nickname 0.5 → 1 (answer drift, same evidence) | none in correctness<br>(target's citation 1.0 → 0.5: its old abstention scored 1.0) | see section |
 | 2026-10-16 | English translation of<br>non-English questions<br>(`query_translation`) | 4 random items:<br>0.75 → 0.75 | 0.875 → 0.875 | Turkish and Spanish questions<br>abstained → answered | none (English path unchanged) | see section |
 | 2026-10-16 | Moment scene path on +<br>no translation request<br>for plainly English questions | 0.694 → 0.722<br>(exp100: 0.764) | 0.833 → 0.875<br>(exp100: 0.861) | T-shirt at the first meeting (Additional Questions) 0 → 1<br>Martin Vanger citation 0.5 → 1 | vs exp100, identical evidence: nickname 1 → 0.5, Zalachenko's killer 1 → 0.5 (answer-text drift)<br>police after assault 1 → 0.5 (controlled A/B: key points kept) | this commit |
 | 2026-10-16 | Answer model only:<br>qwen3.5:9b-q8_0, gemma4:26b<br>(controlled, rejected) | 0.736 (qwen3:8b control)<br>→ 0.667 / 0.597 | 0.792 → 0.764 / 0.765 | qwen3.5: 4 up<br>gemma4: 4 up | qwen3.5: 7 down<br>gemma4: 12 down | not adopted (no code change) |
@@ -56,6 +57,49 @@ Each row compares the round's defaults against the defaults it replaced: 2d7b030
 defaults (0.614), not against 88d26af, whose defaults it reverted. The correctness judge is noisy on reworded answers
 (identical answers have scored 0 and 1 in different runs), so single 0.5 steps in rows without a repeat run are
 weak evidence.
+
+## 2026-10-16 — Keyword (BM25) search for words dense search misses (opt-in `keyword_hits`)
+
+**Target:** "What is \"no compromises\"?" (Additional Questions, item 1e785ac0), scored 0 in exp113: "the term is not
+explicitly defined or directly referenced in the provided evidence".
+
+**Diagnosis** (`data/tuning/scripts-2026-10-16-keyword/`, offline, no answer model): the phrase is Salander's inner
+line at her trial (*Hornet's Nest* ch. 28 ¶11, ¶22, ¶47). All retrieval is dense; MiniLM ranks those passages
+132–3,715 for the six queries, so none reaches the 30 fused candidates, the question goes down the low-confidence
+path (best fused −6.59) and scene search is skipped. When scored, the passages rank far above the evidence (1.93,
+1.55, −0.45). BM25 on the question ranks them 1st–3rd. The scene summaries leave out the line, so they don't help.
+
+**Blast radius, measured offline on all 43 questions (exp112/exp113 recorded candidates):** with keyword hits
+competing for the low-confidence evidence, or admitted like the wider pool when they only beat every fused candidate,
+evidence changed on 13–14 of 36 QA.csv items, including off-corpus questions (table salt, solar eclipse) that got
+passages scoring around −11. The target's best keyword passage beats the best fused candidate by 8.52; the largest
+margin on any other question is 3.57 (an unrelated coffee passage for the Armageddon question). Only the target clears
+4.0.
+
+**What was tried on the target (single-item runs):**
+- exp114, the three exact-phrase passages admitted in score order: 0.5. The answer said the phrase "appears" but is
+  not explained. Each passage holds the line but not what it answers.
+- exp115, each admitted passage joined with the passage before it (¶14–21 Giannini demands immediate acquittal; ¶40–46
+  Salander refuses any condition): 0.5, the answer now explains the stance but garbles it.
+- exp116, the same in reading order: 0.5, a correct answer with citation 1.0.
+- exp117/exp118, plural stemming ("compromises" also matches "compromise") and, once the margin has fired, every
+  keyword hit that beats every fused candidate (up to 5): adds "at least you don't compromise" (*Dragon Tattoo*
+  ch. 27) and "OK. A little compromise" (ch. 28): 0.5. The judge asks for the trial stance, the personal trait and the
+  single exception every time. In six offline replays of the answer request on three evidence variants, qwen3:8b never
+  used the "little compromise" passage, so the rest of the gap is in the answer step, not retrieval.
+
+**Change:** `keyword_hits` (default 0 = off; 30 in the runs below), `keyword_margin` (4.0, calibrated on these 43
+questions: it sits in the gap 3.57 → 8.52) and `keyword_max_hits` (5). An in-memory BM25 index over the indexed
+passages (stop words dropped, plural -s stemmed) is searched with the question. Hits not already pooled are reranked.
+When one beats every fused candidate by `keyword_margin`, the hits that beat every fused candidate are added in front
+of the evidence in reading order, each joined with the passage before it. No LLM request is added. Keyword search
+takes about 0.2 s per question (the index is built once per process).
+
+**Result:** exp119 QA.csv 0.736 / 0.875 vs exp112 0.722 / 0.875: evidence identical on 36/36, answers identical on
+35/36; the one changed answer (nickname, same evidence) is answer drift and went 0.5 → 1. exp120 Additional Questions
+0.429 / 0.929 vs exp113 0.357 / 1.0: only the target changed (0 → 0.5 correctness; citation 1.0 → 0.5 because the
+judge would not credit *Dragon Tattoo* "you don't compromise" as support for the trait). The default stays off pending
+approval.
 
 ## 2026-10-16 — English translation of questions asked in another language (`query_translation`)
 

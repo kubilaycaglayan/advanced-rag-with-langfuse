@@ -197,6 +197,62 @@ def _name_pairs(collection: str) -> tuple[dict[str, tuple[str, int, int]], Count
     return {word: (*names.most_common(1)[0], sum(names.values())) for word, names in by_word.items()}, words
 
 
+_KEYWORD_STOPWORDS = frozenset("a an the of to in on and or is was were be been are did does do how what who whom why when where which "
+                               "that this with for by at from as her his she he it its their they them".split())
+
+
+def _keywords(text: str) -> list[str]:
+    """Content words, lowercased, with a plural -s dropped so "compromises" also matches "compromise"."""
+    return [word[:-1] if len(word) > 3 and word.endswith("s") and not word.endswith(("ss", "us", "is")) else word
+            for word in re.findall(r"\w+", text.lower()) if word not in _KEYWORD_STOPWORDS]
+
+
+@lru_cache(maxsize=4)
+def _keyword_index(collection: str) -> tuple[list[dict[str, Any]], list[Counter], list[int], Counter]:
+    """All passages of the collection with their keyword counts, lengths and document frequencies (built once)."""
+    rows: list[dict[str, Any]] = []
+    offset = None
+    while True:
+        points, offset = qdrant_client().scroll(collection_name=collection, limit=1000, offset=offset, with_payload=True)
+        rows += [dict(point.payload or {}) | {"id": str(point.id)} for point in points]
+        if offset is None:
+            break
+    words = [_keywords(row.get("text", "")) for row in rows]
+    return rows, [Counter(row_words) for row_words in words], [len(row_words) for row_words in words], Counter(word for row_words in words for word in set(row_words))
+
+
+@lru_cache(maxsize=4)
+def _previous_passages(collection: str) -> dict[str, dict[str, Any]]:
+    """The passage before each passage in its EPUB section, by id."""
+    sections: dict[tuple, list[dict[str, Any]]] = defaultdict(list)
+    for row in _keyword_index(collection)[0]:
+        sections[(row.get("book_file"), row.get("section"))].append(row)
+    previous: dict[str, dict[str, Any]] = {}
+    for rows in sections.values():
+        rows.sort(key=lambda row: (row.get("paragraph", 0), row.get("part", 0)))
+        previous.update((row["id"], before) for before, row in zip(rows, rows[1:]))
+    return previous
+
+
+def _with_previous_passage(row: dict[str, Any], collection: str) -> dict[str, Any]:
+    """The passage joined with the one before it, so words it matched come with what they refer back to."""
+    before = _previous_passages(collection).get(row["id"])
+    if not before:
+        return row
+    return row | {"paragraph": before.get("paragraph"), "part": before.get("part"), "page": before.get("page") or row.get("page"),
+                  "text": f"{before['text']}\n{row['text']}", "joined_previous": before["id"]}
+
+
+def _keyword_search(query: str, collection: str, limit: int, k1: float = 1.2, b: float = 0.75) -> list[dict[str, Any]]:
+    """The passages that best match the query's words by BM25, best first (exact words, which dense search can miss)."""
+    rows, counts, lengths, frequency = _keyword_index(collection)
+    total, average = len(rows), sum(lengths) / max(len(rows), 1)
+    weights = {word: math.log(1 + (total - frequency[word] + 0.5) / (frequency[word] + 0.5)) for word in set(_keywords(query)) if frequency[word]}
+    scores = [(sum(weight * count[word] * (k1 + 1) / (count[word] + k1 * (1 - b + b * length / average)) for word, weight in weights.items() if word in count), index)
+              for index, (count, length) in enumerate(zip(counts, lengths))]
+    return [dict(rows[index]) | {"keyword_score": score} for score, index in sorted(scores, reverse=True)[:limit] if score > 0]
+
+
 def _complete_names(question: str, collection: str, min_count: int = 20, min_share: float = 0.5, min_other_ratio: float = 3.0) -> str:
     """Expand a bare name the books rarely use for that character to the full name (Mikael -> Mikael Blomkvist).
 
@@ -434,11 +490,35 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
     wide_bar = wide_floor if wide_open else (wide_floor + config.wide_override_margin if config.wide_override_margin is not None else math.inf)
     wide_hits = sorted((row | ({} if wide_open else {"wide_override": True}) for row in wide if row["rerank_score"] > wide_bar),
                        key=lambda row: row["rerank_score"], reverse=True)[:config.wide_max_hits]
+    # Dense search can miss a passage that shares the question's exact words (a quoted phrase, a rare term) when nothing
+    # else about it is similar. Keyword (BM25) hits are reranked like the rest, and they are considered only when one of
+    # them beats every fused candidate by keyword_margin: dense search then missed by that much something the question
+    # names, rather than leaving a near-tie that would only reshuffle the evidence. The keyword hits that beat every
+    # fused candidate (up to keyword_max_hits; other places the same words occur) are then added in front of the evidence.
+    keyword_hits: list[dict[str, Any]] = []
+    if config.keyword_hits and config.keyword_margin is not None and config.retrieval_mode != "baseline":
+        stage = time.perf_counter()
+        with _observe("keyword search", input=question) as obs:
+            pooled = {row["id"] for row in candidates + wide}
+            keyword = [row | {"keyword_hit": True} for row in _keyword_search(question, collection, config.keyword_hits) if row["id"] not in pooled]
+            if keyword:
+                for row, score in zip(keyword, _reranker(config.reranker_model.name, config.reranker_model.revision).predict(
+                        [(question, row["text"]) for row in keyword], show_progress_bar=False)):
+                    row["rerank_score"] = float(score)
+            if keyword and max(row["rerank_score"] for row in keyword) > best_fused + config.keyword_margin:
+                # A matched line ("No compromises.") often refers back to what was just said, so each admitted passage
+                # is joined with the passage before it (the score stays the one the passage earned on its own), and
+                # they are given in reading order, as scene passages are, so repeated lines read as one story.
+                keyword_hits = sorted((_with_previous_passage(row, collection) for row in sorted(
+                    (row for row in keyword if row["rerank_score"] > best_fused), key=lambda row: row["rerank_score"], reverse=True)[:config.keyword_max_hits]),
+                    key=_passage_position)
+            _update(obs, output={"searched": len(keyword), "admitted": [{"id": row["id"], "score": row["rerank_score"]} for row in keyword_hits]})
+        timings["keyword_search_seconds"] = round(time.perf_counter() - stage, 4)
     # When no passage clearly answers the question, give the answer model more evidence and let it reason.
     low_confidence = config.low_confidence_score is not None and best_fused < config.low_confidence_score
     top_k = max(config.top_k, config.low_confidence_top_k) if low_confidence else config.top_k
-    reranked = wide_hits + sorted(candidates, key=lambda row: row["rerank_score"], reverse=True)[:top_k]
-    candidates += wide_hits
+    reranked = wide_hits + keyword_hits + sorted(candidates, key=lambda row: row["rerank_score"], reverse=True)[:top_k]
+    candidates += wide_hits + keyword_hits
     # A scene whose passages the question cannot match one by one (dialogue that never names the people involved) can
     # still match its summary; its passages go after the usual evidence, which stays as it is. Like the wider-pool
     # override, this is for confident evidence that may be off the point: weak evidence already gets the low-confidence

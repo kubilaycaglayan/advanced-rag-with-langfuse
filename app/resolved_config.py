@@ -77,6 +77,9 @@ class ResolvedPipelineConfig:
     wide_trigger_score: float | None = 3.5
     wide_override_margin: float | None = 2.0
     wide_max_hits: int = 3
+    keyword_hits: int = 0
+    keyword_margin: float | None = 4.0
+    keyword_max_hits: int = 5
     scene_margin: float | None = 1.0
     scene_window: int = 6
     scene_stride: int = 3
@@ -96,7 +99,7 @@ class ResolvedPipelineConfig:
             raise ValueError("generation must be GenerationSettings")
         for name, number in (("candidate_count", self.candidate_count), ("top_k", self.top_k), ("passage_chars", self.passage_chars), ("rrf_constant", self.rrf_constant),
                              ("min_passage_chars", self.min_passage_chars), ("passage_overlap", self.passage_overlap), ("expansion_count", self.expansion_count),
-                             ("low_confidence_top_k", self.low_confidence_top_k), ("wide_candidate_count", self.wide_candidate_count), ("wide_max_hits", self.wide_max_hits), ("name_completion_hits", self.name_completion_hits),
+                             ("low_confidence_top_k", self.low_confidence_top_k), ("wide_candidate_count", self.wide_candidate_count), ("wide_max_hits", self.wide_max_hits), ("keyword_hits", self.keyword_hits), ("keyword_max_hits", self.keyword_max_hits), ("name_completion_hits", self.name_completion_hits),
                              ("scene_window", self.scene_window), ("scene_stride", self.scene_stride), ("scene_search_hits", self.scene_search_hits)):
             if isinstance(number, bool) or not isinstance(number, int):
                 raise ValueError(f"{name} must be an integer")
@@ -124,6 +127,9 @@ class ResolvedPipelineConfig:
         if self.wide_override_margin is not None and (isinstance(self.wide_override_margin, bool) or not isinstance(self.wide_override_margin, (int, float))
                                                       or not math.isfinite(self.wide_override_margin) or self.wide_override_margin < 0):
             raise ValueError("wide_override_margin must be a non-negative finite number or null")
+        if self.keyword_margin is not None and (isinstance(self.keyword_margin, bool) or not isinstance(self.keyword_margin, (int, float))
+                                                or not math.isfinite(self.keyword_margin) or self.keyword_margin < 0):
+            raise ValueError("keyword_margin must be a non-negative finite number or null")
         if self.scene_margin is not None and (isinstance(self.scene_margin, bool) or not isinstance(self.scene_margin, (int, float))
                                               or not math.isfinite(self.scene_margin) or self.scene_margin < 0):
             raise ValueError("scene_margin must be a non-negative finite number or null")
@@ -149,6 +155,10 @@ class ResolvedPipelineConfig:
             raise ValueError("name_completion_hits must be between 0 and 1000")
         if not 0 <= self.wide_max_hits <= 30:
             raise ValueError("wide_max_hits must be between 0 and 30")
+        if not 0 <= self.keyword_hits <= 200:
+            raise ValueError("keyword_hits must be between 0 and 200")
+        if not 0 <= self.keyword_max_hits <= 30:
+            raise ValueError("keyword_max_hits must be between 0 and 30")
         if self.passage_chars < 1 or self.rrf_constant < 1:
             raise ValueError("passage_chars and rrf_constant must be positive")
         if self.min_passage_chars < 0:
@@ -185,6 +195,7 @@ class ResolvedPipelineConfig:
         allowed = {"retrieval_mode", "candidate_count", "top_k", "passage_chars", "embedding_model", "reranker_model", "generation_model", "generation", "rrf_constant",
                    "min_passage_chars", "passage_overlap", "expansion_count", "hyde", "answer_thinking", "name_completion", "name_completion_hits", "query_translation", "english_word_share",
                    "low_confidence_score", "low_confidence_top_k", "wide_candidate_count", "wide_trigger_score", "wide_override_margin", "wide_max_hits",
+                   "keyword_hits", "keyword_margin", "keyword_max_hits",
                    "scene_margin", "scene_window", "scene_stride", "scene_search_hits", "scene_summary_model", "scene_thinking", "scene_moment", "corpus_checksum", "prompt_hashes"}
         unknown = set(value) - allowed
         if unknown:

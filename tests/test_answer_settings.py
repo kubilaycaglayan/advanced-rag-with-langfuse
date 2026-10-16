@@ -38,6 +38,49 @@ class NameCompletionChecks(unittest.TestCase):
             ResolvedPipelineConfig.from_mapping({"name_completion": 1})
 
 
+class KeywordSearchChecks(unittest.TestCase):
+    def setUp(self):
+        pipeline._keyword_index.cache_clear()
+
+    def tearDown(self):
+        pipeline._keyword_index.cache_clear()
+
+    def test_validation(self):
+        config = ResolvedPipelineConfig()
+        self.assertEqual((config.keyword_hits, config.keyword_margin, config.keyword_max_hits), (0, 4.0, 5))
+        self.assertIsNone(ResolvedPipelineConfig.from_mapping({"keyword_margin": None}).keyword_margin)
+        for bad in ({"keyword_hits": -1}, {"keyword_hits": 201}, {"keyword_hits": True}, {"keyword_margin": -1}, {"keyword_margin": "x"},
+                    {"keyword_margin": float("nan")}, {"keyword_margin": True}, {"keyword_max_hits": -1}, {"keyword_max_hits": 31}):
+            with self.assertRaises(ValueError):
+                ResolvedPipelineConfig.from_mapping(bad)
+
+    def test_rare_exact_words_rank_first(self):
+        texts = ["She thought: no compromises.", "He made a compromise.", "No time to lose, she said.", "The house was quiet."]
+        client = MagicMock()
+        client.scroll.return_value = ([MagicMock(id=f"p{i}", payload={"text": t}) for i, t in enumerate(texts)], None)
+        with patch.object(pipeline, "qdrant_client", return_value=client):
+            hits = pipeline._keyword_search('What is "no compromises"?', "c", 10)
+        # Stop words ("what", "is") are ignored, a plural matches its singular, and passages sharing no word are not returned.
+        self.assertEqual([row["id"] for row in hits], ["p0", "p1", "p2"])
+        self.assertGreater(hits[0]["keyword_score"], hits[1]["keyword_score"])
+
+    def test_admitted_passage_is_joined_with_the_one_before_it(self):
+        payloads = [{"text": "Giannini asked for acquittal.", "book_file": "b", "section": "s", "paragraph": 14, "part": 1},
+                    {"text": "No compromises.", "book_file": "b", "section": "s", "paragraph": 22, "part": 1},
+                    {"text": "Elsewhere.", "book_file": "b", "section": "t", "paragraph": 1, "part": 1}]
+        client = MagicMock()
+        client.scroll.return_value = ([MagicMock(id=f"p{i}", payload=p) for i, p in enumerate(payloads)], None)
+        pipeline._previous_passages.cache_clear()
+        with patch.object(pipeline, "qdrant_client", return_value=client):
+            joined = pipeline._with_previous_passage({"id": "p1", "text": "No compromises.", "paragraph": 22, "rerank_score": 1.9}, "c")
+            # The first passage of a section has nothing before it.
+            first = pipeline._with_previous_passage({"id": "p2", "text": "Elsewhere.", "paragraph": 1}, "c")
+        pipeline._previous_passages.cache_clear()
+        self.assertEqual((joined["text"], joined["paragraph"], joined["rerank_score"], joined["joined_previous"]),
+                         ("Giannini asked for acquittal.\nNo compromises.", 14, 1.9, "p0"))
+        self.assertEqual(first["text"], "Elsewhere.")
+
+
 class LowConfidenceSettingChecks(unittest.TestCase):
     def test_defaults_and_validation(self):
         config = ResolvedPipelineConfig()
@@ -102,6 +145,25 @@ class WideCandidateChecks(unittest.TestCase):
         self.assertEqual(self._run(base, wide_candidate_count=3)[0], ["p1", "p0", "p2"])
         # At most wide_max_hits passages are admitted, best first.
         self.assertEqual(self._run(base | {"t4": 3.2}, wide_max_hits=1)[0], ["p3", "p1", "p0", "p2"])
+
+    def test_keyword_passages_added_in_front_only_when_one_beats_fused_candidates_by_the_margin(self):
+        base = {"t0": -6.0, "t1": -5.0, "t2": -7.0, "t3": -8.0, "t4": -8.0, "t5": -8.0, "k0": -0.5, "k1": -2.0, "k2": -5.5}
+        keyword = [{"id": "k0", "text": "k0"}, {"id": "k1", "text": "k1"}, {"id": "k2", "text": "k2"}, {"id": "p1", "text": "t1"}]
+        with patch.object(pipeline, "_keyword_search", return_value=keyword) as search, \
+                patch.object(pipeline, "_previous_passages", return_value={}):
+            # k0 beats the best fused candidate (-5.0) by more than 4.0, so the keyword hits that beat it (k0, k1) go in
+            # front, even on the low-confidence path; k2 does not beat it; p1 is already a fused candidate.
+            self.assertEqual(self._run(base, keyword_hits=30), (["k0", "k1", "p1", "p0", "p2"], True))
+            self.assertEqual(search.call_args.args, ("q", "c", 30))
+            self.assertEqual(self._run(base, keyword_hits=30, keyword_max_hits=1)[0], ["k0", "p1", "p0", "p2"])
+            # No keyword hit clears the margin: nothing is added.
+            self.assertEqual(self._run(base | {"k0": -1.5}, keyword_hits=30)[0], ["p1", "p0", "p2"])
+            # Admitted passages are given in reading order, not score order.
+            keyword[0]["paragraph"], keyword[1]["paragraph"] = 9, 2
+            self.assertEqual(self._run(base, keyword_hits=30)[0], ["k1", "k0", "p1", "p0", "p2"])
+            # Off by default, and with no margin.
+            self.assertEqual(self._run(base)[0], ["p1", "p0", "p2"])
+            self.assertEqual(self._run(base, keyword_hits=30, keyword_margin=None)[0], ["p1", "p0", "p2"])
 
     def test_completed_name_scores_the_wider_pool(self):
         base = {"t0": 1.0, "t1": 1.5, "t2": 0.5, "t3": -1.0, "t4": -1.0, "t5": -1.0, "t6": -5.0, "t7": -5.0}
