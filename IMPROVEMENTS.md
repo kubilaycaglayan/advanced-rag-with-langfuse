@@ -40,6 +40,7 @@ can touch, shrink that to only what it should touch, then confirm on the full da
 | Date | Round | QA.csv correctness | Citation | Improved (answer correctness) | Regressed | Commit |
 |---|---|---|---|---|---|---|
 | 2026-10-16 | English translation of<br>non-English questions<br>(`query_translation`) | 4 random items:<br>0.75 → 0.75 | 0.875 → 0.875 | Turkish and Spanish questions<br>abstained → answered | none (English path unchanged) | see section |
+| 2026-10-16 | Moment scene path on +<br>no translation request<br>for plainly English questions | 0.694 → 0.722<br>(exp100: 0.764) | 0.833 → 0.875<br>(exp100: 0.861) | T-shirt at the first meeting (Additional Questions) 0 → 1<br>Martin Vanger citation 0.5 → 1 | vs exp100, identical evidence: nickname 1 → 0.5, Zalachenko's killer 1 → 0.5 (answer-text drift)<br>police after assault 1 → 0.5 (controlled A/B: key points kept) | this commit |
 | 2026-10-16 | Answer model only:<br>qwen3.5:9b-q8_0, gemma4:26b<br>(controlled, rejected) | 0.736 (qwen3:8b control)<br>→ 0.667 / 0.597 | 0.792 → 0.764 / 0.765 | qwen3.5: 4 up<br>gemma4: 4 up | qwen3.5: 7 down<br>gemma4: 12 down | not adopted (no code change) |
 | 2026-10-16 | Without HyDE<br>(ablation, rejected) | 0.764 → 0.722<br>(0.653 uncontrolled) | 0.861 → 0.806 | "Did Salander and Mikael have affair?" 0.5 → 1 | Zalachenko's killer 1 → 0.5<br>Salander's fortune 1 → 0.5<br>Henrik hires Blomkvist 1 → 0.5<br>who killed Harriet 0.5 → 0 | not adopted (`hyde` flag only) |
 | 2026-10-15 | Scene summaries by<br>gemma4:26b | 0.764 → 0.764 | 0.847 → 0.861 | — (citation: "Henrik hires Blomkvist" 0.5 → 1.0) | — | 51b2554 |
@@ -75,6 +76,61 @@ dropped.
 with identical evidence) are Ollama run-to-run noise. Foreign questions: the Turkish one now answers Miriam Wu (was
 "no evidence"), the Spanish one now cites the half-year affair (was hedged); both left the low-confidence path and
 took about 14 s instead of 22–47 s. Cost: one more short generation request per question.
+
+## 2026-10-16 — Moment scene path for "a detail at a specific moment" (opt-in `scene_moment`)
+
+**Target:** "What t-shirt was Salander wearing when they first met with Mikael in her house?" (Additional Questions,
+item dece0abd), scored 0: the model abstained in run `7d83909e`; with only the usual evidence it answers the E.T.
+T-shirt from chapter 2.
+
+**Diagnosis** ([subplan](docs/plans/2026-10-16-additional-questions-recall-scene-path.md)): the question names the
+moment (their first meeting at her apartment, *Dragon Tattoo* ch. 18) and the detail (the T-shirt); the T-shirt
+passage (¶18) names neither Blomkvist nor the meeting. Measured offline, without the answer model
+(`data/tuning/scripts-2026-10-16-scene-path/`):
+- Deeper scene search alone (step 1) does not help: with the whole question the gold scene is not in the summary
+  search's top 100, and the scene that holds the current evidence (Martin Vanger's crash, where Salander wipes
+  fingerprints with a T-shirt) scores 4.26, above any summary found.
+- With the moment written out on its own ("Salander first met with Mikael Blomkvist in her house") the right scene is
+  in the top 3–7 of 1,809 summaries, but the cross-encoder ranks other Salander/Blomkvist home scenes above it and
+  scores the crash scene almost as high (5.6 vs 5.2), so no score margin or "earliest scene" rule separates them.
+- The generation model, given the ten summaries found in reading order, picked the scene that opens the meeting in
+  6 of 6 trials (three phrasings × depth 10/20); the T-shirt passage is just past that window's end.
+
+**Change:** `scene_moment` (default off). When the summary search adds nothing, one request splits the question into
+a MOMENT and a DETAIL line (`rag-scene-moment`; asking for the detail separately keeps it out of the moment); names
+in the moment are completed as in retrieval; the moment searches the scene index (`scene_search_hits`); a second
+request (`rag-scene-select`) picks the summary that shows the moment, or none. The chosen window and the window that
+continues it are added after the usual evidence in reading order, unless the evidence already holds one of their
+passages. Questions that name no moment ("MOMENT: none") add nothing. Two new Langfuse prompts, created with
+`python app/prompt_assets.py --create-missing`.
+
+**Result:** target 0 → 1.0 (citation 1.0) in two judged runs (exp104 `1fae1c65`, exp105 `1db283ad`, identical
+answers): "When Salander first met Mikael in her house, she was wearing a T-shirt with the slogan 'ARMAGEDDON WAS
+YESTERDAY—TODAY WE HAVE A SERIOUS PROBLEM' [E19]." Two rephrasings of the question gave the same answer (unjudged).
+Cost: two generation requests (about 1–3 s) on non-low-confidence questions where the summary search adds nothing.
+**Regression check** (current code, `query_translation` on; control and treatment twice each, repeats identical):
+QA.csv control exp106/exp108 0.694 / 0.833, `scene_moment` exp107/exp109 0.722 / 0.847, 3 up / 0 down; the moment
+path added passages on 4 of 36 items (doorplate name, Säpo unit, police after assault, Martin Vanger), and 30/36
+answers are identical. Additional Questions exp110 0.214 → exp111 0.357, T-shirt 0 → 1, nothing lower. Latency +0–2 s
+(median 15.2 → 17.4 s). Turned on by default (user approval, 2026-10-16), together with the fix below.
+
+**Side finding:** the control on the current code is 0.694 / 0.833 against exp100's 0.764 / 0.861 (2 up, 7 down),
+although no English question was translated: the extra translation request comes first, and qwen3:8b's output depends
+on the previous request, so HyDE changed on 27/36 items and evidence on 19/36.
+
+**Fix:** `english_word_share` (default 0.6). A question skips the translation request when at least 60% of its
+non-name words (names: words the books write capitalised more often than not) are words the books use at least twice.
+All 43 dataset questions score 0.67–1.0 and skip it; eight foreign test questions (Turkish, Spanish, German, Swedish,
+French, Italian, with and without names) score 0–0.33 and are still translated (the Turkish cigarette-case question
+still answers Miriam Wu). Calibrated on this corpus; `null` always asks the model.
+
+**Confirmation, no config** (exp112 QA.csv, exp113 Additional Questions): QA.csv 0.722 / 0.875, evidence identical to
+exp100 on 33/36 items (19/36 differed with the translation request), 1 up / 3 down vs exp100. Two downs (nickname,
+Zalachenko's killer) have identical evidence and differ only in answer wording (the nickname item takes the
+low-confidence path, where the moment step does not even run); the third (police after assault) got four moment
+passages, and a controlled A/B of its answer request with and without them (same warm-up request, twice each) kept the
+key points (distrust, legal incapacity, handling it herself) both ways. Additional Questions 0.357 / 1.0 (T-shirt 1.0).
+QA.csv mean latency 18.9 s (exp100 18.1 s).
 
 ## 2026-10-16 — Answer model only: qwen3.5:9b-q8_0 and gemma4:26b (controlled, not adopted)
 

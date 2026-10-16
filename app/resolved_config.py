@@ -70,6 +70,7 @@ class ResolvedPipelineConfig:
     name_completion: bool = True
     name_completion_hits: int = 300
     query_translation: bool = True
+    english_word_share: float | None = 0.6
     low_confidence_score: float | None = 2.0
     low_confidence_top_k: int = 15
     wide_candidate_count: int = 100
@@ -82,6 +83,7 @@ class ResolvedPipelineConfig:
     scene_search_hits: int = 10
     scene_summary_model: ModelIdentity | None = ModelIdentity("gemma4:26b")
     scene_thinking: bool = False
+    scene_moment: bool = True
     corpus_checksum: str = ""
     prompt_hashes: Mapping[str, str] | None = None
 
@@ -102,10 +104,15 @@ class ResolvedPipelineConfig:
             raise ValueError("retrieval_mode must be a string")
         if not isinstance(self.scene_thinking, bool):
             raise ValueError("scene_thinking must be a boolean")
+        if not isinstance(self.scene_moment, bool):
+            raise ValueError("scene_moment must be a boolean")
         if not isinstance(self.hyde, bool):
             raise ValueError("hyde must be a boolean")
         if not isinstance(self.query_translation, bool):
             raise ValueError("query_translation must be a boolean")
+        if self.english_word_share is not None and (isinstance(self.english_word_share, bool) or not isinstance(self.english_word_share, (int, float))
+                                                    or not 0 <= self.english_word_share <= 1):
+            raise ValueError("english_word_share must be a number between 0 and 1 or null")
         if not isinstance(self.answer_thinking, bool) or not isinstance(self.name_completion, bool):
             raise ValueError("answer_thinking and name_completion must be booleans")
         if self.low_confidence_score is not None and (isinstance(self.low_confidence_score, bool) or not isinstance(self.low_confidence_score, (int, float))
@@ -176,9 +183,9 @@ class ResolvedPipelineConfig:
         defaults.update(value)
         value = defaults
         allowed = {"retrieval_mode", "candidate_count", "top_k", "passage_chars", "embedding_model", "reranker_model", "generation_model", "generation", "rrf_constant",
-                   "min_passage_chars", "passage_overlap", "expansion_count", "hyde", "answer_thinking", "name_completion", "name_completion_hits", "query_translation",
+                   "min_passage_chars", "passage_overlap", "expansion_count", "hyde", "answer_thinking", "name_completion", "name_completion_hits", "query_translation", "english_word_share",
                    "low_confidence_score", "low_confidence_top_k", "wide_candidate_count", "wide_trigger_score", "wide_override_margin", "wide_max_hits",
-                   "scene_margin", "scene_window", "scene_stride", "scene_search_hits", "scene_summary_model", "scene_thinking", "corpus_checksum", "prompt_hashes"}
+                   "scene_margin", "scene_window", "scene_stride", "scene_search_hits", "scene_summary_model", "scene_thinking", "scene_moment", "corpus_checksum", "prompt_hashes"}
         unknown = set(value) - allowed
         if unknown:
             raise ValueError(f"unknown config fields: {', '.join(sorted(unknown))}")

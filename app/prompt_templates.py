@@ -11,6 +11,20 @@ PROMPT_TEMPLATES = {
                              "excerpt: name the characters (resolve 'he', 'she', 'you' to the names used in the excerpt), and state concretely what "
                              "they do, say, decide, demand, reveal or learn. Write names exactly as the excerpt does; never add a first name, "
                              "surname, title or description that the excerpt does not give. Use only the excerpt. Output only the summary."),
+    # Moment scene path (scene_moment): the moment a question asks about, and which of the scenes found for it shows it.
+    "scene_moment_system": ("Split a question about a novel into two search queries. Output exactly two lines and nothing else:\n"
+                            "MOMENT: the situation in which the thing asked about happens, as a plain statement of who does what, where "
+                            "(for example \"... when X first visited Y at her office?\" becomes \"X first visited Y at her office\"). Replace "
+                            "pronouns such as \"they\", \"he\" or \"she\" with the person they refer to in the question, and keep every "
+                            "name, place and word such as \"first\", \"last\", \"before\" or \"after\". If the question does not name such "
+                            "a situation, write \"MOMENT: none\".\n"
+                            "DETAIL: the thing that is asked for, without the situation, as a short statement (for example \"the colour of "
+                            "X's car\").\n"
+                            "Never add names, places or facts that are not in the question, and do not answer the question."),
+    "scene_select_system": ("You are given a description of a moment in a novel and numbered summaries of scenes from the novel. Reply with "
+                            "the number of the scene that shows this moment, or \"none\" if no summary shows it. When the moment says "
+                            "\"first\", \"last\", \"before\" or \"after\", use what the summaries state (for example that two people do "
+                            "not know each other yet) to choose. Reply with only the number or \"none\"."),
     "query_translation_system": ("Reply with exactly two lines and nothing else:\n"
                                  "LANGUAGE: the language the question is written in\n"
                                  "ENGLISH: the question translated into English (if it is already English, repeat it unchanged)\n"

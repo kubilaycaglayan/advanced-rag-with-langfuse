@@ -73,6 +73,38 @@ def _ollama(messages: list[dict[str, str]], model: str, budgets: tuple[int, ...]
         raise RuntimeError(f"Ollama request failed or returned empty content: {last_error or 'empty response'}")
 
 
+_WORD = r"[^\W\d_]+"
+
+
+@lru_cache(maxsize=8)
+def _word_counts(collection: str) -> tuple[Counter, Counter]:
+    """How often each word occurs in the indexed passages (case-folded), and how often it is written in lower case."""
+    words: Counter = Counter()
+    lower: Counter = Counter()
+    offset = None
+    while True:
+        points, offset = qdrant_client().scroll(collection_name=collection, limit=1000, offset=offset, with_payload=["text"])
+        for point in points:
+            for word in re.findall(_WORD, (point.payload or {}).get("text", "")):
+                words[word.casefold()] += 1
+                lower[word] += word.islower()
+        if offset is None:
+            break
+    return words, lower
+
+
+def _english_share(question: str, collection: str) -> float:
+    """Share of the question's words, names left out, that the (English) books use at least twice.
+
+    Names (words the books write capitalised more often than not) are the same in every language, so they say nothing
+    about the question's language; a word the books never use counts against English.
+    """
+    words, lower = _word_counts(collection)
+    common = [word.casefold() for word in re.findall(_WORD, question)]
+    common = [word for word in common if lower[word] and lower[word] >= words[word] - lower[word] or not words[word]]
+    return sum(lower[word] >= 2 for word in common) / len(common) if common else 1.0
+
+
 def _translate(question: str, config: ResolvedPipelineConfig, prompt_bundle: dict[str, Any] | None = None) -> str | None:
     """The question in English when it is asked in another language, otherwise None.
 
@@ -217,6 +249,79 @@ def _scene_hits(question: str, config: ResolvedPipelineConfig, collection: str, 
     return rows
 
 
+def _prompted(prompt_bundle: dict[str, Any] | None, asset: str, system: str, user: str, config: ResolvedPipelineConfig, name: str,
+              **variables: str) -> str:
+    """One generation-model request with a Langfuse prompt (``asset``), or the local template when there is no bundle."""
+    client = prompt_bundle[asset]["client"] if prompt_bundle else None
+    messages = client.compile(**variables) if client else [{"role": "system", "content": PROMPT_TEMPLATES[system]}, {"role": "user", "content": user}]
+    return _ollama(messages, config.generation_model.name, config.generation.output_budgets, config.generation.temperature,
+                   config.generation.context_length, prompt=client, name=name)
+
+
+def _passage_position(payload: dict[str, Any]) -> tuple:
+    return payload.get("book", ""), payload.get("section", ""), payload.get("paragraph", 0), payload.get("part", 0)
+
+
+def _moment_scene_hits(question: str, config: ResolvedPipelineConfig, collection: str, qdrant: QdrantClient,
+                       evidence: list[dict[str, Any]], present: set[str], prompt_bundle: dict[str, Any] | None = None
+                       ) -> tuple[list[dict[str, Any]], str]:
+    """Passages of the scene that shows the moment the question asks about ("... when they first met in her house"),
+    chosen by the generation model among the scenes whose summaries best match that moment. Returns them and the moment.
+
+    A detail asked about at a moment (what someone wore, said or held) is often in a passage that names neither the
+    people nor the moment, and the whole question matches the moment's scene poorly because it also describes the
+    detail. So the moment is written out on its own and searched for, and the model reads the summaries found, in
+    reading order, to choose (the cross-encoder cannot tell which of several similar scenes is the first one). The
+    chosen window and the window that continues it are added, so a detail just past the window's end is kept. Nothing
+    is added when the question names no moment, no summary shows it, or the evidence already holds a passage of it.
+    """
+    with _observe("moment description", input=question) as obs:
+        reply = _prompted(prompt_bundle, "rag-scene-moment", "scene_moment_system", question, config, "moment description", question=question)
+        # The reply also states the detail asked for (DETAIL: ...); asking for it separately keeps it out of the moment.
+        moment = next((line.partition(":")[2].strip().strip('"') for line in reply.splitlines()
+                       if line.strip().upper().startswith("MOMENT:")), "")
+        if moment.casefold().rstrip(".") == "none":
+            moment = ""
+        # Summaries name people the way the books do, so a bare first name is completed as in retrieval.
+        if moment and config.name_completion:
+            moment = _complete_names(moment, collection)
+        _update(obs, output=moment or None)
+    if not moment:
+        return [], moment
+    name = scene_collection(collection, config)
+    vector = _embedder(config.embedding_model.name, config.embedding_model.revision).encode(moment, normalize_embeddings=True).tolist()
+    found = qdrant.query_points(collection_name=name, query=vector, limit=config.scene_search_hits, with_payload=True).points
+    if not found:
+        return [], moment
+    first = {str(point.id): dict(point.payload or {}) for point in qdrant.retrieve(
+        collection_name=collection, ids=[scene.payload["members"][0] for scene in found], with_payload=True)}
+    found.sort(key=lambda scene: _passage_position(first[scene.payload["members"][0]]))
+    listing = "\n\n".join(f"[{n}] {first[scene.payload['members'][0]].get('book')}, {first[scene.payload['members'][0]].get('chapter') or 'chapter unknown'}: "
+                          f"{scene.payload['summary']}" for n, scene in enumerate(found, 1))
+    with _observe("moment scene choice", input={"moment": moment, "scenes": listing}) as obs:
+        reply = _prompted(prompt_bundle, "rag-scene-select", "scene_select_system", f"Moment: {moment}\n\nScenes:\n{listing}", config,
+                          "moment scene choice", moment=moment, scenes=listing)
+        number = re.fullmatch(r"\W*(\d+)\W*", reply)
+        chosen = found[int(number[1]) - 1] if number and 1 <= int(number[1]) <= len(found) else None
+        _update(obs, output=chosen.payload["summary"] if chosen else None)
+    if chosen is None:
+        return [], moment
+    # The windows holding the chosen window's last passage are that window and the one that continues it.
+    following, _ = qdrant.scroll(collection_name=name, limit=100, with_payload=True, scroll_filter=models.Filter(
+        must=[models.FieldCondition(key="members", match=models.MatchAny(any=[chosen.payload["members"][-1]]))]))
+    span = list(dict.fromkeys([*chosen.payload["members"], *(member for scene in following for member in scene.payload["members"])]))
+    if set(span) & {row["id"] for row in evidence}:
+        return [], moment
+    rows = sorted((dict(point.payload or {}) | {"id": str(point.id), "scene_hit": True, "moment_hit": True, "moment": moment,
+                                                "scene_summary": chosen.payload["summary"]}
+                   for point in qdrant.retrieve(collection_name=collection, ids=[member for member in span if member not in present], with_payload=True)),
+                  key=_passage_position)
+    for row, score in zip(rows, _reranker(config.reranker_model.name, config.reranker_model.revision).predict(
+            [(question, row["text"]) for row in rows], show_progress_bar=False)):
+        row["rerank_score"] = float(score)
+    return rows, moment
+
+
 def _format_evidence(rows: list[dict[str, Any]]) -> str:
     return "\n\n".join(
         f"[E{i}] Book: {row.get('book')} | Chapter: {row.get('chapter') or 'unavailable'} | Paragraph: {row.get('paragraph', 'unavailable')} | Page: {row.get('page') or 'unavailable'}\nPassage: {row['text']}"
@@ -243,7 +348,10 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
     # every later step (rewrites, reranking, scene search) uses the translation; it is also searched on its own. The
     # answer model still sees the question as asked, so it answers in that language.
     asked = question
-    translated = _translate(question, config, prompt_bundle) if config.query_translation and config.retrieval_mode != "baseline" else None
+    # A question whose words the books use is plainly English and skips the translation request: that request would
+    # leave it unchanged but still shift qwen3:8b's later outputs (its replies depend on the previous request).
+    translated = (_translate(question, config, prompt_bundle) if config.query_translation and config.retrieval_mode != "baseline"
+                  and (config.english_word_share is None or _english_share(question, collection) < config.english_word_share) else None)
     question = translated or question
     hypothetical, alternatives, corrected = _transform(question, config, prompt_bundle)
     timings["transformation_seconds"] = round(time.perf_counter() - stage, 4)
@@ -342,6 +450,14 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
             scene_hits = _scene_hits(question, config, collection, qdrant, reranked[:config.top_k], {row["id"] for row in reranked})
             _update(obs, output={"summary": scene_hits[0]["scene_summary"], "score": scene_hits[0]["scene_score"],
                                  "passages": [row["id"] for row in scene_hits]} if scene_hits else None)
+        # A question about a detail at one moment ("what did she wear when they first met") matches neither the moment's
+        # scene nor the detail's passage as a whole; when the summary search above finds nothing, the moment is searched
+        # for on its own (two more generation requests; it needs the scene index, so it is off when scene_margin is null).
+        if config.scene_moment and not scene_hits:
+            with _observe("moment scene search", input=question) as obs:
+                scene_hits, moment = _moment_scene_hits(question, config, collection, qdrant, reranked[:config.top_k],
+                                                        {row["id"] for row in reranked}, prompt_bundle)
+                _update(obs, output={"moment": moment, "passages": [row["id"] for row in scene_hits]})
         timings["scene_search_seconds"] = round(time.perf_counter() - stage, 4)
         reranked += scene_hits
         candidates += scene_hits

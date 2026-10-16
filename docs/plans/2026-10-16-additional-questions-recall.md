@@ -48,6 +48,11 @@ and deterministically, without the answer LLM, and send only winners to the full
    `data/tuning/scripts-2026-10-16-recall/`; add a table row and a section to `IMPROVEMENTS.md` in the same commit
    as the change. Deploy only on approval.
 
+## Subplans
+
+- [Scene path for "a detail at a specific moment" questions](2026-10-16-additional-questions-recall-scene-path.md):
+  root cause of the T-shirt miss and a plan for the scene index.
+
 ## Risks
 
 BM25 and the deeper pool will change evidence on many QA.csv items, so step 5 is the main gate for them. The name fix

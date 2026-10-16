@@ -178,6 +178,51 @@ class SceneSearchChecks(unittest.TestCase):
         self.assertEqual(self._hits({"sum0": 3.0, "sum1": 4.5}, present=("p1", "p4")), ["p3", "p5"])
 
 
+class MomentSceneChecks(unittest.TestCase):
+    def test_setting_is_validated(self):
+        self.assertTrue(ResolvedPipelineConfig().scene_moment)
+        self.assertFalse(ResolvedPipelineConfig.from_mapping({"scene_moment": False}).scene_moment)
+        for bad in ({"scene_moment": "yes"},):
+            with self.assertRaises(ValueError):
+                ResolvedPipelineConfig.from_mapping(bad)
+
+    def _hits(self, replies, evidence=("p20",), present=("p20",)):
+        # Windows of three passages, stride two, in one section: s0 = p0..p2, s1 = p2..p4, s2 = p4..p6. The search returns
+        # them out of reading order; the model is shown them in reading order.
+        scenes = [MagicMock(id=f"s{i}", payload={"members": [f"p{2 * i + j}" for j in range(3)], "summary": f"sum{i}"}) for i in range(3)]
+        passage = lambda i: MagicMock(id=i, payload={"text": f"t{i}", "book": "B", "section": "x", "paragraph": int(i[1:]), "part": 1})
+        client = MagicMock()
+        client.query_points.return_value = MagicMock(points=[scenes[2], scenes[0], scenes[1]])
+        client.scroll.side_effect = lambda **kw: ([s for s in scenes if set(s.payload["members"]) & set(kw["scroll_filter"].must[0].match.any)], None)
+        client.retrieve.side_effect = lambda collection_name, ids, with_payload: [passage(i) for i in reversed(ids)]
+        reranker = MagicMock()
+        reranker.predict.side_effect = lambda pairs, show_progress_bar: [0.0] * len(pairs)
+        embedder = MagicMock()
+        embedder.encode.return_value = MagicMock(tolist=lambda: [0.0])
+        prompts = []
+        config = ResolvedPipelineConfig(scene_moment=True, name_completion=False)
+        with patch.object(pipeline, "_embedder", return_value=embedder), patch.object(pipeline, "_reranker", return_value=reranker), \
+                patch.object(pipeline, "_ollama", side_effect=lambda messages, *a, **k: prompts.append(messages[-1]["content"]) or replies.pop(0)):
+            rows, moment = pipeline._moment_scene_hits("q", config, "c", client, [{"id": i} for i in evidence], set(present))
+        return [row["id"] for row in rows], moment, prompts
+
+    def test_chosen_window_and_the_window_that_continues_it_are_added_in_reading_order(self):
+        ids, moment, prompts = self._hits(["MOMENT: X first met Y at home\nDETAIL: her shirt", "2"])
+        self.assertEqual(moment, "X first met Y at home")
+        self.assertLess(prompts[1].index("sum0"), prompts[1].index("sum1"))
+        self.assertLess(prompts[1].index("sum1"), prompts[1].index("sum2"))
+        self.assertEqual(ids, ["p2", "p3", "p4", "p5", "p6"])
+
+    def test_nothing_is_added_without_a_moment_a_choice_or_new_evidence(self):
+        self.assertEqual(self._hits(["MOMENT: none\nDETAIL: her mother"])[:2], ([], ""))
+        self.assertEqual(self._hits(["MOMENT: X met Y", "none"])[0], [])
+        self.assertEqual(self._hits(["MOMENT: X met Y", "7"])[0], [])
+        # The evidence already holds a passage of the chosen span.
+        self.assertEqual(self._hits(["MOMENT: X met Y", "1"], evidence=("p3",), present=("p3",))[0], [])
+        # Passages already present elsewhere are not repeated.
+        self.assertEqual(self._hits(["MOMENT: X met Y", "1"], present=("p20", "p1"))[0], ["p0", "p2", "p3", "p4"])
+
+
 class ThinkingFallbackChecks(unittest.TestCase):
     def test_empty_reasoning_answer_retries_without_thinking(self):
         calls = []

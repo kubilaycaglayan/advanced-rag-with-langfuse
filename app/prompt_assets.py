@@ -44,6 +44,14 @@ PROMPT_CATALOG: dict[str, dict[str, Any]] = {
         {"role": "system", "content": PROMPT_TEMPLATES["query_translation_system"]},
         {"role": "user", "content": "{{question}}"},
     ]},
+    "rag-scene-moment": {"type": "chat", "prompt": [
+        {"role": "system", "content": PROMPT_TEMPLATES["scene_moment_system"]},
+        {"role": "user", "content": "{{question}}"},
+    ]},
+    "rag-scene-select": {"type": "chat", "prompt": [
+        {"role": "system", "content": PROMPT_TEMPLATES["scene_select_system"]},
+        {"role": "user", "content": "Moment: {{moment}}\n\nScenes:\n{{scenes}}"},
+    ]},
 }
 
 
