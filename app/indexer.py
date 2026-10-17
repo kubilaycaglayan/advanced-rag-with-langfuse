@@ -236,7 +236,7 @@ def build_index(config: ResolvedPipelineConfig, qdrant: QdrantClient | None = No
         result["scenes"] = build_scene_index(result["collection"], config, qdrant, encoder)
         if config.scene_context:
             result["scene_context"] = build_context_index(result["collection"], config, qdrant, encoder)
-    if config.entity_names:
+    if config.entity_names or config.entity_matrix:
         result["entities"] = build_entity_cards(result["collection"], config, qdrant)
     return result
 
@@ -313,6 +313,6 @@ def validate_index(collection: str, config: ResolvedPipelineConfig, qdrant: Qdra
         raise RuntimeError(f"scene search is on but the scene index for {collection!r} is not built")
     if config.scene_context and config.scene_margin is not None and not qdrant.collection_exists(context_collection(collection, config)):
         raise RuntimeError(f"scene context is on but the scene context index for {collection!r} is not built")
-    if config.entity_names and not entity_cards_path(collection, config).exists():
-        raise RuntimeError(f"entity names are on but the entity cards for {collection!r} are not built")
+    if (config.entity_names or config.entity_matrix) and not entity_cards_path(collection, config).exists():
+        raise RuntimeError(f"entity cards are on but the entity cards for {collection!r} are not built")
     return row

@@ -197,9 +197,10 @@ def merge_entities(windows: list[dict[str, Any]]) -> dict[str, Any]:
     for key, entity in entities.items():
         types = ", ".join(kind for kind, _ in entity["types"].most_common(2) if kind)
         relations = "; ".join(f"{relation} {shown(owner)}" for (relation, owner), _ in entity["relations"].most_common(3))
-        facts = list(dict.fromkeys(fact for fact, _ in entity["facts"]))[:4]
-        cards.append({"key": key, "text": f"{shown(key)} ({types}){'. ' + relations if relations else ''}. " + " ".join(facts),
-                      "members": sorted(entity["members"]), "mentions": sum(entity["names"].values())})
+        facts = list(dict.fromkeys(fact for fact, _ in entity["facts"]))
+        cards.append({"key": key, "text": f"{shown(key)} ({types}){'. ' + relations if relations else ''}. " + " ".join(facts[:4]),
+                      "members": sorted(entity["members"]), "mentions": sum(entity["names"].values()),
+                      "types": [kind for kind, _ in entity["types"].most_common(3) if kind], "facts": facts})
         for (relation, owner), count in entity["relations"].items():
             surname = shown(owner).split()[-1].lower()
             fact = next((fact for fact, _ in entity["facts"] if surname in fact.lower()), entity["facts"][0][0] if entity["facts"] else "")

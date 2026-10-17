@@ -346,6 +346,166 @@ def _entity_name_hits(question: str, config: ResolvedPipelineConfig, collection:
     return rows
 
 
+# Entity matrix: rows are entities, columns kinds of link (the edge's type: nickname, vehicle, tattoo, ...), cells edges.
+# "in the book(s)" and similar only scope the question; the words below say nothing about which rows or cells.
+_SCOPE = re.compile(r"\b(?:in|of|from|throughout|across)\s+(?:the\s+|this\s+|these\s+|all\s+(?:the\s+)?)?(?:books?|novels?|stor(?:y|ies)|trilogy|series)\b", re.I)
+_MATRIX_SKIP = frozenset("any there used use uses have has had get got".split())
+
+
+@lru_cache(maxsize=2)
+def _entity_columns(path: str, model: str, revision: str | None) -> tuple[list[str], Any]:
+    labels = sorted({kind for edge in _entity_cards(path)["edges"] for kind in edge.get("types", []) if kind})
+    return labels, _embedder(model, revision).encode(labels, normalize_embeddings=True, show_progress_bar=False)
+
+
+def _entity_family(key: str, cards: dict[str, Any]) -> set[str]:
+    """The entity's full name (the most mentioned multi-word name containing all its words) and every entity named by
+    words of it: Blomkvist, Mikael and Mikael Blomkvist are one person split by the merge."""
+    words = set(key.split())
+    longer = [other for other in cards if len(other.split()) > 1 and words <= set(other.split())]
+    full = max(longer, key=lambda other: cards[other]["mentions"]) if longer else key
+    return {other for other in cards if set(other.split()) <= set(full.split())} | {key}
+
+
+def _entity_matrix_hits(question: str, config: ResolvedPipelineConfig, collection: str, qdrant: QdrantClient,
+                        evidence: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Passages for the cells of the entity matrix the question asks about, from any end.
+
+    The question's words pick the columns (a phrase as close as ``entity_matrix_similarity`` to a kind of link:
+    "nicknames" → nickname, "car" → vehicle, "fake identity" → false identity). Entities it names restrict the cells to
+    those with that entity (or another name of it) at either end; the words left over ("police officers", "dragon")
+    are scored against every fact of each end; with neither, the cells most often stated come first. Each of the best
+    cells, one per name, adds the passage that states it with a ``Link:`` line, since such passages often say "she".
+    Nothing is added when the evidence already names the best cell, or when no cell is a confident match."""
+    path = entity_cards_path(collection, config)
+    if not path.exists():
+        return []
+    data = _entity_cards(str(path))
+    cards = {card["key"]: card for card in data["cards"]}
+    asked = _SCOPE.sub(" ", question)
+    content = [word for word in re.findall(r"[A-Za-zÅÄÖåäöé][\w-]*", asked)
+               if word.lower() not in _KEYWORD_STOPWORDS and word.lower() not in _MATRIX_SKIP]
+    phrases = sorted(set(content) | {f"{first} {second}" for first, second in zip(content, content[1:])})
+    if not phrases:
+        return []
+    labels, label_vectors = _entity_columns(str(path), config.embedding_model.name, config.embedding_model.revision)
+    embedder = _embedder(config.embedding_model.name, config.embedding_model.revision)
+    similarity = embedder.encode(phrases, normalize_embeddings=True, show_progress_bar=False) @ label_vectors.T
+    best = float(similarity.max())
+    columns, used, column_phrase = set(), set(), ""
+    for column, label in enumerate(labels):
+        # Near ties are kept ("book" and "book series"); a weaker match is another word of the question.
+        if similarity[:, column].max() >= max(config.entity_matrix_similarity, best - 0.05):
+            columns.add(label)
+            phrase = phrases[int(similarity[:, column].argmax())]
+            used |= set(phrase.split())
+            column_phrase = column_phrase or phrase
+    if not columns:
+        return []
+    anchors = _entity_anchors(question, data)
+    named = set().union(*(_entity_family(anchor, cards) for anchor in anchors)) if anchors else set()
+    anchor_words = {word for anchor in anchors for word in anchor.split()}
+    residual = " ".join(word for word in content if word not in used and not word[:1].isupper()
+                        and re.sub(r"[’']s$", "", word).lower() not in anchor_words)
+    families: dict[str, set[str]] = {}
+
+    def family(key: str) -> set[str]:
+        if key not in families:
+            families[key] = _entity_family(key, cards) if key in cards else {key}
+        return families[key]
+
+    def full_name(key: str) -> str:
+        return max(family(key), key=lambda other: (len(other.split()), cards.get(other, {}).get("mentions", 0)))
+
+    def misread(edge: dict[str, Any]) -> bool:
+        """Not a link between two entities: a cell from part of the other end's own name (Curt → Curt Andersson,
+        Fröken Salander); a one-word name that is part of another person's full name (Andersson → Curt Andersson as a
+        "nickname" of Bublanski); or one window's claim about someone the books otherwise treat as a person of their
+        own (Dragan Armansky as a "nickname" of Bublanski)."""
+        first, second = set(edge["from"].split()), set(edge["to"].split())
+        if first <= second | _TITLES or second <= first | _TITLES or edge["from"] in family(edge["to"]):
+            return True
+        owner = full_name(edge["from"])
+        person = lambda key: cards.get(key, {}).get("types", [""])[:1] == ["person"]
+        if edge["count"] < 2 and person(edge["from"]) and cards[edge["from"]]["mentions"] >= 20:
+            return True
+        return (len(first) == 1 and len(owner.split()) > 1 and person(owner)
+                and not set(owner.split()) & set(full_name(edge["to"]).split()))
+
+    cells = [edge for edge in data["edges"] if columns & set(edge.get("types", []))
+             and (not named or edge["from"] in named or edge["to"] in named)]
+    cells = [edge for edge in cells if not misread(edge)]
+    if not cells:
+        return []
+    reranker = _reranker(config.reranker_model.name, config.reranker_model.revision)
+    floor = config.low_confidence_score if config.low_confidence_score is not None else -math.inf
+    if named:
+        scores = [float(score) for score in reranker.predict([(question, edge["text"].split(":")[0]) for edge in cells], show_progress_bar=False)]
+    elif residual:
+        # The left-over words describe one end ("police officers" a person, "dragon" the tattoo itself), alone or
+        # together with the column's word ("dragon tattoo"); each end is scored by its facts that best match either.
+        queries = list(dict.fromkeys([residual, f"{residual} {column_phrase}"]))
+        query_vectors = embedder.encode(queries, normalize_embeddings=True, show_progress_bar=False)
+        vectors = data.setdefault("fact_vectors", {})
+        near: dict[str, tuple[float, list[tuple[str, str]]]] = {}
+        for key in {key for edge in cells for key in (edge["from"], edge["to"])}:
+            best_similarity, pairs = -1.0, []
+            for other in family(key) & set(cards):
+                if other not in vectors:
+                    facts = cards[other].get("facts", [])
+                    vectors[other] = (facts, embedder.encode(facts, normalize_embeddings=True, show_progress_bar=False, batch_size=128) if facts else None)
+                facts, matrix = vectors[other]
+                if facts:
+                    for query, vector in zip(queries, query_vectors):
+                        closeness = matrix @ vector
+                        best_similarity = max(best_similarity, float(closeness.max()))
+                        pairs += [(query, facts[index]) for index in closeness.argsort()[::-1][:8]]
+            near[key] = (best_similarity, pairs)
+        # Only the ends whose facts come closest are scored by the cross-encoder; the rest cannot match.
+        ends = dict.fromkeys(near, -math.inf)
+        for key in sorted(near, key=lambda key: -near[key][0])[:20]:
+            if near[key][1]:
+                ends[key] = float(max(reranker.predict(near[key][1], show_progress_bar=False, batch_size=128)))
+        scores = [max(ends[edge["from"]], ends[edge["to"]]) for edge in cells]
+    else:
+        # The whole column: a cell stated in two windows is a fact of the books, one window's may be a misreading.
+        scores = [float(edge["count"]) for edge in cells]
+        floor = 2.0
+    # Cells stated in two or more windows first: one window's link may be a misreading.
+    ranked = sorted(zip(scores, cells), key=lambda pair: (pair[1]["count"] < 2, -pair[0], -pair[1]["count"]))
+    if max(scores) < floor:
+        return []
+    ranked = [pair for pair in ranked if pair[0] >= floor]
+    flat = lambda text: " ".join(text.split()).casefold()
+    # Retrieval already found the answer when the evidence names the best cell or, for a question about a named
+    # entity ("What car does Blomkvist drive?"), any confident cell of it.
+    if any(flat(name) in flat(row["text"]) for _, edge in (ranked if named else ranked[:1]) for name in edge["names"] for row in evidence):
+        return []
+    present = {row["id"] for row in evidence}
+    rows, seen = [], set()
+    for score, edge in ranked:
+        if len(rows) >= config.entity_matrix_max_hits:
+            break
+        if edge["from"] in seen:
+            continue
+        seen.add(edge["from"])
+        names = {name.lower() for name in edge["names"]}
+        points = [point for point in qdrant.retrieve(collection, ids=edge["members"], with_payload=True)
+                  if str(point.id) not in present and any(name in point.payload["text"].lower() for name in names)]
+        if not points:
+            continue
+        statement = edge["text"].split(":")[0]
+        _, point = max(zip(reranker.predict([(statement, point.payload["text"]) for point in points], show_progress_bar=False), points),
+                       key=lambda pair: pair[0])
+        present.add(str(point.id))
+        rows.append(dict(point.payload or {}) | {"id": str(point.id), "entity_hit": True, "entity": edge["from"], "entity_score": score,
+                                                 "entity_link": statement})
+    if rows:
+        for row, score in zip(rows, reranker.predict([(question, row["text"]) for row in rows], show_progress_bar=False)):
+            row["rerank_score"] = float(score)
+    return rows
+
+
 def _keyword_search(query: str, collection: str, limit: int, k1: float = 1.2, b: float = 0.75) -> list[dict[str, Any]]:
     """The passages that best match the query's words by BM25, best first (exact words, which dense search can miss)."""
     rows, counts, lengths, frequency = _keyword_index(collection)
@@ -678,6 +838,15 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
                                             wide_hits + keyword_hits + sorted(candidates, key=lambda row: row["rerank_score"], reverse=True)[:top_k])
             _update(obs, output=[{"id": row["id"], "entity": row["entity"], "score": row["rerank_score"]} for row in entity_hits])
         timings["entity_names_seconds"] = round(time.perf_counter() - stage, 4)
+    # The other names of a person the question names are entity_names' case; the matrix answers the rest.
+    if config.entity_matrix and config.retrieval_mode != "baseline" and not entity_hits:
+        stage = time.perf_counter()
+        with _observe("entity matrix", input=question) as obs:
+            entity_hits = _entity_matrix_hits(question, config, collection, qdrant,
+                                              wide_hits + keyword_hits + sorted(candidates, key=lambda row: row["rerank_score"], reverse=True)[:top_k])
+            _update(obs, output=[{"id": row["id"], "entity": row["entity"], "link": row["entity_link"], "score": row["entity_score"]}
+                                 for row in entity_hits])
+        timings["entity_matrix_seconds"] = round(time.perf_counter() - stage, 4)
     reranked = wide_hits + keyword_hits + entity_hits + sorted(candidates, key=lambda row: row["rerank_score"], reverse=True)[:top_k]
     context_hits = [row for row in context_hits if row["id"] not in {row["id"] for row in reranked}]
     candidates += wide_hits + keyword_hits + entity_hits

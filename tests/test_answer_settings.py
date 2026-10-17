@@ -250,6 +250,61 @@ class WideCandidateChecks(unittest.TestCase):
                 self.assertEqual(hits("What did Salander wear?", entity_names=True), [])
             pipeline._entity_cards.cache_clear()
 
+    def test_entity_matrix_settings(self):
+        config = ResolvedPipelineConfig()
+        self.assertEqual((config.entity_matrix, config.entity_matrix_similarity, config.entity_matrix_max_hits), (False, 0.75, 8))
+        for bad in ({"entity_matrix": 1}, {"entity_matrix_similarity": 0}, {"entity_matrix_similarity": 1.5}, {"entity_matrix_similarity": True},
+                    {"entity_matrix_max_hits": 0}, {"entity_matrix_max_hits": 21}):
+            with self.assertRaises(ValueError):
+                ResolvedPipelineConfig.from_mapping(bad)
+
+    def test_entity_matrix_finds_cells_from_any_end(self):
+        import json, tempfile
+        import numpy as np
+        edge = lambda name, relation, kind, owner, count, member: {"from": name.casefold(), "to": owner, "relation": relation, "count": count, "types": [kind],
+                                                                   "text": f"{name} — {relation} {owner.title()}: x", "members": [member], "names": [name]}
+        card = lambda key, facts, mentions=10: {"key": key, "text": key, "members": [], "mentions": mentions, "facts": facts, "types": ["person"]}
+        data = {"alias": {}, "cards": [card("jan bublanski", ["Jan Bublanski is a criminal inspector."], 50), card("bublanski", [], 5),
+                                       card("erika berger", ["Erika Berger is an editor."], 40), card("officer bubble", []), card("ricky", []),
+                                       card("curt", []), card("curt andersson", ["Curt Andersson is with the police."], 12), card("volvo", []), card("andersson", []),
+                                       card("dragan armansky", ["Dragan Armansky runs Milton Security."], 30)],
+                "edges": [edge("Officer Bubble", "nickname of", "nickname", "bublanski", 4, "b1"), edge("Ricky", "nickname of", "nickname", "erika berger", 9, "r1"),
+                          edge("Curt", "nickname of", "nickname", "curt andersson", 3, "c1"), edge("Volvo", "owned by", "vehicle", "erika berger", 1, "v1"),
+                          edge("Andersson", "nickname of", "nickname", "jan bublanski", 2, "a1"),
+                          edge("Dragan Armansky", "nickname of", "nickname", "jan bublanski", 1, "d1")]}
+        texts = {"b1": "Officer Bubble came in", "r1": "Ricky, Malm said", "c1": "Curt nodded", "v1": "her Volvo", "a1": "Andersson said", "d1": "Dragan Armansky said"}
+        # One dimension per meaning: "car" is close to "vehicle", "nicknames" to "nickname".
+        meanings = [("nickname",), ("vehicle", "car"), ("police", "inspector")]
+        embedder = MagicMock()
+        embedder.encode.side_effect = lambda texts, **_: np.array([[1.0 if any(word in text.lower() for word in words) else 0.0 for words in meanings] + [0.1]
+                                                                   for text in texts])
+        client = MagicMock()
+        client.retrieve.side_effect = lambda collection, ids, with_payload: [MagicMock(id=i, payload={"text": texts[i]}) for i in ids]
+        reranker = MagicMock()
+        # Facts mentioning an inspector or the police match "police officers"; cells match questions naming their owner.
+        reranker.predict.side_effect = lambda pairs, **_: [4.0 if ("police" in query and ("inspector" in text or "police" in text))
+                                                           or ("Berger" in query and "Berger" in text) else -5.0 for query, text in pairs]
+        with tempfile.NamedTemporaryFile("w", suffix=".json") as handle:
+            json.dump(data, handle); handle.flush()
+            pipeline._entity_cards.cache_clear(); pipeline._entity_columns.cache_clear()
+            with patch.object(pipeline, "entity_cards_path", return_value=Path(handle.name)), patch.object(pipeline, "_reranker", return_value=reranker), \
+                    patch.object(pipeline, "_embedder", return_value=embedder):
+                hits = lambda question, evidence=(): [row["entity"] for row in pipeline._entity_matrix_hits(
+                    question, ResolvedPipelineConfig(entity_matrix=True), "c", client, list(evidence))]
+                # The whole column, most often stated first; "Curt" is part of Curt Andersson's own name, and "Andersson" of
+                # another person's (Curt Andersson), so neither is a nickname; nor is one window's claim about a person
+                # the cards mention 30 times (Dragan Armansky).
+                self.assertEqual(hits("What are the nicknames used in the book?"), ["ricky", "officer bubble"])
+                # Left-over words ("police officers") pick the cells whose other end's facts match them.
+                self.assertEqual(hits("Are there any police officers with nicknames?"), ["officer bubble"])
+                # A named entity restricts the cells to it.
+                self.assertEqual(hits("What car does Berger drive?"), ["volvo"])
+                self.assertEqual(hits("What car does Berger drive?", [{"id": "e", "text": "She took the Volvo."}]), [])
+                # No column, or evidence that already names the best cell: nothing.
+                self.assertEqual(hits("Who is Berger?"), [])
+                self.assertEqual(hits("What are the nicknames used in the book?", [{"id": "e", "text": "Malm  called her RICKY"}]), [])
+            pipeline._entity_cards.cache_clear(); pipeline._entity_columns.cache_clear()
+
     def test_entity_cards_join_name_variants_and_link_other_names_to_the_person(self):
         from app.entities import merge_entities
         mention = lambda name, kind, owner=None, relation=None: {"name": name, "type": kind, "of": owner, "relation": relation, "fact": f"{name}."}
