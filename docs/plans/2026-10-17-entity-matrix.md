@@ -82,4 +82,5 @@ columns and rows separately.
   and gets 0.5 for leaving out the context of Blomkvist’s visit (exp152 repeat: same answer, 0.5 / 1.0). A judge
   artifact, not lost evidence. The flag stays
   off pending the user's approval.
-
+- **2026-10-17, approved:** committed off (1cdc2b1), then the user approved the Armageddon drop and asked for the
+  flag on: `entity_matrix` is on by default and deployed.

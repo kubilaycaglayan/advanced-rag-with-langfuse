@@ -40,7 +40,7 @@ can touch, shrink that to only what it should touch, then confirm on the full da
 | Date | Round | QA.csv correctness | Citation | Improved (answer correctness) | Regressed | Commit |
 |---|---|---|---|---|---|---|
 | 2026-10-17 | Chapter tails joined (index)<br>+ scene context for each passage<br>(`scene_context`, on by default) | tails: 0.736 → 0.736<br>scene context: 0.736 → 0.708<br>(usual evidence unchanged; 2 passages added after it) | 0.833 → 0.861 | Gun at Gosseberga, "what Salander said" (Additional Questions) 0 → 1<br>(Additional Questions 0.438 → 0.562)<br>Niedermann's pain 0.5 → 1, affair 0.5 → 1 | scene context: Cecilia 1 → 0 (judge error: control also abstains),<br>Henrik hires Blomkvist 1 → 0.5, Martin Vanger 1 → 0.5 (answer drift; reproducible)<br>tails: nickname 1 → 0.5 (same fact, less detail) | this commit |
-| 2026-10-17 | Entity matrix: entity cards<br>from any end (`entity_matrix`,<br>opt-in, default off) | 0.708 → 0.694<br>(evidence identical 35/36) | 0.861 → 0.861 | police nicknames, book nicknames<br>(not in a dataset): "none" / 3 → listed | Armageddon #2 1 → 0.5: abstention scored 1.0,<br>now answers with the shirt (judge artifact) | this commit |
+| 2026-10-17 | Entity matrix: entity cards<br>from any end (`entity_matrix`,<br>on by default) | 0.708 → 0.694<br>(evidence identical 35/36) | 0.861 → 0.861 | police nicknames, book nicknames<br>(not in a dataset): "none" / 3 → listed | Armageddon #2 1 → 0.5: abstention scored 1.0,<br>now answers with the shirt (judge artifact) | this commit |
 | 2026-10-17 | Entity cards: a person's<br>other names (`entity_names`,<br>on by default, built by `/index`) | 0.736 → 0.736<br>(evidence identical but<br>one added passage, answer identical) | 0.875 → 0.875 | "What is Salander's fake identity?" (Additional Questions) 0 → 0.5<br>(all four identities retrieved and named) | none | this commit |
 | 2026-10-16 | Keyword (BM25) search<br>for words dense search misses<br>(`keyword_hits`, on by default) | 0.722 → 0.736<br>(evidence identical 36/36) | 0.875 → 0.875 | "What is 'no compromises'?" (Additional Questions) 0 → 0.5<br>nickname 0.5 → 1 (answer drift, same evidence) | none in correctness<br>(target's citation 1.0 → 0.5: its old abstention scored 1.0) | see section |
 | 2026-10-16 | English translation of<br>non-English questions<br>(`query_translation`) | 4 random items:<br>0.75 → 0.75 | 0.875 → 0.875 | Turkish and Spanish questions<br>abstained → answered | none (English path unchanged) | see section |
@@ -100,7 +100,7 @@ Henrik hires Blomkvist and Martin Vanger the answer passages are in both runs' e
 accepted the two answer-drift drops and `scene_context` is on by default. Chapter tails alone: QA.csv 0.736 → 0.736 (exp133 → exp143). 76
 tests pass.
 
-## 2026-10-17 — Entity matrix: the entity cards from any end (`entity_matrix`, opt-in)
+## 2026-10-17 — Entity matrix: the entity cards from any end (`entity_matrix`)
 
 **Target:** "Are there any police officers with nicknames?" and "What are the nicknames used in the book?" (asked
 in the UI, traces 29877247 / 3619600d). The first answered that no police officer has a nickname, the second named
@@ -126,7 +126,7 @@ entity, any confident cell). It runs only when `entity_names` adds nothing. Card
 Blomkvist, Bubble, Magge Lundin; fake identity, car and dragon tattoo unchanged. Offline it fires on 1 of 43 dataset
 items. exp150 Additional Questions 0.562 / 0.938 (== exp146). exp151 QA.csv 0.694 / 0.861 vs exp147 0.708 / 0.861:
 evidence identical on 35/36; the second Armageddon question got its answer passage, and its abstention (scored 1.0)
-became a correct answer scored 0.5 for missing context (reproduced by exp152). Off by default pending approval. Notes:
+became a correct answer scored 0.5 for missing context (reproduced by exp152). Approved with that drop and turned on by default on 2026-10-17. Notes:
 `docs/plans/2026-10-17-entity-matrix.md`.
 
 ## 2026-10-17 — Entity cards: the other names of a person the question names (`entity_names`)

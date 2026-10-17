@@ -252,7 +252,7 @@ class WideCandidateChecks(unittest.TestCase):
 
     def test_entity_matrix_settings(self):
         config = ResolvedPipelineConfig()
-        self.assertEqual((config.entity_matrix, config.entity_matrix_similarity, config.entity_matrix_max_hits), (False, 0.75, 8))
+        self.assertEqual((config.entity_matrix, config.entity_matrix_similarity, config.entity_matrix_max_hits), (True, 0.75, 8))
         for bad in ({"entity_matrix": 1}, {"entity_matrix_similarity": 0}, {"entity_matrix_similarity": 1.5}, {"entity_matrix_similarity": True},
                     {"entity_matrix_max_hits": 0}, {"entity_matrix_max_hits": 21}):
             with self.assertRaises(ValueError):

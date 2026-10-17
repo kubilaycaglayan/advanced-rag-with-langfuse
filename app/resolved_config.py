@@ -93,7 +93,7 @@ class ResolvedPipelineConfig:
     scene_context_max_hits: int = 2
     scene_context_sentences: int = 2
     entity_names: bool = True
-    entity_matrix: bool = False
+    entity_matrix: bool = True
     entity_matrix_similarity: float = 0.75
     entity_matrix_max_hits: int = 8
     corpus_checksum: str = ""
