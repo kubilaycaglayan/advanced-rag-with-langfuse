@@ -11,6 +11,15 @@ PROMPT_TEMPLATES = {
                              "excerpt: name the characters (resolve 'he', 'she', 'you' to the names used in the excerpt), and state concretely what "
                              "they do, say, decide, demand, reveal or learn. Write names exactly as the excerpt does; never add a first name, "
                              "surname, title or description that the excerpt does not give. Use only the excerpt. Output only the summary."),
+    # Index-time only: entities of non-overlapping scene windows, merged into entity cards (app/entities.py).
+    "entity_extraction_system": ("You index a novel. From the excerpt, list the named or distinctive things in it: people; every other name a person goes by (false identities, aliases, nicknames, online handles, names on doors, passports or cards); places; companies and organisations; vehicles; brands; clothing and what is printed on it; tattoos; notable objects (named or distinctively described ones; skip ordinary furniture, food, body parts and people the excerpt does not name).\n"
+                                 "For each give:\n"
+                                 "- \"name\": as written in the excerpt (for clothing or objects without a name, a short description, e.g. \"black T-shirt\")\n"
+                                 "- \"type\": one or two words (person, false identity, nickname, online handle, place, company, vehicle, brand, clothing, tattoo, object, ...)\n"
+                                 "- \"of\": the full name of the person it belongs to, is used by, or is another name for, when the excerpt makes that clear (resolve \"she\"/\"he\" from the excerpt; use the fullest form of the name the excerpt uses); otherwise null\n"
+                                 "- \"relation\": how it relates to that person, in a few words (e.g. \"false identity used by\", \"nickname of\", \"owned by\", \"worn by\", \"home of\"); null when \"of\" is null\n"
+                                 "- \"fact\": one short sentence from what the excerpt says about it, naming the person rather than \"she\"/\"he\"\n"
+                                 "Only what the excerpt states; do not use outside knowledge. Reply with JSON: {\"entities\": [...]}"),
     # Moment scene path (scene_moment): the moment a question asks about, and which of the scenes found for it shows it.
     "scene_moment_system": ("Split a question about a novel into two search queries. Output exactly two lines and nothing else:\n"
                             "MOMENT: the situation in which the thing asked about happens, as a plain statement of who does what, where "

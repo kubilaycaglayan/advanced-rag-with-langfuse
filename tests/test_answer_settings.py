@@ -1,6 +1,7 @@
 """Name completion and reasoning-answer fallback."""
 import os
 import unittest
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 os.environ["LANGFUSE_TRACING_ENABLED"] = "false"
@@ -53,6 +54,23 @@ class KeywordSearchChecks(unittest.TestCase):
                     {"keyword_margin": float("nan")}, {"keyword_margin": True}, {"keyword_max_hits": -1}, {"keyword_max_hits": 31}):
             with self.assertRaises(ValueError):
                 ResolvedPipelineConfig.from_mapping(bad)
+
+    def test_rare_share_validation(self):
+        self.assertIsNone(ResolvedPipelineConfig().keyword_rare_share)
+        self.assertEqual(ResolvedPipelineConfig.from_mapping({"keyword_rare_share": 0.01}).keyword_rare_share, 0.01)
+        for bad in ({"keyword_rare_share": 0}, {"keyword_rare_share": 1.5}, {"keyword_rare_share": True}, {"keyword_rare_share": "x"}):
+            with self.assertRaises(ValueError):
+                ResolvedPipelineConfig.from_mapping(bad)
+
+    def test_rare_question_words_leave_out_names_and_common_words(self):
+        texts = ["Salander ran.", "Salander slept.", "Salander had a fake identity.", "The identity of Salander.", "She ran.", "He ran."]
+        client = MagicMock()
+        client.scroll.return_value = ([MagicMock(id=f"p{i}", payload={"text": t}) for i, t in enumerate(texts)], None)
+        with patch.object(pipeline, "qdrant_client", return_value=client):
+            # "salander" is a name, "ran" is in half the passages, "lost" is in none.
+            self.assertEqual(pipeline._rare_question_words("Why ran Salander's fake identity lost?", "c", 0.4), {"fake", "identity"})
+        self.assertTrue(pipeline._sentence_holds("She drove. The fake identity was lost.", {"fake", "identity"}))
+        self.assertFalse(pipeline._sentence_holds("It was fake. Her identity was lost.", {"fake", "identity"}))
 
     def test_rare_exact_words_rank_first(self):
         texts = ["She thought: no compromises.", "He made a compromise.", "No time to lose, she said.", "The house was quiet."]
@@ -164,6 +182,72 @@ class WideCandidateChecks(unittest.TestCase):
             # Off by default, and with no margin.
             self.assertEqual(self._run(base)[0], ["p1", "p0", "p2"])
             self.assertEqual(self._run(base, keyword_hits=30, keyword_margin=None)[0], ["p1", "p0", "p2"])
+
+    def test_keyword_passages_holding_every_rare_question_word_in_one_sentence_are_added_at_any_score(self):
+        base = {"t0": 1.0, "t1": 3.0, "t2": 0.5, "t3": -8.0, "t4": -8.0, "t5": -8.0, "a fake. identity": -9.0, "the fake identity": -7.0, "fake": 2.0}
+        keyword = [{"id": "k0", "text": "a fake. identity"}, {"id": "k1", "text": "the fake identity"}, {"id": "k2", "text": "fake"}]
+        with patch.object(pipeline, "_keyword_search", return_value=keyword), patch.object(pipeline, "_previous_passages", return_value={"k1": {"id": "k9", "text": "before"}}), \
+                patch.object(pipeline, "_rare_question_words", return_value={"fake", "identity"}) as rare:
+            # Only k1 holds both words in one sentence; it is added in front, not joined with the passage before it.
+            self.assertEqual(self._run(base, keyword_hits=30, keyword_rare_share=0.01)[0], ["k1", "p1", "p0", "p2"])
+            self.assertEqual(rare.call_args.args, ("q", "c", 0.01))
+            # Off by default; one rare word is not enough.
+            self.assertEqual(self._run(base, keyword_hits=30)[0], ["p1", "p0", "p2"])
+            rare.return_value = {"fake"}
+            self.assertEqual(self._run(base, keyword_hits=30, keyword_rare_share=0.01)[0], ["p1", "p0", "p2"])
+
+    def test_entity_names_add_the_other_names_of_the_person_the_question_names(self):
+        import json, tempfile
+        edge = lambda name, relation, types, count, members: {"from": name.casefold(), "to": "lisbeth salander", "relation": relation, "count": count,
+                                                             "types": types, "text": f"{name} — {relation} Salander: x", "members": members, "names": [name]}
+        cards = {"alias": {"salander": "lisbeth salander"}, "cards": [{"key": "lisbeth salander", "mentions": 300}],
+                 "edges": [edge("Irene Nesser", "false identity used by", ["false identity"], 2, ["n1"]),
+                           edge("Magnus", "false identity used by", ["false identity"], 1, ["n1"]),
+                           edge("Plague", "alias of", ["online handle"], 2, ["w1"]), edge("Plague", "friend of", ["person"], 1, ["w1"]),
+                           edge("Wasp", "online name used by", ["online handle"], 3, ["w1"]),
+                           edge("Lisbeth", "first name of", ["nickname"], 5, ["l1"]),
+                           edge("leather jacket", "worn by", ["clothing"], 9, ["j1"])]}
+        texts = {"n1": "under the name of Irene Nesser", "w1": "known online only as Wasp", "l1": "Lisbeth said", "j1": "a leather jacket"}
+        client = MagicMock()
+        client.retrieve.side_effect = lambda collection, ids, with_payload: [MagicMock(id=i, payload={"text": texts[i]}) for i in ids]
+        scores = {"Irene Nesser — false identity used by Salander: x": 6.0, "Wasp — online name used by Salander: x": 0.5}
+        reranker = MagicMock()
+        reranker.predict.side_effect = lambda pairs, show_progress_bar: [scores.get(text, -3.0) for _, text in pairs]
+        evidence = [{"id": "e1", "text": "unrelated"}]
+        with tempfile.NamedTemporaryFile("w", suffix=".json") as handle:
+            json.dump(cards, handle); handle.flush()
+            pipeline._entity_cards.cache_clear()
+            with patch.object(pipeline, "entity_cards_path", return_value=Path(handle.name)), patch.object(pipeline, "_reranker", return_value=reranker):
+                hits = lambda question, **settings: [row["entity"] for row in pipeline._entity_name_hits(
+                    question, ResolvedPipelineConfig(**settings), "c", client, evidence)]
+                # The best match leads, then the most often stated; the person's own name and other links are left out.
+                self.assertEqual(hits("What is Salander's fake identity?", entity_names=True), ["irene nesser", "wasp"])
+                self.assertEqual(hits("What is Salander's fake identity?", entity_names=False), [])
+                # Evidence that already names the best match is left as it is.
+                evidence.append({"id": "e2", "text": "She was Irene Nesser that day."})
+                self.assertEqual(hits("What is Salander's fake identity?", entity_names=True), [])
+                evidence.pop()
+                # No confident match, or the best match is not another name: nothing is added.
+                scores["Irene Nesser — false identity used by Salander: x"] = 1.0
+                self.assertEqual(hits("What is Salander's fake identity?", entity_names=True), [])
+                scores["leather jacket — worn by Salander: x"] = 7.0
+                self.assertEqual(hits("What did Salander wear?", entity_names=True), [])
+            pipeline._entity_cards.cache_clear()
+
+    def test_entity_cards_join_name_variants_and_link_other_names_to_the_person(self):
+        from app.entities import merge_entities
+        mention = lambda name, kind, owner=None, relation=None: {"name": name, "type": kind, "of": owner, "relation": relation, "fact": f"{name}."}
+        windows = [{"members": ["a"], "book": "B", "entities": [mention("Lisbeth Salander", "person"), mention("Irene Nesser", "false identity", "Lisbeth Salander", "false identity used by")]},
+                   {"members": ["b"], "book": "B", "entities": [mention("Salander", "person"), mention("Wasp", "online handle", "Salander", "online name used by"),
+                                                                mention("Wasp Enterprises", "company", "Salander", "owned by"), mention("the woman", "person"), None]}]
+        cards = merge_entities(windows)
+        # "Salander" is a one-word name of Lisbeth Salander; Wasp stays apart from Wasp Enterprises; unnamed people are dropped.
+        self.assertEqual(cards["alias"], {"salander": "lisbeth salander"})
+        self.assertEqual({card["key"] for card in cards["cards"]}, {"lisbeth salander", "irene nesser", "wasp", "wasp enterprises"})
+        edges = {edge["from"]: edge for edge in cards["edges"]}
+        self.assertEqual({edge["to"] for edge in edges.values()}, {"lisbeth salander"})
+        self.assertEqual((edges["wasp"]["text"], edges["wasp"]["types"], edges["wasp"]["members"]),
+                         ("Wasp — online name used by Lisbeth Salander: Wasp.", ["online handle"], ["b"]))
 
     def test_completed_name_scores_the_wider_pool(self):
         base = {"t0": 1.0, "t1": 1.5, "t2": 0.5, "t3": -1.0, "t4": -1.0, "t5": -1.0, "t6": -5.0, "t7": -5.0}

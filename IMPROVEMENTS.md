@@ -39,6 +39,7 @@ can touch, shrink that to only what it should touch, then confirm on the full da
 
 | Date | Round | QA.csv correctness | Citation | Improved (answer correctness) | Regressed | Commit |
 |---|---|---|---|---|---|---|
+| 2026-10-17 | Entity cards: a person's<br>other names (`entity_names`,<br>on by default, built by `/index`) | 0.736 → 0.736<br>(evidence identical but<br>one added passage, answer identical) | 0.875 → 0.875 | "What is Salander's fake identity?" (Additional Questions) 0 → 0.5<br>(all four identities retrieved and named) | none | this commit |
 | 2026-10-16 | Keyword (BM25) search<br>for words dense search misses<br>(`keyword_hits`, on by default) | 0.722 → 0.736<br>(evidence identical 36/36) | 0.875 → 0.875 | "What is 'no compromises'?" (Additional Questions) 0 → 0.5<br>nickname 0.5 → 1 (answer drift, same evidence) | none in correctness<br>(target's citation 1.0 → 0.5: its old abstention scored 1.0) | see section |
 | 2026-10-16 | English translation of<br>non-English questions<br>(`query_translation`) | 4 random items:<br>0.75 → 0.75 | 0.875 → 0.875 | Turkish and Spanish questions<br>abstained → answered | none (English path unchanged) | see section |
 | 2026-10-16 | Moment scene path on +<br>no translation request<br>for plainly English questions | 0.694 → 0.722<br>(exp100: 0.764) | 0.833 → 0.875<br>(exp100: 0.861) | T-shirt at the first meeting (Additional Questions) 0 → 1<br>Martin Vanger citation 0.5 → 1 | vs exp100, identical evidence: nickname 1 → 0.5, Zalachenko's killer 1 → 0.5 (answer-text drift)<br>police after assault 1 → 0.5 (controlled A/B: key points kept) | this commit |
@@ -57,6 +58,42 @@ Each row compares the round's defaults against the defaults it replaced: 2d7b030
 defaults (0.614), not against 88d26af, whose defaults it reverted. The correctness judge is noisy on reworded answers
 (identical answers have scored 0 and 1 in different runs), so single 0.5 steps in rows without a repeat run are
 weak evidence.
+
+## 2026-10-17 — Entity cards: the other names of a person the question names (`entity_names`)
+
+**Target:** "What is Salander's fake identity?" (Additional Questions, item ba2fffee), scored 0 in exp121: the
+answer named none of Irene Nesser, Monica Sholes, Wasp or V. Kulla.
+
+**Diagnosis** (`data/tuning/scripts-2026-10-16-fake-identity/`, offline): a recall failure. The passages say "she ...
+under the name of Irene Nesser", "Monica Sholes", "known online only as Wasp", "V. Kulla on the door"; none uses the
+question's words, most say "she", and they are spread over three books. MiniLM ranks them in the hundreds or
+thousands; the cross-encoder scores them below the evidence when they are present (and bge-reranker-v2-m3 does not
+bring them all either). Scene summaries leave the names out.
+
+**What was tried:** query rewrites and facets, co-occurrence and summary searches (no gain); `keyword_rare_share`
+(opt-in, default null, kept): a keyword hit with one sentence holding every rare non-name question word (each in under
+1% of passages) is added at any score. It brought Nesser and Sholes but not Wasp or Kulla, so it stays off.
+
+**Change:** an entity index. `/index` reads each non-overlapping window of 6 passages once with the index-time model
+(`scene_summary_model`, gemma4:26b), which lists its people, other names of people (false identities, aliases,
+nicknames, handles, names on doors), places, companies, vehicles, clothing and objects, each with the person it belongs
+to and how. The mentions are merged into entities (one-word person names joined to the full name; "Wasp" kept apart
+from "Wasp Enterprises") and edges ("Irene Nesser — false identity used by Lisbeth Salander") that point back to their
+passages (`app/entities.py`; extractions cached in `ENTITY_CACHE`, cards written per passage index under
+`ENTITY_CARDS_DIR`; about 2.8 hours for the three books on this machine, once). When answering, the edges into a person
+the question names are reranked against the question; when the best one (score at least `low_confidence_score`, 2.0)
+is another name of that person and the evidence does not already name it, the passages stating the person's other
+names are added in front of the evidence: the best match first, then by how many windows state each name, leaving out
+the person's own name and titles, other people linked as people ("friend of": Plague), and names stated in only one
+window. Each added passage carries a `Link:` line saying whose name it is, since the passage says "she".
+
+**Result:** exp133 QA.csv 0.736 / 0.875 (== exp119); the path fired on one item ("What media nickname…", adding a
+"Kalle Fucking Blomkvist" passage) with an identical answer. exp134 Additional Questions 0.438 / 0.938 vs exp121
+0.375 / 0.938, only the target changed. exp135/exp137: the target's evidence holds all four identities and the answer
+names Irene Nesser, Monica Sholes, Wasp and V. Kulla (and the nickname Sally), 0.5 / 1.0; the judge asks for the
+purposes of each and marks down Sally, which is answer-step work. exp136: the three QA.csv name questions 1.0 / 1.0.
+exp137 confirms the target with no config (cards built by `/index`, identical to the prototype's). Full notes:
+`docs/plans/2026-10-16-entity-cards.md`.
 
 ## 2026-10-16 — Keyword (BM25) search for words dense search misses (opt-in `keyword_hits`)
 

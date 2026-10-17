@@ -80,6 +80,7 @@ class ResolvedPipelineConfig:
     keyword_hits: int = 30
     keyword_margin: float | None = 4.0
     keyword_max_hits: int = 5
+    keyword_rare_share: float | None = None
     scene_margin: float | None = 1.0
     scene_window: int = 6
     scene_stride: int = 3
@@ -87,6 +88,7 @@ class ResolvedPipelineConfig:
     scene_summary_model: ModelIdentity | None = ModelIdentity("gemma4:26b")
     scene_thinking: bool = False
     scene_moment: bool = True
+    entity_names: bool = True
     corpus_checksum: str = ""
     prompt_hashes: Mapping[str, str] | None = None
 
@@ -109,6 +111,8 @@ class ResolvedPipelineConfig:
             raise ValueError("scene_thinking must be a boolean")
         if not isinstance(self.scene_moment, bool):
             raise ValueError("scene_moment must be a boolean")
+        if not isinstance(self.entity_names, bool):
+            raise ValueError("entity_names must be a boolean")
         if not isinstance(self.hyde, bool):
             raise ValueError("hyde must be a boolean")
         if not isinstance(self.query_translation, bool):
@@ -130,6 +134,9 @@ class ResolvedPipelineConfig:
         if self.keyword_margin is not None and (isinstance(self.keyword_margin, bool) or not isinstance(self.keyword_margin, (int, float))
                                                 or not math.isfinite(self.keyword_margin) or self.keyword_margin < 0):
             raise ValueError("keyword_margin must be a non-negative finite number or null")
+        if self.keyword_rare_share is not None and (isinstance(self.keyword_rare_share, bool) or not isinstance(self.keyword_rare_share, (int, float))
+                                                    or not 0 < self.keyword_rare_share <= 1):
+            raise ValueError("keyword_rare_share must be a number in (0, 1] or null")
         if self.scene_margin is not None and (isinstance(self.scene_margin, bool) or not isinstance(self.scene_margin, (int, float))
                                               or not math.isfinite(self.scene_margin) or self.scene_margin < 0):
             raise ValueError("scene_margin must be a non-negative finite number or null")
@@ -195,8 +202,8 @@ class ResolvedPipelineConfig:
         allowed = {"retrieval_mode", "candidate_count", "top_k", "passage_chars", "embedding_model", "reranker_model", "generation_model", "generation", "rrf_constant",
                    "min_passage_chars", "passage_overlap", "expansion_count", "hyde", "answer_thinking", "name_completion", "name_completion_hits", "query_translation", "english_word_share",
                    "low_confidence_score", "low_confidence_top_k", "wide_candidate_count", "wide_trigger_score", "wide_override_margin", "wide_max_hits",
-                   "keyword_hits", "keyword_margin", "keyword_max_hits",
-                   "scene_margin", "scene_window", "scene_stride", "scene_search_hits", "scene_summary_model", "scene_thinking", "scene_moment", "corpus_checksum", "prompt_hashes"}
+                   "keyword_hits", "keyword_margin", "keyword_max_hits", "keyword_rare_share",
+                   "scene_margin", "scene_window", "scene_stride", "scene_search_hits", "scene_summary_model", "scene_thinking", "scene_moment", "entity_names", "corpus_checksum", "prompt_hashes"}
         unknown = set(value) - allowed
         if unknown:
             raise ValueError(f"unknown config fields: {', '.join(sorted(unknown))}")

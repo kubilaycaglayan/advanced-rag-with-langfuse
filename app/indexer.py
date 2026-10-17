@@ -18,11 +18,13 @@ try:
     from .experiment_store import get_index_manifest, get_ready_manifest, save_index_manifest
     from .identity import canonical_json
     from .resolved_config import ResolvedPipelineConfig
+    from .entities import build_entity_cards, entity_cards_path
     from .scenes import build_scene_index, scene_collection
 except ImportError:
     from experiment_store import get_index_manifest, get_ready_manifest, save_index_manifest
     from identity import canonical_json
     from resolved_config import ResolvedPipelineConfig
+    from entities import build_entity_cards, entity_cards_path
     from scenes import build_scene_index, scene_collection
 
 SPLITTER_VERSION = "sentence-word-splitter-v1"
@@ -212,6 +214,8 @@ def build_index(config: ResolvedPipelineConfig, qdrant: QdrantClient | None = No
     if config.scene_margin is not None:
         encoder = SentenceTransformer(config.embedding_model.name, device="cpu", revision=config.embedding_model.revision)
         result["scenes"] = build_scene_index(result["collection"], config, qdrant, encoder)
+    if config.entity_names:
+        result["entities"] = build_entity_cards(result["collection"], config, qdrant)
     return result
 
 
@@ -285,4 +289,6 @@ def validate_index(collection: str, config: ResolvedPipelineConfig, qdrant: Qdra
         raise RuntimeError(f"index point count mismatch: expected={row['expected_point_count']} actual={count}")
     if config.scene_margin is not None and not qdrant.collection_exists(scene_collection(collection, config)):
         raise RuntimeError(f"scene search is on but the scene index for {collection!r} is not built")
+    if config.entity_names and not entity_cards_path(collection, config).exists():
+        raise RuntimeError(f"entity names are on but the entity cards for {collection!r} are not built")
     return row
