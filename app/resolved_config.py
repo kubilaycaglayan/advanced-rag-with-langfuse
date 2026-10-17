@@ -88,6 +88,10 @@ class ResolvedPipelineConfig:
     scene_summary_model: ModelIdentity | None = ModelIdentity("gemma4:26b")
     scene_thinking: bool = False
     scene_moment: bool = True
+    scene_context: bool = True
+    scene_context_rank: int = 3
+    scene_context_max_hits: int = 2
+    scene_context_sentences: int = 2
     entity_names: bool = True
     corpus_checksum: str = ""
     prompt_hashes: Mapping[str, str] | None = None
@@ -111,6 +115,14 @@ class ResolvedPipelineConfig:
             raise ValueError("scene_thinking must be a boolean")
         if not isinstance(self.scene_moment, bool):
             raise ValueError("scene_moment must be a boolean")
+        if not isinstance(self.scene_context, bool):
+            raise ValueError("scene_context must be a boolean")
+        if isinstance(self.scene_context_rank, bool) or not isinstance(self.scene_context_rank, int) or not 1 <= self.scene_context_rank <= 50:
+            raise ValueError("scene_context_rank must be between 1 and 50")
+        if isinstance(self.scene_context_max_hits, bool) or not isinstance(self.scene_context_max_hits, int) or not 1 <= self.scene_context_max_hits <= 10:
+            raise ValueError("scene_context_max_hits must be between 1 and 10")
+        if isinstance(self.scene_context_sentences, bool) or not isinstance(self.scene_context_sentences, int) or not 1 <= self.scene_context_sentences <= 20:
+            raise ValueError("scene_context_sentences must be between 1 and 20")
         if not isinstance(self.entity_names, bool):
             raise ValueError("entity_names must be a boolean")
         if not isinstance(self.hyde, bool):
@@ -203,7 +215,7 @@ class ResolvedPipelineConfig:
                    "min_passage_chars", "passage_overlap", "expansion_count", "hyde", "answer_thinking", "name_completion", "name_completion_hits", "query_translation", "english_word_share",
                    "low_confidence_score", "low_confidence_top_k", "wide_candidate_count", "wide_trigger_score", "wide_override_margin", "wide_max_hits",
                    "keyword_hits", "keyword_margin", "keyword_max_hits", "keyword_rare_share",
-                   "scene_margin", "scene_window", "scene_stride", "scene_search_hits", "scene_summary_model", "scene_thinking", "scene_moment", "entity_names", "corpus_checksum", "prompt_hashes"}
+                   "scene_margin", "scene_window", "scene_stride", "scene_search_hits", "scene_summary_model", "scene_thinking", "scene_moment", "scene_context", "scene_context_rank", "scene_context_max_hits", "scene_context_sentences", "entity_names", "corpus_checksum", "prompt_hashes"}
         unknown = set(value) - allowed
         if unknown:
             raise ValueError(f"unknown config fields: {', '.join(sorted(unknown))}")

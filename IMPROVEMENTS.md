@@ -39,6 +39,7 @@ can touch, shrink that to only what it should touch, then confirm on the full da
 
 | Date | Round | QA.csv correctness | Citation | Improved (answer correctness) | Regressed | Commit |
 |---|---|---|---|---|---|---|
+| 2026-10-17 | Chapter tails joined (index)<br>+ scene context for each passage<br>(`scene_context`, on by default) | tails: 0.736 → 0.736<br>scene context: 0.736 → 0.708<br>(usual evidence unchanged; 2 passages added after it) | 0.833 → 0.861 | Gun at Gosseberga, "what Salander said" (Additional Questions) 0 → 1<br>(Additional Questions 0.438 → 0.562)<br>Niedermann's pain 0.5 → 1, affair 0.5 → 1 | scene context: Cecilia 1 → 0 (judge error: control also abstains),<br>Henrik hires Blomkvist 1 → 0.5, Martin Vanger 1 → 0.5 (answer drift; reproducible)<br>tails: nickname 1 → 0.5 (same fact, less detail) | this commit |
 | 2026-10-17 | Entity cards: a person's<br>other names (`entity_names`,<br>on by default, built by `/index`) | 0.736 → 0.736<br>(evidence identical but<br>one added passage, answer identical) | 0.875 → 0.875 | "What is Salander's fake identity?" (Additional Questions) 0 → 0.5<br>(all four identities retrieved and named) | none | this commit |
 | 2026-10-16 | Keyword (BM25) search<br>for words dense search misses<br>(`keyword_hits`, on by default) | 0.722 → 0.736<br>(evidence identical 36/36) | 0.875 → 0.875 | "What is 'no compromises'?" (Additional Questions) 0 → 0.5<br>nickname 0.5 → 1 (answer drift, same evidence) | none in correctness<br>(target's citation 1.0 → 0.5: its old abstention scored 1.0) | see section |
 | 2026-10-16 | English translation of<br>non-English questions<br>(`query_translation`) | 4 random items:<br>0.75 → 0.75 | 0.875 → 0.875 | Turkish and Spanish questions<br>abstained → answered | none (English path unchanged) | see section |
@@ -58,6 +59,45 @@ Each row compares the round's defaults against the defaults it replaced: 2d7b030
 defaults (0.614), not against 88d26af, whose defaults it reverted. The correctness judge is noisy on reworded answers
 (identical answers have scored 0 and 1 in different runs), so single 0.5 steps in rows without a repeat run are
 weak evidence.
+
+## 2026-10-17 — Chapter tails and scene context: "When Mikael Blomkvist found Lisbeth Salander ... what Salander said to him?"
+
+**Target:** Additional Questions item 45d561b9, scored 0 in all eight earlier runs (abstains).
+
+**Diagnosis:** the answer ("Kalle Fucking Blomkvist") is the last lines of *The Girl Who Played with Fire*. `_merge`
+emitted a section's remainder as its own 160-char passage, cut off from its setup ("carefully loosened the gun ... heard
+her mutter"). Neither half matched: the setup has the question's words but not the answer (dense rank 504-1399, rerank
+-5.51), the tail has the answer but names no scene (dense 520-1591). Given the two as one passage, qwen3:8b answers
+correctly; given them as two, it does not. 81 of 110 sections ended in a passage under 400 chars. The scene summary
+states the line, but the scene path's bar (7.30) and the moment path's overlap rule kept it out.
+
+**Tried:** the whole scene summary in front of every passage, swapped in for search and reranking (target rank 1 offline,
+but only ~1.8 of 10 QA.csv evidence passages kept and a cited passage lost on 18/36); contextual rankings added to the
+fusion (misses the target); "beat every candidate by a margin" (never fires: the summary lifts the scene's other
+passages too); the whole summary as context on the new chunks (exp139: the target sits at the end of one six-passage
+window whose summary is mostly about other passages; contextual dense rank 47-211); hits in front of the evidence
+(exp142/exp144: Dag Svensson's murderer answered "Henrik Vanger", and the hits shifted the scene path's bar so "Henrik
+hires Blomkvist" lost its chronicle passage).
+
+**Change:**
+- `_merge`: a section's last passage shorter than `min_passage_chars` joins the passage before it (or, if they do not fit
+  together, takes that passage's last units in front of it). 5,594 → 5,522 passages; 72 scene summaries and 72 entity
+  windows rebuilt.
+- `scene_context` (on by default): a second collection of every passage embedded with its scene summary cut to the
+  `scene_context_sentences` (2) sentences nearest the passage. Contextual search; every row reranked with its context in
+  front; up to `scene_context_max_hits` (2) passages not already in the evidence are added after the usual evidence (and
+  before scene passages) when they rank in the top `scene_context_rank` (3) and score above `low_confidence_score`. Later
+  paths do not see them, so the usual evidence and the scene path stay exactly as without it. The answer model reads
+  book text only, never the summary.
+
+**Result:** target 0 → 1.0 (exp140, exp145: "Kalle Fucking Blomkvist ... letting go of the gun [E11]"). Additional
+Questions 0.438 → 0.562, none down (exp141 → exp146). QA.csv on the new chunks 0.736 → 0.708 / 0.833 → 0.861 (exp143 →
+exp147): 2 up, 3 down; no item lost a passage, and reruns (exp148/exp149) reproduce the three drops exactly. Checked by hand: Cecilia's
+1 → 0 is a judge error (the answer, Gottfried's drowning, is in neither run's evidence and both answers say so); for
+Henrik hires Blomkvist and Martin Vanger the answer passages are in both runs' evidence and the answers keep the facts
+(one adds an unsupported remark, one repeats the book's "He committed suicide"). With no retrieval regression, the user
+accepted the two answer-drift drops and `scene_context` is on by default. Chapter tails alone: QA.csv 0.736 → 0.736 (exp133 → exp143). 76
+tests pass.
 
 ## 2026-10-17 — Entity cards: the other names of a person the question names (`entity_names`)
 

@@ -196,6 +196,22 @@ class WideCandidateChecks(unittest.TestCase):
             rare.return_value = {"fake"}
             self.assertEqual(self._run(base, keyword_hits=30, keyword_rare_share=0.01)[0], ["p1", "p0", "p2"])
 
+    def test_scene_context_passages_go_after_the_usual_evidence_and_before_the_scene(self):
+        base = {"t0": 1.0, "t1": 3.0, "t2": 2.5, "t3": -8.0, "t4": -8.0, "t5": -8.0}
+        context = [{"id": "c0", "text": "c0", "rerank_score": 5.0, "scene_context_hit": True}]
+        scene = [{"id": i, "text": i, "scene_summary": "s", "scene_score": 3.0} for i in ("c0", "s0")]
+        with patch.object(pipeline, "_context_hits", return_value=context) as hits, \
+                patch.object(pipeline, "_scene_hits", return_value=scene) as scenes:
+            self.assertEqual(self._run(base, scene_context=True, scene_margin=1.0, entity_names=False)[0], ["p1", "p2", "p0", "c0", "s0"])
+            # The scene path sees the usual evidence only; the context path does not repeat it.
+            self.assertEqual([row["id"] for row in scenes.call_args.args[4]], ["p1", "p2", "p0"])
+            self.assertEqual(hits.call_args.args[6], {"p1", "p2", "p0"})
+            # Off when switched off, or without the scene index.
+            hits.reset_mock()
+            self.assertEqual(self._run(base, scene_context=False, scene_margin=1.0, entity_names=False)[0], ["p1", "p2", "p0", "c0", "s0"])
+            self.assertEqual(self._run(base, scene_margin=None, entity_names=False)[0], ["p1", "p2", "p0"])
+            hits.assert_not_called()
+
     def test_entity_names_add_the_other_names_of_the_person_the_question_names(self):
         import json, tempfile
         edge = lambda name, relation, types, count, members: {"from": name.casefold(), "to": "lisbeth salander", "relation": relation, "count": count,
@@ -367,6 +383,60 @@ class MomentSceneChecks(unittest.TestCase):
         self.assertEqual(self._hits(["MOMENT: X met Y", "1"], evidence=("p3",), present=("p3",))[0], [])
         # Passages already present elsewhere are not repeated.
         self.assertEqual(self._hits(["MOMENT: X met Y", "1"], present=("p20", "p1"))[0], ["p0", "p2", "p3", "p4"])
+
+
+class SceneContextChecks(unittest.TestCase):
+    def test_setting_is_validated(self):
+        config = ResolvedPipelineConfig()
+        self.assertEqual((config.scene_context, config.scene_context_rank, config.scene_context_max_hits, config.scene_context_sentences), (True, 3, 2, 2))
+        self.assertFalse(ResolvedPipelineConfig.from_mapping({"scene_context": False}).scene_context)
+        for bad in ({"scene_context": "yes"}, {"scene_context_rank": 0},
+                    {"scene_context_rank": True}, {"scene_context_max_hits": 0}, {"scene_context_max_hits": 11},
+                    {"scene_context_sentences": 0}):
+            with self.assertRaises(ValueError):
+                ResolvedPipelineConfig.from_mapping(bad)
+
+    def test_each_passage_takes_the_summary_of_the_window_it_sits_nearest_the_middle_of(self):
+        from app import scenes
+        contexts = scenes.passage_contexts([(["p0", "p1", "p2"], "s0"), (["p2", "p3", "p4"], "s1"), (["p4", "p5"], "s2")])
+        self.assertEqual(contexts, {"p0": "s0", "p1": "s0", "p2": "s0", "p3": "s1", "p4": "s2", "p5": "s2"})
+
+    def test_context_keeps_the_summary_sentences_nearest_the_passage_in_summary_order(self):
+        import numpy as np
+        from app import scenes
+        axis = {"gun": 0, "bench": 1, "car": 2}
+        encoder = MagicMock()
+        encoder.encode.side_effect = lambda texts, **kw: np.array([[1.0 if word in text else 0.0 for word in axis] for text in texts])
+        contexts = {"p": "He drives a car. She lies on a bench. He takes the gun."}
+        self.assertEqual(scenes.focused_contexts(contexts, {"p": "the gun on the bench"}, 2, encoder), {"p": "She lies on a bench. He takes the gun."})
+        self.assertEqual(scenes.focused_contexts(contexts, {"p": "the car"}, 1, encoder), {"p": "He drives a car."})
+
+    def _hits(self, scores, present=("f0",), **settings):
+        # Fused candidates f0, f1; the contextual search finds f1 (already fused), n0 and n1. Every row is reranked with its
+        # summary in front ("ctx-<id>").
+        candidates = [{"id": "f0", "text": "tf0", "rerank_score": 1.0}, {"id": "f1", "text": "tf1", "rerank_score": 0.5}]
+        found = lambda i: MagicMock(id=i, payload={"text": f"t{i}", "context": f"ctx-{i}"})
+        client = MagicMock()
+        client.query_points.return_value = MagicMock(points=[found("f1"), found("n0"), found("n1")])
+        client.retrieve.side_effect = lambda collection_name, ids, with_payload: [MagicMock(id=i, payload={"context": f"ctx-{i}"}) for i in ids]
+        reranker = MagicMock()
+        reranker.predict.side_effect = lambda pairs, show_progress_bar: [scores.get(text.split("\n")[0], 0.0) for _, text in pairs]
+        config = ResolvedPipelineConfig(**{"scene_context": True} | settings)
+        with patch.object(pipeline, "_reranker", return_value=reranker):
+            rows = pipeline._context_hits("q", config, "c", client, [[0.0], [0.0]], candidates, set(present))
+        return [row["id"] for row in rows]
+
+    def test_passages_ranking_among_the_best_with_their_summary_are_added(self):
+        # n0 ranks first with its summary in front and is a confident match.
+        self.assertEqual(self._hits({"ctx-n0": 5.0, "ctx-f0": 4.0}), ["n0"])
+        # A fused candidate outside the usual evidence can be added too; one in it is not repeated.
+        self.assertEqual(self._hits({"ctx-f1": 5.0, "ctx-f0": 4.0}), ["f1"])
+        self.assertEqual(self._hits({"ctx-f0": 5.0}), [])
+        # Not among the best scene_context_rank, or not a confident match: nothing is added.
+        self.assertEqual(self._hits({"ctx-n0": 3.0, "ctx-f0": 5.0, "ctx-f1": 4.0}, present=("f0", "f1"), scene_context_rank=2), [])
+        self.assertEqual(self._hits({"ctx-n0": 1.5}), [])
+        # At most scene_context_max_hits.
+        self.assertEqual(self._hits({"ctx-n0": 5.0, "ctx-n1": 4.0}, scene_context_max_hits=1), ["n0"])
 
 
 class ThinkingFallbackChecks(unittest.TestCase):

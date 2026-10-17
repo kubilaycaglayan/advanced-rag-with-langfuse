@@ -227,6 +227,76 @@ def build_scene_index(collection: str, config: ResolvedPipelineConfig, qdrant: Q
     return {"collection": name, "scenes_indexed": len(points), "already_indexed": False}
 
 
+def context_collection(collection: str, config: ResolvedPipelineConfig) -> str:
+    return f"{scene_collection(collection, config)}_context{config.scene_context_sentences}"
+
+
+def passage_contexts(scenes: list[tuple[list[str], str]]) -> dict[str, str]:
+    """The summary of the window each passage sits nearest the middle of (the earlier window on a tie)."""
+    best: dict[str, tuple[float, str]] = {}
+    for members, summary in scenes:
+        for position, member in enumerate(members):
+            distance = abs(position - (len(members) - 1) / 2)
+            if member not in best or distance < best[member][0]:
+                best[member] = (distance, summary)
+    return {member: summary for member, (_, summary) in best.items()}
+
+
+def focused_contexts(contexts: dict[str, str], texts: dict[str, str], sentences: int, encoder: Any) -> dict[str, str]:
+    """Each passage's context cut to the ``sentences`` summary sentences nearest the passage, in the summary's order.
+
+    A window's summary tells the whole window; the passage at one end shares it with five others, and the sentences about
+    the rest drown out the one about the passage (where it sits in its windows depends on how the section divides).
+    """
+    split = {member: re.split(r"(?<=[.!?])\s+", summary.strip()) for member, summary in contexts.items()}
+    unique = sorted({sentence for parts in split.values() for sentence in parts})
+    vectors = dict(zip(unique, encoder.encode(unique, batch_size=128, show_progress_bar=False, normalize_embeddings=True)))
+    members = list(split)
+    passages = encoder.encode([texts[member] for member in members], batch_size=64, show_progress_bar=False, normalize_embeddings=True)
+    focused = {}
+    for member, passage in zip(members, passages):
+        parts = split[member]
+        nearest = sorted(range(len(parts)), key=lambda n: -float(vectors[parts[n]] @ passage))[:sentences]
+        focused[member] = " ".join(parts[n] for n in sorted(nearest))
+    return focused
+
+
+def build_context_index(collection: str, config: ResolvedPipelineConfig, qdrant: QdrantClient, encoder: Any) -> dict[str, Any]:
+    """Every passage again, embedded with its scene's summary (cut to the sentences about it) in front, for a
+    passage that names neither (a line of dialogue, the line a chapter ends on). The payload keeps the book text and
+    the summary apart, so only the book text reaches the answer model. Needs the scene index."""
+    name = context_collection(collection, config)
+    passages = passages_in_order(qdrant, collection)
+    position = {str(point.id): n for n, point in enumerate(passages)}
+    scenes, offset = [], None
+    while True:
+        batch, offset = qdrant.scroll(collection_name=scene_collection(collection, config), limit=2000, offset=offset, with_payload=True)
+        scenes += [(point.payload["members"], point.payload["summary"]) for point in batch]
+        if offset is None:
+            break
+    contexts = focused_contexts(passage_contexts(sorted(scenes, key=lambda scene: position.get(scene[0][0], len(position)))),
+                                {str(point.id): point.payload["text"] for point in passages}, config.scene_context_sentences, encoder)
+    if qdrant.collection_exists(name) and qdrant.count(collection_name=name, exact=True).count == len(passages):
+        indexed, offset = {}, None
+        while True:
+            batch, offset = qdrant.scroll(collection_name=name, limit=2000, offset=offset, with_payload=["context"])
+            indexed.update({str(point.id): point.payload.get("context") for point in batch})
+            if offset is None:
+                break
+        if all(indexed.get(str(point.id), False) == contexts.get(str(point.id)) for point in passages):
+            return {"collection": name, "passages_indexed": len(passages), "already_indexed": True}
+    texts = [f"{contexts[str(point.id)]}\n{point.payload['text']}" if str(point.id) in contexts else point.payload["text"] for point in passages]
+    vectors = encoder.encode(texts, batch_size=64, show_progress_bar=False, normalize_embeddings=True).tolist()
+    if qdrant.collection_exists(name):
+        qdrant.delete_collection(name)
+    qdrant.create_collection(collection_name=name, vectors_config=models.VectorParams(size=len(vectors[0]), distance=models.Distance.COSINE))
+    points = [models.PointStruct(id=str(point.id), vector=vector, payload={**point.payload, "context": contexts.get(str(point.id))})
+              for point, vector in zip(passages, vectors)]
+    for start in range(0, len(points), 128):
+        qdrant.upsert(collection_name=name, points=points[start:start + 128], wait=True)
+    return {"collection": name, "passages_indexed": len(points), "already_indexed": False}
+
+
 def _read_cache() -> dict[str, dict[str, Any]]:
     """The cached summaries, later lines overriding earlier ones."""
     path = _cache_path()

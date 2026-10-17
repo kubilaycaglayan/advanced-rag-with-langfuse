@@ -29,6 +29,20 @@ class ChunkingChecks(unittest.TestCase):
         merged = _merge(rows("aaaa", "bbbb", "cccc", "dddd"), min_chars=8, max_chars=100, overlap=1)
         self.assertEqual([m["text"] for m in merged], ["aaaa\nbbbb", "bbbb\ncccc", "cccc\ndddd"])
 
+    def test_short_section_end_joins_the_passage_before_it(self):
+        merged = _merge(rows("a" * 8, "b" * 8, "cc") + rows("dddddddd", section="s2"), min_chars=8, max_chars=100, overlap=0)
+        self.assertEqual([m["text"] for m in merged], ["a" * 8, "b" * 8 + "\ncc", "dddddddd"])
+        self.assertEqual((merged[1]["paragraph"], merged[1]["paragraph_end"]), (2, 3))
+
+    def test_short_section_end_that_cannot_join_takes_the_last_units_before_it(self):
+        merged = _merge(rows("a" * 5, "b" * 5, "c" * 5, "dd"), min_chars=11, max_chars=14, overlap=0)
+        self.assertEqual([m["text"] for m in merged], ["a" * 5 + "\n" + "b" * 5, "b" * 5 + "\n" + "c" * 5 + "\ndd"])
+
+    def test_short_section_alone_and_overlapping_end_are_not_repeated(self):
+        self.assertEqual([m["text"] for m in _merge(rows("cc"), min_chars=8, max_chars=100, overlap=0)], ["cc"])
+        merged = _merge(rows("aaaa", "bbbb", "c"), min_chars=8, max_chars=100, overlap=1)
+        self.assertEqual([m["text"] for m in merged], ["aaaa\nbbbb\nc"])
+
     def test_merge_changes_index_identity_only_when_enabled(self):
         with patch("app.indexer.corpus_paths") as paths:
             paths.return_value = [type("P", (), {"name": n, "read_bytes": lambda self: b"x", "parent": "c"})() for n in "abc"]

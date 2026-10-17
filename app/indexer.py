@@ -19,13 +19,13 @@ try:
     from .identity import canonical_json
     from .resolved_config import ResolvedPipelineConfig
     from .entities import build_entity_cards, entity_cards_path
-    from .scenes import build_scene_index, scene_collection
+    from .scenes import build_context_index, build_scene_index, context_collection, scene_collection
 except ImportError:
     from experiment_store import get_index_manifest, get_ready_manifest, save_index_manifest
     from identity import canonical_json
     from resolved_config import ResolvedPipelineConfig
     from entities import build_entity_cards, entity_cards_path
-    from scenes import build_scene_index, scene_collection
+    from scenes import build_context_index, build_scene_index, context_collection, scene_collection
 
 SPLITTER_VERSION = "sentence-word-splitter-v1"
 
@@ -143,21 +143,41 @@ def _merge(rows: list[dict[str, Any]], min_chars: int, max_chars: int, overlap: 
     """Join consecutive passages of one EPUB section until a passage reaches min_chars.
 
     A passage never grows past max_chars by joining; ``overlap`` trailing units of each
-    passage are repeated at the start of the next one in the same section.
+    passage are repeated at the start of the next one in the same section. A section's last
+    passage shorter than min_chars (often the line a chapter ends on) joins the passage before
+    it, or, when the two do not fit together, takes that passage's last units in front of it.
     """
     merged: list[dict[str, Any]] = []
+    previous: list[dict[str, Any]] = []  # units of the last passage emitted
 
     def emit(units: list[dict[str, Any]]) -> None:
+        nonlocal previous
         first, last = units[0], units[-1]
         merged.append(first | {"paragraph_end": last["paragraph"], "part_end": last["part"],
                                "text": "\n".join(unit["text"] for unit in units)})
+        previous = units
+
+    def length(units: list[dict[str, Any]]) -> int:
+        return sum(len(unit["text"]) + 1 for unit in units) - 1
+
+    def finish(units: list[dict[str, Any]]) -> None:
+        if length(units) < min_chars and previous and (previous[0]["book_file"], previous[0]["section"]) == (units[0]["book_file"], units[0]["section"]):
+            joined = previous + [unit for unit in units if unit not in previous]
+            if length(joined) <= max_chars:
+                merged.pop()
+                emit(joined)
+                return
+            carried = [unit for unit in previous if unit not in units]
+            while carried and length([carried[-1], *units]) <= max_chars:
+                units = [carried.pop(), *units]
+        emit(units)
 
     window: list[dict[str, Any]] = []
     fresh = 0  # units in the window not carried over from the previous passage
     for row in rows:
         if window and (window[0]["book_file"], window[0]["section"]) != (row["book_file"], row["section"]):
             if fresh:
-                emit(window)
+                finish(window)
             window, fresh = [], 0
         size = sum(len(unit["text"]) + 1 for unit in window)
         if window and fresh and (size >= min_chars or size + len(row["text"]) > max_chars):
@@ -169,7 +189,7 @@ def _merge(rows: list[dict[str, Any]], min_chars: int, max_chars: int, overlap: 
         window.append(row)
         fresh += 1
     if window and fresh:
-        emit(window)
+        finish(window)
     return merged
 
 
@@ -214,6 +234,8 @@ def build_index(config: ResolvedPipelineConfig, qdrant: QdrantClient | None = No
     if config.scene_margin is not None:
         encoder = SentenceTransformer(config.embedding_model.name, device="cpu", revision=config.embedding_model.revision)
         result["scenes"] = build_scene_index(result["collection"], config, qdrant, encoder)
+        if config.scene_context:
+            result["scene_context"] = build_context_index(result["collection"], config, qdrant, encoder)
     if config.entity_names:
         result["entities"] = build_entity_cards(result["collection"], config, qdrant)
     return result
@@ -289,6 +311,8 @@ def validate_index(collection: str, config: ResolvedPipelineConfig, qdrant: Qdra
         raise RuntimeError(f"index point count mismatch: expected={row['expected_point_count']} actual={count}")
     if config.scene_margin is not None and not qdrant.collection_exists(scene_collection(collection, config)):
         raise RuntimeError(f"scene search is on but the scene index for {collection!r} is not built")
+    if config.scene_context and config.scene_margin is not None and not qdrant.collection_exists(context_collection(collection, config)):
+        raise RuntimeError(f"scene context is on but the scene context index for {collection!r} is not built")
     if config.entity_names and not entity_cards_path(collection, config).exists():
         raise RuntimeError(f"entity names are on but the entity cards for {collection!r} are not built")
     return row

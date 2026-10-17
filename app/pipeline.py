@@ -20,13 +20,13 @@ try:
     from .observability import observation as _observe, update as _update
     from .prompt_templates import PROMPT_HASHES, PROMPT_TEMPLATES
     from .entities import entity_cards_path
-    from .scenes import scene_collection
+    from .scenes import context_collection, scene_collection
 except ImportError:
     from resolved_config import ResolvedPipelineConfig
     from observability import observation as _observe, update as _update
     from prompt_templates import PROMPT_HASHES, PROMPT_TEMPLATES
     from entities import entity_cards_path
-    from scenes import scene_collection
+    from scenes import context_collection, scene_collection
 
 
 def qdrant_client() -> QdrantClient:
@@ -408,6 +408,30 @@ def _scene_hits(question: str, config: ResolvedPipelineConfig, collection: str, 
     return rows
 
 
+def _context_hits(question: str, config: ResolvedPipelineConfig, collection: str, qdrant: QdrantClient, vectors: list[list[float]],
+                  candidates: list[dict[str, Any]], present: set[str]) -> list[dict[str, Any]]:
+    """Passages found with their scene's summary in front, which the fused candidates and the usual evidence lack,
+    when they rank among the scene_context_rank best of all of them reranked that way and are confident matches.
+
+    The summary says who is there and what happens, so a passage that names neither (a line of dialogue, the line a
+    chapter ends on) can match a question that describes the moment. Every row is reranked with its summary in front,
+    the fused candidates too, so a scene that matches lifts its passages on one scale.
+    """
+    name = context_collection(collection, config)
+    found = _rrf([qdrant.query_points(collection_name=name, query=vector, limit=config.candidate_count, with_payload=True).points
+                  for vector in vectors], config.candidate_count, config.rrf_constant)
+    fused = {row["id"] for row in candidates}
+    contexts = {str(point.id): (point.payload or {}).get("context")
+                for point in qdrant.retrieve(collection_name=name, ids=list(fused), with_payload=["context"])}
+    rows = [row | {"context": contexts.get(row["id"])} for row in candidates] + [row for row in found if row["id"] not in fused]
+    scores = _reranker(config.reranker_model.name, config.reranker_model.revision).predict(
+        [(question, f"{row['context']}\n{row['text']}" if row.get("context") else row["text"]) for row in rows], show_progress_bar=False)
+    best = sorted(zip(rows, (float(score) for score in scores)), key=lambda pair: pair[1], reverse=True)[:config.scene_context_rank]
+    floor = config.low_confidence_score if config.low_confidence_score is not None else -math.inf
+    return [row | {"scene_context_hit": True, "rerank_score": score, "context_score": score}
+            for row, score in best if row["id"] not in present and score > floor][:config.scene_context_max_hits]
+
+
 def _prompted(prompt_bundle: dict[str, Any] | None, asset: str, system: str, user: str, config: ResolvedPipelineConfig, name: str,
               **variables: str) -> str:
     """One generation-model request with a Langfuse prompt (``asset``), or the local template when there is no bundle."""
@@ -528,6 +552,7 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
             queries.append(named)
             query_names.append("name completed question")
     rankings = []
+    vectors: list[list[float]] = []
     stage = time.perf_counter()
     vector_search_timings: list[float] = []
     with _observe("candidate retrieval", input={"question": question, "queries": queries}) as obs:
@@ -541,6 +566,7 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
                 limit = max(config.candidate_count, config.wide_candidate_count, config.name_completion_hits if query_name == "name completed question" else 0)
                 points = qdrant.query_points(collection_name=collection, query=vector, limit=limit, with_payload=True).points
                 rankings.append(points)
+                vectors.append(vector)
                 _update(search_obs, output={"hits": [{"id": str(point.id), "score": float(point.score), "payload": dict(point.payload or {})} for point in points]})
             vector_search_timings.append(round(time.perf_counter() - search_started, 4))
         wide: list[dict[str, Any]] = []
@@ -550,6 +576,8 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
             # The name-completed search does not compete in fusion: its hits join the wider pool, so the
             # fused candidates and the usual evidence stay exactly as they were.
             named_hits = rankings.pop() if named != question else []
+            if named != question:
+                vectors.pop()
             with _observe("RRF candidate merge", input={"ranking_count": len(rankings), "rrf_constant": config.rrf_constant}) as merge_obs:
                 candidates = _rrf([ranking[:config.candidate_count] for ranking in rankings], config.candidate_count, config.rrf_constant)
                 fused_ids = {row["id"] for row in candidates}
@@ -625,6 +653,20 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
                                   key=_passage_position)
             _update(obs, output={"searched": len(keyword), "admitted": [{"id": row["id"], "score": row["rerank_score"]} for row in keyword_hits]})
         timings["keyword_search_seconds"] = round(time.perf_counter() - stage, 4)
+    # A passage that names neither the people nor the moment can still be found with its scene's summary in front of
+    # it; such passages are added after the usual evidence when they rank among the best with summaries in front.
+    # The later paths do not see them, so everything else (the evidence's order, which scene the scene path adds)
+    # stays exactly as it is: in front, they shifted what the answer model leaned on and which scene was added.
+    context_hits: list[dict[str, Any]] = []
+    # It needs the scene index, so it is off when scene_margin is null.
+    if config.scene_context and config.scene_margin is not None and config.retrieval_mode != "baseline":
+        stage = time.perf_counter()
+        with _observe("scene context search", input=question) as obs:
+            top = sorted(candidates, key=lambda row: row["rerank_score"], reverse=True)[:config.top_k]
+            context_hits = _context_hits(question, config, collection, qdrant, vectors, candidates,
+                                         {row["id"] for row in wide_hits + keyword_hits + top})
+            _update(obs, output=[{"id": row["id"], "score": row["rerank_score"], "context": row.get("context")} for row in context_hits])
+        timings["scene_context_seconds"] = round(time.perf_counter() - stage, 4)
     # When no passage clearly answers the question, give the answer model more evidence and let it reason.
     low_confidence = config.low_confidence_score is not None and best_fused < config.low_confidence_score
     top_k = max(config.top_k, config.low_confidence_top_k) if low_confidence else config.top_k
@@ -637,6 +679,7 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
             _update(obs, output=[{"id": row["id"], "entity": row["entity"], "score": row["rerank_score"]} for row in entity_hits])
         timings["entity_names_seconds"] = round(time.perf_counter() - stage, 4)
     reranked = wide_hits + keyword_hits + entity_hits + sorted(candidates, key=lambda row: row["rerank_score"], reverse=True)[:top_k]
+    context_hits = [row for row in context_hits if row["id"] not in {row["id"] for row in reranked}]
     candidates += wide_hits + keyword_hits + entity_hits
     # A scene whose passages the question cannot match one by one (dialogue that never names the people involved) can
     # still match its summary; its passages go after the usual evidence, which stays as it is. Like the wider-pool
@@ -658,8 +701,11 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
                                                         {row["id"] for row in reranked}, prompt_bundle)
                 _update(obs, output={"moment": moment, "passages": [row["id"] for row in scene_hits]})
         timings["scene_search_seconds"] = round(time.perf_counter() - stage, 4)
-        reranked += scene_hits
+        scene_hits = [row for row in scene_hits if row["id"] not in {row["id"] for row in context_hits}]
         candidates += scene_hits
+    # Scene context hits go after the usual evidence and before the scene passages, which stay last as one scene.
+    candidates += [row for row in context_hits if row["id"] not in {row["id"] for row in candidates}]
+    reranked += context_hits + scene_hits
     baseline = sorted(candidates, key=lambda row: row.get("similarity", 0), reverse=True)[:config.top_k] if "similarity" in candidates[0] else []
     stage = time.perf_counter()
     with _observe("evidence formatting", input=reranked) as obs:
