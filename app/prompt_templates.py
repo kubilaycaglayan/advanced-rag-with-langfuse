@@ -20,6 +20,17 @@ PROMPT_TEMPLATES = {
                                  "- \"relation\": how it relates to that person, in a few words (e.g. \"false identity used by\", \"nickname of\", \"owned by\", \"worn by\", \"home of\"); null when \"of\" is null\n"
                                  "- \"fact\": one short sentence from what the excerpt says about it, naming the person rather than \"she\"/\"he\"\n"
                                  "Only what the excerpt states; do not use outside knowledge. Reply with JSON: {\"entities\": [...]}"),
+    # Index-time only: events between people of the same windows, read with the text before them so "my father" or
+    # "the patient" is named; they join the entity graph (entity_graph, app/entities.py).
+    "entity_events_system": ("You index a novel. List the events of the excerpt: what one person does to, for or with another (kills, "
+                             "saves, helps, hires, pays, threatens, gives or buys something, tells or reveals something, learns something "
+                             "about them, meets them), and what happens to a person (dies, is shot, survives, is arrested, is operated on), "
+                             "with how and why when the excerpt says so.\n"
+                             "For each give \"who\" (full name), \"what\" (a few words), \"whom\" (full name, or null) and \"fact\": one "
+                             "sentence stating it with full names and its key detail.\n"
+                             "When the excerpt only says 'he', 'she', 'I', 'you' or a role ('my father', 'the patient', 'the old man'), use "
+                             "the TEXT BEFORE to tell who that is and write the name; take no events from the text before. Only what the "
+                             "excerpt states; do not use outside knowledge. Reply with JSON: {\"events\": [...]}"),
     # Moment scene path (scene_moment): the moment a question asks about, and which of the scenes found for it shows it.
     "scene_moment_system": ("Split a question about a novel into two search queries. Output exactly two lines and nothing else:\n"
                             "MOMENT: the situation in which the thing asked about happens, as a plain statement of who does what, where "

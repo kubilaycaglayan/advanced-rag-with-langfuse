@@ -250,6 +250,45 @@ class WideCandidateChecks(unittest.TestCase):
                 self.assertEqual(hits("What did Salander wear?", entity_names=True), [])
             pipeline._entity_cards.cache_clear()
 
+    def test_entity_anchors_skip_a_leading_question_word(self):
+        data = {"alias": {}, "mentions": {"gottfried vanger": 10, "lisbeth salander": 300, "mikael blomkvist": 280}}
+        self.assertEqual(pipeline._entity_anchors("How Gottfried died?", data), {"gottfried vanger"})
+        self.assertEqual(pipeline._entity_anchors("Did Salander and Mikael have affair?", data), {"lisbeth salander", "mikael blomkvist"})
+        self.assertEqual(pipeline._entity_anchors("Who is Lisbeth Salander?", data), {"lisbeth salander"})
+
+    def test_entity_graph_settings(self):
+        config = ResolvedPipelineConfig()
+        self.assertEqual((config.entity_graph, config.entity_graph_damping, config.entity_graph_pool, config.entity_graph_max_hits,
+                          config.entity_graph_facts), (False, 0.5, 30, 2, 0))
+        for bad in ({"entity_graph": 1}, {"entity_graph_damping": 0}, {"entity_graph_damping": 1}, {"entity_graph_pool": 0},
+                    {"entity_graph_max_hits": 11}, {"entity_graph_facts": 31}, {"entity_graph_facts": True}):
+            with self.assertRaises(ValueError):
+                ResolvedPipelineConfig.from_mapping(bad)
+
+    def test_entity_graph_ranks_the_events_of_the_people_the_question_names(self):
+        import json, tempfile
+        cards = {"alias": {}, "edges": [], "cards": [{"key": "gottfried vanger", "mentions": 10, "members": ["p1", "p2"]},
+                                                     {"key": "harriet vanger", "mentions": 40, "members": ["p2", "p3"]},
+                                                     {"key": "erika berger", "mentions": 50, "members": ["p4"]}]}
+        events = [{"fact": "Erika Berger edits Millennium.", "members": ["p4"], "people": ["Erika Berger"]},
+                  {"fact": "Harriet Vanger killed Gottfried Vanger with an oar.", "members": ["p2"], "people": ["Harriet Vanger", "Gottfried"]}]
+        rows = [{"id": pid, "text": pid} for pid in ("p1", "p2", "p3", "p4")]
+        with tempfile.TemporaryDirectory() as directory:
+            card_path, event_path = Path(directory, "cards.json"), Path(directory, "events.json")
+            card_path.write_text(json.dumps(cards)); event_path.write_text(json.dumps(events))
+            pipeline._entity_cards.cache_clear(); pipeline._entity_graph.cache_clear()
+            with patch.object(pipeline, "entity_cards_path", return_value=card_path), patch.object(pipeline, "entity_events_path", return_value=event_path), \
+                    patch.object(pipeline, "_keyword_index", return_value=(rows,)), patch.object(pipeline, "_previous_passages", return_value={"p2": rows[0]}):
+                ranked = pipeline._entity_graph_events("How Gottfried died?", ResolvedPipelineConfig(entity_graph=True), "c", [])
+                self.assertEqual([event["fact"] for event in ranked][0], "Harriet Vanger killed Gottfried Vanger with an oar.")
+                # Nothing the question names and no evidence: no walk.
+                self.assertEqual(pipeline._entity_graph_events("What happened?", ResolvedPipelineConfig(entity_graph=True), "c", []), [])
+            pipeline._entity_cards.cache_clear(); pipeline._entity_graph.cache_clear()
+        # An event is shown as one line about the passage at its place, not as the passage.
+        evidence = pipeline._format_evidence([{"book": "B", "paragraph": 3, "text": "Harriet Vanger killed Gottfried Vanger.", "graph_fact": True}])
+        self.assertIn("Event: Harriet Vanger killed Gottfried Vanger.", evidence)
+        self.assertNotIn("Passage:", evidence)
+
     def test_entity_matrix_settings(self):
         config = ResolvedPipelineConfig()
         self.assertEqual((config.entity_matrix, config.entity_matrix_similarity, config.entity_matrix_max_hits), (True, 0.75, 8))

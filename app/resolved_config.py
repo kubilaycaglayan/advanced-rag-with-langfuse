@@ -96,6 +96,11 @@ class ResolvedPipelineConfig:
     entity_matrix: bool = True
     entity_matrix_similarity: float = 0.75
     entity_matrix_max_hits: int = 8
+    entity_graph: bool = False
+    entity_graph_damping: float = 0.5
+    entity_graph_pool: int = 30
+    entity_graph_max_hits: int = 2
+    entity_graph_facts: int = 0
     corpus_checksum: str = ""
     prompt_hashes: Mapping[str, str] | None = None
 
@@ -134,6 +139,16 @@ class ResolvedPipelineConfig:
             raise ValueError("entity_matrix_similarity must be a number in (0, 1]")
         if isinstance(self.entity_matrix_max_hits, bool) or not isinstance(self.entity_matrix_max_hits, int) or not 1 <= self.entity_matrix_max_hits <= 20:
             raise ValueError("entity_matrix_max_hits must be between 1 and 20")
+        if not isinstance(self.entity_graph, bool):
+            raise ValueError("entity_graph must be a boolean")
+        if isinstance(self.entity_graph_damping, bool) or not isinstance(self.entity_graph_damping, (int, float)) or not 0 < self.entity_graph_damping < 1:
+            raise ValueError("entity_graph_damping must be a number in (0, 1)")
+        if isinstance(self.entity_graph_pool, bool) or not isinstance(self.entity_graph_pool, int) or not 1 <= self.entity_graph_pool <= 200:
+            raise ValueError("entity_graph_pool must be between 1 and 200")
+        if isinstance(self.entity_graph_max_hits, bool) or not isinstance(self.entity_graph_max_hits, int) or not 0 <= self.entity_graph_max_hits <= 10:
+            raise ValueError("entity_graph_max_hits must be between 0 and 10")
+        if isinstance(self.entity_graph_facts, bool) or not isinstance(self.entity_graph_facts, int) or not 0 <= self.entity_graph_facts <= 30:
+            raise ValueError("entity_graph_facts must be between 0 and 30")
         if not isinstance(self.hyde, bool):
             raise ValueError("hyde must be a boolean")
         if not isinstance(self.query_translation, bool):
@@ -224,7 +239,7 @@ class ResolvedPipelineConfig:
                    "min_passage_chars", "passage_overlap", "expansion_count", "hyde", "answer_thinking", "name_completion", "name_completion_hits", "query_translation", "english_word_share",
                    "low_confidence_score", "low_confidence_top_k", "wide_candidate_count", "wide_trigger_score", "wide_override_margin", "wide_max_hits",
                    "keyword_hits", "keyword_margin", "keyword_max_hits", "keyword_rare_share",
-                   "scene_margin", "scene_window", "scene_stride", "scene_search_hits", "scene_summary_model", "scene_thinking", "scene_moment", "scene_context", "scene_context_rank", "scene_context_max_hits", "scene_context_sentences", "entity_names", "entity_matrix", "entity_matrix_similarity", "entity_matrix_max_hits", "corpus_checksum", "prompt_hashes"}
+                   "scene_margin", "scene_window", "scene_stride", "scene_search_hits", "scene_summary_model", "scene_thinking", "scene_moment", "scene_context", "scene_context_rank", "scene_context_max_hits", "scene_context_sentences", "entity_names", "entity_matrix", "entity_matrix_similarity", "entity_matrix_max_hits", "entity_graph", "entity_graph_damping", "entity_graph_pool", "entity_graph_max_hits", "entity_graph_facts", "corpus_checksum", "prompt_hashes"}
         unknown = set(value) - allowed
         if unknown:
             raise ValueError(f"unknown config fields: {', '.join(sorted(unknown))}")

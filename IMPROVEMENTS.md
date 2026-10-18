@@ -39,6 +39,8 @@ can touch, shrink that to only what it should touch, then confirm on the full da
 
 | Date | Round | QA.csv correctness | Citation | Improved (answer correctness) | Regressed | Commit |
 |---|---|---|---|---|---|---|
+| 2026-10-18 | Entity graph: PPR over cards,<br>passages and carried-context events<br>(`entity_graph`, rejected, off) | passages: set3 0.477 → 0.432<br>event lines: 0.694 → 0.639 | 0.861 → 0.903 | event lines: 7 of 94 items<br>(S3-10 toner, QA20 Cecilia, QA21, QA29, R3-4, R3-13) | passages: S3-9, S3-20<br>event lines: 16 of 94 items (QA1, QA9, QA12, QA25, QA27, QA28, QA35, R3 ×5, AQ ×2, S3 ×2) | not adopted (code kept, off) |
+| 2026-10-18 | Entity anchors skip a leading<br>question word ("How Gottfried") | unchanged<br>(entity hits identical 94/94, offline) | — | — (graph-only effect) | none | this commit |
 | 2026-10-17 | Chapter tails joined (index)<br>+ scene context for each passage<br>(`scene_context`, on by default) | tails: 0.736 → 0.736<br>scene context: 0.736 → 0.708<br>(usual evidence unchanged; 2 passages added after it) | 0.833 → 0.861 | Gun at Gosseberga, "what Salander said" (Additional Questions) 0 → 1<br>(Additional Questions 0.438 → 0.562)<br>Niedermann's pain 0.5 → 1, affair 0.5 → 1 | scene context: Cecilia 1 → 0 (judge error: control also abstains),<br>Henrik hires Blomkvist 1 → 0.5, Martin Vanger 1 → 0.5 (answer drift; reproducible)<br>tails: nickname 1 → 0.5 (same fact, less detail) | this commit |
 | 2026-10-17 | Entity matrix: entity cards<br>from any end (`entity_matrix`,<br>on by default) | 0.708 → 0.694<br>(evidence identical 35/36) | 0.861 → 0.861 | police nicknames, book nicknames<br>(not in a dataset): "none" / 3 → listed | Armageddon #2 1 → 0.5: abstention scored 1.0,<br>now answers with the shirt (judge artifact) | this commit |
 | 2026-10-17 | Entity cards: a person's<br>other names (`entity_names`,<br>on by default, built by `/index`) | 0.736 → 0.736<br>(evidence identical but<br>one added passage, answer identical) | 0.875 → 0.875 | "What is Salander's fake identity?" (Additional Questions) 0 → 0.5<br>(all four identities retrieved and named) | none | this commit |
@@ -60,6 +62,36 @@ Each row compares the round's defaults against the defaults it replaced: 2d7b030
 defaults (0.614), not against 88d26af, whose defaults it reverted. The correctness judge is noisy on reworded answers
 (identical answers have scored 0 and 1 in different runs), so single 0.5 steps in rows without a repeat run are
 weak evidence.
+
+## 2026-10-18 — Entity graph (GraphRAG-style), rejected; entity anchor fix
+
+**Target:** set3, whose largest failure group (8 of 12) is passages that name their subject only as "my father", "the
+patient" or "him" (gold dense rank 100–2000, cross-encoder −7…−11 against fused candidates at 3–7).
+
+**Stage 1, the cards as a graph:** passages, entity cards and their links as one graph, Personalized PageRank from the
+question's entities (1/√passages each) and the evidence. Offline the gold passages rank 65–722 and still score far
+below the bar: 0 of 8 admitted. The cards do not hold the answers ("Mikael said the word Gottfried to Harriet").
+`_entity_anchors` also read "How Gottfried" as one name, so S3-1/2 had no anchor at all.
+
+**Stage 2, carried-context events:** a new index-time extraction (`entity_events_system`, gemma4:26b, the 4,000
+characters before each window used only to name "he"/"my father"; 972 windows, 9,843 events, 2 h 47 min) added event
+nodes joined to their people and passages. The answers now exist ("Harriet Vanger killed Gottfried Vanger by using an
+oar to hold him under the water", the Heartbreak Hotel sign, Henrik's Wennerström promise), but rank below the official
+story they contradict ("Gottfried died in a banal way …", 8.6 vs 4.3).
+- *Passages of the best events after the evidence* (`entity_graph_max_hits` 2, pool 30): replay 0 of 8 gold
+  passages; exp164 set3 0.477 → 0.432, 0 up, 2 down (S3-9 followed the "contract for a book" cover story).
+- *The 10 best events as one-line evidence* (`entity_graph_facts` 10, pool 100; the oar event is 8th): exp165 set3
+  0.477 → 0.455 (2 up, 2 down), exp166 Additional Questions 0.562 → 0.438 (0 / 2), exp167 right-set-3 0.732 → 0.679
+  (2 / 5), exp168 QA.csv 0.694 → 0.639 (3 / 7). The usual evidence was identical everywhere; ten loosely related
+  event lines distract qwen3:8b ("Plague … known by the alias Wasp"), and with the oar event in evidence it still
+  followed the six official-story lines.
+
+**Kept:** the code, off by default (`entity_graph`, `entity_graph_damping`, `entity_graph_pool`,
+`entity_graph_max_hits`, `entity_graph_facts`; `/index` builds the events only when `entity_graph` is on), and the
+built events (`ENTITY_EVENTS_CACHE`, default `/data/entity-events.jsonl`). The anchor fix (a capitalised question word
+before a name is dropped) gives 17 recorded questions their entity but leaves `entity_names` and `entity_matrix` hits
+identical on all 94 recorded items, so no answer changes. Notes: `docs/plans/2026-10-17-graph.md`, scripts in
+`data/tuning/scripts-2026-10-17-graph/`.
 
 ## 2026-10-17 — Chapter tails and scene context: "When Mikael Blomkvist found Lisbeth Salander ... what Salander said to him?"
 

@@ -116,6 +116,84 @@ def build_entity_cards(collection: str, config: ResolvedPipelineConfig, qdrant: 
             "already_indexed": False}
 
 
+EVENT_CARRY_CHARS = 4000
+
+
+def _events_cache_path() -> Path:
+    return Path(os.getenv("ENTITY_EVENTS_CACHE", "/data/entity-events.jsonl"))
+
+
+def _events_prompt_hash() -> str:
+    return hashlib.sha256(PROMPT_TEMPLATES["entity_events_system"].encode("utf-8")).hexdigest()
+
+
+def entity_events_path(collection: str, config: ResolvedPipelineConfig) -> Path:
+    identity = {"passages": collection, "window": ENTITY_WINDOW, "carry": EVENT_CARRY_CHARS, "prompt": _events_prompt_hash(),
+                "model": summary_model(config)}
+    directory = Path(os.getenv("ENTITY_CARDS_DIR", "/data/entity-cards"))
+    return directory / f"{collection}_events_{hashlib.sha256(canonical_json(identity).encode()).hexdigest()[:12]}.json"
+
+
+def _extract_events(points: list[Any], before: str, config: ResolvedPipelineConfig) -> tuple[list[dict[str, Any]] | None, str]:
+    body = "\n".join(point.payload["text"] for point in points)
+    response = requests.post(os.getenv("OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/") + "/api/chat", json={
+        "model": summary_model(config), "think": False, "stream": False, "format": "json",
+        "messages": [{"role": "system", "content": PROMPT_TEMPLATES["entity_events_system"]},
+                     {"role": "user", "content": f"Book: {points[0].payload['book']}\n\nTEXT BEFORE (only for who is who):\n{before}\n\nEXCERPT:\n{body}"}],
+        "options": {"temperature": 0, "num_ctx": 8192, "num_predict": 1500}}, timeout=(10, 900))
+    response.raise_for_status()
+    text = response.json().get("message", {}).get("content", "")
+    try:
+        events = json.loads(text).get("events", [])
+    except (ValueError, AttributeError):
+        return None, text
+    return events if isinstance(events, list) else None, text
+
+
+def build_entity_events(collection: str, config: ResolvedPipelineConfig, qdrant: QdrantClient) -> dict[str, Any]:
+    """Extract the events between people of every entity window, given the ``EVENT_CARRY_CHARS`` of its section before
+    it so the people it only calls "he" or "my father" are named, and write them with the passages that state them.
+    One index-time model call per window, like the cards."""
+    path = entity_events_path(collection, config)
+    if path.exists():
+        return {"path": str(path), "already_indexed": True}
+    ordered = passages_in_order(qdrant, collection)
+    position = {str(point.id): i for i, point in enumerate(ordered)}
+    cache: dict[str, dict[str, Any]] = {}
+    if _events_cache_path().exists():
+        for line in _events_cache_path().read_text(encoding="utf-8").splitlines():
+            row = json.loads(line)
+            cache[row["key"]] = row
+    called, events = False, []
+    _events_cache_path().parent.mkdir(parents=True, exist_ok=True)
+    with _events_cache_path().open("a", encoding="utf-8") as out:
+        for points in scene_windows(ordered, ENTITY_WINDOW, ENTITY_WINDOW):
+            members = [str(point.id) for point in points]
+            key = hashlib.sha256(canonical_json({"members": members, "carry": EVENT_CARRY_CHARS, "prompt": _events_prompt_hash(),
+                                                 "model": summary_model(config)}).encode()).hexdigest()
+            if key not in cache:
+                first, section = position[members[0]], (points[0].payload["book_file"], points[0].payload["section"])
+                earlier = [point.payload["text"] for point in ordered[max(0, first - 20):first]
+                           if (point.payload["book_file"], point.payload["section"]) == section]
+                found, raw = _extract_events(points, "\n".join(earlier)[-EVENT_CARRY_CHARS:], config)
+                called = True
+                cache[key] = {"key": key, "members": members, "events": found, "raw": None if found is not None else raw}
+                out.write(json.dumps(cache[key]) + "\n")
+                out.flush()
+            for event in cache[key]["events"] or []:
+                if isinstance(event, dict) and isinstance(event.get("fact"), str) and event["fact"].strip():
+                    events.append({"fact": event["fact"].strip(), "members": members,
+                                   "people": [name for name in (event.get("who"), event.get("whom")) if isinstance(name, str) and name.strip()]})
+    if called and summary_model(config) != config.generation_model.name:
+        requests.post(os.getenv("OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/") + "/api/generate",
+                      json={"model": summary_model(config), "keep_alive": 0}, timeout=(10, 60))
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_suffix(".tmp")
+    temporary.write_text(json.dumps(events), encoding="utf-8")
+    temporary.replace(path)
+    return {"path": str(path), "events": len(events), "already_indexed": False}
+
+
 def _norm(name: str) -> str:
     name = re.sub(r"[’']s\b", "", name.strip())
     name = re.sub(r"^(the|a|an)\s+", "", name, flags=re.I)

@@ -19,13 +19,13 @@ try:
     from .resolved_config import ResolvedPipelineConfig
     from .observability import observation as _observe, update as _update
     from .prompt_templates import PROMPT_HASHES, PROMPT_TEMPLATES
-    from .entities import entity_cards_path
+    from .entities import entity_cards_path, entity_events_path
     from .scenes import context_collection, scene_collection
 except ImportError:
     from resolved_config import ResolvedPipelineConfig
     from observability import observation as _observe, update as _update
     from prompt_templates import PROMPT_HASHES, PROMPT_TEMPLATES
-    from entities import entity_cards_path
+    from entities import entity_cards_path, entity_events_path
     from scenes import context_collection, scene_collection
 
 
@@ -275,7 +275,11 @@ def _entity_anchors(question: str, data: dict[str, Any]) -> set[str]:
     """Entities the question names: a full name, or one word of the most-mentioned entity that contains it."""
     found = set()
     for name in re.findall(r"[A-ZÅÄÖ][\wåäöé]+(?:\s[A-ZÅÄÖ][\wåäöé]+)*", question):
-        key = re.sub(r"[’']s$", "", name).casefold()
+        # A capitalised question word is not part of the name after it ("How Gottfried died?", "Did Salander ...").
+        words = name.split()
+        while len(words) > 1 and words[0].casefold() in _ANCHOR_SKIP:
+            words.pop(0)
+        key = re.sub(r"[’']s$", "", " ".join(words)).casefold()
         if key in _ANCHOR_SKIP:
             continue
         key = data["alias"].get(key, key)
@@ -506,6 +510,161 @@ def _entity_matrix_hits(question: str, config: ResolvedPipelineConfig, collectio
     return rows
 
 
+def _entity_key(name: str, data: dict[str, Any]) -> str | None:
+    """The entity card a name refers to: its own, its alias, or the most mentioned card containing the name's words."""
+    key = re.sub(r"[’']s$", "", name.strip()).casefold()
+    key = data["alias"].get(key, key)
+    if key in data["mentions"]:
+        return key
+    words = set(key.split())
+    matches = [other for other in data["mentions"] if words and words <= set(other.split())]
+    return max(matches, key=data["mentions"].get) if matches else None
+
+
+@lru_cache(maxsize=2)
+def _entity_graph(path: str, events_path: str, collection: str) -> tuple[dict[Any, int], list[str], list[dict[str, Any]], Any]:
+    """The entity cards and events as one graph. Nodes are passages, entities and events; an entity is joined to each
+    passage of the windows that mention it and to the entities its links point to (weighted by the windows stating the
+    link), an event to the people it is between and to the passages of its window, and each passage to the next one
+    of its EPUB section. Returns the node index, the passage ids (the first nodes), the events (keyed ("event", i)) and
+    the column-normalised transition matrix that Personalized PageRank walks."""
+    import json
+    import numpy as np
+    import scipy.sparse as sparse
+    data = _entity_cards(path)
+    with open(events_path, encoding="utf-8") as handle:
+        events = json.load(handle)
+    passages = [row["id"] for row in _keyword_index(collection)[0]]
+    index: dict[Any, int] = {pid: i for i, pid in enumerate(passages)}
+    for card in data["cards"]:
+        index.setdefault(card["key"], len(index))
+    for number in range(len(events)):
+        index[("event", number)] = len(index)
+    rows, columns, weights = [], [], []
+
+    def join(first: int, second: int, weight: float) -> None:
+        rows.extend((first, second))
+        columns.extend((second, first))
+        weights.extend((weight, weight))
+
+    for card in data["cards"]:
+        for member in card["members"]:
+            if member in index:
+                join(index[card["key"]], index[member], 1.0)
+    for edge in data["edges"]:
+        if edge["from"] in index and edge["to"] in index:
+            join(index[edge["from"]], index[edge["to"]], float(edge["count"]))
+    for number, event in enumerate(events):
+        node = index[("event", number)]
+        for member in event["members"]:
+            if member in index:
+                join(node, index[member], 1.0)
+        for name in event["people"]:
+            key = _entity_key(name, data)
+            if key:
+                join(node, index[key], 1.0)
+    for pid, before in _previous_passages(collection).items():
+        join(index[before["id"]], index[pid], 1.0)
+    adjacency = sparse.csr_matrix((weights, (rows, columns)), shape=(len(index), len(index)))
+    degree = np.asarray(adjacency.sum(axis=1)).ravel()
+    degree[degree == 0] = 1
+    return index, passages, events, (sparse.diags(1 / degree) @ adjacency).T.tocsr()
+
+
+def _entity_graph_events(question: str, config: ResolvedPipelineConfig, collection: str, evidence: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Every event, ranked by Personalized PageRank from the entities the question names (each weighted by 1/sqrt of its
+    passages, so the main characters do not spread over every book) and from the evidence: the events the graph ties
+    most closely to both come first."""
+    import numpy as np
+    path, events_path = entity_cards_path(collection, config), entity_events_path(collection, config)
+    if not path.exists() or not events_path.exists():
+        return []
+    data = _entity_cards(str(path))
+    index, passages, events, walk = _entity_graph(str(path), str(events_path), collection)
+    members = {card["key"]: len(card["members"]) for card in data["cards"]}
+    seed = np.zeros(walk.shape[0])
+    for anchor in _entity_anchors(question, data):
+        seed[index[anchor]] += 1 / math.sqrt(max(1, members[anchor]))
+    for row in evidence:
+        if row["id"] in index:
+            seed[index[row["id"]]] += 0.1
+    if not seed.any():
+        return []
+    seed /= seed.sum()
+    rank = seed.copy()
+    for _ in range(30):
+        rank = (1 - config.entity_graph_damping) * seed + config.entity_graph_damping * (walk @ rank)
+    first = len(passages) + len(data["cards"])
+    return [events[i] for i in np.argsort(-rank[first:])]
+
+
+def _entity_graph_hits(question: str, config: ResolvedPipelineConfig, collection: str, qdrant: QdrantClient,
+                       evidence: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Passages stating the events the entity graph ties to the question, after the usual evidence.
+
+    A passage that calls the person "my father" or "him" shares no words with the question, and the cross-encoder
+    scores it far below passages that do; the events read from its window with the text before it name the people
+    ("Harriet Vanger killed Gottfried Vanger by holding him under the water with an oar"). The best
+    ``entity_graph_pool`` events by graph rank are scored against the question, and up to ``entity_graph_max_hits``
+    that score at least ``low_confidence_score`` and are stated by a passage not already in the evidence add that
+    passage with the event as its ``Link:`` line."""
+    present = {row["id"] for row in evidence}
+    pool = [event for event in _entity_graph_events(question, config, collection, evidence)
+            if not set(event["members"]) <= present][:config.entity_graph_pool]
+    if not pool or not config.entity_graph_max_hits:
+        return []
+    reranker = _reranker(config.reranker_model.name, config.reranker_model.revision)
+    floor = config.low_confidence_score if config.low_confidence_score is not None else -math.inf
+    scored = sorted(((float(score), event) for score, event in zip(reranker.predict([(question, event["fact"]) for event in pool], show_progress_bar=False), pool)
+                     if score >= floor), key=lambda pair: -pair[0])
+    rows: list[dict[str, Any]] = []
+    for score, event in scored:
+        if len(rows) >= config.entity_graph_max_hits:
+            break
+        points = [point for point in qdrant.retrieve(collection, ids=event["members"], with_payload=True) if str(point.id) not in present]
+        if not points:
+            continue
+        _, point = max(zip(reranker.predict([(event["fact"], point.payload["text"]) for point in points], show_progress_bar=False), points),
+                       key=lambda pair: pair[0])
+        present.add(str(point.id))
+        rows.append(dict(point.payload or {}) | {"id": str(point.id), "entity_graph_hit": True, "entity_score": score, "entity_link": event["fact"]})
+    if rows:
+        for row, score in zip(rows, reranker.predict([(question, row["text"]) for row in rows], show_progress_bar=False)):
+            row["rerank_score"] = float(score)
+    return rows
+
+
+def _entity_graph_facts(question: str, config: ResolvedPipelineConfig, collection: str, qdrant: QdrantClient,
+                        evidence: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """The ``entity_graph_facts`` events the question matches best among the ``entity_graph_pool`` the graph ties
+    most closely to it, each as one short evidence line placed at the passage that states it.
+
+    The answer to "How did Gottfried really die?" is an event the cross-encoder ranks below the official story it
+    contradicts ("Gottfried died in a banal way after getting drunk"), so no score rule picks it; given the events
+    themselves, a few sentences each, the answer model can weigh them as it weighs passages."""
+    pool = _entity_graph_events(question, config, collection, evidence)[:config.entity_graph_pool]
+    if not pool:
+        return []
+    reranker = _reranker(config.reranker_model.name, config.reranker_model.revision)
+    scored = sorted(zip((float(score) for score in reranker.predict([(question, event["fact"]) for event in pool], show_progress_bar=False)), pool),
+                    key=lambda pair: -pair[0])
+    best: dict[str, tuple[float, dict[str, Any]]] = {}
+    for score, event in scored:
+        best.setdefault(event["fact"].casefold(), (score, event))
+    chosen = sorted(best.values(), key=lambda pair: -pair[0])[:config.entity_graph_facts]
+    points = {str(point.id): point for point in qdrant.retrieve(collection, ids=sorted({m for _, event in chosen for m in event["members"]}), with_payload=True)}
+    rows = []
+    for score, event in chosen:
+        window = [points[m] for m in event["members"] if m in points]
+        if not window:
+            continue
+        _, point = max(zip(reranker.predict([(event["fact"], point.payload["text"]) for point in window], show_progress_bar=False), window),
+                       key=lambda pair: pair[0])
+        rows.append(dict(point.payload or {}) | {"id": f"event:{point.id}:{len(rows)}", "passage_id": str(point.id), "text": event["fact"],
+                                                 "graph_fact": True, "rerank_score": score})
+    return rows
+
+
 def _keyword_search(query: str, collection: str, limit: int, k1: float = 1.2, b: float = 0.75) -> list[dict[str, Any]]:
     """The passages that best match the query's words by BM25, best first (exact words, which dense search can miss)."""
     rows, counts, lengths, frequency = _keyword_index(collection)
@@ -669,7 +828,9 @@ def _format_evidence(rows: list[dict[str, Any]]) -> str:
     return "\n\n".join(
         f"[E{i}] Book: {row.get('book')} | Chapter: {row.get('chapter') or 'unavailable'} | Paragraph: {row.get('paragraph', 'unavailable')} | Page: {row.get('page') or 'unavailable'}\n"
         # A passage found through the entity index says "she"; the link it was found by says who and how.
-        + (f"Link: {row['entity_link']}\n" if row.get("entity_link") else "") + f"Passage: {row['text']}"
+        + (f"Link: {row['entity_link']}\n" if row.get("entity_link") else "")
+        # An event the entity graph found is one sentence about the passage at this place, not the passage itself.
+        + (f"Event: {row['text']}" if row.get("graph_fact") else f"Passage: {row['text']}")
         for i, row in enumerate(rows, 1)
     )
 
@@ -848,6 +1009,19 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
                                  for row in entity_hits])
         timings["entity_matrix_seconds"] = round(time.perf_counter() - stage, 4)
     reranked = wide_hits + keyword_hits + entity_hits + sorted(candidates, key=lambda row: row["rerank_score"], reverse=True)[:top_k]
+    # Passages stating the events the entity graph ties to the question's people and its evidence go after the usual
+    # evidence, which stays as it is.
+    if config.entity_graph and config.retrieval_mode != "baseline":
+        stage = time.perf_counter()
+        with _observe("entity graph", input=question) as obs:
+            graph_hits = _entity_graph_hits(question, config, collection, qdrant, reranked)
+            # The events themselves, one line each, when the answer model should weigh them (entity_graph_facts).
+            graph_facts = _entity_graph_facts(question, config, collection, qdrant, reranked) if config.entity_graph_facts else []
+            _update(obs, output={"passages": [{"id": row["id"], "link": row["entity_link"], "score": row["entity_score"]} for row in graph_hits],
+                                 "events": [{"passage": row["passage_id"], "event": row["text"], "score": row["rerank_score"]} for row in graph_facts]})
+        timings["entity_graph_seconds"] = round(time.perf_counter() - stage, 4)
+        reranked += graph_hits + graph_facts
+        candidates += graph_hits
     context_hits = [row for row in context_hits if row["id"] not in {row["id"] for row in reranked}]
     candidates += wide_hits + keyword_hits + entity_hits
     # A scene whose passages the question cannot match one by one (dialogue that never names the people involved) can

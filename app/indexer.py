@@ -18,13 +18,13 @@ try:
     from .experiment_store import get_index_manifest, get_ready_manifest, save_index_manifest
     from .identity import canonical_json
     from .resolved_config import ResolvedPipelineConfig
-    from .entities import build_entity_cards, entity_cards_path
+    from .entities import build_entity_cards, build_entity_events, entity_cards_path, entity_events_path
     from .scenes import build_context_index, build_scene_index, context_collection, scene_collection
 except ImportError:
     from experiment_store import get_index_manifest, get_ready_manifest, save_index_manifest
     from identity import canonical_json
     from resolved_config import ResolvedPipelineConfig
-    from entities import build_entity_cards, entity_cards_path
+    from entities import build_entity_cards, build_entity_events, entity_cards_path, entity_events_path
     from scenes import build_context_index, build_scene_index, context_collection, scene_collection
 
 SPLITTER_VERSION = "sentence-word-splitter-v1"
@@ -236,8 +236,10 @@ def build_index(config: ResolvedPipelineConfig, qdrant: QdrantClient | None = No
         result["scenes"] = build_scene_index(result["collection"], config, qdrant, encoder)
         if config.scene_context:
             result["scene_context"] = build_context_index(result["collection"], config, qdrant, encoder)
-    if config.entity_names or config.entity_matrix:
+    if config.entity_names or config.entity_matrix or config.entity_graph:
         result["entities"] = build_entity_cards(result["collection"], config, qdrant)
+    if config.entity_graph:
+        result["entity_events"] = build_entity_events(result["collection"], config, qdrant)
     return result
 
 
@@ -313,6 +315,8 @@ def validate_index(collection: str, config: ResolvedPipelineConfig, qdrant: Qdra
         raise RuntimeError(f"scene search is on but the scene index for {collection!r} is not built")
     if config.scene_context and config.scene_margin is not None and not qdrant.collection_exists(context_collection(collection, config)):
         raise RuntimeError(f"scene context is on but the scene context index for {collection!r} is not built")
-    if (config.entity_names or config.entity_matrix) and not entity_cards_path(collection, config).exists():
+    if (config.entity_names or config.entity_matrix or config.entity_graph) and not entity_cards_path(collection, config).exists():
         raise RuntimeError(f"entity cards are on but the entity cards for {collection!r} are not built")
+    if config.entity_graph and not entity_events_path(collection, config).exists():
+        raise RuntimeError(f"the entity graph is on but the entity events for {collection!r} are not built")
     return row
