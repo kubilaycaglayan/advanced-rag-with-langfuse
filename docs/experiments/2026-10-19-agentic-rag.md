@@ -210,6 +210,11 @@ fallback. If pursued further:
 * add the "true account" index/angle for mysteries: the reveal passages (Harriet drowned Gottfried, Harriet is alive)
   are in the corpus but are not reached by "how did X die" queries.
 
+The next round is planned in
+[docs/plans/2026-10-19-scene-details-and-true-accounts.md](plans/2026-10-19-scene-details-and-true-accounts.md):
+scene reading, a moment tool and a true-account search for the five remaining sub-0.6 items (two of which turned out
+to be fact issues, not agent failures).
+
 ## Reproduce
 
 Inside `millenium-tuning` (host network, `app/` and `data/` mounted, Qdrant on `127.0.0.1:6334`):
