@@ -1,6 +1,6 @@
 # Answer correctness v2: fact-based judging
 
-Status: shipped 2026-10-19, default judge for new experiment runs.
+Status: shipped 2026-10-19; v2 is selectable, and v3 became the default in the v3 round below.
 
 ## Problem
 
@@ -27,7 +27,7 @@ Two causes: the rubric never says that extra claims are fine, and the three-step
    without details, required facts carry all of it. Extra information is never penalised. An item without facts
    is judged against one fallback fact: the reference's core answer.
 3. **Selectable judge.** `correctness_evaluator` in the trigger payload (or `--correctness-evaluator` on the CLI)
-   picks `answer_correctness_v2` (default) or `answer_correctness_v1`. The score name follows the judge, so v1 and v2
+   picks `answer_correctness_v2` or `answer_correctness_v1`. The score name follows the judge, so v1 and v2
    scores never mix in Langfuse charts. The managed evaluator `millennium-answer_correctness_v2` holds the editable
    prompt, with `required_facts` and `supporting_details` mapped from the expected output.
 
@@ -75,8 +75,8 @@ outputs: `data/tuning/scripts-2026-10-19-answer-facts/`). The shipped version is
 answer states its core claim; context in parentheses, locations, sources, and how something was used are optional,
 and missing context alone never makes a fact partial. It is executed by `opencode serve`
 (`deepseek-v4.1-flash-free`, variant `low`), so the judge call goes through `OPENCODE_JUDGE_URL` rather than
-`EVALUATOR_MODEL`/Ollama. `answer_correctness_v2` remains the default; select v3 with
-`correctness_evaluator: answer_correctness_v3`.
+`EVALUATOR_MODEL`/Ollama. **v3 is the default**; pass `correctness_evaluator: answer_correctness_v2` to use the
+local Ollama judge.
 
 Langfuse stores the evaluator object, but it cannot activate it without an LLM connection for the `opencode`
 provider, so the Langfuse object uses the project's `ollama-local` connection as a registry placeholder and stays
