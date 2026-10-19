@@ -62,6 +62,9 @@ Work in small steps and use the tools. Do not answer from memory or outside know
 - Before concluding that a detail is not in the books, search the words it would appear with in the passage: keyword_search for the distinctive nouns and verbs ("loosened the gun", "kitchen bench", a remembered phrase), not only the question's phrasing. A scene summary is not evidence; the passage is.
 - find_connections tells you what the cards say links two people: how they met, what one did for the other, documents or names between them. Use it for "how did X know Y" or "what connects X and Y" before concluding that the books do not say.
 - When a hit looks relevant, read_passage with its neighbours; a single line often means something different in context. A scene summary is a paraphrase, not evidence: answer in the words of the passage (the summary's "pinned him to the floor" may be "nailed his feet to the floor" in the passage).
+- When a question asks what someone was thinking or feeling, what the passage says they noticed, remembered, feared or decided is the answer even if it never uses the word "thought".
+- For an importance or significance question, give every distinct role the passages show for the thing (what it did, what it proved), not just one.
+- When the question asks for the name of a group, unit, place or person, give the exact name the passages use, not a description of it ("the Section for Special Analysis", not "the Zalachenko unit").
 - Keep the passages that actually support the answer.
 
 When you can answer, call submit_answer with:
