@@ -175,3 +175,7 @@ Two general mechanisms, one for each pattern; no question-specific rules.
   question correctly (`90239c47`, 57 s). `engine: "fixed"` and the resolver defaults are unchanged. Open for the next
   round: either tighten the out-of-scope items above or accept them as judge/agent noise with the fixed judge; the
   no-drop acceptance bar is not fully met on those items.
+- 2026-10-19 (round 2): added one query-shape rule for "why" questions: keyword_search the question's nouns before
+  rewriting it. The out-of-scope Bjurman-money item rose from 0.25 to 0.50 but still misses the motive; no target
+  item changed. Live `/ask` health checked again after the rebuild. The no-drop bar on the out-of-scope items remains
+  the open item for the next round.
