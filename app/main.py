@@ -19,6 +19,7 @@ from pydantic import BaseModel, Field, IPvAnyAddress
 from qdrant_client import QdrantClient
 
 try:
+    from .evaluator_specs import CORRECTNESS_SPECS
     from .experiment_store import get_execution, initialize
     from .frontend_rate_limit import reserve_request
     from .experiments import start_worker, submit, submit_retry
@@ -29,6 +30,7 @@ try:
     from .pipeline_setup import current_pipeline_setup
     from .resolved_config import ResolvedPipelineConfig, resolve_pipeline_model_identities
 except ImportError:
+    from evaluator_specs import CORRECTNESS_SPECS
     from experiment_store import get_execution, initialize
     from frontend_rate_limit import reserve_request
     from experiments import start_worker, submit, submit_retry
@@ -267,7 +269,7 @@ async def trigger_experiment(request: Request,
     dataset_id = incoming.get("datasetId", incoming.get("dataset_id"))
     dataset_name = dataset_name or custom.pop("dataset_name", None)
     dataset_id = dataset_id or custom.pop("dataset_id", None)
-    allowed = {"variant_label", "config", "dataset_version", "item_ids", "prompt_label"}
+    allowed = {"variant_label", "config", "dataset_version", "item_ids", "prompt_label", "correctness_evaluator"}
     unknown = set(custom) - allowed
     if unknown:
         raise HTTPException(status_code=400, detail=f"unsupported trigger fields: {', '.join(sorted(unknown))}")
@@ -275,6 +277,8 @@ async def trigger_experiment(request: Request,
         dataset_name = os.getenv("DATASET_NAME", "QA.csv")
     if "prompt_label" in custom and (not isinstance(custom["prompt_label"], str) or not custom["prompt_label"].strip()):
         raise HTTPException(status_code=400, detail="prompt_label must be a non-empty string")
+    if "correctness_evaluator" in custom and custom["correctness_evaluator"] not in CORRECTNESS_SPECS:
+        raise HTTPException(status_code=400, detail=f"correctness_evaluator must be one of {', '.join(sorted(CORRECTNESS_SPECS))}")
     try:
         config = ResolvedPipelineConfig.from_mapping(custom.get("config"))
         custom["config"] = config.manifest()

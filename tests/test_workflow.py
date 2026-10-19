@@ -114,7 +114,7 @@ class WorkflowChecks(unittest.TestCase):
                  'prompt': [{'role':'user', 'content':'Edited rubric: {{answer}}'}],
                  'variables': ['answer'], 'modelConfig': {'model':'qwen3:8b', 'provider':'ollama-local'},
                  'outputDefinition': {'dataType':'NUMERIC','minValue':0,'maxValue':1}}
-                for name in ['answer_correctness_v1','citation_support_v1']]
+                for name in ['answer_correctness_v1','answer_correctness_v2','citation_support_v1']]
         response = SimpleNamespace(raise_for_status=lambda:None, json=lambda:{'data':rows})
         with patch('app.prompt_assets._api', return_value=('http://local', None)), \
              patch('app.prompt_assets.requests.get', return_value=response):

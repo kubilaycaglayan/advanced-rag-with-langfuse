@@ -60,7 +60,33 @@ CITATION_SUPPORT_V1 = EvaluatorSpec(
     ),
 )
 
-EVALUATOR_SPECS = (ANSWER_CORRECTNESS_V1, CITATION_SUPPORT_V1)
+ANSWER_CORRECTNESS_V2 = EvaluatorSpec(
+    name="answer_correctness_v2",
+    version=1,
+    minimum=0.0,
+    maximum=1.0,
+    rubric=(
+        "Decide, for each listed fact, whether the answer states it. Verdicts: \"present\" when the answer conveys "
+        "the fact's meaning in any wording, even alongside other information; \"partial\" when it conveys only part "
+        "of the fact or states it vaguely; \"missing\" when it does not convey the fact or gives a different value "
+        "instead (for example a different person or name). Extra information in the answer is never a reason to mark "
+        "a fact missing, even if the reference does not mention it. Ignore wording, formatting, citation labels and "
+        "minor language glitches. The reference answer is context for understanding the facts. Return JSON only."
+    ),
+    # The judge only gives verdicts; evaluation.fact_score turns them into the score
+    # (required facts 90%, supporting details 10%).
+    prompt_template=(
+        "Question: {question}\nReference answer (context): {reference_answer}\n"
+        "Required facts:\n{required_facts}\nSupporting details:\n{supporting_details}\n"
+        "Answer: {answer}\n\n"
+        "For every fact ID, first copy the words of the answer that state the fact (empty if none), then give the "
+        "verdict. Return JSON with one object per fact ID and a concise explanation."
+    ),
+)
+
+EVALUATOR_SPECS = (ANSWER_CORRECTNESS_V1, ANSWER_CORRECTNESS_V2, CITATION_SUPPORT_V1)
+CORRECTNESS_SPECS = {spec.name: spec for spec in (ANSWER_CORRECTNESS_V1, ANSWER_CORRECTNESS_V2)}
+DEFAULT_CORRECTNESS = ANSWER_CORRECTNESS_V2.name
 
 
 def evaluator_manifest() -> list[dict[str, object]]:

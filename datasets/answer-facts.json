@@ -1,0 +1,362 @@
+{
+  "version": 1,
+  "description": "Per-item answer facts for answer_correctness_v2. required_facts: the minimal facts that answer the question; supporting_details: elaboration that earns at most 10% of the score. Keyed by Langfuse dataset item ID; the reference `answer` is left unchanged.",
+  "datasets": {
+    "QA.csv": {
+      "58343746-a482-480d-b6d4-3e86f468a95c": {
+        "required_facts": ["Mikael's nickname is Kalle Blomkvist"],
+        "supporting_details": ["It comes from Astrid Lindgren's boy detective, after a newspaper headline when young Mikael helped catch a gang of bank robbers", "Mikael detests the nickname", "Salander calls him 'Kalle Fucking Blomkvist'"]
+      },
+      "08f5075a-61f3-531b-a483-0a11e4c86307": {
+        "required_facts": ["The answer says the information is not found in the sources (abstains)"],
+        "supporting_details": []
+      },
+      "05939427-895d-5d1d-a1e8-a022cc60d2c7": {
+        "required_facts": ["The answer says the information is not found in the sources (abstains)"],
+        "supporting_details": []
+      },
+      "b02fc4c3-53b3-5c8d-9e75-ee6c717bb165": {
+        "required_facts": ["The answer says the information is not found in the sources (abstains)"],
+        "supporting_details": []
+      },
+      "8becb9a1-f9bc-5dae-8068-628617294f1e": {
+        "required_facts": ["They allegedly cut off a breast so it would not interfere with drawing a bow (or throwing a spear)", "They lived in Asia Minor (Thermodon River) or Scythia"],
+        "supporting_details": ["It was the right breast"]
+      },
+      "02ad392b-b200-58ce-a96d-f7cd57a5a252": {
+        "required_facts": ["The book is Dimensions in Mathematics"],
+        "supporting_details": ["By L.C. Young"]
+      },
+      "8e6b2339-a71e-56d2-9d02-1e079e40f3e4": {
+        "required_facts": ["The doorplate says V. Kulla"],
+        "supporting_details": ["It refers to Villa Villekulla (Pippi Longstocking's home)"]
+      },
+      "ad6aba37-9261-56da-bf3b-713f0cf07851": {
+        "required_facts": ["Evert Gullberg shoots Zalachenko"],
+        "supporting_details": ["Gullberg was a retired former head of the Section", "Gullberg then shoots himself"]
+      },
+      "2b47ac9a-3e55-56e4-b0d2-58dbd9bbf6ee": {
+        "required_facts": ["She takes Hans-Erik Wennerström's money by hacking/draining his (offshore) bank accounts"],
+        "supporting_details": ["She uses a false identity", "The money goes to her own accounts (Gibraltar, Cayman Islands)"]
+      },
+      "e23fcfc0-fc13-5abc-b7d3-9d91ae09cc49": {
+        "required_facts": ["The unit is called the Section (Sektionen)"],
+        "supporting_details": ["Also known as the Section for Special Analysis / part of Constitutional Protection"]
+      },
+      "ef0f75d1-1894-5c3e-810d-7fe27a5e4845": {
+        "required_facts": ["He has congenital analgesia"],
+        "supporting_details": ["It is a rare genetic condition in which nerves do not transmit pain signals"]
+      },
+      "87adacdf-5695-5e07-9cf3-253888a777f8": {
+        "required_facts": ["Ronald Niedermann murdered them"],
+        "supporting_details": ["He acted on Zalachenko's orders"]
+      },
+      "e02a591d-9ecc-53ff-9885-807890ade4bb": {
+        "required_facts": ["Her twin sister is Camilla Salander"],
+        "supporting_details": []
+      },
+      "e6604c3c-f0f8-59a9-aaa5-08af5cfc4c32": {
+        "required_facts": ["Palmgren had a stroke"],
+        "supporting_details": ["A severe stroke / cerebral hemorrhage"]
+      },
+      "a1915174-dbfd-530b-87d5-cc9795361340": {
+        "required_facts": ["The nickname is Kalle Blomkvist"],
+        "supporting_details": ["It refers to Astrid Lindgren's boy detective", "The press gave him the nickname"]
+      },
+      "3206cb57-2291-5a0f-9a6e-cb2317dfc8db": {
+        "required_facts": ["She distrusts the police and authorities because of her bad past experiences with them"],
+        "supporting_details": ["As a person declared legally incompetent she would not be believed over a lawyer", "She prefers to deal with it herself (leverage, retaliation)"]
+      },
+      "a65a73f6-d521-5670-acee-7269c2799314": {
+        "required_facts": ["The death of her father Gottfried Vanger changed her"],
+        "supporting_details": ["He drowned", "It happened in 1965"]
+      },
+      "d25ea938-52e0-5462-9bf8-c0150771c11a": {
+        "required_facts": ["He describes his family in harshly negative terms (thieves, misers, bullies, incompetents)"],
+        "supporting_details": ["He calls them his worst enemies", "He mentions their Nazi sympathies / political insanity"]
+      },
+      "72d2d675-3064-51e5-afb2-47bb226b49f2": {
+        "required_facts": ["She demands control of her own money/finances", "She demands he write favourable reports so her guardianship can be revoked / she regains control of her life"],
+        "supporting_details": ["Spare keys to his home and office", "No psychiatric interference", "He must not abuse other women"]
+      },
+      "b24bb936-5f63-5762-9c38-b3a0e0dc1862": {
+        "required_facts": ["He is sentenced to three months in prison"],
+        "supporting_details": []
+      },
+      "360a9ab2-e684-597d-97b7-fb7d239f02d9": {
+        "required_facts": ["Erika Berger is editor-in-chief of Millennium"],
+        "supporting_details": ["She is a co-owner of Millennium"]
+      },
+      "f5ac54db-aea2-522f-a5b6-2c2823abae2b": {
+        "required_facts": ["Harriet flees to Australia"],
+        "supporting_details": ["She lives as Anita Cochran", "She runs a sheep farm"]
+      },
+      "b6e2949b-a8e6-579a-a278-eef587eb89c8": {
+        "required_facts": ["Henrik's real purpose is for Blomkvist to investigate Harriet Vanger's disappearance"],
+        "supporting_details": ["The official cover is writing a Vanger family chronicle/biography", "Harriet disappeared about 40 years earlier and Henrik believes she was murdered"]
+      },
+      "1f2db2c5-b52c-5442-907a-c2d64e3372e2": {
+        "required_facts": ["Bjurman, as her guardian, controls her money, so she must ask him for it", "She needs it for a new computer (to replace her broken laptop)"],
+        "supporting_details": []
+      },
+      "60f9103e-ea08-57f5-983a-3b6ae7069feb": {
+        "required_facts": ["Gottfried drowns", "Harriet actually drowned him (it was not an accident)"],
+        "supporting_details": ["It was believed to be a drunken accident", "She did it after he sexually assaulted her / in self-defence"]
+      },
+      "c8154831-38ea-5acb-80fb-726086886e91": {
+        "required_facts": ["He is convicted of (aggravated) libel/defamation", "The libel was against Hans-Erik Wennerström"],
+        "supporting_details": ["It was over an article published in Millennium"]
+      },
+      "5491526c-fa73-57bc-98c7-9bfc36fbf9a7": {
+        "required_facts": ["He shows strong savior/protector tendencies, repeatedly helping abused women or victims of injustice"],
+        "supporting_details": ["It is not a clinical diagnosis", "Examples such as Harriet, Lisbeth, or trafficking victims"]
+      },
+      "a6ee3143-428c-5d8e-8d8e-d131dc92ac54": {
+        "required_facts": ["No one killed Harriet; she is alive"],
+        "supporting_details": ["She fled Hedeby Island in 1966 to escape abuse by her father and brother", "She lived in Australia under an assumed identity until Mikael found her"]
+      },
+      "2e5eecdb-66bc-5c47-b700-f3f46a6f169d": {
+        "required_facts": ["Martin dies in a car crash (into a truck) while fleeing", "No one directly killed him"],
+        "supporting_details": ["Salander was pursuing him", "The car burned"]
+      },
+      "9cec0dd1-4ede-5f14-8162-8de3c76938a8": {
+        "required_facts": ["She wore it when Mikael first came to her Lundagatan apartment"],
+        "supporting_details": ["He came to recruit her as a researcher", "This is in The Girl with the Dragon Tattoo"]
+      },
+      "276fb010-6f69-5aef-9593-de095b841537": {
+        "required_facts": ["In the books, Armageddon appears in the slogan on Salander's T-shirt ('Armageddon was yesterday - today we have a serious problem')"],
+        "supporting_details": ["Generally, Armageddon is the prophesied final battle at the end of time"]
+      },
+      "09543843-b857-5bcd-ac6c-428ac4eb6501": {
+        "required_facts": ["Salander used the cigarette case to dig herself out of her grave at Gosseberga"],
+        "supporting_details": ["The police later recovered it as forensic evidence that she had been buried alive", "It refuted Zalachenko's lies"]
+      },
+      "c51aa2b1-bc66-5f9b-a323-23138d35675f": {
+        "required_facts": ["Miriam 'Mimmi' Wu gave her the cigarette case"],
+        "supporting_details": ["It was a (delayed) birthday present", "Mimmi bought it at a flea market"]
+      },
+      "fb5b6f9d-2a37-5f3b-9f40-e8dd97ca7952": {
+        "required_facts": ["She used a cigarette case to dig"],
+        "supporting_details": ["She also used her hands/arms to make an air pocket"]
+      },
+      "f59e5c80-b58e-5639-add4-ac587c7a368a": {
+        "required_facts": ["Martin Vanger shot at Mikael (with a rifle on Hedeby Island)", "Hitman Miro Nikolich tried to shoot him (with a sub-machine gun)"],
+        "supporting_details": []
+      },
+      "785e319a-89a1-5950-96cf-f99a23162a87": {
+        "required_facts": ["Yes, they had a sexual relationship/affair"],
+        "supporting_details": ["It started in Hedeby during the Harriet investigation", "It lasted about six months", "It ended when Salander saw Mikael with Erika Berger (around New Year)"]
+      }
+    },
+    "Additional Questions": {
+      "ba2fffee-c82e-4029-9b0c-1c7a52bed602": {
+        "required_facts": ["Irene Nesser is her fake identity (Norwegian passport)"],
+        "supporting_details": ["Monica Sholes, used in Zurich to drain Wennerström's accounts", "Her hacker handle is Wasp / her company Wasp Enterprises", "V. Kulla on her Fiskargatan doorplate"]
+      },
+      "74355fed-d6cb-401c-9a41-ee80faaf18cd": {
+        "required_facts": ["He learned of her through the background check on him that she had researched/written (commissioned by Frode via Milton Security)"],
+        "supporting_details": ["Frode let it slip when Mikael asked for a researcher", "Mikael read her report and realised she must have hacked his computer", "He then went to her Lundagatan apartment to recruit her"]
+      },
+      "dece0abd-3214-459e-ae0a-ff5c4c75f38a": {
+        "required_facts": ["The T-shirt said 'Armageddon was yesterday - today we have a serious problem'"],
+        "supporting_details": ["She first opened the door wrapped in a sheet"]
+      },
+      "45d561b9-ca5e-4c5d-83cb-04b610da13dc": {
+        "required_facts": ["She said 'Kalle Fucking Blomkvist'"],
+        "supporting_details": ["She then let go of the gun"]
+      },
+      "e43e2f16-b8e6-4735-8179-9ebd7cfbd42f": {
+        "required_facts": ["She said 'Kalle Fucking Blomkvist'"],
+        "supporting_details": ["She then let go of the gun"]
+      },
+      "36c50723-3b65-49f6-9d9b-70574cc9471c": {
+        "required_facts": ["She confronted Ronald Niedermann at the abandoned brickworks", "She nailed his feet to the floor with a nail gun"],
+        "supporting_details": ["She tipped off Svavelsjö MC and the police", "The bikers killed Niedermann and the police arrested the bikers", "She found evidence of trafficking/a body there"]
+      },
+      "1e785ac0-34a9-4b22-95c1-dd83cfff1764": {
+        "required_facts": ["It is Salander's personal stance of refusing to compromise or give in"],
+        "supporting_details": ["It is how Ekström/the court read her at her trial, where she rejects any deal", "Her one 'little compromise': agreeing to testify when her guardianship is revoked"]
+      },
+      "923590b4-884d-4c40-b39e-05a8569025ef": {
+        "required_facts": ["Her mother is Agneta Sofia Salander"],
+        "supporting_details": []
+      }
+    },
+    "set3": {
+      "47774e8e-840f-5f02-bd06-14de38f2f8cb": {
+        "required_facts": ["She is the trilogy's protagonist, a researcher and hacker (working for Milton Security)"],
+        "supporting_details": ["Small, tattooed, socially withdrawn", "Hacker handle Wasp", "Photographic memory", "Declared legally incompetent / institutionalised as a child", "Daughter of Zalachenko and Agneta; twin of Camilla"]
+      },
+      "229240f9-8db4-5030-a013-f045efbe5d41": {
+        "required_facts": ["The bullet did not damage vital areas of her brain", "She was found and taken to hospital where surgeons removed the bullet"],
+        "supporting_details": ["Zalachenko shot her and Niedermann buried her at Gosseberga", "She dug herself out with a cigarette case", "Mikael found her and called for help", "Sahlgrenska hospital; Dr Anders Jonasson operated"]
+      },
+      "ed7d4adb-8663-5e81-916a-132374be26e5": {
+        "required_facts": ["Lists several of the book's nicknames, such as Kalle Blomkvist, Wasp, Bubble, Zala, Mimmi, Plague"],
+        "supporting_details": ["Each nickname is attributed to the right person"]
+      },
+      "f929c2a2-5d3b-57f1-a68a-710959e9049b": {
+        "required_facts": ["Yes: Jan Bublanski is called 'Officer Bubble' / Bubble"],
+        "supporting_details": []
+      },
+      "f469f451-9d95-5486-ae57-887054e9f03b": {
+        "required_facts": ["Names at least one Saab driver: Monica Figuerola, or Viktor Göransson (whose Saab Niedermann took)"],
+        "supporting_details": ["Both of them", "Figuerola's is a Saab 9-5"]
+      },
+      "15f283dc-73bd-559d-befe-a6b8b0ab485e": {
+        "required_facts": ["Lists a substantial part of the bag's contents (e.g. wallet, money, cigarettes, lighters, Mace, a hammer)"],
+        "supporting_details": ["Most of the remaining items (toothbrush, tampons, condoms, notebook, pens, radio, Aftonbladet, makeup bag)", "Her keys with blood/skin from the attacker"]
+      },
+      "63be7c48-978b-5327-b7b3-7961e60dfc22": {
+        "required_facts": ["Henrik promised him information that would expose Wennerström"],
+        "supporting_details": ["He was also offered a large salary (200,000 kronor a month) and a bonus"]
+      },
+      "7e3cbf3d-3e08-52f2-a0c9-7ad276b0d9ae": {
+        "required_facts": ["His daughter Pernilla helped him"],
+        "supporting_details": ["She recognised the numbers as Bible references (Leviticus)"]
+      },
+      "569eb7d3-b4c5-5f6e-8adb-96ca33f1ed63": {
+        "required_facts": ["His daughter Pernilla saw the numbers and referred to them as Bible quotes", "He checked a Bible and found they were chapter-and-verse references (in Leviticus)"],
+        "supporting_details": ["She said it as she boarded her train", "He used Harriet's Bible from Gottfried's cabin"]
+      },
+      "6420cd1b-9adb-54ba-92ce-1c8a9d00435b": {
+        "required_facts": ["Ronald Niedermann killed Dag Svensson"],
+        "supporting_details": ["He also killed Mia Johansson", "He acted for Zalachenko"]
+      },
+      "3fc5cd25-8333-56d6-8c81-136571fc84fe": {
+        "required_facts": ["She bought a metal Elvis Presley sign ('Heartbreak Hotel')"],
+        "supporting_details": ["It was a Christmas present", "She threw it away after seeing Mikael with Erika Berger, so never gave it"]
+      },
+      "ce841aab-a26b-512b-8fa9-ba28cf3b0f20": {
+        "required_facts": ["Lists about ten characters who are genuinely central to the story (e.g. Salander, Blomkvist, Berger, Zalachenko, Niedermann, the Vangers, Bjurman, Armansky)"],
+        "supporting_details": []
+      },
+      "2df113f1-9330-53e8-b7dd-ddb4583a75c0": {
+        "required_facts": ["As her guardian he controlled her money", "He sexually abused and raped her"],
+        "supporting_details": ["She filmed the rape and blackmailed him", "She tattooed a message on his stomach", "He later sought Zalachenko's help against her"]
+      },
+      "db4076fd-3812-5196-ac8d-5d436388f286": {
+        "required_facts": ["Gottfried drowned", "Harriet drowned him (it was not just an accident)"],
+        "supporting_details": ["It happened in 1965 near his cabin", "It was believed to be a drunken accident", "He had raped her and tried to strangle her"]
+      },
+      "cf527045-31e2-56b5-a91d-1fb1f13fdd71": {
+        "required_facts": ["His daughter Harriet killed him by drowning him"],
+        "supporting_details": ["Officially it was a drunken accident", "He had raped her and tried to strangle her", "She pushed him into the water and held him under with an oar", "Martin saw it"]
+      }
+    },
+    "right-set-3": {
+      "f1256259-2eb3-5e89-9b74-eca672a8a0f5": {
+        "required_facts": ["He is an investigative (financial) journalist", "He is the publisher/co-owner of Millennium magazine"],
+        "supporting_details": ["Nicknamed Kalle Blomkvist", "His sister Annika Giannini is a lawyer", "He is co-protagonist with Salander"]
+      },
+      "5d14b8f3-5885-5fb0-9fde-992ccdefb860": {
+        "required_facts": ["She is known as a brilliant researcher and hacker"],
+        "supporting_details": ["Photographic memory", "Unconventional, tattooed appearance", "Declared legally incompetent", "Branded a psychopath/murderer by the media during the Enskede murders"]
+      },
+      "548b78a7-b772-527c-9f67-b76bfd7439bf": {
+        "required_facts": ["Bubble is Criminal Inspector Jan Bublanski"],
+        "supporting_details": ["He leads the Enskede murder investigation"]
+      },
+      "9f4dbacc-0496-5467-9277-baed795e4995": {
+        "required_facts": ["She was calm/impassive and did not cooperate with the prosecution (barely spoke)"],
+        "supporting_details": ["She let her written autobiography and Annika Giannini speak for her", "Unyielding: 'No compromises'"]
+      },
+      "74117b4c-998b-580d-8b3c-8be9f9558f89": {
+        "required_facts": ["Plague is a hacker and Salander's friend/collaborator (Hacker Republic)"],
+        "supporting_details": ["Severely overweight and socially awkward in real life", "Lives in Sundbyberg on disability benefits"]
+      },
+      "10722a9f-1262-53ae-8f73-11ff27be91d2": {
+        "required_facts": ["Teleborian was arrested (as he left court) for possessing child pornography"],
+        "supporting_details": ["His testimony was discredited at the trial"]
+      },
+      "a328f662-d3a1-53af-a4a1-326ffe49e972": {
+        "required_facts": ["Her father is Alexander Zalachenko"],
+        "supporting_details": ["A Soviet GRU defector protected by a secret group in Säpo", "He beat her mother", "She firebombed him as a child"]
+      },
+      "16018f6b-e1ee-59c2-b564-fe3e07567c19": {
+        "required_facts": ["She is Lisbeth Salander"],
+        "supporting_details": ["The dragon is on her left shoulder blade"]
+      },
+      "df0f4533-c695-59f0-8764-fca22d15cacc": {
+        "required_facts": ["She is self-taught / the books describe no formal training"],
+        "supporting_details": ["Her intelligence and photographic memory", "She works with other hackers such as Plague"]
+      },
+      "566f5c84-953b-5b8b-b042-ce7b1519dc35": {
+        "required_facts": ["Yes, she is a (world-class) hacker"],
+        "supporting_details": ["Known online as Wasp", "Member of the Hacker Republic"]
+      },
+      "a385d39a-767a-514a-a858-573e337356ad": {
+        "required_facts": ["Her report on him quoted material that existed only on his own computer, so he realised she had hacked it"],
+        "supporting_details": ["He confronted her at her apartment ('You're a hacker')"]
+      },
+      "7bc41830-1eea-5f09-9aba-2846b7ebd465": {
+        "required_facts": ["Photographic memory", "World-class hacking skills"],
+        "supporting_details": ["Exceptional intelligence/talent for mathematics", "Gift for research", "Tough fighter"]
+      },
+      "00e4a32f-7c35-513f-a71e-dda8ebe41233": {
+        "required_facts": ["Yes, she has a photographic memory"],
+        "supporting_details": ["She has known since before puberty", "She memorises texts such as Dimensions in Mathematics"]
+      },
+      "604151de-dce5-51ff-ae30-0b4fdc89adeb": {
+        "required_facts": ["Psychiatrists (like Teleborian) never listened to her, so she refused to talk to them"],
+        "supporting_details": ["It was a principled decision", "It dates from her time in the children's psychiatric clinic"]
+      },
+      "8db24d50-f1d6-55b9-bee7-a3c7f99aa3a0": {
+        "required_facts": ["Book 1: Blomkvist and Salander solve Harriet Vanger's disappearance / expose Wennerström", "Book 2: Salander is accused of murders and the trail leads to Zalachenko and Niedermann", "Book 3: Salander's trial and the exposure of the Section; she is acquitted"],
+        "supporting_details": ["She is shot and buried alive at Gosseberga but survives", "Teleborian is arrested", "She confronts Niedermann"]
+      },
+      "87382e52-ad6e-5336-9aa1-1b0d29cfc8ed": {
+        "required_facts": ["Blomkvist, convicted of libelling Wennerström, is hired by Henrik Vanger to investigate Harriet's disappearance", "With Salander he finds that Gottfried and Martin Vanger were serial killers and that Harriet is alive (in Australia)", "Wennerström is exposed using Salander's hacking"],
+        "supporting_details": ["Martin dies after trying to kill Mikael", "Salander secretly takes Wennerström's fortune", "Hedeby Island, 1966"]
+      },
+      "69df13bf-aadd-56b3-80d4-97522a6854ce": {
+        "required_facts": ["Forbes tried to murder his wife Geraldine during a hurricane on Grenada", "Salander stopped him", "Forbes died (found dead after the storm)"],
+        "supporting_details": ["He used an iron pipe to inherit her fortune", "Salander hit him with a chair leg", "Geraldine survived"]
+      },
+      "9fd61c41-644e-5e6d-ba59-04d60bef23f7": {
+        "required_facts": ["Apple PowerBook G4 (17-inch)", "Apple iBook (destroyed)", "Palm PDA (Tungsten)"],
+        "supporting_details": ["Desktop Mac G3", "Old Toshiba laptop", "PowerBook specs (1.0 GHz, 960 MB RAM, 60 GB disk)"]
+      },
+      "d26a8ea4-4665-5502-aa3b-7959c8a3e874": {
+        "required_facts": ["A dragon on her shoulder blade", "A wasp on her neck"],
+        "supporting_details": ["Loops/bands around a biceps and an ankle", "A Chinese symbol on her hip", "A rose on her calf", "She tattooed Bjurman's stomach"]
+      },
+      "c46ccf1a-a344-5c12-a4c3-d0c240a6a5fc": {
+        "required_facts": ["Millennium is a (monthly, Stockholm) magazine of investigative/critical journalism"],
+        "supporting_details": ["Founded by Mikael Blomkvist and Erika Berger", "Berger is editor-in-chief; Blomkvist the publisher", "Focuses on business and corporations"]
+      },
+      "84c345fd-c701-580e-88d7-4ea0bbf4b1d9": {
+        "required_facts": ["Curt Andersson is a police detective on Bublanski's team"],
+        "supporting_details": ["Laconic, solidly built, hot-tempered", "Transferred from gang crime in Huddinge", "Cleared after killing a knife-wielding hooligan in 1999"]
+      },
+      "e66c3106-c81b-56b2-8732-7c2a52ce2843": {
+        "required_facts": ["The cat was killed and its mutilated body left at Mikael's cottage as a warning"],
+        "supporting_details": ["It was half-burned, with legs and head cut off", "Its head was placed on Salander's motorcycle", "Police found traces in the crypt where it was killed"]
+      },
+      "58f31047-d68c-5735-9bdc-26c7320f23a9": {
+        "required_facts": ["Zala (Alexander Zalachenko) is Salander's father"],
+        "supporting_details": ["Soviet GRU defector protected by Säpo", "Her mother changed her name to Salander, echoing his"]
+      },
+      "b2919027-a60a-5b43-935e-221b4d99df2a": {
+        "required_facts": ["Niedermann did not seem to feel pain, so his punches had no effect", "Niedermann was not a real boxer"],
+        "supporting_details": ["Niedermann was enormously strong", "Paolo realised he was losing", "Niedermann has congenital analgesia"]
+      },
+      "4c4bec14-ae13-5bc8-a59d-974165fe1bd3": {
+        "required_facts": ["They are longtime friends and on-and-off lovers", "They co-founded/run Millennium together"],
+        "supporting_details": ["Her husband Greger Beckman knows about it", "She is editor-in-chief, he is publisher", "The affair broke up Mikael's marriage"]
+      },
+      "d56c8075-e9d0-549c-801c-64233d45b3ed": {
+        "required_facts": ["To escape her brother Martin, who was abusing her"],
+        "supporting_details": ["After she drowned Gottfried, Martin had her at his mercy", "Anita smuggled her off the island", "She lived as Anita, married Spencer Cochran and ran a sheep farm"]
+      },
+      "0c118dcd-56c5-5a41-970f-1138fddfdd55": {
+        "required_facts": ["No, they did not have an affair"],
+        "supporting_details": ["Armansky was attracted to her but never acted on it", "He was protective; employer-employee and friends"]
+      },
+      "c8687e69-1da6-5f24-8ce6-92835741c8a4": {
+        "required_facts": ["On (a point on the north side of) Hedeby Island, away from the village"],
+        "supporting_details": ["About 1.5 miles from the village", "Reached by a narrow path along the bay", "Rustic, isolated timber cabin"]
+      }
+    }
+  }
+}

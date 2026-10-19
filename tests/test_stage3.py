@@ -18,8 +18,8 @@ from app.identity import pipeline_identity, question_label, question_session_id
 from app.resolved_config import ResolvedPipelineConfig
 from app.experiment_store import enqueue, get_execution, initialize, mark_interrupted, update_execution
 from app.seed_dataset import _seed_dataset
-from app.evaluation import _judge
-from app.evaluator_specs import ANSWER_CORRECTNESS_V1
+from app.evaluation import FALLBACK_FACTS, _judge, answer_facts, fact_score
+from app.evaluator_specs import ANSWER_CORRECTNESS_V1, ANSWER_CORRECTNESS_V2
 from app.indexer import index_identity
 from app.experiments import _flush_client, submit_retry
 from app.prompt_assets import load_prompt_bundle
@@ -140,6 +140,43 @@ class Stage3Checks(unittest.TestCase):
             self.assertNotEqual(short[0], default[0])
             self.assertNotEqual(short[1], default[1])
 
+    def test_fact_score_weights_required_facts_over_details(self):
+        present, partial, missing = ({"verdict": v} for v in ("present", "partial", "missing"))
+        self.assertEqual(fact_score({"R1": present, "D1": missing, "D2": missing}, 1, 2), 0.9)
+        self.assertEqual(fact_score({"R1": present, "R2": partial}, 2, 0), 0.75)
+        self.assertEqual(fact_score({"R1": missing, "D1": present}, 1, 1), 0.1)
+
+    def test_answer_facts_fall_back_to_the_reference_core_answer(self):
+        self.assertEqual(answer_facts({"answer": "a", "required_facts": ["f"], "supporting_details": ["d"]}), (["f"], ["d"]))
+        self.assertEqual(answer_facts({"answer": "a"}), FALLBACK_FACTS)
+
+    def test_fact_judge_requires_every_fact_verdict_and_scores_in_code(self):
+        class Response:
+            def __init__(self, content): self.content = content
+            def raise_for_status(self): pass
+            def json(self): return {"message": {"content": self.content}}
+        relabelled = '{"R1":{"quote":"x","verdict":"present"},"D9":{"quote":"","verdict":"present"},"explanation":"e"}'
+        complete = ('{"R1":{"quote":"x","verdict":"present"},"D1":{"quote":"","verdict":"missing"},'
+                    '"explanation":"core answer given","score":0}')
+        with patch("app.evaluation.observation", return_value=nullcontext(None)), \
+             patch("app.evaluation.requests.post", side_effect=[Response(relabelled), Response(complete)]) as post:
+            result = _judge(ANSWER_CORRECTNESS_V2, question="q", answer="a", expected="r", facts=(["fact"], ["detail"]))
+        self.assertEqual(result["score"], 0.9)
+        self.assertEqual(post.call_count, 2)
+        sent = post.call_args.kwargs["json"]
+        self.assertEqual(sent["format"]["required"], ["R1", "D1", "explanation"])
+        self.assertIn("R1. fact", sent["messages"][0]["content"])
+
+    def test_v2_correctness_reports_its_own_score_name_and_verdicts(self):
+        judged = {"score": 0.9, "explanation": "ok", "latency_seconds": 0.1,
+                  "verdicts": {"R1": {"quote": "x", "verdict": "present"}}}
+        with patch("app.evaluation._judge", return_value=judged) as judge:
+            score = correctness(input={"question": "q"}, output={"answer": "a"}, spec=ANSWER_CORRECTNESS_V2,
+                                expected_output={"answer": "r", "required_facts": ["f"], "supporting_details": []})
+        self.assertEqual((score["name"], score["value"]), ("answer_correctness_v2", 0.9))
+        self.assertEqual(score["metadata"]["fact_verdicts"], {"R1": "present"})
+        self.assertEqual(judge.call_args.kwargs["facts"], (["f"], []))
+
     def test_malformed_judge_json_retries_then_validates(self):
         class Response:
             def __init__(self, content): self.content = content
@@ -235,7 +272,7 @@ class Stage3Checks(unittest.TestCase):
     def test_item_and_telemetry_failures_are_reported_separately(self):
         with tempfile.TemporaryDirectory() as directory, patch.dict(os.environ, {"EXPERIMENT_DATA_DIR": directory}):
             initialize()
-            enqueue("execution-partial", {"dataset_name": "QA.csv", "config": {}}, None)
+            enqueue("execution-partial", {"dataset_name": "QA.csv", "config": {}, "correctness_evaluator": "answer_correctness_v1"}, None)
             items = [SimpleNamespace(id=f"item-{i}", input={"question": f"q{i}"},
                                      expected_output={"answer": f"a{i}"}, metadata={}) for i in (1, 2)]
             dataset = SimpleNamespace(id="dataset-1", name="QA.csv", items=items)

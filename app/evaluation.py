@@ -11,10 +11,10 @@ from typing import Any
 import requests
 
 try:
-    from .evaluator_specs import ANSWER_CORRECTNESS_V1, CITATION_SUPPORT_V1
+    from .evaluator_specs import ANSWER_CORRECTNESS_V1, ANSWER_CORRECTNESS_V2, CITATION_SUPPORT_V1
     from .observability import observation, update as update_observation, use_client
 except ImportError:
-    from evaluator_specs import ANSWER_CORRECTNESS_V1, CITATION_SUPPORT_V1
+    from evaluator_specs import ANSWER_CORRECTNESS_V1, ANSWER_CORRECTNESS_V2, CITATION_SUPPORT_V1
     from observability import observation, update as update_observation, use_client
 
 
@@ -32,11 +32,49 @@ def is_explicit_abstention(answer: str) -> bool:
     return bool(_ABSTENTION_PATTERN.search(answer or ""))
 
 
+FACT_POINTS = {"present": 1.0, "partial": 0.5, "missing": 0.0}
+# Items without listed facts are judged on the reference's core answer alone.
+FALLBACK_FACTS = (["The core answer that the reference answer gives to the question"], [])
+
+
+def answer_facts(expected_output: Any) -> tuple[list[str], list[str]]:
+    if isinstance(expected_output, dict) and expected_output.get("required_facts"):
+        return [str(fact) for fact in expected_output["required_facts"]], [str(fact) for fact in expected_output.get("supporting_details") or []]
+    return FALLBACK_FACTS
+
+
+def _fact_ids(facts: tuple[list[str], list[str]]) -> list[str]:
+    return [f"R{n}" for n in range(1, len(facts[0]) + 1)] + [f"D{n}" for n in range(1, len(facts[1]) + 1)]
+
+
+def _fact_schema(facts: tuple[list[str], list[str]]) -> dict[str, Any]:
+    # A JSON schema makes Ollama return a verdict for every fact ID; free-form JSON
+    # dropped or relabelled verdicts in trials.
+    fact = {"type": "object", "properties": {"quote": {"type": "string"}, "verdict": {"type": "string", "enum": list(FACT_POINTS)}},
+            "required": ["quote", "verdict"]}
+    ids = _fact_ids(facts)
+    return {"type": "object", "properties": {**{fact_id: fact for fact_id in ids}, "explanation": {"type": "string"}},
+            "required": ids + ["explanation"]}
+
+
+def fact_score(verdicts: dict[str, Any], n_required: int, n_details: int) -> float:
+    """Required facts carry 90% of the score and supporting details 10% (all of it without details)."""
+    points = lambda fact_id: FACT_POINTS[str(verdicts[fact_id]["verdict"]).lower()]
+    score = sum(points(f"R{n}") for n in range(1, n_required + 1)) / n_required
+    if n_details:
+        score = 0.9 * score + 0.1 * sum(points(f"D{n}") for n in range(1, n_details + 1)) / n_details
+    return round(score, 4)
+
+
 def _judge(spec: Any, *, question: str, answer: str, expected: str | None = None, evidence: str = "",
            evaluator_id: str | None = None, langfuse_client: Any = None, managed_prompt: Any = None,
-           evaluator_version: int | None = None, managed_evaluator_id: str | None = None) -> dict[str, Any]:
+           evaluator_version: int | None = None, managed_evaluator_id: str | None = None,
+           facts: tuple[list[str], list[str]] | None = None) -> dict[str, Any]:
     values = {"question": question, "reference_answer": expected or "", "answer": answer,
               "evidence": evidence, "rubric": spec.rubric}
+    if facts is not None:
+        values["required_facts"] = "\n".join(f"R{n}. {fact}" for n, fact in enumerate(facts[0], 1))
+        values["supporting_details"] = "\n".join(f"D{n}. {fact}" for n, fact in enumerate(facts[1], 1)) or "(none)"
     prompt = managed_prompt.compile(**values) if managed_prompt is not None else spec.prompt_template.format(**values)
     model = getattr(managed_prompt, "model", None) or os.getenv("EVALUATOR_MODEL", "qwen3:8b")
     # Keep the judge connection independently configurable so generation and
@@ -52,12 +90,19 @@ def _judge(spec: Any, *, question: str, answer: str, expected: str | None = None
                                 "managed_evaluator_id": managed_evaluator_id}) as obs:
                 response = requests.post(f"{url}/api/chat", json={"model": model,
                     "messages": prompt if isinstance(prompt, list) else [{"role":"user","content":prompt}],
-                    "think": False, "stream":False,"format":"json",
+                    "think": False, "stream":False,"format": _fact_schema(facts) if facts is not None else "json",
                     "options":{"temperature":0}}, timeout=(10, 300))
                 response.raise_for_status()
                 raw = response.json().get("message", {}).get("content", "")
                 update_observation(obs, output=raw)
                 data = json.loads(raw)
+                if facts is not None:
+                    explanation = str(data.get("explanation", "")).strip()
+                    if not explanation:
+                        raise ValueError("judge JSON must have an explanation")
+                    verdicts = {fact_id: data[fact_id] for fact_id in _fact_ids(facts)}
+                    return {"score": fact_score(verdicts, len(facts[0]), len(facts[1])), "explanation": explanation,
+                            "verdicts": verdicts, "latency_seconds": round(time.perf_counter() - started, 4)}
                 score = data.get("score")
                 explanation = str(data.get("explanation", data.get("reasoning", ""))).strip()
                 abstention_explanation = re.search(r"\b(not applicable|no factual claims|explicitly abstains?)\b", explanation, re.I)
@@ -73,7 +118,7 @@ def _judge(spec: Any, *, question: str, answer: str, expected: str | None = None
     raise RuntimeError(f"{spec.name} evaluation failed after one retry: {last_error}")
 
 
-def correctness(*, input: Any, output: Any, expected_output: Any = None, **kwargs: Any) -> Any:
+def correctness(*, input: Any, output: Any, expected_output: Any = None, spec: Any = ANSWER_CORRECTNESS_V1, **kwargs: Any) -> Any:
     if isinstance(output, dict) and output.get("error"):
         return []
     answer = output.get("answer", "") if isinstance(output, dict) else str(output)
@@ -81,18 +126,21 @@ def correctness(*, input: Any, output: Any, expected_output: Any = None, **kwarg
     expected = expected_output.get("answer", "") if isinstance(expected_output, dict) else expected_output
     try:
         evaluator_id = kwargs.get("evaluator_id")
-        result = _judge(ANSWER_CORRECTNESS_V1, question=question, answer=answer, expected=str(expected or ""),
+        result = _judge(spec, question=question, answer=answer, expected=str(expected or ""),
                         evaluator_id=evaluator_id, langfuse_client=kwargs.get("langfuse_client"),
                         managed_prompt=kwargs.get("managed_prompt"), evaluator_version=kwargs.get("evaluator_version"),
-                        managed_evaluator_id=kwargs.get("managed_evaluator_id"))
+                        managed_evaluator_id=kwargs.get("managed_evaluator_id"),
+                        facts=answer_facts(expected_output) if spec is ANSWER_CORRECTNESS_V2 else None)
     except Exception as exc:
-        return {"name": "answer_correctness_v1_error", "value": "error", "comment": str(exc), "data_type": "CATEGORICAL",
+        return {"name": f"{spec.name}_error", "value": "error", "comment": str(exc), "data_type": "CATEGORICAL",
                 "metadata": {"evaluator_id": kwargs.get("evaluator_id"), "managed_evaluator_id": kwargs.get("managed_evaluator_id"),
                              "managed_evaluator_version": kwargs.get("evaluator_version")}}
-    return {"name": ANSWER_CORRECTNESS_V1.name, "value": result["score"], "comment": result["explanation"],
-            "metadata": {"evaluator_model": getattr(kwargs.get("managed_prompt"), "model", None) or os.getenv("EVALUATOR_MODEL", "qwen3:8b"), "evaluator_version": kwargs.get("evaluator_version", 1),
-                         "managed_evaluator_id": kwargs.get("managed_evaluator_id"),
-                         "evaluator_latency_seconds": result["latency_seconds"], "evaluator_id": kwargs.get("evaluator_id")}}
+    metadata = {"evaluator_model": getattr(kwargs.get("managed_prompt"), "model", None) or os.getenv("EVALUATOR_MODEL", "qwen3:8b"), "evaluator_version": kwargs.get("evaluator_version", 1),
+                "managed_evaluator_id": kwargs.get("managed_evaluator_id"),
+                "evaluator_latency_seconds": result["latency_seconds"], "evaluator_id": kwargs.get("evaluator_id")}
+    if "verdicts" in result:
+        metadata["fact_verdicts"] = {fact_id: verdict["verdict"] for fact_id, verdict in result["verdicts"].items()}
+    return {"name": spec.name, "value": result["score"], "comment": result["explanation"], "metadata": metadata}
 
 
 def citation_support(*, input: Any, output: Any, expected_output: Any = None, **kwargs: Any) -> Any:

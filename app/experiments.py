@@ -25,7 +25,7 @@ try:
     from .identity import (canonical_json, dataset_snapshot, evaluator_identity,
                            pipeline_identity, question_label, question_session_id, source_manifest)
     from .indexer import build_index, corpus_paths
-    from .evaluator_specs import evaluator_manifest
+    from .evaluator_specs import CORRECTNESS_SPECS, DEFAULT_CORRECTNESS, evaluator_manifest
     from .observability import use_client
     from .pipeline import PROMPT_HASHES, run_pipeline
     from .prompt_assets import ManagedJudgePrompt, load_managed_evaluators, load_prompt_bundle, prompt_manifests
@@ -37,7 +37,7 @@ except ImportError:
     from identity import (canonical_json, dataset_snapshot, evaluator_identity,
                          pipeline_identity, question_label, question_session_id, source_manifest)
     from indexer import build_index, corpus_paths
-    from evaluator_specs import evaluator_manifest
+    from evaluator_specs import CORRECTNESS_SPECS, DEFAULT_CORRECTNESS, evaluator_manifest
     from observability import use_client
     from pipeline import PROMPT_HASHES, run_pipeline
     from prompt_assets import ManagedJudgePrompt, load_managed_evaluators, load_prompt_bundle, prompt_manifests
@@ -249,6 +249,9 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
         dataset, version = _dataset_for(payload, client)
         prompt_bundle = load_prompt_bundle(client, label=payload.get("prompt_label"))
         prompt_versions = prompt_manifests(prompt_bundle)
+        correctness_name = payload.get("correctness_evaluator") or DEFAULT_CORRECTNESS
+        if correctness_name not in CORRECTNESS_SPECS:
+            raise ValueError(f"correctness_evaluator must be one of {sorted(CORRECTNESS_SPECS)}")
         managed_evaluators = load_managed_evaluators()
         all_items = list(dataset.items)
         snapshot = dataset_snapshot([{"id": item.id, "input": item.input, "expected_output": item.expected_output, "metadata": item.metadata} for item in all_items],
@@ -302,7 +305,8 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
 
         experiment_metadata = {"execution_id": execution_id, "pipeline_id": pipeline_manifest["pipeline_id"],
                       "evaluator_id": evaluator_manifest["evaluator_id"], "dataset_version": version.isoformat(),
-                      "variant_label": variant, "snapshot_sha256": snapshot["sha256"]}
+                      "variant_label": variant, "snapshot_sha256": snapshot["sha256"],
+                      "correctness_evaluator": correctness_name}
         # One key per setting: Langfuse drops propagated metadata values over 200 characters.
         experiment_metadata.update({f"config_{key}": value if isinstance(value, str) else json.dumps(value, sort_keys=True)
                                     for key, value in config.manifest().items() if key != "prompt_hashes"})
@@ -320,9 +324,10 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
                 description=f"Execution {execution_id}; pipeline {pipeline_manifest['pipeline_id']}; dataset version {version.isoformat()}",
                 data=items, task=task,
                 evaluators=[partial(correctness, evaluator_id=evaluator_manifest["evaluator_id"], langfuse_client=client,
-                                    managed_prompt=ManagedJudgePrompt(managed_evaluators["answer_correctness_v1"]),
-                                    evaluator_version=managed_evaluators["answer_correctness_v1"]["version"],
-                                    managed_evaluator_id=managed_evaluators["answer_correctness_v1"]["id"]),
+                                    spec=CORRECTNESS_SPECS[correctness_name],
+                                    managed_prompt=ManagedJudgePrompt(managed_evaluators[correctness_name]),
+                                    evaluator_version=managed_evaluators[correctness_name]["version"],
+                                    managed_evaluator_id=managed_evaluators[correctness_name]["id"]),
                             partial(citation_support, evaluator_id=evaluator_manifest["evaluator_id"], langfuse_client=client,
                                     managed_prompt=ManagedJudgePrompt(managed_evaluators["citation_support_v1"]),
                                     evaluator_version=managed_evaluators["citation_support_v1"]["version"],
@@ -333,7 +338,7 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
             client.flush = sdk_flush  # type: ignore[method-assign]
         item_results = []
         errors = 0
-        score_values: dict[str, list[float]] = {"answer_correctness_v1": [], "citation_support_v1": []}
+        score_values: dict[str, list[float]] = {correctness_name: [], "citation_support_v1": []}
         for item_result in result.item_results:
             out = item_result.output
             failed = not isinstance(out, dict) or bool(out.get("error"))
@@ -444,10 +449,12 @@ def cli() -> int:
     parser.add_argument("--prompt-label", default=os.getenv("LANGFUSE_PROMPT_LABEL", "production"))
     parser.add_argument("--config", type=Path, help="JSON resolved pipeline config")
     parser.add_argument("--item-id", action="append", dest="item_ids")
+    parser.add_argument("--correctness-evaluator", choices=sorted(CORRECTNESS_SPECS), default=DEFAULT_CORRECTNESS)
     args = parser.parse_args()
     payload = {"dataset_name": args.dataset, "dataset_version": args.dataset_version,
                "variant_label": args.variant, "config": json.loads(args.config.read_text()) if args.config else {},
-               "item_ids": args.item_ids, "prompt_label": args.prompt_label}
+               "item_ids": args.item_ids, "prompt_label": args.prompt_label,
+               "correctness_evaluator": args.correctness_evaluator}
     initialize()
     row, _ = enqueue(str(uuid.uuid4()), payload, None)
     result = execute_execution(row["execution_id"])
