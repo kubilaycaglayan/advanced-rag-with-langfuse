@@ -84,8 +84,29 @@ ANSWER_CORRECTNESS_V2 = EvaluatorSpec(
     ),
 )
 
-EVALUATOR_SPECS = (ANSWER_CORRECTNESS_V1, ANSWER_CORRECTNESS_V2, CITATION_SUPPORT_V1)
-CORRECTNESS_SPECS = {spec.name: spec for spec in (ANSWER_CORRECTNESS_V1, ANSWER_CORRECTNESS_V2)}
+# v2's facts and scoring with a rubric that keeps a fact's context optional, judged by
+# deepseek-v4.1-flash through opencode. Without that sentence deepseek marked facts partial
+# for leaving out context written into them, such as a passport's country.
+ANSWER_CORRECTNESS_V3 = EvaluatorSpec(
+    name="answer_correctness_v3",
+    version=1,
+    minimum=0.0,
+    maximum=1.0,
+    rubric=ANSWER_CORRECTNESS_V2.rubric.removesuffix("Return JSON only.") + (
+        "A fact is present when the answer states its core claim; context in parentheses, locations, sources or "
+        "how something was used are not required, and missing context alone never makes a fact partial. "
+        "Return JSON only."
+    ),
+    prompt_template=ANSWER_CORRECTNESS_V2.prompt_template,
+)
+
+EVALUATOR_SPECS = (ANSWER_CORRECTNESS_V1, ANSWER_CORRECTNESS_V2, ANSWER_CORRECTNESS_V3, CITATION_SUPPORT_V1)
+CORRECTNESS_SPECS = {spec.name: spec for spec in (ANSWER_CORRECTNESS_V1, ANSWER_CORRECTNESS_V2, ANSWER_CORRECTNESS_V3)}
+FACT_SPECS = (ANSWER_CORRECTNESS_V2, ANSWER_CORRECTNESS_V3)
+# Judges that do not use EVALUATOR_MODEL: (Langfuse provider label, model, opencode variant).
+# An "opencode/" model runs through `opencode serve` (OPENCODE_JUDGE_URL). Langfuse stores only
+# provider and model, so the variant stays here.
+JUDGE_MODELS = {ANSWER_CORRECTNESS_V3.name: ("opencode", "opencode/deepseek-v4.1-flash-free", "low")}
 DEFAULT_CORRECTNESS = ANSWER_CORRECTNESS_V2.name
 
 

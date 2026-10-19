@@ -18,8 +18,8 @@ from app.identity import pipeline_identity, question_label, question_session_id
 from app.resolved_config import ResolvedPipelineConfig
 from app.experiment_store import enqueue, get_execution, initialize, mark_interrupted, update_execution
 from app.seed_dataset import _seed_dataset
-from app.evaluation import FALLBACK_FACTS, _judge, answer_facts, fact_score
-from app.evaluator_specs import ANSWER_CORRECTNESS_V1, ANSWER_CORRECTNESS_V2
+from app.evaluation import FALLBACK_FACTS, _judge, _opencode_chat, answer_facts, fact_score
+from app.evaluator_specs import ANSWER_CORRECTNESS_V1, ANSWER_CORRECTNESS_V2, ANSWER_CORRECTNESS_V3
 from app.indexer import index_identity
 from app.experiments import _flush_client, submit_retry
 from app.prompt_assets import load_prompt_bundle
@@ -176,6 +176,52 @@ class Stage3Checks(unittest.TestCase):
         self.assertEqual((score["name"], score["value"]), ("answer_correctness_v2", 0.9))
         self.assertEqual(score["metadata"]["fact_verdicts"], {"R1": "present"})
         self.assertEqual(judge.call_args.kwargs["facts"], (["f"], []))
+
+    def test_v3_correctness_uses_the_same_fact_contract(self):
+        judged = {"score": 0.95, "explanation": "ok", "latency_seconds": 0.1,
+                  "verdicts": {"R1": {"quote": "x", "verdict": "present"}}}
+        with patch("app.evaluation._judge", return_value=judged) as judge:
+            score = correctness(input={"question": "q"}, output={"answer": "a"}, spec=ANSWER_CORRECTNESS_V3,
+                                expected_output={"answer": "r", "required_facts": ["f"], "supporting_details": ["d"]})
+        self.assertEqual((score["name"], score["value"]), ("answer_correctness_v3", 0.95))
+        self.assertEqual(judge.call_args.kwargs["facts"], (["f"], ["d"]))
+
+    def test_opencode_judge_keeps_tools_denied_and_returns_structured_output(self):
+        calls = []
+        class Response:
+            def __init__(self, payload): self.payload = payload
+            def raise_for_status(self): pass
+            def json(self): return self.payload
+        def post(url, json=None, **kwargs):
+            calls.append((url, json))
+            if url.endswith("/session"):
+                return Response({"id": "session-1"})
+            return Response({"info": {"error": None, "structured": {"score": 0.8, "explanation": "ok"}}})
+        schema = {"type": "object", "properties": {"score": {"type": "number"}}, "required": ["score"]}
+        with patch("app.evaluation.requests.post", side_effect=post), \
+             patch("app.evaluation.requests.delete") as delete:
+            raw = _opencode_chat([{"role": "system", "content": "judge"}, {"role": "user", "content": "claim"}],
+                                 "opencode/deepseek-v4.1-flash-free", "low", schema)
+        self.assertEqual(json.loads(raw), {"score": 0.8, "explanation": "ok"})
+        session_url, session_body = calls[0]
+        self.assertTrue(session_url.endswith("/session"))
+        self.assertTrue(all(rule["action"] == "deny" for rule in session_body["permission"]))
+        message_url, message_body = calls[1]
+        self.assertIn("/session/session-1/message", message_url)
+        self.assertEqual(message_body["model"], {"providerID": "opencode", "modelID": "deepseek-v4.1-flash-free"})
+        self.assertEqual(message_body["variant"], "low")
+        self.assertEqual(message_body["format"], {"type": "json_schema", "schema": schema})
+        self.assertEqual(message_body["system"], "judge")
+        delete.assert_called_once()
+
+    def test_opencode_judge_error_is_retried_then_reported(self):
+        managed = SimpleNamespace(model="opencode/deepseek-v4.1-flash-free",
+                                  compile=lambda **variables: [{"role": "user", "content": "judge"}])
+        with patch("app.evaluation._opencode_chat", side_effect=ValueError("provider failed")) as opencode, \
+             patch("app.evaluation.observation", return_value=nullcontext(None)):
+            with self.assertRaisesRegex(RuntimeError, "after one retry"):
+                _judge(ANSWER_CORRECTNESS_V1, question="q", answer="a", managed_prompt=managed)
+        self.assertEqual(opencode.call_count, 2)
 
     def test_malformed_judge_json_retries_then_validates(self):
         class Response:

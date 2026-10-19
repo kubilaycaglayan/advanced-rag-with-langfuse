@@ -68,3 +68,23 @@ outputs: `data/tuning/scripts-2026-10-19-answer-facts/`). The shipped version is
   contradictions (Berger → 0). Prototype b (free-form ID lists) dropped or relabelled IDs.
 - **Known limit:** qwen3:8b still flips on about 10 of 87 items between prompt wordings, e.g. backpack contents 0.9 ↔ 0,
   the Berger/Mikael relationship 0.74 ↔ 0.48. A larger judge model is the next step if this noise matters.
+
+## v3: deepseek through opencode (2026-10-19)
+
+`answer_correctness_v3` uses v2's fact IDs and scoring, but adds one rubric sentence: a fact is present when the
+answer states its core claim; context in parentheses, locations, sources, and how something was used are optional,
+and missing context alone never makes a fact partial. It is executed by `opencode serve`
+(`deepseek-v4.1-flash-free`, variant `low`), so the judge call goes through `OPENCODE_JUDGE_URL` rather than
+`EVALUATOR_MODEL`/Ollama. `answer_correctness_v2` remains the default; select v3 with
+`correctness_evaluator: answer_correctness_v3`.
+
+Langfuse stores the evaluator object, but it cannot activate it without an LLM connection for the `opencode`
+provider. It stays `paused` with `LLM_CONNECTION_MISSING`; `load_managed_evaluators` now accepts that state only for
+an `opencode/` model and records it in the evaluator manifest. The experiment runner executes it locally.
+
+Offline re-scoring of the 36 saved QA.csv answers with the tweaked rubric: deepseek mean **0.677**, mean **8.2 s**
+per question. On the 14 items where it disagreed with the archived qwen3:8b v1 scores, deepseek was right or very
+close every time; qwen v1 mostly returned its 0.5 fallback. One known miss: Q19 was under-scored by about 0.2. A
+live judge call on 2026-10-19 later failed because opencode's free tier blocked this host's IP for abusive traffic;
+the request/response path is covered by mocked tests, but live scoring is waiting for the provider to allow this
+network. Run `opencode serve` (empty working directory) before using v3.

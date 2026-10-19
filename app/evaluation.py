@@ -1,4 +1,4 @@
-"""Local Ollama judges with strict JSON/range validation."""
+"""Local Ollama and opencode judges with strict JSON/range validation."""
 from __future__ import annotations
 
 import json
@@ -11,10 +11,10 @@ from typing import Any
 import requests
 
 try:
-    from .evaluator_specs import ANSWER_CORRECTNESS_V1, ANSWER_CORRECTNESS_V2, CITATION_SUPPORT_V1
+    from .evaluator_specs import ANSWER_CORRECTNESS_V1, CITATION_SUPPORT_V1, FACT_SPECS, JUDGE_MODELS
     from .observability import observation, update as update_observation, use_client
 except ImportError:
-    from evaluator_specs import ANSWER_CORRECTNESS_V1, ANSWER_CORRECTNESS_V2, CITATION_SUPPORT_V1
+    from evaluator_specs import ANSWER_CORRECTNESS_V1, CITATION_SUPPORT_V1, FACT_SPECS, JUDGE_MODELS
     from observability import observation, update as update_observation, use_client
 
 
@@ -57,6 +57,45 @@ def _fact_schema(facts: tuple[list[str], list[str]]) -> dict[str, Any]:
             "required": ids + ["explanation"]}
 
 
+_SCORE_SCHEMA = {"type": "object", "properties": {"score": {"type": ["number", "null"]}, "explanation": {"type": "string"}},
+                 "required": ["score", "explanation"]}
+# The free tier serves only requests that carry opencode's own tool list, so the judge
+# session keeps the tools but denies every one that could act on the host or the web:
+# judged answers are untrusted text. `opencode serve` should run in an empty directory.
+_OPENCODE_DENIED = ("bash", "edit", "write", "apply_patch", "webfetch", "websearch", "task", "skill",
+                    "external_directory", "question")
+
+
+def _opencode_chat(messages: list[dict[str, str]], model: str, variant: str | None, schema: dict[str, Any]) -> str:
+    """Run one judge prompt in a fresh `opencode serve` session and return its structured output as JSON."""
+    url = os.getenv("OPENCODE_JUDGE_URL", "http://127.0.0.1:4096").rstrip("/")
+    provider, model_id = model.split("/", 1)
+    session = requests.post(f"{url}/session", json={"title": "millennium judge",
+        "permission": [{"permission": name, "pattern": "*", "action": "deny"} for name in _OPENCODE_DENIED]}, timeout=(10, 30))
+    session.raise_for_status()
+    session_id = session.json()["id"]
+    try:
+        body = {"model": {"providerID": provider, "modelID": model_id},
+                "parts": [{"type": "text", "text": message["content"]} for message in messages if message["role"] != "system"],
+                "format": {"type": "json_schema", "schema": schema}}
+        system = "\n\n".join(message["content"] for message in messages if message["role"] == "system")
+        if system:
+            body["system"] = system
+        if variant:
+            body["variant"] = variant
+        response = requests.post(f"{url}/session/{session_id}/message", json=body, timeout=(10, 300))
+        response.raise_for_status()
+        info = response.json().get("info", {})
+        if info.get("error") or info.get("structured") is None:
+            raise ValueError(f"opencode judge returned no structured output: {json.dumps(info.get('error'))[:300]}")
+        return json.dumps(info["structured"])
+    finally:
+        try:
+            requests.delete(f"{url}/session/{session_id}", timeout=10)
+        except requests.RequestException:
+            pass
+
+
 def fact_score(verdicts: dict[str, Any], n_required: int, n_details: int) -> float:
     """Required facts carry 90% of the score and supporting details 10% (all of it without details)."""
     points = lambda fact_id: FACT_POINTS[str(verdicts[fact_id]["verdict"]).lower()]
@@ -77,6 +116,7 @@ def _judge(spec: Any, *, question: str, answer: str, expected: str | None = None
         values["supporting_details"] = "\n".join(f"D{n}. {fact}" for n, fact in enumerate(facts[1], 1)) or "(none)"
     prompt = managed_prompt.compile(**values) if managed_prompt is not None else spec.prompt_template.format(**values)
     model = getattr(managed_prompt, "model", None) or os.getenv("EVALUATOR_MODEL", "qwen3:8b")
+    messages = prompt if isinstance(prompt, list) else [{"role": "user", "content": prompt}]
     # Keep the judge connection independently configurable so generation and
     # evaluation failures can be isolated and the evaluator can use its own host.
     url = (os.getenv("EVALUATOR_OLLAMA_URL") or os.getenv("OLLAMA_URL", "http://127.0.0.1:11434")).rstrip("/")
@@ -88,12 +128,15 @@ def _judge(spec: Any, *, question: str, answer: str, expected: str | None = None
                              input=prompt, metadata={"evaluator_id": evaluator_id,
                                 "evaluator_version": evaluator_version or spec.version,
                                 "managed_evaluator_id": managed_evaluator_id}) as obs:
-                response = requests.post(f"{url}/api/chat", json={"model": model,
-                    "messages": prompt if isinstance(prompt, list) else [{"role":"user","content":prompt}],
-                    "think": False, "stream":False,"format": _fact_schema(facts) if facts is not None else "json",
-                    "options":{"temperature":0}}, timeout=(10, 300))
-                response.raise_for_status()
-                raw = response.json().get("message", {}).get("content", "")
+                if model.startswith("opencode/"):
+                    raw = _opencode_chat(messages, model, JUDGE_MODELS.get(spec.name, (None, None, None))[2],
+                                         _fact_schema(facts) if facts is not None else _SCORE_SCHEMA)
+                else:
+                    response = requests.post(f"{url}/api/chat", json={"model": model, "messages": messages,
+                        "think": False, "stream":False,"format": _fact_schema(facts) if facts is not None else "json",
+                        "options":{"temperature":0}}, timeout=(10, 300))
+                    response.raise_for_status()
+                    raw = response.json().get("message", {}).get("content", "")
                 update_observation(obs, output=raw)
                 data = json.loads(raw)
                 if facts is not None:
@@ -130,7 +173,7 @@ def correctness(*, input: Any, output: Any, expected_output: Any = None, spec: A
                         evaluator_id=evaluator_id, langfuse_client=kwargs.get("langfuse_client"),
                         managed_prompt=kwargs.get("managed_prompt"), evaluator_version=kwargs.get("evaluator_version"),
                         managed_evaluator_id=kwargs.get("managed_evaluator_id"),
-                        facts=answer_facts(expected_output) if spec is ANSWER_CORRECTNESS_V2 else None)
+                        facts=answer_facts(expected_output) if spec in FACT_SPECS else None)
     except Exception as exc:
         return {"name": f"{spec.name}_error", "value": "error", "comment": str(exc), "data_type": "CATEGORICAL",
                 "metadata": {"evaluator_id": kwargs.get("evaluator_id"), "managed_evaluator_id": kwargs.get("managed_evaluator_id"),

@@ -115,6 +115,13 @@ class WorkflowChecks(unittest.TestCase):
                  'variables': ['answer'], 'modelConfig': {'model':'qwen3:8b', 'provider':'ollama-local'},
                  'outputDefinition': {'dataType':'NUMERIC','minValue':0,'maxValue':1}}
                 for name in ['answer_correctness_v1','answer_correctness_v2','citation_support_v1']]
+        rows.append({'id': 'v3', 'name': 'millennium-answer_correctness_v3', 'version': 1,
+                     'type': 'llm_as_judge', 'status': 'paused', 'pausedReason': 'LLM_CONNECTION_MISSING',
+                     'pausedMessage': 'no LLM connection found for the provider used by this evaluator',
+                     'prompt': [{'role':'user', 'content':'Fact rubric: {{answer}}'}],
+                     'variables': ['answer', 'required_facts', 'supporting_details'],
+                     'modelConfig': {'model':'opencode/deepseek-v4.1-flash-free', 'provider':'opencode'},
+                     'outputDefinition': {'dataType':'NUMERIC','minValue':0,'maxValue':1}})
         response = SimpleNamespace(raise_for_status=lambda:None, json=lambda:{'data':rows})
         with patch('app.prompt_assets._api', return_value=('http://local', None)), \
              patch('app.prompt_assets.requests.get', return_value=response):
@@ -123,6 +130,26 @@ class WorkflowChecks(unittest.TestCase):
         self.assertEqual(prompt.compile(answer='quoted {{question}}')[0]['content'], 'Edited rubric: quoted {{question}}')
         self.assertEqual(prompt.model, 'qwen3:8b')
         self.assertEqual(resolved['answer_correctness_v1']['version'], 8)
+        self.assertEqual(resolved['answer_correctness_v3']['status'], 'paused')
+        self.assertEqual(resolved['answer_correctness_v3']['paused_reason'], 'LLM_CONNECTION_MISSING')
+
+    def test_paused_ollama_evaluator_still_fails_preflight(self):
+        rows = [{'id': name, 'name': 'millennium-' + name, 'version': 1,
+                 'type': 'llm_as_judge', 'status': 'active',
+                 'prompt': [{'role':'user', 'content':'Judge {{answer}}'}], 'variables': ['answer'],
+                 'modelConfig': {'model':'qwen3:8b', 'provider':'ollama-local'},
+                 'outputDefinition': {'dataType':'NUMERIC','minValue':0,'maxValue':1}}
+                for name in ['answer_correctness_v1', 'answer_correctness_v2','citation_support_v1']]
+        rows.append({'id': 'v3', 'name': 'millennium-answer_correctness_v3', 'version': 1,
+                     'type': 'llm_as_judge', 'status': 'paused', 'pausedReason': 'LLM_CONNECTION_MISSING',
+                     'prompt': [{'role':'user', 'content':'Judge {{answer}}'}], 'variables': ['answer'],
+                     'modelConfig': {'model':'qwen3:8b', 'provider':'ollama-local'},
+                     'outputDefinition': {'dataType':'NUMERIC','minValue':0,'maxValue':1}})
+        response = SimpleNamespace(raise_for_status=lambda:None, json=lambda:{'data':rows})
+        with patch('app.prompt_assets._api', return_value=('http://local', None)), \
+             patch('app.prompt_assets.requests.get', return_value=response), \
+             self.assertRaisesRegex(RuntimeError, 'not active'):
+            load_managed_evaluators()
 
     def test_session_context_surrounds_sdk_item_root_and_evaluators(self):
         active = []
