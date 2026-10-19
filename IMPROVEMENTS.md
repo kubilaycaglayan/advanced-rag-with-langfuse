@@ -105,6 +105,30 @@ Verification: 97 Python tests, 14 Express tests and 19 UI tests pass.
 | GPU for reranker | CPU-only torch in the image; reranker ~2 s/question | at most ~1.8 s | Not available |
 | Early exit (skip HyDE) | Prior ablation: 3–5 s saved, QA.csv 0.764 → 0.722 | 3–5 s with known quality loss | No |
 
+### Full QA.csv A/B: parallel rewrites (2026-10-19)
+
+Both runs used QA.csv version `2026-10-19T11:21:42.206000+00:00` (36 items), `answer_correctness_v2`, the
+production prompts, and uniform `OLLAMA_CONTEXT_LENGTH=8192`. The improved run had
+`parallel_transformations: true` and `OLLAMA_NUM_PARALLEL=3`; the baseline had the toggle off and Ollama's
+default parallelism. Both completed 36/36 with zero item, evaluation, or telemetry failures.
+
+| Run | Correctness mean | Citation mean | Warm latency mean | Warm latency median | Warm transform mean |
+|---|---:|---:|---:|---:|---:|
+| Baseline (`d39a54ec-f72e-4354-9f4e-0cdf115ae5db`) | 0.7275 | 0.8429 (n=35) | 19.27 s | 16.12 s | 5.17 s |
+| Parallel (`30a9c2f4-c082-46ca-923d-ee7d9b745929`) | 0.7442 | 0.8472 (n=36) | 18.05 s | 14.95 s | 4.03 s |
+| Delta | **+0.0167** | +0.0043 | **−1.21 s (−6.3%)** | −1.17 s (−7.3%) | **−1.14 s (−22%)** |
+
+- Correctness: 6 items improved, 4 regressed, 26 unchanged; 4 improved by >0.2 and 2 regressed by >0.2
+  (Berger's position 0.45 → 0.05; Bjurman demand 0.97 → 0.28). Paired mean delta +0.0167, SE 0.033 — not a
+  significant gain.
+- Citation: 1 improved, 1 regressed, 33 unchanged; paired mean delta 0.0.
+- Evidence changed on 21/36 items and answers on 30/36, so parallel rewrites alter the retrieval path rather than
+  only speeding it up.
+- Wall clock: baseline 21m56s, parallel 19m00s (−13%). Most of that gap is the baseline's cold-start first item
+  (128 s vs 21 s); the warm per-item total was −42 s. The earlier 3-question ~37% estimate did not hold at full QA.
+- Decision: keep `parallel_transformations` **off by default**. The zero-regression rule is not met; use it only
+  as an explicit experiment.
+
 ## 2026-10-18 — Entity graph (GraphRAG-style), rejected; entity anchor fix
 
 **Target:** set3, whose largest failure group (8 of 12) is passages that name their subject only as "my father", "the

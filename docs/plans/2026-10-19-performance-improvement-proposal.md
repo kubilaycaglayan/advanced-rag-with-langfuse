@@ -101,6 +101,11 @@ Benchmark script in the scratchpad (copied to `data/tuning/scripts-2026-10-19-sp
   one batched embedding call saved ~0.01 s; `gemma4:e4b` cut the 3-question mean from 19.7 to 9.5 s but changed
   evidence on 3/3 and answers on 3/3; `top_k=5` saved at most ~1.5 s and changed answers; caching rewrites only
   helps exact repeats; the image has CPU-only torch, so a GPU reranker could save at most ~1.8 s/question.
+- **Full QA.csv A/B (36 items, dataset 2026-10-19T11:21:42.206Z)**: baseline vs parallel with
+  `OLLAMA_NUM_PARALLEL=3`. Correctness 0.7275 → 0.7442 (6 improved, 4 regressed, 26 unchanged);
+  citation paired delta 0.0; warm latency 19.27 → 18.05 s (−6.3%); warm transformation 5.17 → 4.03 s
+  (−22%); wall clock 21m56s → 19m00s, mostly from a cold-start outlier. Evidence changed on 21/36.
+  The toggle stays off by default because the zero-regression rule is not met.
 - **Verification**: 97 Python tests, 14 Express tests and 19 UI tests pass. The 3-question scripts
   and JSON results are under `data/tuning/scripts-2026-10-19-speed/` (git-ignored).
 
