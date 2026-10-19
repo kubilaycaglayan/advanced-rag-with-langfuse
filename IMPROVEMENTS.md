@@ -127,7 +127,8 @@ default parallelism. Both completed 36/36 with zero item, evaluation, or telemet
 - Wall clock: baseline 21m56s, parallel 19m00s (−13%). Most of that gap is the baseline's cold-start first item
   (128 s vs 21 s); the warm per-item total was −42 s. The earlier 3-question ~37% estimate did not hold at full QA.
 - Decision: keep `parallel_transformations` **off by default**. The zero-regression rule is not met; use it only
-  as an explicit experiment.
+  as an explicit experiment. Full record with per-item results and reproduction commands:
+  [docs/experiments/2026-10-19-qa-parallel-rewrites.md](docs/experiments/2026-10-19-qa-parallel-rewrites.md).
 
 ## 2026-10-18 — Entity graph (GraphRAG-style), rejected; entity anchor fix
 
