@@ -68,6 +68,8 @@ Cite each factual sentence with the ids in square brackets, exactly as the tools
 If the books do not contain the answer, call submit_answer saying so, with no ids.
 
 A passage that is only about the topic is not evidence: it must state the answer, and you should read its neighbours before deciding.
+Before submit_answer, check the question's parts one by one (who, what, where, when, why, how many) and make sure a passage states each. If one part is missing, search for it instead of answering partially. Some questions assume an event that the books contradict (that someone is dead, that something was never found): check the premise and correct it.
+When the books first describe a death, a crime or a disappearance one way, look for the later passage that reveals what really happened (who was there, who did it); answer with the true account, and with the official one only as contrast.
 Questions of the form "how did X know/learn about Y", "how did X and Y meet" or "what connects X and Y" are answered by the event that first brought them together: a document one wrote about the other, a person who introduced them, a meeting. If the passages show X reading or receiving something Y wrote, or someone telling X about Y, that is the answer even if the words "learned" or "knew" never appear. State it plainly instead of saying the books do not say.
 You have a limited number of tool calls (about 16). Do not repeat a search that returned the same passages. Prefer four to eight calls over one long one."""
 
@@ -79,7 +81,7 @@ class AgentSettings:
     model: str = "qwen3:8b"
     max_turns: int = 10
     max_tool_calls: int = 16
-    min_tool_calls: int = 3
+    min_tool_calls: int = 4
     timeout_seconds: float = 900.0
     context_length: int = 16384
     num_predict: int = 1200
@@ -768,7 +770,7 @@ _ABSTAIN = re.compile(
     r"\b(insufficient|cannot determine|no factual claims|could not find|not found in|"
     r"(?:do not|does not|don't) (?:contain|describe|state|mention|say|provide)|"
     r"no (?:passage|information|evidence|mention)|there is no passage|"
-    r"not possible to answer|cannot be answered)\b", re.I)
+    r"not possible to answer|cannot be answered|(?:do not|does not|don't) answer|no answer)\b", re.I)
 
 
 def _looks_like_abstention(answer: str) -> bool:
@@ -816,7 +818,7 @@ def _synthesize(state: AgentState) -> tuple[str, list[str]] | None:
 def _finish(state: AgentState, answer: str, ids: list[str], *, stopped: str,
             raw_answer: str | None = None) -> dict[str, Any]:
     """Answer from the loop, but never abstain while holding evidence that states the answer."""
-    if _looks_like_abstention(answer) and state.evidence:
+    if (not ids or _looks_like_abstention(answer)) and state.evidence:
         synthesized = _synthesize(state)
         if synthesized:
             answer, ids = synthesized[0], synthesized[1]
@@ -913,6 +915,15 @@ def run_agent(question: str, collection: str, config: ResolvedPipelineConfig | N
                 ids = [short.casefold() for short in re.findall(r"\[([0-9a-fA-F]{8})\]", content)
                        if short.casefold() in state.evidence]
                 ids = list(dict.fromkeys(ids))
+                if state.tool_calls < state.settings.min_tool_calls and state.nudges < 2:
+                    state.nudges += 1
+                    messages.append({"role": "assistant", "content": content})
+                    messages.append({"role": "user", "content": (
+                        f"You have made {state.tool_calls} tool calls; investigate more before answering (at least "
+                        f"{state.settings.min_tool_calls}). Check each part of the question and search for the part the "
+                        "passages do not yet state.")})
+                    emit({"type": "nudge", "turn": turn})
+                    continue
                 if ids and state.verifications < 2:
                     state.verifications += 1
                     supported, reason = _verify_submission(state, content, ids)
