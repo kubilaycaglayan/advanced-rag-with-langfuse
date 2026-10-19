@@ -40,6 +40,7 @@ can touch, shrink that to only what it should touch, then confirm on the full da
 
 | Date | Round | QA.csv correctness | Citation | Improved (answer correctness) | Regressed | Commit |
 |---|---|---|---|---|---|---|
+| 2026-10-19 | Agentic tools experiment<br>(`qwen3.6:35b`, not promoted) | not on QA.csv:<br>Q2 solved 4/4, Q1 0/4 | — | "Why Mikael messed up in the<br>Wennerström case?" correct<br>(forged sources, p263/p266) | Q1 "How did Mikhail first know<br>about Salander?" unanswered<br>(report passage not retrieved) | this commit |
 | 2026-10-19 | Judge: deepseek through<br>`opencode` (`answer_correctness_v3`,<br>optional, local-only) | saved QA.csv answers:<br>deepseek 0.677 (v2 rubric + tweak) | — | 14/14 disagreements with qwen v1:<br>deepseek right or very close | Q19 under-scored by ~0.2;<br>opencode free tier blocked this host's IP<br>during the live check | this commit |
 | 2026-10-19 | Judge: fact-based<br>`answer_correctness_v2` (default;<br>v1 selectable), facts in all 4 datasets | saved answers re-scored:<br>0.694 → 0.736 (v1 → v2) | — | nickname 0.5 → 0.92, police after assault 0.5 → 0.925,<br>Berger's position 0.5 → 0.9 (plus 22 more across datasets) | wrong answers v1 scored 0.5 now ≈ 0<br>(Dag's murderer, the Section, who killed Harriet);<br>judge noise: backpack, Berger/Mikael | this commit |
 | 2026-10-18 | Entity graph: PPR over cards,<br>passages and carried-context events<br>(`entity_graph`, rejected, off) | passages: set3 0.477 → 0.432<br>event lines: 0.694 → 0.639 | 0.861 → 0.903 | event lines: 7 of 94 items<br>(S3-10 toner, QA20 Cecilia, QA21, QA29, R3-4, R3-13) | passages: S3-9, S3-20<br>event lines: 16 of 94 items (QA1, QA9, QA12, QA25, QA27, QA28, QA35, R3 ×5, AQ ×2, S3 ×2) | not adopted (code kept, off) |
@@ -65,6 +66,19 @@ Each row compares the round's defaults against the defaults it replaced: 2d7b030
 defaults (0.614), not against 88d26af, whose defaults it reverted. The correctness judge is noisy on reworded answers
 (identical answers have scored 0 and 1 in different runs), so single 0.5 steps in rows without a repeat run are
 weak evidence.
+
+## 2026-10-19 — Agentic tools experiment (not promoted)
+
+Two user-supplied questions fail on the defaults. A local model was given the pipeline's instruments as tools (dense
+search + reranker, BM25, HyDE/expansion/grammar, scene summaries, entity cards, passage and chapter reading) and chose
+the calls itself. `qwen3.6:35b` answered "Why Mikael messed up in Wennerstrom case?" correctly in 4/4 repeats: it read
+around the first hit into chapter 27 and found the forged sources. The same fixed pipeline with the same model gets
+only as far as "he was set up" and says the evidence does not state the error (with qwen3:8b it answers with the
+threats), so the win is the loop, not only the model.
+It answered "How did Mikhail first know about Salander?" 0/4: the report scene is reachable, but the models stop at a
+plausible passage and none writes a "report" query. Thinking mode, qwen3:8b and gemma4:26b were worse, and same-model
+verification accepted a fabricated quote. Not promoted: no `/ask` change, `app/agent.py` stays an experiment. Full
+record, traces and reproduction: [docs/experiments/2026-10-19-agentic-rag.md](docs/experiments/2026-10-19-agentic-rag.md).
 
 ## 2026-10-19 — Parallel rewrites (opt-in), streamed answers, reranker benchmark
 
