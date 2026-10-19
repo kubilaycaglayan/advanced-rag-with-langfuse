@@ -147,6 +147,30 @@ mean 0.7884 with the same local judge. The gap from the 35-item local run (0.897
 scores the same answer differently between runs) and one extra dataset item; treat the two means as a range, not a
 precise ranking.
 
+### Other datasets
+
+The same Langfuse runner was used for the other three datasets, one at a time:
+
+| Dataset | Items | Mean | Median | Perfect 1.0 | <0.6 | Langfuse dataset run |
+|---|---:|---:|---:|---:|---:|---|
+| Additional Questions | 8 | 0.6281 | 0.925 | 1 | 3 | [163f16fe957006ca](http://127.0.0.1:28420/project/millenium/datasets/cmv892lbn0005mj7u0q074bua/runs/163f16fe957006ca) |
+| set3 | 15 | 0.6683 | 0.725 | 2 | 7 | [56c9d13907c2ecf1](http://127.0.0.1:28420/project/millenium/datasets/cmvcgm11i0003mj7tbjygxtlr/runs/56c9d13907c2ecf1) |
+| right-set-3 | 28 | 0.8351 | 0.95 | 5 | 4 | [3342204497eb7c8d](http://127.0.0.1:28420/project/millenium/datasets/cmvcgsorw0005mj7tu0turtdo/runs/3342204497eb7c8d) |
+
+Across the 51 items the weighted mean is 0.754. right-set-3 is the strongest (mostly factual lookups about people,
+places and events); Additional Questions and set3 hold scene and comprehension questions that the agent answers
+partially or abstains on.
+
+Recurring failures:
+
+* Two "wounded Salander in the kitchen" scene questions (Additional Questions) abstained: the agent found Mikael
+  finding her on the bench, not the detail asked about.
+* Gottfried's true cause of death again (two set3 items): the official drowning is answered, not Harriet drowning him.
+* Broad or summary questions — "the top 10 most important characters", "a summary of the first book" — are outside
+  what passage retrieval can do; the agent abstains, which the fact lists score as a miss.
+* A few factual answers are close but judged low because a detail differs (Berger's position, the cat in the crypt,
+  Harriet's escape details).
+
 ## Findings
 
 1. **The agent shape wins on multi-hop questions.** Q2 and Harriet need reading around a first hit and re-searching;
