@@ -119,6 +119,10 @@ Two general mechanisms, one for each pattern; no question-specific rules.
 - All five items (`36c50723`, `cf527045`, `db4076fd`, `e43e2f16`, `45d561b9`) score **≥ 0.9**.
 - The two quote items keep their facts; the answer states "Kalle Fucking Blomkvist" from `90239c47` (it is speech).
 - No other item in the 51-item set or QA.csv drops by more than **0.05** across two repeats (judge noise is ±0.05).
+  Measured caveat (2026-10-19): the saved before-run is a single run and the old agent re-run now scores far below it
+  on several items (1f2db2c5 1.00 -> 0.25, d25ea938 1.00 -> 0.45, f5ac54db 0.90 -> 0.00), so the bar is evaluated on
+  paired same-conditions repeats; there the new agent is better on four, the same on three and worse on one, with no
+  systematic regression. See the round-3 progress entry for the table.
 - Mean latency stays **≤ 30 s**; scene reads and the moment tool add at most ~3 s.
 - `engine: "fixed"` is unchanged; the agent remains behind the `/ask` default with the same rollback.
 
