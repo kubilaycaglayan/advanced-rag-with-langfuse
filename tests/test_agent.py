@@ -6,7 +6,10 @@ from unittest.mock import patch
 
 os.environ["LANGFUSE_TRACING_ENABLED"] = "false"
 
-from app.agent import (AgentSettings, AgentState, _book_short, _compact, _final, _int, _parse_text_tool,
+from collections import Counter
+
+from app.agent import (AgentSettings, AgentState, _book_short, _compact, _connection_pairs, _final, _finish, _int,
+                       _looks_like_abstention, _name_score, _normalize_question, _parse_text_tool, _rank_facts,
                        _resolve_id, _tool_specs, _tool_submit_answer, run_agent)
 from app.resolved_config import ResolvedPipelineConfig
 
@@ -105,6 +108,78 @@ class ContextCompaction(unittest.TestCase):
         self.assertNotIn("compacted", messages[-3]["content"])
 
 
+class Connections(unittest.TestCase):
+    data = {
+        "cards": [
+            {"key": "mikael blomkvist", "mentions": 218, "facts": [
+                "Lisbeth Salander wrote a report about Mikael Blomkvist.",
+                "Mikael Blomkvist asked about Lisbeth Salander."]},
+            {"key": "lisbeth salander", "mentions": 770, "facts": [
+                "Lisbeth Salander wrote a report about Mikael Blomkvist."]},
+        ],
+        "edges": [
+            {"from": "lisbeth salander", "to": "mikael blomkvist", "relation": "knows",
+             "text": "Lisbeth Salander knows Mikael Blomkvist.", "members": ["a1b2c3d4"]},
+            {"from": "clinic", "to": "lisbeth salander", "relation": "place",
+             "text": "Salander was at the clinic.", "members": ["deadbeef"]},
+        ],
+        "alias": {},
+    }
+
+    def test_finds_the_fact_that_names_both_people(self):
+        facts, _ = _connection_pairs(self.data, "mikael blomkvist", "lisbeth salander")
+        self.assertEqual(facts[0]["fact"], "Lisbeth Salander wrote a report about Mikael Blomkvist.")
+        self.assertEqual(facts[0]["score"], 8)  # both names, plus wrote and report
+
+    def test_keeps_direct_edges_and_drops_ones_that_only_touch_a_person(self):
+        _, edges = _connection_pairs(self.data, "mikael blomkvist", "lisbeth salander")
+        self.assertEqual([edge["relation"] for edge in edges], ["knows"])
+
+    def test_full_name_scores_higher_than_one_word(self):
+        self.assertEqual(_name_score("Lisbeth Salander wrote a report.", "lisbeth salander"), 2)
+        self.assertEqual(_name_score("Salander wrote a report.", "lisbeth salander"), 1)
+        self.assertEqual(_name_score("Mimmi wrote a report.", "lisbeth salander"), 0)
+
+    def test_ranks_facts_for_what_is_asked(self):
+        facts = ["Blomkvist's apartment is on Bellmansgatan.", "Salander wrote a report about Blomkvist.", "Mimmi gave her a case."]
+        self.assertIn("report", _rank_facts(facts, "report")[0])
+
+
+class QuestionNormalization(unittest.TestCase):
+    def test_replaces_a_misspelled_name_with_the_books_full_name(self):
+        agent = state()
+        agent.question = "How did Mikhail first know about Salander?"
+        with patch("app.agent._name_pairs", return_value=({"Mikael": ("Mikael Blomkvist", 87, 367)},
+                                                          Counter({"Mikael": 367, "Salander": 770}))):
+            normalized, notes = _normalize_question(agent)
+        self.assertEqual(normalized, "How did Mikael Blomkvist first know about Salander?")
+        self.assertEqual(notes, [{"from": "Mikhail", "to": "Mikael Blomkvist"}])
+
+    def test_leaves_names_the_books_use(self):
+        agent = state()
+        agent.question = "What did Salander do?"
+        with patch("app.agent._name_pairs", return_value=({}, Counter({"Salander": 770}))):
+            normalized, notes = _normalize_question(agent)
+        self.assertEqual(normalized, "What did Salander do?")
+        self.assertEqual(notes, [])
+
+
+class AbstentionRecovery(unittest.TestCase):
+    def test_recognises_the_loops_abstention_wording(self):
+        self.assertTrue(_looks_like_abstention("The provided passages do not contain information about that."))
+        self.assertTrue(_looks_like_abstention("Information not found in the sources."))
+        self.assertFalse(_looks_like_abstention("Mikael learned about her from the report."))
+
+    def test_answers_from_the_evidence_instead_of_abstaining(self):
+        agent = state()
+        agent.evidence = {"a1b2c3d4": {"id": "a1b2c3d4-0000-0000-0000-000000000000", "text": "the report"}}
+        agent.order = ["a1b2c3d4"]
+        with patch("app.agent._synthesize", return_value=("He learned about her from the report [a1b2c3d4].", ["a1b2c3d4"])):
+            result = _finish(agent, "The provided passages do not contain information.", [], stopped="content")
+        self.assertEqual(result["answer"], "He learned about her from the report [E1].")
+        self.assertEqual(result["stopped"], "content+synthesis")
+
+
 class IdsAndHelpers(unittest.TestCase):
     def test_resolves_a_unique_prefix(self):
         row = {"id": "abcdef12-3456-7890-abcd-ef1234567890", "text": "x"}
@@ -131,7 +206,7 @@ class IdsAndHelpers(unittest.TestCase):
     def test_every_tool_has_a_schema(self):
         names = [spec["function"]["name"] for spec in _tool_specs()]
         self.assertEqual(names, ["semantic_search", "keyword_search", "expand_query", "search_scenes", "entity_card",
-                                 "find_names", "read_passage", "read_chapter", "submit_answer"])
+                                 "find_connections", "find_names", "read_passage", "read_chapter", "submit_answer"])
         for spec in _tool_specs():
             self.assertEqual(spec["type"], "function")
             self.assertEqual(spec["function"]["parameters"]["type"], "object")
