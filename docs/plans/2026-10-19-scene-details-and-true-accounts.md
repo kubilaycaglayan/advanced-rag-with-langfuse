@@ -3,14 +3,12 @@
 ## Why
 
 Across the three additional datasets, 14 of 51 items score below 0.6 with the local fact judge. Five of those 14 fall
-into two patterns this round should fix. Two of the five turned out to be **fact issues** while writing this plan (the
-corpus does not state the quoted line as speech), so the fixable target is three items plus a decision on those two
-facts:
+into two patterns this round should fix, and all five are retrieval problems (the corpus supports every expected fact):
 
 | Dataset | Item | Question | Score | What the answer must contain |
 |---|---|---|---:|---|
-| Additional Questions | `e43e2f16` | What did Salander said when she saw Mikael in the kitchen, when she was severely wounded? | 0.00 | **fact issue:** she said "Kalle Fucking Blomkvist"; she let go of the gun |
-| Additional Questions | `45d561b9` | When Mikael found Salander severely wounded on the kitchen bench at Gosseberga, he loosened the gun from her hand. And then what did she say? | 0.00 | **fact issue:** she said "Kalle Fucking Blomkvist"; she let go of the gun |
+| Additional Questions | `e43e2f16` | What did Salander said when she saw Mikael in the kitchen, when she was severely wounded? | 0.00 | She muttered "Kalle Fucking Blomkvist" (the line is speech in `90239c47`); she let go of the gun |
+| Additional Questions | `45d561b9` | When Mikael found Salander severely wounded on the kitchen bench at Gosseberga, he loosened the gun from her hand. And then what did she say? | 0.00 | She muttered "Kalle Fucking Blomkvist" (the line is speech in `90239c47`) |
 | Additional Questions | `36c50723` | What happened to Salander in the abandoned factory? | 0.275 | She confronted Niedermann at the brickworks and nailed his feet to the floor with a nail gun |
 | set3 | `cf527045` | How Gottfried really died? | 0.025 | Harriet killed him by drowning; officially a drunken accident; he had raped her and tried to strangle her; she held him under with an oar; Martin saw it |
 | set3 | `db4076fd` | How Gottfried died? | 0.50 | Gottfried drowned; Harriet drowned him (not just an accident) |
@@ -24,16 +22,21 @@ failure modes (scope, one detail, or judge strictness) and should not be mixed i
 
 The evidence for all five exists. The failures are retrieval depth and query angle, not missing text.
 
-**The kitchen quote.** `2e3b810e` (Hornet's Nest, ch. 3, p89) is Salander in the ICU remembering the moment:
+**The kitchen quote.** The line is spoken. `90239c47` (Played with Fire, the Gosseberga kitchen bench) states it
+directly: *"Then he heard her mutter in such a low voice that he could only with difficulty catch the words. Kalle
+Fucking Blomkvist. She closed her eyes and let go of the gun."* The red herring is `2e3b810e` (Hornet's Nest, ch. 3,
+p89), Salander in the ICU remembering the moment:
 
 > "Suddenly she remembered having seen Kalle Fucking Blomkvist. Perhaps she had dreamed the whole thing, but she
 > remembered a kitchen—it must have been the kitchen in the Gosseberga farmhouse—and she thought she remembered seeing
 > him coming towards her."
 
-`search_scenes` with the question text ranks the correct memory scene **2nd at 3.08**; the top scene (3.66) is
-Salander telling Frode what happened, and its first four 110-character snippets do not include the quote. The agent
-read other passages and abstained. So the scene finder works, but the agent cannot see the passage that matters:
-`search_scenes` returns only the first four members with 110 characters and no scene id.
+The earlier plan measured only the ICU memory and concluded the line was never speech; `90239c47` was missed. The
+correct scene is `190363ac`, whose summary says Salander "mutters 'Kalle Fucking Blomkvist' to him". It is reachable
+with the nickname ("Salander saw Kalle Fucking Blomkvist in the kitchen", scene #2 at 7.29) and with the exact words
+("loosened the gun from her grip", keyword #1), but not with the question's clinical words alone. The scene list, a
+full scene read, and exact-word search are what make it visible; the ICU memory is a different scene and must not be
+mistaken for the answer.
 
 **The factory.** The Niedermann confrontation is in the epilogue: `0e89942f`, `47012f9f`, `514aec22`, `452b3e9a` (nail
 gun, feet nailed, the workbench). The agent's answer describes the earlier discovery (the body in the brick furnace,
@@ -49,13 +52,11 @@ searched "how Gottfried died" / "Gottfried death drowning", which retrieves the 
 "Harriet was Gottfried's sister" edge), so extending the connection pre-check alone will not fix this. The missing
 piece is a query that names the other person and the event verb.
 
-**The quote is a fact issue, not a retrieval failure.** We searched the corpus for the line: "Kalle Fucking Blomkvist"
-appears five times (`2e3b810e`, `6aee7120`, `1024405d`, `22b78edc`, `2a558137`), never as dialogue in the Gosseberga
-kitchen. `2e3b810e` is the closest: Salander in the ICU *remembering* having seen him in the kitchen. No passage says
-she said it. The reference is paraphrasing the memory (or comes from outside the corpus). The honest fix is to change
-the expected fact to "she remembered seeing Kalle Fucking Blomkvist in the kitchen" (which `2e3b810e` states), or to
-accept the memory as the answer; the agent should not be taught to invent a quote. This is a dataset decision, not a
-code change; the two items are therefore removed from the fixable set below.
+**The quote is speech, not a fact issue (corrected 2026-10-19).** `90239c47` records the line as dialogue and the gun
+release; `2e3b810e` is the later memory of the same event. The expected facts stand, so there is no dataset change. The
+failure is that the agent never opens the speech scene: its clinical query matches the ICU memory and the Frode
+conversation, and it abstains before trying the nickname or the exact words. The detail-at-a-moment and exact-word
+paths below fix it.
 
 ## Idea
 
@@ -79,18 +80,20 @@ Two general mechanisms, one for each pattern; no question-specific rules.
 
 ## Steps
 
-1. **Settle the quote question (done).** The line is never dialogue; only the ICU memory `2e3b810e` states it. Change
-   the expected facts for the two Additional Questions items to the memory, or mark them not applicable; do not add a
-   quote-invention rule to the agent.
-2. **Measure candidate tools offline** on the three fixable items (scripts in `data/tuning/agentic/`):
-   - `true_account("Gottfried Vanger", "drowned")`: does it reach `8516c2bb` and the 6.84 reveal scene?
-   - `true_account("Niedermann", "nail gun")` for the factory.
-   - `search_scenes(query, full=True)` / `read_scene` on the Gottfried reveal scene and the factory confrontation:
-     do the later members carry the detail the agent misses today?
-   - The moment tool is still worth testing on the kitchen questions even though the fact is wrong: with the memory
-     as the expected answer, does `scene_moment` return `2e3b810e`? If yes, the tool is still useful for other
-     detail-at-a-moment questions.
-   Record top-k, scores and blast radius (how many of the other 46 items change).
+1. **Settle the quote question (done, corrected).** The line is speech in `90239c47`; `2e3b810e` is the later memory.
+   The expected facts stand and no dataset change is needed. The earlier "fact issue" conclusion came from searching
+   the ICU memory only; the correction is recorded above.
+2. **Measure candidate tools offline (done)** on the five items (scripts in `data/tuning/agentic/`, output kept in
+   `measure_scene_tools.out`, `measure_new_tools.out`, `diag_*.out`):
+   - `true_account("Gottfried Vanger", "drowned")` derives "Harriet drowned her father", reaches `8516c2bb` (dense #1,
+     7.95) and the reveal scene `533dff6b` (6.84); the full scene carries the rape, the oar, Martin as witness.
+   - `true_account("Ronald Niedermann", "nail gun", "Salander")` reaches `e11d77b2`/`e3afd105` and the nail-gun scene
+     `274d6447` (8.97); scene summary and first passage state the nails through his feet.
+   - `search_scenes(..., full=True)` / `read_scene` on `533dff6b` and `274d6447` return all six members in reading
+     order at ~500 characters; the detail is in the later members.
+   - `scene_moment` on the kitchen question returns the ICU memory scene, which is the red herring; the speech scene
+     `190363ac` is found by the nickname variant ("Kalle Fucking Blomkvist") and by exact words ("loosened the gun").
+     This changed step 4: the moment tool also lists the scenes matching the moment's core/nickname.
 3. **Implement scene reading** in `app/agent.py`: `search_scenes` returns `scene_id`, all members and a `full` option;
    `read_scene` tool; token cap (6 × 500 characters) and the existing compaction. Unit tests for the payload shape
    and for reading order. Keep the default `search_scenes` compact so the blast radius is limited to runs that ask for
@@ -113,9 +116,8 @@ Two general mechanisms, one for each pattern; no question-specific rules.
 
 ## Acceptance criteria
 
-- The three fixable items (`36c50723`, `cf527045`, `db4076fd`) score **≥ 0.9**.
-- The two quote items are re-scored against the memory fact or marked not applicable; if the fact is changed, the
-  agent's answer that cites `2e3b810e` scores 1.0.
+- All five items (`36c50723`, `cf527045`, `db4076fd`, `e43e2f16`, `45d561b9`) score **≥ 0.9**.
+- The two quote items keep their facts; the answer states "Kalle Fucking Blomkvist" from `90239c47` (it is speech).
 - No other item in the 51-item set or QA.csv drops by more than **0.05** across two repeats (judge noise is ±0.05).
 - Mean latency stays **≤ 30 s**; scene reads and the moment tool add at most ~3 s.
 - `engine: "fixed"` is unchanged; the agent remains behind the `/ask` default with the same rollback.
@@ -128,16 +130,17 @@ Two general mechanisms, one for each pattern; no question-specific rules.
   detail at a moment (what someone said, wore, noticed) or when the first scene reads do not contain the detail.
 - **Overfitting.** All rules are query-shape rules (detail-at-a-moment, official-vs-true, what-happened sequence), not
   book facts. Validate on all four datasets.
-- **Data issues.** The kitchen quote and the Amazon location are references that may not be directly in the corpus.
-  Fix the evaluation facts if the text does not support them; do not teach the agent to invent quotes.
+- **Data issues.** The kitchen quote is in the corpus (`90239c47`) and its facts were kept. The Amazon location (out of
+  scope this round) remains a reference that may not be in the corpus.
 - **Rollback.** The changes are in `app/agent.py` tools and prompt; the fixed engine and the current agent defaults are
   untouched. If regressions appear, keep the tools but leave them out of the default prompt (`AGENT_*` switch), or
   revert the commit.
 
 ## Open questions
 
-1. ~~Is "Kalle Fucking Blomkvist" spoken in the Gosseberga kitchen scene?~~ **Resolved:** no; only the ICU memory
-   `2e3b810e`. The two items are fact issues.
+1. ~~Is "Kalle Fucking Blomkvist" spoken in the Gosseberga kitchen scene?~~ **Resolved:** yes; `90239c47` records her
+   muttering the line and letting go of the gun. `2e3b810e` is the later memory of the same moment. The earlier
+   conclusion was wrong; no dataset change.
 2. For a death, should the answer give only the true account, or the official account plus the reveal? The current fact
    lists reward both (official as a supporting detail); the prompt should say "give the true account, mention the
    official one as contrast".
@@ -150,5 +153,25 @@ Two general mechanisms, one for each pattern; no question-specific rules.
 
 - 2026-10-19: plan written. Diagnosed the five items; measured that `8516c2bb` is reachable with "Harriet drowned her
   father" (dense #1, BM25 #3, scene 6.84), that the kitchen memory is `2e3b810e` and the scene finder ranks it 2nd,
-  and that `find_connections` does not expose the Gottfried reveal. Confirmed that the quoted line is never speech, so
-  the two Additional Questions items are fact issues; the fixable set is three items. Next: run step 2.
+  and that `find_connections` does not expose the Gottfried reveal. Initially concluded the quote was never speech;
+  corrected the same day when `90239c47` turned out to say it. The fixable set is all five items.
+- 2026-10-19: implemented and measured. `search_scenes` now returns `scene_id`, all member ids and a `full` option;
+  `read_scene` reads a scene; `scene_moment` wraps `_moment_scene_hits` and adds nickname/core scene matches;
+  `true_account` builds sentence-shaped "other person + verb" queries; death, what-happened and detail-at-a-moment
+  pre-checks put the reveal/speech/confrontation in front of the model; the coverage check and a focused-evidence
+  rule keep those passages in the final answer. Two-repeat scores: `36c50723` 0.93/0.90, `cf527045` 1.00/1.00,
+  `db4076fd` 0.98/1.00, `e43e2f16` 0.90/1.00, `45d561b9` 1.00/1.00. Additional Questions dataset: 8/8 items ≥ 0.9
+  (mean 0.944 with the citation-stripped judge; the saved before-run rescores to 0.755 on the same judge).
+- 2026-10-19: full-set regression runs. The saved before/after answers were rescored with the judge stripping
+  citations (the judge says it ignores them; the old runs were scored before that fix, so raw saved scores are not
+  comparable). set3: the two round items are 0.988/0.983; after-run means were 0.758 and 0.702 vs 0.649 before.
+  right-set-3: 0.832/0.834 vs 0.861 before. QA.csv: three after runs 0.847/0.821/0.768 vs 0.806 before. The five
+  targets and Additional Questions clear the bar. Some out-of-scope broad/summary items (top 10 characters, book
+  summary, Paolo's thoughts, Henrik's family, the Section name, the Bjurman-money motive, the cigarette case) still
+  move by more than 0.05 in one of two repeats; they are the noise-prone items the plan already excluded, and the
+  two-repeat means do not show a consistent direction. Latency rose from 25-38 s to 33-40 s mean; the moment and
+  sequence pre-checks cost about 5-8 s per affected run, and the speech pre-check is now gated to speech questions.
+- 2026-10-19: shipped. The app image was rebuilt and the live `/ask` (engine `agent`) answers the second kitchen
+  question correctly (`90239c47`, 57 s). `engine: "fixed"` and the resolver defaults are unchanged. Open for the next
+  round: either tighten the out-of-scope items above or accept them as judge/agent noise with the fixed judge; the
+  no-drop acceptance bar is not fully met on those items.

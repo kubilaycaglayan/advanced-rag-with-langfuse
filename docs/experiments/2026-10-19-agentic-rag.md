@@ -212,8 +212,8 @@ fallback. If pursued further:
 
 The next round is planned in
 [docs/plans/2026-10-19-scene-details-and-true-accounts.md](plans/2026-10-19-scene-details-and-true-accounts.md):
-scene reading, a moment tool and a true-account search for the five remaining sub-0.6 items (two of which turned out
-to be fact issues, not agent failures).
+scene reading, a moment tool and a true-account search for the five remaining sub-0.6 items. (The plan first called two
+of them fact issues; `90239c47` turned out to say the kitchen line, so all five were retrieval failures.)
 
 ## Reproduce
 
