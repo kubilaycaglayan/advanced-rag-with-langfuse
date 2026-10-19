@@ -22,6 +22,7 @@ from pydantic import BaseModel, Field, IPvAnyAddress
 from qdrant_client import QdrantClient
 
 try:
+    from .agent import AgentSettings, run_agent
     from .evaluator_specs import CORRECTNESS_SPECS
     from .experiment_store import get_execution, initialize
     from .frontend_rate_limit import reserve_request
@@ -33,6 +34,7 @@ try:
     from .pipeline_setup import current_pipeline_setup
     from .resolved_config import ResolvedPipelineConfig, resolve_pipeline_model_identities
 except ImportError:
+    from agent import AgentSettings, run_agent
     from evaluator_specs import CORRECTNESS_SPECS
     from experiment_store import get_execution, initialize
     from frontend_rate_limit import reserve_request
@@ -65,6 +67,7 @@ class AskRequest(BaseModel):
     candidate_count: int = Field(default=30, ge=5, le=100)
     top_k: int = Field(default=10, ge=1, le=30)
     mode: str = Field(default="full", pattern="^(baseline|hyde|query_expansion|hyde_query_expansion|full)$")
+    engine: str = Field(default="agent", pattern="^(agent|fixed)$")
     passage_chars: int | None = Field(default=None, ge=1)
     collection: str | None = None
     prompt_label: str | None = None
@@ -211,6 +214,49 @@ def _prepare_ask(request: AskRequest) -> dict[str, Any]:
     return {"config": config, "collection": collection, "bundle": bundle, "prompts": prompts, "pipeline_id": pipeline_id}
 
 
+def _run_agent_ask(request: AskRequest, prepared: dict[str, Any], *, on_token=None, on_status=None) -> dict[str, Any]:
+    """Answer with the agent and shape the result like the fixed pipeline's for the frontend."""
+    model = os.getenv("AGENT_MODEL", "qwen3.6:35b")
+
+    def on_event(event: dict[str, Any]) -> None:
+        if on_status and event.get("type") == "tool":
+            on_status(f"searching · {event.get('name')}")
+        elif on_status and event.get("type") == "turn":
+            on_status("thinking")
+
+    result = run_agent(request.question, prepared["collection"], prepared["config"],
+                       settings=AgentSettings(model=model), on_event=on_event)
+    evidence = list(result.get("evidence") or [])
+    citations = [label if str(label).startswith("[") else f"[{label}]" for label in result.get("citations") or []]
+    if on_token and result.get("answer"):
+        on_token(result["answer"])
+    if on_status:
+        on_status("answering")
+    return {
+        "question": request.question,
+        "answer": result["answer"],
+        "citations": citations,
+        "reranked": evidence,
+        "candidates": evidence,
+        "baseline": [],
+        "evidence": "\n\n".join(f"[E{position}] {row.get('text', '')}" for position, row in enumerate(evidence, 1)),
+        "generated_queries": [call.get("arguments", {}).get("query") for call in result.get("trace", [])
+                              if call.get("arguments", {}).get("query")],
+        "timings": {"agent_seconds": result.get("latency_seconds")},
+        "latency_seconds": result.get("latency_seconds"),
+        "generation_model": result.get("model", model),
+        "engine": "agent",
+        "mode": "agent",
+        "tool_calls": result.get("tool_calls"),
+        "agent_stopped": result.get("stopped"),
+        "agent_trace": result.get("trace", []),
+        "answer_thinking": None,
+        "translated_question": None,
+        "name_completed_question": None,
+        "low_confidence": None,
+    }
+
+
 def _run_ask(request: AskRequest, prepared: dict[str, Any], *, on_trace=None, on_token=None, on_status=None) -> dict[str, Any]:
     """Answer one question inside its Langfuse trace (the same trace whether or not the answer is streamed)."""
     pipeline_id, prompts = prepared["pipeline_id"], prepared["prompts"]
@@ -227,8 +273,11 @@ def _run_ask(request: AskRequest, prepared: dict[str, Any], *, on_trace=None, on
         trace_id = get_client().get_current_trace_id()
         if on_trace:
             on_trace(trace_id)
-        result = run_pipeline(request.question, prepared["config"], collection=prepared["collection"], prompt_bundle=prepared["bundle"],
-                              on_token=on_token, on_status=on_status)
+        if request.engine == "agent":
+            result = _run_agent_ask(request, prepared, on_token=on_token, on_status=on_status)
+        else:
+            result = run_pipeline(request.question, prepared["config"], collection=prepared["collection"], prompt_bundle=prepared["bundle"],
+                                  on_token=on_token, on_status=on_status)
         result["prompts"] = prompts
         result["session_id"] = session_id
         result["trace_id"] = trace_id

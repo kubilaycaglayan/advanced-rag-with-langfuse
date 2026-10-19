@@ -40,6 +40,7 @@ can touch, shrink that to only what it should touch, then confirm on the full da
 
 | Date | Round | QA.csv correctness | Citation | Improved (answer correctness) | Regressed | Commit |
 |---|---|---|---|---|---|---|
+| 2026-10-19 | Agentic retrieval is the default<br>`/ask` engine (`engine: "agent"`) | QA.csv 0.897;<br>Additional 0.628, set3 0.668,<br>right-set-3 0.835 | — | Q1/Q2, Harriet, Armageddon shirt,<br>Bjurman money; Langfuse dataset runs<br>for all four datasets | ≈25 s vs ≈18 s per question;<br>partial answers remain (5 QA items);<br>fixed engine kept as `engine: "fixed"` | this commit |
 | 2026-10-19 | Agentic tools experiment<br>(`qwen3.6:35b`, not promoted) | QA.csv 0.897<br>(35 items, simple fact judge)<br>Q1 3/3, Q2 4/4 | — | Q1 "How did Mikhail first know<br>about Salander?" (report she wrote,<br>given by Frode); QA: Harriet,<br>Armageddon shirt, Bjurman money | QA regressions: Bjurman demands<br>0.93 → 0.47, Martin 0.93 → 0.5;<br>5 residual failures | this commit |
 | 2026-10-19 | Judge: deepseek through<br>`opencode` (`answer_correctness_v3`,<br>optional, local-only) | saved QA.csv answers:<br>deepseek 0.677 (v2 rubric + tweak) | — | 14/14 disagreements with qwen v1:<br>deepseek right or very close | Q19 under-scored by ~0.2;<br>opencode free tier blocked this host's IP<br>during the live check | this commit |
 | 2026-10-19 | Judge: fact-based<br>`answer_correctness_v2` (default;<br>v1 selectable), facts in all 4 datasets | saved answers re-scored:<br>0.694 → 0.736 (v1 → v2) | — | nickname 0.5 → 0.92, police after assault 0.5 → 0.925,<br>Berger's position 0.5 → 0.9 (plus 22 more across datasets) | wrong answers v1 scored 0.5 now ≈ 0<br>(Dag's murderer, the Section, who killed Harriet);<br>judge noise: backpack, Berger/Mikael | this commit |
@@ -66,6 +67,16 @@ Each row compares the round's defaults against the defaults it replaced: 2d7b030
 defaults (0.614), not against 88d26af, whose defaults it reverted. The correctness judge is noisy on reworded answers
 (identical answers have scored 0 and 1 in different runs), so single 0.5 steps in rows without a repeat run are
 weak evidence.
+
+## 2026-10-19 — Agentic retrieval becomes the default `/ask` engine
+
+The agent now answers `/ask` by default (`engine: "agent"`), with the fixed pipeline kept as `engine: "fixed"`. The
+result is mapped to the frontend's shape (evidence in `[E1]` order, bracketed citations, trace and pipeline ids), and
+`/ask/stream` emits a status per tool and turn then the finished answer as one token. QA.csv scores 0.897 with a local
+fact judge (median 0.95, 30/35 ≥ 0.9); the other datasets score 0.628 (Additional Questions), 0.668 (set3) and 0.835
+(right-set-3), weighted 0.754 across 51 items. All four runs are Langfuse dataset runs with a trace per item. The cost
+is ≈25 s vs ≈18 s per question and partial answers on scene/summary questions. Full record:
+[docs/experiments/2026-10-19-agentic-rag.md](docs/experiments/2026-10-19-agentic-rag.md).
 
 ## 2026-10-19 — Agentic tools experiment (not promoted)
 

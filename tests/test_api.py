@@ -62,8 +62,8 @@ class InteractiveAskContract(TestCase):
              patch("app.main.run_pipeline", return_value={"answer": "A [E1]", "citations": ["[E1]"]}), \
              patch.dict("os.environ", {"FRONTEND_RATE_LIMIT_ENABLED": "true"}), \
              patch("app.main.reserve_request") as reserve:
-            result = ask(AskRequest(question="Who?", source="frontend", session_id="ui-127-0-0-1", user_id="interactive-ui-browser", client_ip="127.0.0.1"))
-            ask(AskRequest(question="Who?", source="api", client_ip="192.0.2.12"))
+            result = ask(AskRequest(question="Who?", engine="fixed", source="frontend", session_id="ui-127-0-0-1", user_id="interactive-ui-browser", client_ip="127.0.0.1"))
+            ask(AskRequest(question="Who?", engine="fixed", source="api", client_ip="192.0.2.12"))
             reserve.assert_not_called()
 
         self.assertEqual(result["trace_id"], "a" * 32)
@@ -76,6 +76,31 @@ class InteractiveAskContract(TestCase):
         self.assertIn("pipeline:pipeline-123", attributes[0]["tags"])
         self.assertEqual(observations[0]["metadata"], {"clientIp": "127.0.0.1"})
         self.assertIsNone(observations[1]["metadata"])
+
+    def test_ask_defaults_to_the_agent_engine(self):
+        prepared = {"config": ResolvedPipelineConfig(), "collection": "collection", "bundle": {}, "prompts": {},
+                    "pipeline_id": "pipeline-123"}
+        agent_result = {
+            "question": "Who?", "answer": "A [E1]", "citations": ["E1"], "passage_ids": ["ab12cd34"],
+            "evidence": [{"agent_label": "E1", "id": "ab12cd34-0000-0000-0000-000000000000", "book": "B",
+                          "chapter": "C", "paragraph": 1, "page": 2, "text": "T"}],
+            "trace": [{"tool": "semantic_search", "arguments": {"query": "Who?"}}], "tool_calls": 4,
+            "stopped": "submit", "latency_seconds": 12.3, "model": "qwen3.6:35b"}
+        client = SimpleNamespace(get_current_trace_id=lambda: "a" * 32)
+        with patch("app.main._prepare_ask", return_value=prepared), \
+             patch("app.main.propagate_attributes", return_value=nullcontext()), \
+             patch("app.main.observation", return_value=nullcontext(None)), \
+             patch("app.main.update_observation"), \
+             patch("app.main.get_client", return_value=client), \
+             patch("app.main.run_agent", return_value=agent_result) as agent:
+            result = ask(AskRequest(question="Who?"))
+        self.assertEqual(result["engine"], "agent")
+        self.assertEqual(result["mode"], "agent")
+        self.assertEqual(result["citations"], ["[E1]"])
+        self.assertEqual(result["reranked"], agent_result["evidence"])
+        self.assertEqual(result["trace_id"], "a" * 32)
+        self.assertEqual(result["pipeline_id"], "pipeline-123")
+        agent.assert_called_once()
 
     def test_stream_emits_trace_status_tokens_and_the_same_done_result(self):
         prepared = {"config": ResolvedPipelineConfig(), "collection": "collection", "bundle": {}, "prompts": {}, "pipeline_id": "pipeline-123"}

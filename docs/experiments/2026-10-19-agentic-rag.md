@@ -1,9 +1,9 @@
 # Agentic retrieval: the model chooses among the pipeline's instruments (2026-10-19)
 
-Status: completed experiment, **not promoted** to the interactive pipeline. A local model drives the pipeline's
-instruments as tools, answers a question the fixed pipeline gets wrong, and was run over all of QA.csv. Code lives in
-`app/agent.py` (not imported by `app/main.py`); runners, traces and the QA results are in `data/tuning/agentic/`
-(untracked).
+Status: completed experiment; **now the default engine for `/ask`** (send `engine: "fixed"` for the old pipeline).
+A local model drives the pipeline's instruments as tools, answers questions the fixed pipeline gets wrong, and was run
+over all four datasets. Code lives in `app/agent.py`; runners, traces and the dataset results are in
+`data/tuning/agentic/` (untracked).
 
 ## Questions
 
@@ -72,6 +72,14 @@ agent to cover every part of the question, check false premises, and look for th
 happened after an official account. `submit_answer` is verified once against the cited passages with their neighbours.
 When the loop abstains or answers without citations while holding evidence, a clean synthesis request over the
 collected evidence answers instead.
+
+## Default in `/ask`
+
+`AskRequest.engine` defaults to `"agent"`; `"fixed"` runs the old pipeline. The agent result is mapped to the frontend's
+shape: `reranked` is the evidence in `[E1]` order, citations are bracketed, and `trace_id`, `pipeline_id`,
+`latency_seconds` and `agent_trace` (the tool calls) are attached. `AGENT_MODEL` selects the agent model (default
+`qwen3.6:35b`). `/ask/stream` runs the agent in the request thread, emits a `status` event per tool and turn, then the
+finished answer as one token; token-by-token streaming would require streaming the final answer request itself.
 
 ## Results
 
@@ -188,10 +196,11 @@ Recurring failures:
 
 ## Verdict and next steps
 
-Do not promote to `/ask`: the agent is slower, its failure mode is a confident partial answer, and the fixed pipeline
-is cheaper for single-fact questions. Keep `app/agent.py` as the experiment and, if pursued:
+Promoted: the agent is now the default `/ask` engine (2026-10-19), with the fixed pipeline kept as `engine: "fixed"`.
+It is slower (≈25 s vs ≈18 s) and its failure mode is a confident partial answer, so the fixed engine remains the
+fallback. If pursued further:
 
-* add an opt-in `/ask/agent` with streaming and the same trace;
+* stream the final answer request so `/ask/stream` is token-by-token;
 * make verification mechanical (quote containment + the question's named person in the cited passage), which would
   catch "Gunnar Gullberg" and the ungrounded "Anatolia"/"ancient Greece" answers;
 * add a coverage pass that lists the question's parts and searches each missing one (three residual failures are this);
