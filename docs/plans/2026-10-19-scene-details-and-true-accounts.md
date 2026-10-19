@@ -179,3 +179,11 @@ Two general mechanisms, one for each pattern; no question-specific rules.
   rewriting it. The out-of-scope Bjurman-money item rose from 0.25 to 0.50 but still misses the motive; no target
   item changed. Live `/ask` health checked again after the rebuild. The no-drop bar on the out-of-scope items remains
   the open item for the next round.
+- 2026-10-19 (round 3): paired baseline check. The saved before-run is a single run, and re-running the **old agent**
+  (`bc5ed87`) now gives much lower scores on the same items than the saved run: 1f2db2c5 1.00 saved vs 0.25 now,
+  d25ea938 1.00 vs 0.45, f5ac54db 0.90 vs 0.00, ed7d4adb 1.00 vs 0.45. On a paired sample the new agent is better
+  on four items (1f2db2c5 0.50, d25ea938 1.00, b2919027 1.00, 09543843 0.95), the same on three (f5ac54db 0.00,
+  ed7d4adb 0.45, 8db24d50 0.93) and worse on one (e23fcfc0 0.55/1.00 vs 1.00). The no-drop bar therefore cannot be
+  applied to the saved single runs; the paired repeats show no systematic regression. Three general query-shape rules
+  came out of this pass: thoughts/feelings may be stated as what a character noticed or decided; importance questions
+  need every role the passages show; a name question needs the exact name the passages use.
