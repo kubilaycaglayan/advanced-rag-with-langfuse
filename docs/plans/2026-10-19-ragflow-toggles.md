@@ -85,3 +85,5 @@ The end goal is that a user picks a pipeline and configuration in the UI, served
 ## Outcome
 
 The trial ended on 2026-10-19 after rounds 1–3. Results, findings and next steps are in [../ragflow-trial-findings.md](../ragflow-trial-findings.md).
+
+The user stopped the trial after round 3 and asked for a write-up and cleanup. These remaining items are deferred, not done: separate per-template indexes, summary + vector weight 0.7, indexing books 2 and 3 for the winning profiles, and the multi-query preprocessing mode.
