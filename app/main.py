@@ -8,6 +8,9 @@ import logging
 import os
 import time
 import asyncio
+import contextvars
+import queue
+import threading
 from typing import Any
 
 import requests
@@ -178,8 +181,8 @@ def index(request: IndexRequest) -> dict[str, Any]:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
-@app.post("/ask")
-def ask(request: AskRequest) -> dict[str, Any]:
+def _prepare_ask(request: AskRequest) -> dict[str, Any]:
+    """Check the rate limit and resolve the configuration, index and prompts for one question."""
     if not request.question.strip():
         raise HTTPException(status_code=400, detail="question must not be blank")
     if (os.getenv("FRONTEND_RATE_LIMIT_ENABLED") == "true" and request.production and request.source == "frontend"
@@ -201,28 +204,78 @@ def ask(request: AskRequest) -> dict[str, Any]:
         bundle = load_prompt_bundle(Langfuse(), label=request.prompt_label)
         prompts = prompt_manifests(bundle)
         pipeline_id = current_pipeline_setup(config, prompts)["pipeline_id"]
-        session_id = request.session_id or "interactive-" + hashlib.sha256(" ".join(request.question.casefold().split()).encode()).hexdigest()[:24]
-        environment = "interactive-ui" if request.source == "frontend" else "default"
-        trace_metadata = {"pipeline_id": pipeline_id, "collection": collection, "source": request.source}
-        trace_metadata.update({f"prompt_{name}": f"{asset['id']}@{asset['version']}:{asset['label']}"
-                               for name, asset in prompts.items()})
-        root_metadata = {"clientIp": str(request.client_ip)} if request.source == "frontend" and request.client_ip else None
-        with propagate_attributes(session_id=session_id, user_id=request.user_id, environment=environment, metadata=trace_metadata,
-                                  tags=[f"pipeline:{pipeline_id}"]), observation("rag ask", as_type="span",
-                                                                                   input={"question": request.question},
-                                                                                   metadata=root_metadata) as obs:
-            trace_id = get_client().get_current_trace_id()
-            result = run_pipeline(request.question, config, collection=collection, prompt_bundle=bundle)
-            result["prompts"] = prompts
-            result["session_id"] = session_id
-            result["trace_id"] = trace_id
-            result["pipeline_id"] = pipeline_id
-            update_observation(obs, output={"answer": result.get("answer"), "citations": result.get("citations")})
-            return result
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
+    return {"config": config, "collection": collection, "bundle": bundle, "prompts": prompts, "pipeline_id": pipeline_id}
+
+
+def _run_ask(request: AskRequest, prepared: dict[str, Any], *, on_trace=None, on_token=None, on_status=None) -> dict[str, Any]:
+    """Answer one question inside its Langfuse trace (the same trace whether or not the answer is streamed)."""
+    pipeline_id, prompts = prepared["pipeline_id"], prepared["prompts"]
+    session_id = request.session_id or "interactive-" + hashlib.sha256(" ".join(request.question.casefold().split()).encode()).hexdigest()[:24]
+    environment = "interactive-ui" if request.source == "frontend" else "default"
+    trace_metadata = {"pipeline_id": pipeline_id, "collection": prepared["collection"], "source": request.source}
+    trace_metadata.update({f"prompt_{name}": f"{asset['id']}@{asset['version']}:{asset['label']}"
+                           for name, asset in prompts.items()})
+    root_metadata = {"clientIp": str(request.client_ip)} if request.source == "frontend" and request.client_ip else None
+    with propagate_attributes(session_id=session_id, user_id=request.user_id, environment=environment, metadata=trace_metadata,
+                              tags=[f"pipeline:{pipeline_id}"]), observation("rag ask", as_type="span",
+                                                                               input={"question": request.question},
+                                                                               metadata=root_metadata) as obs:
+        trace_id = get_client().get_current_trace_id()
+        if on_trace:
+            on_trace(trace_id)
+        result = run_pipeline(request.question, prepared["config"], collection=prepared["collection"], prompt_bundle=prepared["bundle"],
+                              on_token=on_token, on_status=on_status)
+        result["prompts"] = prompts
+        result["session_id"] = session_id
+        result["trace_id"] = trace_id
+        result["pipeline_id"] = pipeline_id
+        update_observation(obs, output={"answer": result.get("answer"), "citations": result.get("citations")})
+        return result
+
+
+@app.post("/ask")
+def ask(request: AskRequest) -> dict[str, Any]:
+    prepared = _prepare_ask(request)
+    try:
+        return _run_ask(request, prepared)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+
+@app.post("/ask/stream")
+def ask_stream(request: AskRequest) -> StreamingResponse:
+    """/ask as newline-delimited JSON events: trace, status, token (the answer as it is written), then done or error.
+
+    The pipeline runs in its own thread, in a copy of this request's context, so its Langfuse trace is the one /ask
+    records; it finishes and records its trace even if the client goes away.
+    """
+    prepared = _prepare_ask(request)
+    events: queue.Queue = queue.Queue()
+
+    def work() -> None:
+        try:
+            result = _run_ask(request, prepared, on_trace=lambda trace_id: events.put({"type": "trace", "trace_id": trace_id}),
+                              on_token=lambda text: events.put({"type": "token", "text": text}),
+                              on_status=lambda status: events.put({"type": "status", "status": status}))
+            events.put({"type": "done", "result": result})
+        except Exception as exc:
+            events.put({"type": "error", "status": 400 if isinstance(exc, ValueError) else 502, "detail": str(exc)})
+        finally:
+            events.put(None)
+
+    threading.Thread(target=contextvars.copy_context().run, args=(work,), daemon=True).start()
+
+    def lines():
+        while (event := events.get()) is not None:
+            yield json.dumps(event, ensure_ascii=False, default=str) + "\n"
+
+    return StreamingResponse(lines(), media_type="application/x-ndjson", headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
 
 
 def _verify_signature(raw_body: bytes, signature: str | None) -> None:

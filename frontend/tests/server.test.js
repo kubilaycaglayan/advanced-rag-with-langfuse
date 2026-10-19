@@ -89,6 +89,43 @@ test('groups questions by IP and passes the stable browser ID as the user', asyn
   assert.equal(sent[0].client_ip, '127.0.0.1')
 })
 
+test('streams answer tokens and ends with the same payload a plain request gets', async () => {
+  const events = [{ type: 'trace', trace_id: traceId }, { type: 'status', status: 'answering' }, { type: 'token', text: 'Answer ' },
+    { type: 'token', text: '[E2]' }, { type: 'done', result: { answer: 'Answer [E2]', citations: ['[E2]'],
+      reranked: [{ book: 'One', text: 'first' }, { book: 'Two', text: 'second' }], trace_id: traceId, pipeline_id: 'pipeline-123', latency_seconds: 3.4 } }]
+  const text = events.map(event => JSON.stringify(event) + '\n').join('')
+  const seen = []
+  // Split mid-line, as a network chunk may be.
+  const app = createApp({ fetcher: async url => {
+    seen.push(url)
+    return new Response(new ReadableStream({ start(controller) {
+      controller.enqueue(new TextEncoder().encode(text.slice(0, 50)))
+      controller.enqueue(new TextEncoder().encode(text.slice(50)))
+      controller.close()
+    } }), { status: 200 })
+  } })
+  const streamServer = app.listen(0)
+  await new Promise(resolve => streamServer.once('listening', resolve))
+  try {
+    const response = await fetch(`http://127.0.0.1:${streamServer.address().port}/api/ask`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/x-ndjson' }, body: JSON.stringify({ question: 'Who?' }),
+    })
+    assert.equal(response.status, 200)
+    assert.match(response.headers.get('content-type'), /application\/x-ndjson/)
+    const received = (await response.text()).trim().split('\n').map(line => JSON.parse(line))
+    assert.ok(seen[0].endsWith('/ask/stream'))
+    assert.deepEqual(received.slice(0, 3), [{ type: 'status', status: 'answering' }, { type: 'token', text: 'Answer ' }, { type: 'token', text: '[E2]' }])
+    const done = received[3]
+    assert.equal(done.type, 'done')
+    assert.equal(done.answer, 'Answer [E2]')
+    assert.equal(done.traceId, traceId)
+    assert.equal(done.pipelineId, 'pipeline-123')
+    assert.deepEqual(done.sources.map(source => source.label), ['[E2]'])
+  } finally {
+    streamServer.close()
+  }
+})
+
 test('production allows one active question per IP and releases the slot after completion or failure', async () => {
   let releaseFirst
   let signalStarted

@@ -40,6 +40,7 @@ can touch, shrink that to only what it should touch, then confirm on the full da
 
 | Date | Round | QA.csv correctness | Citation | Improved (answer correctness) | Regressed | Commit |
 |---|---|---|---|---|---|---|
+| 2026-10-19 | Judge: deepseek through<br>`opencode` (`answer_correctness_v3`,<br>optional, local-only) | saved QA.csv answers:<br>deepseek 0.677 (v2 rubric + tweak) | — | 14/14 disagreements with qwen v1:<br>deepseek right or very close | Q19 under-scored by ~0.2;<br>opencode free tier blocked this host's IP<br>during the live check | this commit |
 | 2026-10-19 | Judge: fact-based<br>`answer_correctness_v2` (default;<br>v1 selectable), facts in all 4 datasets | saved answers re-scored:<br>0.694 → 0.736 (v1 → v2) | — | nickname 0.5 → 0.92, police after assault 0.5 → 0.925,<br>Berger's position 0.5 → 0.9 (plus 22 more across datasets) | wrong answers v1 scored 0.5 now ≈ 0<br>(Dag's murderer, the Section, who killed Harriet);<br>judge noise: backpack, Berger/Mikael | this commit |
 | 2026-10-18 | Entity graph: PPR over cards,<br>passages and carried-context events<br>(`entity_graph`, rejected, off) | passages: set3 0.477 → 0.432<br>event lines: 0.694 → 0.639 | 0.861 → 0.903 | event lines: 7 of 94 items<br>(S3-10 toner, QA20 Cecilia, QA21, QA29, R3-4, R3-13) | passages: S3-9, S3-20<br>event lines: 16 of 94 items (QA1, QA9, QA12, QA25, QA27, QA28, QA35, R3 ×5, AQ ×2, S3 ×2) | not adopted (code kept, off) |
 | 2026-10-18 | Entity anchors skip a leading<br>question word ("How Gottfried") | unchanged<br>(entity hits identical 94/94, offline) | — | — (graph-only effect) | none | this commit |
@@ -64,6 +65,30 @@ Each row compares the round's defaults against the defaults it replaced: 2d7b030
 defaults (0.614), not against 88d26af, whose defaults it reverted. The correctness judge is noisy on reworded answers
 (identical answers have scored 0 and 1 in different runs), so single 0.5 steps in rows without a repeat run are
 weak evidence.
+
+## 2026-10-19 — Parallel rewrites (opt-in), streamed answers, reranker benchmark
+
+Two independent speed items were measured after the 2026-10-19 proposal.
+
+**Parallel query rewrites (`parallel_transformations`, default off).** HyDE, the three alternatives and grammar
+correction run in a thread pool. With `OLLAMA_NUM_PARALLEL=3`, three QA questions took 9.8/13.5/15.6 s in parallel
+vs 23.6/17.4/20.5 s sequentially (transformation time 4.6/5.5/3.7 s vs 9.4/6.7/5.5 s). Repeated runs at temperature 0
+still changed rewrites, evidence or answers — sequential repeats differ too — so the 3-question trial cannot prove
+zero drops. The toggle stays off by default; the global `OLLAMA_NUM_PARALLEL=3` override was reverted. Full QA.csv
+adoption needs a controlled run.
+
+**Streamed answers (`/ask/stream`, frontend NDJSON).** `/ask/stream` emits `trace`, `status`, `token` and `done`
+events, and the UI shows the answer as it is written. With Ollama idle, plain and streamed answers were identical
+in 3/3 pairs on a normal question and 3/3 on the low-confidence thinking question; token text joined to the same
+answer and both traces had the same 30-observation tree. First token arrived ~11.2 s (normal) and ~18.0 s (thinking)
+after the request. The earlier 2/3 mismatches did not reproduce and were likely affected by concurrent benchmark
+load.
+
+**Reranker/embedding.** No change adopted. Recorded QA calls: torch16 104.5 s, torch32 219.8 s, batch 64 102.6 s,
+ONNX 123.0 s, ONNX-O3 97.3 s (7 top-10 changes), int8 90.9 s (168 top-10 changes). Embedding ONNX was slower
+(14.4 s vs 7.2 s). The current torch fp32 path stays. Scripts and JSON results: `data/tuning/scripts-2026-10-19-speed/`.
+
+Verification: 95 Python tests, 14 Express tests and 19 UI tests pass.
 
 ## 2026-10-18 — Entity graph (GraphRAG-style), rejected; entity anchor fix
 

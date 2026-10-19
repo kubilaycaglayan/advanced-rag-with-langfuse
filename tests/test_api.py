@@ -1,4 +1,6 @@
 """Narrow contract check for the interactive API's Langfuse identities."""
+import asyncio
+import json
 from contextlib import contextmanager, nullcontext
 from datetime import datetime, timezone
 from types import SimpleNamespace
@@ -6,7 +8,7 @@ from unittest import TestCase
 from unittest.mock import patch
 from fastapi import HTTPException
 
-from app.main import AskRequest, ask
+from app.main import AskRequest, ask, ask_stream
 from app.experiments import _fingerprints
 from app.pipeline_setup import current_pipeline_setup
 from app.resolved_config import ResolvedPipelineConfig
@@ -74,3 +76,32 @@ class InteractiveAskContract(TestCase):
         self.assertIn("pipeline:pipeline-123", attributes[0]["tags"])
         self.assertEqual(observations[0]["metadata"], {"clientIp": "127.0.0.1"})
         self.assertIsNone(observations[1]["metadata"])
+
+    def test_stream_emits_trace_status_tokens_and_the_same_done_result(self):
+        prepared = {"config": ResolvedPipelineConfig(), "collection": "collection", "bundle": {}, "prompts": {}, "pipeline_id": "pipeline-123"}
+        result = {"answer": "Hello world [E1]", "citations": ["[E1]"], "trace_id": "t" * 32, "pipeline_id": "pipeline-123"}
+        def run(request, prepared, *, on_trace=None, on_token=None, on_status=None):
+            on_trace("t" * 32)
+            on_status("answering")
+            on_token("Hello ")
+            on_token("world [E1]")
+            return result
+        with patch("app.main._prepare_ask", return_value=prepared), patch("app.main._run_ask", side_effect=run):
+            response = ask_stream(AskRequest(question="Who?"))
+            async def collect():
+                return [json.loads(chunk) async for chunk in response.body_iterator]
+            events = asyncio.run(collect())
+        self.assertEqual([event["type"] for event in events], ["trace", "status", "token", "token", "done"])
+        self.assertEqual((events[0]["trace_id"], events[1]["status"]), ("t" * 32, "answering"))
+        self.assertEqual("".join(event["text"] for event in events[2:4]), "Hello world [E1]")
+        self.assertEqual(events[-1]["result"], result)
+
+    def test_stream_reports_a_failed_pipeline_as_an_error_event(self):
+        prepared = {"config": ResolvedPipelineConfig(), "collection": "collection", "bundle": {}, "prompts": {}, "pipeline_id": "pipeline-123"}
+        with patch("app.main._prepare_ask", return_value=prepared), \
+             patch("app.main._run_ask", side_effect=ValueError("bad question")):
+            response = ask_stream(AskRequest(question="Who?"))
+            async def collect():
+                return [json.loads(chunk) async for chunk in response.body_iterator]
+            events = asyncio.run(collect())
+        self.assertEqual(events, [{"type": "error", "status": 400, "detail": "bad question"}])

@@ -80,6 +80,25 @@ export function citedSources(result) {
   })
 }
 
+function answerPayload(result) {
+  const traceId = typeof result.trace_id === 'string' ? result.trace_id : null
+  return { answer: result.answer, sources: citedSources(result), traceId,
+    traceUrl: traceId ? `${langfuseUiUrl}/project/${encodeURIComponent(projectId)}/traces/${encodeURIComponent(traceId)}` : null,
+    pipelineId: result.pipeline_id || null, pipelineSeconds: result.latency_seconds ?? null }
+}
+
+export async function* ndjsonEvents(body) {
+  const decoder = new TextDecoder()
+  let buffered = ''
+  for await (const chunk of body) {
+    buffered += decoder.decode(chunk, { stream: true })
+    const lines = buffered.split('\n')
+    buffered = lines.pop()
+    for (const line of lines) if (line.trim()) yield JSON.parse(line)
+  }
+  if (buffered.trim()) yield JSON.parse(buffered)
+}
+
 export function quotaMessage(retryAfter) {
   const seconds = Number(retryAfter)
   if (!Number.isFinite(seconds) || seconds <= 0) return "You've reached the question limit. Please try again later."
@@ -112,15 +131,18 @@ export function createApp({ fetcher = fetch, production = process.env.NODE_ENV =
     if (limited) activeAskIps.add(ip)
     try {
       const browserId = sessionFor(req, res)
-      const upstream = await fetcher(`${ragUrl}/ask`, {
+      // A browser that accepts NDJSON gets the answer as it is written: status and token events, then one done event
+      // carrying the same payload a plain request gets. Errors before the stream starts keep their HTTP status.
+      const streaming = (req.headers.accept || '').includes('application/x-ndjson')
+      const upstream = await fetcher(`${ragUrl}/ask${streaming ? '/stream' : ''}`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question, session_id: ip === 'unknown' ? browserId : ipSession(ip), user_id: browserId,
           source: 'frontend', client_ip: ip === 'unknown' ? null : ip,
           production }),
         signal: AbortSignal.timeout(960_000),
       })
-      const result = await jsonResponse(upstream)
       if (!upstream.ok) {
+        const result = await jsonResponse(upstream)
         const retryAfter = upstream.headers.get('retry-after')
         if (upstream.status === 429 && retryAfter) {
           res.set('Retry-After', retryAfter)
@@ -128,12 +150,19 @@ export function createApp({ fetcher = fetch, production = process.env.NODE_ENV =
         }
         return res.status(upstream.status >= 500 ? 502 : upstream.status).json({ error: typeof result.detail === 'string' ? result.detail : 'The pipeline could not answer this question.' })
       }
-      const traceId = typeof result.trace_id === 'string' ? result.trace_id : null
-      res.json({ answer: result.answer, sources: citedSources(result), traceId,
-        traceUrl: traceId ? `${langfuseUiUrl}/project/${encodeURIComponent(projectId)}/traces/${encodeURIComponent(traceId)}` : null,
-        pipelineId: result.pipeline_id || null, pipelineSeconds: result.latency_seconds ?? null })
+      if (!streaming) return res.json(answerPayload(await jsonResponse(upstream)))
+      res.set({ 'Content-Type': 'application/x-ndjson; charset=utf-8', 'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no' })
+      res.flushHeaders()
+      for await (const event of ndjsonEvents(upstream.body)) {
+        if (event.type === 'token' || event.type === 'status') res.write(JSON.stringify(event) + '\n')
+        else if (event.type === 'done') res.write(JSON.stringify({ type: 'done', ...answerPayload(event.result || {}) }) + '\n')
+        else if (event.type === 'error') res.write(JSON.stringify({ type: 'error', error: 'The pipeline could not answer this question.' }) + '\n')
+      }
+      res.end()
     } catch (error) {
-      res.status(502).json({ error: error?.name === 'TimeoutError' ? 'The answer took too long. Please try again.' : 'The answer service is unavailable.' })
+      const message = error?.name === 'TimeoutError' ? 'The answer took too long. Please try again.' : 'The answer service is unavailable.'
+      if (res.headersSent) res.end(JSON.stringify({ type: 'error', error: message }) + '\n')
+      else res.status(502).json({ error: message })
     } finally {
       if (limited) activeAskIps.delete(ip)
     }

@@ -1,13 +1,16 @@
 """Reusable Millennium RAG answer pipeline shared by HTTP and experiments."""
 from __future__ import annotations
 
+import contextvars
+import json
 import math
 import os
 import re
 import time
 from collections import Counter, defaultdict
+from concurrent.futures import ThreadPoolExecutor
 from functools import lru_cache
-from typing import Any
+from typing import Any, Callable
 
 import requests
 from qdrant_client import QdrantClient
@@ -44,7 +47,9 @@ def _reranker(name: str, revision: str | None = None) -> CrossEncoder:
 
 
 def _ollama(messages: list[dict[str, str]], model: str, budgets: tuple[int, ...], temperature: float = 0, context_length: int = 8192, *, prompt: Any = None, name: str = "answer generation",
-            think: bool = False) -> str:
+            think: bool = False, on_token: Callable[[str], None] | None = None) -> str:
+    """One chat request; with ``on_token``, the reply is streamed and each piece of the answer (never the reasoning) is
+    passed to it as it arrives. The recorded generation is the same either way: the full reply and its token counts."""
     base = os.getenv("OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/")
     keep_alive: str | int = os.getenv("OLLAMA_KEEP_ALIVE", "-1")
     if keep_alive.lstrip("-").isdigit():
@@ -55,14 +60,36 @@ def _ollama(messages: list[dict[str, str]], model: str, budgets: tuple[int, ...]
             try:
                 response = requests.post(f"{base}/api/chat", json={
                     "model": model, "keep_alive": keep_alive, "messages": messages,
-                    "think": think, "stream": False,
+                    "think": think, "stream": on_token is not None,
                     "options": {"temperature": temperature, "num_ctx": context_length, "num_predict": budget},
-                }, timeout=(10, 900))
+                }, timeout=(10, 900), stream=on_token is not None)
                 response.raise_for_status()
-                data = response.json()
-                text = data.get("message", {}).get("content", "").strip()
+                if on_token is None:
+                    data = response.json()
+                    message = data.get("message", {})
+                    text, thinking = message.get("content", "").strip(), message.get("thinking")
+                else:
+                    content: list[str] = []
+                    reasoning: list[str] = []
+                    data = {}
+                    with response:
+                        for line in response.iter_lines():
+                            if not line:
+                                continue
+                            data = json.loads(line)
+                            if data.get("error"):
+                                raise requests.RequestException(data["error"])
+                            message = data.get("message", {})
+                            reasoning.append(message.get("thinking") or "")
+                            piece = message.get("content") or ""
+                            if piece:
+                                # Leading whitespace is dropped as the non-streamed reply's strip() drops it.
+                                if not content and not piece.strip():
+                                    continue
+                                content.append(piece if content else piece.lstrip())
+                                on_token(content[-1])
+                    text, thinking = "".join(content).strip(), "".join(reasoning) or None
                 if text:
-                    thinking = data.get("message", {}).get("thinking")
                     _update(obs, output=text, usage_details={"input": data.get("prompt_eval_count"), "output": data.get("eval_count")},
                             **({"metadata": {"thinking": thinking}} if thinking else {}))
                     return text
@@ -71,7 +98,7 @@ def _ollama(messages: list[dict[str, str]], model: str, budgets: tuple[int, ...]
                 break
         if think and last_error is None:
             # Reasoning can fill the context window before any answer is written; answer directly instead.
-            return _ollama(messages, model, budgets[-1:], temperature, context_length, prompt=prompt, name=name)
+            return _ollama(messages, model, budgets[-1:], temperature, context_length, prompt=prompt, name=name, on_token=on_token)
         raise RuntimeError(f"Ollama request failed or returned empty content: {last_error or 'empty response'}")
 
 
@@ -128,18 +155,17 @@ def _translate(question: str, config: ResolvedPipelineConfig, prompt_bundle: dic
 
 def _transform(question: str, config: ResolvedPipelineConfig, prompt_bundle: dict[str, Any] | None = None) -> tuple[str | None, list[str], str | None]:
     mode = config.retrieval_mode
-    hypothetical = None
-    corrected = None
-    alternatives: list[str] = []
-    # hyde=false keeps every other step of the mode and only drops the hypothetical document.
-    if config.hyde and mode in {"hyde", "hyde_query_expansion", "full"}:
+
+    def hyde() -> str:
         with _observe("HyDE transformation", input=question) as obs:
             messages = (prompt_bundle["rag-hyde"]["client"].compile(question=question) if prompt_bundle else [
                 {"role": "system", "content": PROMPT_TEMPLATES["hyde_system"]}, {"role": "user", "content": question}])
             hypothetical = _ollama(messages, config.generation_model.name, config.generation.output_budgets, config.generation.temperature, config.generation.context_length,
                                    prompt=prompt_bundle["rag-hyde"]["client"] if prompt_bundle else None, name="hypothetical document generation")
             _update(obs, output=hypothetical)
-    if mode in {"query_expansion", "hyde_query_expansion", "full"}:
+        return hypothetical
+
+    def expansion() -> list[str]:
         with _observe("query expansion", input=question) as obs:
             # Prompts may reference {{expansion_count}}; templates without it ignore the value.
             messages = (prompt_bundle["rag-query-expansion"]["client"].compile(question=question, expansion_count=str(config.expansion_count)) if prompt_bundle else [
@@ -152,7 +178,9 @@ def _transform(question: str, config: ResolvedPipelineConfig, prompt_bundle: dic
         alternatives = [q for q in alternatives if q and q.casefold() != question.casefold()][:config.expansion_count]
         if len(alternatives) != config.expansion_count:
             raise ValueError(f"query expansion must return {config.expansion_count} distinct alternative queries")
-    if mode == "full":
+        return alternatives
+
+    def grammar() -> str:
         with _observe("grammar correction", input=question) as obs:
             messages = (prompt_bundle["rag-grammar-correction"]["client"].compile(question=question) if prompt_bundle else [
                 {"role": "system", "content": PROMPT_TEMPLATES["grammar_system"]}, {"role": "user", "content": question}])
@@ -160,7 +188,22 @@ def _transform(question: str, config: ResolvedPipelineConfig, prompt_bundle: dic
                                 config.generation.temperature, config.generation.context_length,
                                 prompt=prompt_bundle["rag-grammar-correction"]["client"] if prompt_bundle else None, name="grammar corrected query generation")
             _update(obs, output=corrected)
-    return hypothetical, alternatives, corrected
+        return corrected
+
+    # hyde=false keeps every other step of the mode and only drops the hypothetical document.
+    steps = {"hypothetical": hyde if config.hyde and mode in {"hyde", "hyde_query_expansion", "full"} else None,
+             "alternatives": expansion if mode in {"query_expansion", "hyde_query_expansion", "full"} else None,
+             "corrected": grammar if mode == "full" else None}
+    steps = {key: step for key, step in steps.items() if step}
+    if config.parallel_transformations and len(steps) > 1:
+        # The rewrites are independent requests; Ollama answers them together when OLLAMA_NUM_PARALLEL allows it.
+        # Each runs in a copy of this context, so its Langfuse spans stay under the current trace.
+        with ThreadPoolExecutor(max_workers=len(steps)) as pool:
+            futures = {key: pool.submit(contextvars.copy_context().run, step) for key, step in steps.items()}
+            done = {key: future.result() for key, future in futures.items()}
+    else:
+        done = {key: step() for key, step in steps.items()}
+    return done.get("hypothetical"), done.get("alternatives", []), done.get("corrected")
 
 
 def _rrf(rankings: list[list[Any]], limit: int, k: int) -> list[dict[str, Any]]:
@@ -836,8 +879,13 @@ def _format_evidence(rows: list[dict[str, Any]]) -> str:
 
 
 def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *, collection: str | None = None,
-                 prompt_bundle: dict[str, Any] | None = None) -> dict[str, Any]:
-    """Run retrieve, rerank and answer. Reference answers are never accepted here."""
+                 prompt_bundle: dict[str, Any] | None = None, on_token: Callable[[str], None] | None = None,
+                 on_status: Callable[[str], None] | None = None) -> dict[str, Any]:
+    """Run retrieve, rerank and answer. Reference answers are never accepted here.
+
+    ``on_token`` receives the answer as it is written (streamed); ``on_status`` hears "answering" or "thinking" when
+    the answer request starts. Neither changes the result.
+    """
     config = config or ResolvedPipelineConfig()
     if not question.strip():
         raise ValueError("question must not be blank")
@@ -1072,9 +1120,12 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
         {"role": "system", "content": PROMPT_TEMPLATES["answer_system"]},
         {"role": "user", "content": f"Question: {answer_question}\n\nEvidence passages:\n{evidence}"}])
     stage = time.perf_counter()
+    think = config.answer_thinking or low_confidence or bool(scene_hits and config.scene_thinking)
+    if on_status:
+        on_status("thinking" if think else "answering")
     answer = _ollama(messages,
                      config.generation_model.name, config.generation.output_budgets, config.generation.temperature, config.generation.context_length,
-                     prompt=prompt_bundle["rag-answer"]["client"] if prompt_bundle else None, think=config.answer_thinking or low_confidence or bool(scene_hits and config.scene_thinking))
+                     prompt=prompt_bundle["rag-answer"]["client"] if prompt_bundle else None, think=think, on_token=on_token)
     timings["generation_seconds"] = round(time.perf_counter() - stage, 4)
     citations = list(dict.fromkeys(re.findall(r"\[E\d+\]", answer)))
     stage = time.perf_counter()

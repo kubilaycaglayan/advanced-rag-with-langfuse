@@ -66,6 +66,7 @@ class ResolvedPipelineConfig:
     passage_overlap: int = 0
     expansion_count: int = 3
     hyde: bool = True
+    parallel_transformations: bool = False
     answer_thinking: bool = False
     name_completion: bool = True
     name_completion_hits: int = 300
@@ -151,6 +152,8 @@ class ResolvedPipelineConfig:
             raise ValueError("entity_graph_facts must be between 0 and 30")
         if not isinstance(self.hyde, bool):
             raise ValueError("hyde must be a boolean")
+        if not isinstance(self.parallel_transformations, bool):
+            raise ValueError("parallel_transformations must be a boolean")
         if not isinstance(self.query_translation, bool):
             raise ValueError("query_translation must be a boolean")
         if self.english_word_share is not None and (isinstance(self.english_word_share, bool) or not isinstance(self.english_word_share, (int, float))
@@ -236,7 +239,7 @@ class ResolvedPipelineConfig:
         defaults.update(value)
         value = defaults
         allowed = {"retrieval_mode", "candidate_count", "top_k", "passage_chars", "embedding_model", "reranker_model", "generation_model", "generation", "rrf_constant",
-                   "min_passage_chars", "passage_overlap", "expansion_count", "hyde", "answer_thinking", "name_completion", "name_completion_hits", "query_translation", "english_word_share",
+                   "min_passage_chars", "passage_overlap", "expansion_count", "hyde", "parallel_transformations", "answer_thinking", "name_completion", "name_completion_hits", "query_translation", "english_word_share",
                    "low_confidence_score", "low_confidence_top_k", "wide_candidate_count", "wide_trigger_score", "wide_override_margin", "wide_max_hits",
                    "keyword_hits", "keyword_margin", "keyword_max_hits", "keyword_rare_share",
                    "scene_margin", "scene_window", "scene_stride", "scene_search_hits", "scene_summary_model", "scene_thinking", "scene_moment", "scene_context", "scene_context_rank", "scene_context_max_hits", "scene_context_sentences", "entity_names", "entity_matrix", "entity_matrix_similarity", "entity_matrix_max_hits", "entity_graph", "entity_graph_damping", "entity_graph_pool", "entity_graph_max_hits", "entity_graph_facts", "corpus_checksum", "prompt_hashes"}

@@ -3,7 +3,7 @@
 The web app has two parts:
 
 - **`ui/`** is the user interface: a React (TanStack Start) app in the [dragon-tattoo-oracle](https://github.com/kubilaycaglayan/dragon-tattoo-oracle) repository, included here as a git submodule. That repository is connected to Lovable, so commits pushed to its `main` show up in the Lovable editor. Lovable's preview answers with built-in sample answers; it never reaches the pipeline.
-- **`server.js`** is a small Express server. It serves the built UI, asks the existing `/ask` pipeline, keeps Langfuse credentials off the browser, and sends user ratings to Langfuse. Answers and question history stay in the browser.
+- **`server.js`** is a small Express server. It serves the built UI, asks the existing `/ask` pipeline (or `/ask/stream` when the browser accepts newline-delimited JSON, forwarding tokens to the page), keeps Langfuse credentials off the browser, and sends user ratings to Langfuse. Answers and question history stay in the browser.
 
 Requires Node 22. Fetch the UI with `git submodule update --init` (or clone this repository with `--recurse-submodules`). The UI repository is private, so git needs GitHub credentials for it; `gh auth setup-git` configures them when the GitHub CLI is signed in.
 

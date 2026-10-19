@@ -1,6 +1,7 @@
 """Regression checks for managed edits, full retrieval, and whole-session tracing."""
 import asyncio
 import os
+import threading
 import unittest
 from contextlib import contextmanager, nullcontext
 from types import SimpleNamespace
@@ -9,7 +10,7 @@ from unittest.mock import AsyncMock, patch
 # Keep fixture spans out of the live Langfuse project the container is configured for.
 os.environ["LANGFUSE_TRACING_ENABLED"] = "false"
 
-from app.pipeline import run_pipeline
+from app.pipeline import _transform, run_pipeline
 from app.prompt_assets import ManagedJudgePrompt, load_managed_evaluators, load_prompt_bundle, PROMPT_CATALOG
 from app.resolved_config import ResolvedPipelineConfig
 from app.experiments import ExperimentLangfuse
@@ -75,6 +76,31 @@ class WorkflowChecks(unittest.TestCase):
         # The rewrites start from the translation.
         self.assertTrue(all(messages[-1]['content'] == 'english question' for messages in sent[1:]))
         self.assertEqual((result['question'], result['translated_question']), ('soru', 'english question'))
+
+    def test_parallel_transformations_run_the_three_rewrites_together(self):
+        barrier = threading.Barrier(3, timeout=5)
+        def fake(messages, *args, **kwargs):
+            barrier.wait()
+            system = messages[0]["content"]
+            if "short passage" in system:
+                return "hypothetical document"
+            if "Generate exactly" in system:
+                return "alternative one\nalternative two\nalternative three"
+            if "Correct the grammar" in system:
+                return "corrected question"
+            return "unexpected"
+        config = ResolvedPipelineConfig.from_mapping({"parallel_transformations": True})
+        with patch("app.pipeline._observe", return_value=nullcontext(None)), \
+             patch("app.pipeline._ollama", side_effect=fake):
+            hypothetical, alternatives, corrected = _transform("question", config)
+        self.assertEqual(hypothetical, "hypothetical document")
+        self.assertEqual(alternatives, ["alternative one", "alternative two", "alternative three"])
+        self.assertEqual(corrected, "corrected question")
+
+    def test_parallel_transformations_are_validated_as_a_boolean(self):
+        self.assertTrue(ResolvedPipelineConfig.from_mapping({"parallel_transformations": True}).parallel_transformations)
+        with self.assertRaises(ValueError):
+            ResolvedPipelineConfig.from_mapping({"parallel_transformations": "yes"})
 
     def test_prompt_bundle_disables_cache_on_every_run(self):
         calls = []
