@@ -818,7 +818,7 @@ def _synthesize(state: AgentState) -> tuple[str, list[str]] | None:
 def _finish(state: AgentState, answer: str, ids: list[str], *, stopped: str,
             raw_answer: str | None = None) -> dict[str, Any]:
     """Answer from the loop, but never abstain while holding evidence that states the answer."""
-    if (not ids or _looks_like_abstention(answer)) and state.evidence:
+    if (not ids or _looks_like_abstention(answer) or not re.search(r"\[E\d+\]", answer)) and state.evidence:
         synthesized = _synthesize(state)
         if synthesized:
             answer, ids = synthesized[0], synthesized[1]
