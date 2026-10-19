@@ -94,7 +94,14 @@ Benchmark script in the scratchpad (copied to `data/tuning/scripts-2026-10-19-sp
   219.8 s; batch 64 102.6 s (noise); ONNX 123.0 s; ONNX-O3 97.3 s but 7 top-10 changes; int8
   90.9 s but 168 top-10 changes. Embedding ONNX was slower (14.4 s vs 7.2 s). The small batching
   ideas were not worth the ordering risk; the current torch fp32 path stays.
-- **Verification**: 95 Python tests, 14 Express tests and 19 UI tests pass. The 3-question scripts
+- **Uniform Ollama context (item 5, adopted)**: switching between 8192 and the default context reloaded
+  qwen3:8b in 2.13/2.29/2.02 s each time; with `OLLAMA_CONTEXT_LENGTH=8192` on the service the switches cost
+  0.06–0.07 s. Kept enabled on the host. This is ~2 s per avoided reload.
+- **Other ideas, not adopted**: np2/np4 were no better than np3; batching keyword reranks saved ~0.11 s/question;
+  one batched embedding call saved ~0.01 s; `gemma4:e4b` cut the 3-question mean from 19.7 to 9.5 s but changed
+  evidence on 3/3 and answers on 3/3; `top_k=5` saved at most ~1.5 s and changed answers; caching rewrites only
+  helps exact repeats; the image has CPU-only torch, so a GPU reranker could save at most ~1.8 s/question.
+- **Verification**: 97 Python tests, 14 Express tests and 19 UI tests pass. The 3-question scripts
   and JSON results are under `data/tuning/scripts-2026-10-19-speed/` (git-ignored).
 
 ## Item 5 (answer only, not part of this work)

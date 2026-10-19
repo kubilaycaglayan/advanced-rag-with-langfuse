@@ -88,7 +88,22 @@ load.
 ONNX 123.0 s, ONNX-O3 97.3 s (7 top-10 changes), int8 90.9 s (168 top-10 changes). Embedding ONNX was slower
 (14.4 s vs 7.2 s). The current torch fp32 path stays. Scripts and JSON results: `data/tuning/scripts-2026-10-19-speed/`.
 
-Verification: 95 Python tests, 14 Express tests and 19 UI tests pass.
+Verification: 97 Python tests, 14 Express tests and 19 UI tests pass.
+
+### Further latency experiments (before full QA)
+
+| Idea | Measurement | Potential gain | Adopted? |
+|---|---|---|---|
+| Uniform Ollama context (`OLLAMA_CONTEXT_LENGTH=8192`) | Switching 8192 → default → 8192 reloaded the model each time: 2.13/2.29/2.02 s. With a uniform context, the same switches were 0.06–0.07 s. | ~2 s per avoided reload; ~4 s for a question plus two judges, or ~7 s/item if a run reloads ~3.6 times | **Yes**, host override left enabled |
+| Parallel values 2 / 3 / 4 | 3-question parallel transformation means: np2 7.22/5.77/4.15 s, np3 4.61/5.51/3.74 s, np4 8.49/5.91/3.89 s | np3 best; np2/np4 no better | np3 only, opt-in; global override reverted |
+| Batch keyword hits into the main rerank call | Item with 5 rerank calls: 4.62 s separate vs 4.52 s combined; max Δ 4.8e-6 | ~0.11 s/question | No (risk > gain) |
+| One `encode([...])` for all queries | Item with 8 embedding calls: 26 ms separate vs 15 ms combined | ~0.01 s/question | No |
+| Smaller generation model (`gemma4:e4b`) | 3 questions: rewrites 7.0 → 2.4 s mean; full pipeline 19.7 → 9.5 s mean | ~10 s/question total, ~3 s if only rewrites | No: evidence differed 3/3, answers 3/3; quality unvalidated |
+| Fewer evidence passages (`top_k` 10 → 5) | 3 questions: total 17.5/11.8/19.6 → 13.1/12.1/19.6 s; generation Q1 5.37 → 3.87 s, Q3 unchanged (low-confidence uses 15) | up to ~1.5 s, often 0 | No: answers/evidence changed |
+| Coarse timing shares | One question: transform 6.2 s, retrieval 0.88 s, rerank 1.98 s, keyword 0.59 s, scene 1.37 s, generation 6.23 s | Rerank/retrieval have little headroom; generation dominates | — |
+| Caching rewrites | Exact repeat would skip ~5–9 s of transformations | only duplicate questions | Not implemented |
+| GPU for reranker | CPU-only torch in the image; reranker ~2 s/question | at most ~1.8 s | Not available |
+| Early exit (skip HyDE) | Prior ablation: 3–5 s saved, QA.csv 0.764 → 0.722 | 3–5 s with known quality loss | No |
 
 ## 2026-10-18 — Entity graph (GraphRAG-style), rejected; entity anchor fix
 

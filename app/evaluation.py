@@ -128,8 +128,12 @@ def _judge(spec: Any, *, question: str, answer: str, expected: str | None = None
                              input=prompt, metadata={"evaluator_id": evaluator_id,
                                 "evaluator_version": evaluator_version or spec.version,
                                 "managed_evaluator_id": managed_evaluator_id}) as obs:
-                if model.startswith("opencode/"):
-                    raw = _opencode_chat(messages, model, JUDGE_MODELS.get(spec.name, (None, None, None))[2],
+                # A spec in JUDGE_MODELS runs through opencode even when Langfuse stores a
+                # local registry model (v3's Langfuse model is a placeholder, not the executor).
+                execution = JUDGE_MODELS.get(spec.name)
+                if execution is not None:
+                    _, opencode_model, variant = execution
+                    raw = _opencode_chat(messages, opencode_model, variant,
                                          _fact_schema(facts) if facts is not None else _SCORE_SCHEMA)
                 else:
                     response = requests.post(f"{url}/api/chat", json={"model": model, "messages": messages,
@@ -178,7 +182,9 @@ def correctness(*, input: Any, output: Any, expected_output: Any = None, spec: A
         return {"name": f"{spec.name}_error", "value": "error", "comment": str(exc), "data_type": "CATEGORICAL",
                 "metadata": {"evaluator_id": kwargs.get("evaluator_id"), "managed_evaluator_id": kwargs.get("managed_evaluator_id"),
                              "managed_evaluator_version": kwargs.get("evaluator_version")}}
-    metadata = {"evaluator_model": getattr(kwargs.get("managed_prompt"), "model", None) or os.getenv("EVALUATOR_MODEL", "qwen3:8b"), "evaluator_version": kwargs.get("evaluator_version", 1),
+    execution_model = (JUDGE_MODELS.get(spec.name, (None, None, None))[1]
+                       or getattr(kwargs.get("managed_prompt"), "model", None) or os.getenv("EVALUATOR_MODEL", "qwen3:8b"))
+    metadata = {"evaluator_model": execution_model, "evaluator_version": kwargs.get("evaluator_version", 1),
                 "managed_evaluator_id": kwargs.get("managed_evaluator_id"),
                 "evaluator_latency_seconds": result["latency_seconds"], "evaluator_id": kwargs.get("evaluator_id")}
     if "verdicts" in result:

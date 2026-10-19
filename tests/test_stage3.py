@@ -214,13 +214,26 @@ class Stage3Checks(unittest.TestCase):
         self.assertEqual(message_body["system"], "judge")
         delete.assert_called_once()
 
+    def test_v3_uses_opencode_even_when_the_langfuse_model_is_a_local_placeholder(self):
+        managed = SimpleNamespace(model="qwen3:8b",
+                                  compile=lambda **variables: [{"role": "user", "content": "judge"}])
+        judged = '{"R1":{"quote":"x","verdict":"present"},"explanation":"core fact"}'
+        with patch("app.evaluation._opencode_chat", return_value=judged) as opencode, \
+             patch("app.evaluation.observation", return_value=nullcontext(None)):
+            result = _judge(ANSWER_CORRECTNESS_V3, question="q", answer="a", managed_prompt=managed,
+                            facts=(["fact"], []))
+        self.assertEqual(result["score"], 1.0)
+        self.assertEqual(opencode.call_args.args[1], "opencode/deepseek-v4.1-flash-free")
+        self.assertEqual(opencode.call_args.args[2], "low")
+
     def test_opencode_judge_error_is_retried_then_reported(self):
-        managed = SimpleNamespace(model="opencode/deepseek-v4.1-flash-free",
+        managed = SimpleNamespace(model="qwen3:8b",
                                   compile=lambda **variables: [{"role": "user", "content": "judge"}])
         with patch("app.evaluation._opencode_chat", side_effect=ValueError("provider failed")) as opencode, \
              patch("app.evaluation.observation", return_value=nullcontext(None)):
             with self.assertRaisesRegex(RuntimeError, "after one retry"):
-                _judge(ANSWER_CORRECTNESS_V1, question="q", answer="a", managed_prompt=managed)
+                _judge(ANSWER_CORRECTNESS_V3, question="q", answer="a", managed_prompt=managed,
+                       facts=(["fact"], []))
         self.assertEqual(opencode.call_count, 2)
 
     def test_malformed_judge_json_retries_then_validates(self):

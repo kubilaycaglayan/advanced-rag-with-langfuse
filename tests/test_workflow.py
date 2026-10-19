@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock, patch
 os.environ["LANGFUSE_TRACING_ENABLED"] = "false"
 
 from app.pipeline import _transform, run_pipeline
-from app.prompt_assets import ManagedJudgePrompt, load_managed_evaluators, load_prompt_bundle, PROMPT_CATALOG
+from app.prompt_assets import ManagedJudgePrompt, _evaluator_definitions, load_managed_evaluators, load_prompt_bundle, PROMPT_CATALOG
 from app.resolved_config import ResolvedPipelineConfig
 from app.experiments import ExperimentLangfuse
 
@@ -158,6 +158,13 @@ class WorkflowChecks(unittest.TestCase):
         self.assertEqual(resolved['answer_correctness_v1']['version'], 8)
         self.assertEqual(resolved['answer_correctness_v3']['status'], 'paused')
         self.assertEqual(resolved['answer_correctness_v3']['paused_reason'], 'LLM_CONNECTION_MISSING')
+
+    def test_v3_catalog_uses_an_active_local_placeholder_for_langfuse(self):
+        with patch.dict("os.environ", {"LANGFUSE_EVALUATOR_PROVIDER": "ollama-local", "EVALUATOR_MODEL": "qwen3:8b"}):
+            definitions = {item["name"]: item for item in _evaluator_definitions()}
+        v3 = definitions["millennium-answer_correctness_v3"]
+        self.assertEqual(v3["modelConfig"], {"provider": "ollama-local", "model": "qwen3:8b"})
+        self.assertIn("opencode/deepseek-v4.1-flash-free", v3["description"])
 
     def test_paused_ollama_evaluator_still_fails_preflight(self):
         rows = [{'id': name, 'name': 'millennium-' + name, 'version': 1,

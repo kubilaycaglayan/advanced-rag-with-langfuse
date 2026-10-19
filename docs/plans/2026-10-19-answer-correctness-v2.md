@@ -79,8 +79,9 @@ and missing context alone never makes a fact partial. It is executed by `opencod
 `correctness_evaluator: answer_correctness_v3`.
 
 Langfuse stores the evaluator object, but it cannot activate it without an LLM connection for the `opencode`
-provider. It stays `paused` with `LLM_CONNECTION_MISSING`; `load_managed_evaluators` now accepts that state only for
-an `opencode/` model and records it in the evaluator manifest. The experiment runner executes it locally.
+provider, so the Langfuse object uses the project's `ollama-local` connection as a registry placeholder and stays
+active; `JUDGE_MODELS` makes the runner execute it through opencode. Do not assign a managed Langfuse rule to v3.
+`load_managed_evaluators` still accepts a paused `opencode/` evaluator if that connection is removed.
 
 Offline re-scoring of the 36 saved QA.csv answers with the tweaked rubric: deepseek mean **0.677**, mean **8.2 s**
 per question. On the 14 items where it disagreed with the archived qwen3:8b v1 scores, deepseek was right or very
