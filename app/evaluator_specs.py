@@ -107,7 +107,7 @@ FACT_SPECS = (ANSWER_CORRECTNESS_V2, ANSWER_CORRECTNESS_V3)
 # An "opencode/" model runs through `opencode serve` (OPENCODE_JUDGE_URL). Langfuse stores only
 # provider and model, so the variant stays here.
 JUDGE_MODELS = {ANSWER_CORRECTNESS_V3.name: ("opencode", "opencode/deepseek-v4.1-flash-free", "low")}
-DEFAULT_CORRECTNESS = ANSWER_CORRECTNESS_V3.name
+DEFAULT_CORRECTNESS = ANSWER_CORRECTNESS_V2.name
 
 
 def evaluator_manifest() -> list[dict[str, object]]:

@@ -19,7 +19,7 @@ from app.resolved_config import ResolvedPipelineConfig
 from app.experiment_store import enqueue, get_execution, initialize, mark_interrupted, update_execution
 from app.seed_dataset import _seed_dataset
 from app.evaluation import FALLBACK_FACTS, _judge, _opencode_chat, answer_facts, fact_score
-from app.evaluator_specs import ANSWER_CORRECTNESS_V1, ANSWER_CORRECTNESS_V2, ANSWER_CORRECTNESS_V3, DEFAULT_CORRECTNESS
+from app.evaluator_specs import ANSWER_CORRECTNESS_V1, ANSWER_CORRECTNESS_V2, ANSWER_CORRECTNESS_V3
 from app.indexer import index_identity
 from app.experiments import _flush_client, submit_retry
 from app.prompt_assets import load_prompt_bundle
@@ -176,9 +176,6 @@ class Stage3Checks(unittest.TestCase):
         self.assertEqual((score["name"], score["value"]), ("answer_correctness_v2", 0.9))
         self.assertEqual(score["metadata"]["fact_verdicts"], {"R1": "present"})
         self.assertEqual(judge.call_args.kwargs["facts"], (["f"], []))
-
-    def test_v3_is_the_default_correctness_judge(self):
-        self.assertEqual(DEFAULT_CORRECTNESS, "answer_correctness_v3")
 
     def test_v3_correctness_uses_the_same_fact_contract(self):
         judged = {"score": 0.95, "explanation": "ok", "latency_seconds": 0.1,
