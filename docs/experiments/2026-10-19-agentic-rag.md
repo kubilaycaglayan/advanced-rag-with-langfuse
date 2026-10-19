@@ -141,7 +141,11 @@ item's task opens a trace (`agent run`) with one `agent turn` generation per mod
 call, and an `answer_correctness_simple` evaluator score, all linked into a dataset run. A 3-item validation run
 scored 0.92 / 0.50 / 0.90 and shows the full tree:
 [run 6b62df8acb2b3147](http://127.0.0.1:28420/project/millenium/datasets/cmv7zo6nw0007pa7t55mno068/runs/6b62df8acb2b3147).
-The full run is the same command without `--limit`.
+The full run (36 items) is
+[run 4a970c046686d2ce](http://127.0.0.1:28420/project/millenium/datasets/cmv7zo6nw0007pa7t55mno068/runs/4a970c046686d2ce):
+mean 0.7884 with the same local judge. The gap from the 35-item local run (0.8974) is judge/run variance (qwen3:8b
+scores the same answer differently between runs) and one extra dataset item; treat the two means as a range, not a
+precise ranking.
 
 ## Findings
 
