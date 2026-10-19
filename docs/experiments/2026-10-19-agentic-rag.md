@@ -80,6 +80,9 @@ shape: `reranked` is the evidence in `[E1]` order, citations are bracketed, and 
 `latency_seconds` and `agent_trace` (the tool calls) are attached. `AGENT_MODEL` selects the agent model (default
 `qwen3.6:35b`). `/ask/stream` runs the agent in the request thread, emits a `status` event per tool and turn, then the
 finished answer as one token; token-by-token streaming would require streaming the final answer request itself.
+A live check after the deploy: `POST /ask` answered with `engine: "agent"` in 21.4 s with citations `[E1] [E2]` and two
+sources; `POST /api/ask` through the frontend proxy returned the agent answer with six sources, a trace id and the
+pipeline id.
 
 ## Results
 
