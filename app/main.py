@@ -225,11 +225,19 @@ def _run_agent_ask(request: AskRequest, prepared: dict[str, Any], *, on_token=No
             on_status("thinking")
 
     result = run_agent(request.question, prepared["collection"], prepared["config"],
-                       settings=AgentSettings(model=model), on_event=on_event, on_token=on_token)
+                       settings=AgentSettings(model=model), on_event=on_event)
     evidence = list(result.get("evidence") or [])
     citations = [label if str(label).startswith("[") else f"[{label}]" for label in result.get("citations") or []]
     if on_status:
         on_status("answering")
+    if on_token:
+        # The agent returns its validated answer as a native tool call, which Ollama only exposes when that
+        # generation is complete. Reveal that exact answer in small pieces without another model call.
+        words = result["answer"].split(" ")
+        for index, word in enumerate(words):
+            on_token(word + (" " if index < len(words) - 1 else ""))
+            if index < len(words) - 1:
+                time.sleep(0.04)
     return {
         "question": request.question,
         "answer": result["answer"],

@@ -1424,88 +1424,18 @@ def _compact(messages: list[dict[str, Any]], keep: int = 6, budget: int = 22000)
             {"compacted": True, "ids": ids[:8], "note": "earlier result compacted to save context; read_passage can reopen an id"})}
 
 
-def _ollama_chat(messages: list[dict[str, Any]], tools: list[dict[str, Any]] | None, settings: AgentSettings, *,
-                 on_answer: Callable[[str], None] | None = None) -> dict[str, Any]:
+def _ollama_chat(messages: list[dict[str, Any]], tools: list[dict[str, Any]] | None, settings: AgentSettings) -> dict[str, Any]:
     base = os.getenv("OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/")
-    payload: dict[str, Any] = {"model": settings.model, "messages": messages, "stream": on_answer is not None,
+    payload: dict[str, Any] = {"model": settings.model, "messages": messages, "stream": False,
                                "think": settings.think,
                                "options": {"temperature": 0, "num_ctx": settings.context_length,
                                            "num_predict": settings.num_predict}}
     if tools:
         payload["tools"] = tools
         _compact(messages)
-    response = requests.post(base + "/api/chat", json=payload, timeout=(10, 600), stream=on_answer is not None)
+    response = requests.post(base + "/api/chat", json=payload, timeout=(10, 600))
     response.raise_for_status()
-    if on_answer is None:
-        return response.json()
-
-    content: list[str] = []
-    thinking: list[str] = []
-    calls: dict[int, dict[str, Any]] = {}
-    result: dict[str, Any] = {}
-    streamed_answer = ""
-    sent_answer = ""
-    with response:
-        for line in response.iter_lines():
-            if not line:
-                continue
-            chunk = json.loads(line)
-            if chunk.get("error"):
-                raise requests.RequestException(chunk["error"])
-            message = chunk.get("message") or {}
-            if message.get("content"):
-                content.append(message["content"])
-            if message.get("thinking"):
-                thinking.append(message["thinking"])
-            for fallback_index, call in enumerate(message.get("tool_calls") or []):
-                function = call.get("function") or {}
-                index = int(function.get("index", call.get("index", fallback_index)))
-                accumulated = calls.setdefault(index, {"function": {"arguments": {}}})
-                target = accumulated["function"]
-                if function.get("name"):
-                    target["name"] = function["name"]
-                arguments = function.get("arguments")
-                if isinstance(arguments, dict):
-                    previous = target.get("arguments")
-                    if not isinstance(previous, dict):
-                        previous = {}
-                    previous.update(arguments)
-                    target["arguments"] = previous
-                    answer = previous.get("answer")
-                    if target.get("name") == "submit_answer" and isinstance(answer, str) and answer.startswith(streamed_answer):
-                        streamed_answer = answer
-                        visible = re.sub(r"\[[0-9a-fA-F]{8}\]", "", answer)
-                        visible = re.sub(r"\[[0-9a-fA-F]{0,7}$", "", visible)
-                        if visible.startswith(sent_answer):
-                            delta = visible[len(sent_answer):]
-                            if delta:
-                                on_answer(delta)
-                                sent_answer = visible
-                elif isinstance(arguments, str):
-                    # Some Ollama-compatible servers stream function arguments as JSON text.
-                    target["arguments_text"] = target.get("arguments_text", "") + arguments
-                    try:
-                        parsed = json.loads(target["arguments_text"])
-                    except ValueError:
-                        parsed = None
-                    if isinstance(parsed, dict):
-                        target["arguments"] = parsed
-                        answer = parsed.get("answer")
-                        if target.get("name") == "submit_answer" and isinstance(answer, str) and answer.startswith(streamed_answer):
-                            streamed_answer = answer
-                            visible = re.sub(r"\[[0-9a-fA-F]{8}\]", "", answer)
-                            visible = re.sub(r"\[[0-9a-fA-F]{0,7}$", "", visible)
-                            if visible.startswith(sent_answer):
-                                delta = visible[len(sent_answer):]
-                                if delta:
-                                    on_answer(delta)
-                                    sent_answer = visible
-            result.update({key: value for key, value in chunk.items() if key != "message"})
-
-    result["message"] = {"role": "assistant", "content": "".join(content),
-                          "thinking": "".join(thinking) or None,
-                          "tool_calls": [calls[index] for index in sorted(calls)]}
-    return result
+    return response.json()
 
 
 def _parse_text_tool(content: str) -> tuple[str, dict[str, Any]] | None:
@@ -1725,8 +1655,7 @@ def _final(state: AgentState, answer: str, ids: list[str], *, stopped: str, raw_
 
 
 def run_agent(question: str, collection: str, config: ResolvedPipelineConfig | None = None, *,
-              settings: AgentSettings | None = None, on_event: Callable[[dict[str, Any]], None] | None = None,
-              on_token: Callable[[str], None] | None = None) -> dict[str, Any]:
+              settings: AgentSettings | None = None, on_event: Callable[[dict[str, Any]], None] | None = None) -> dict[str, Any]:
     """Answer ``question`` with the model choosing among the tools; returns the answer, its evidence and the trace."""
     if not question.strip():
         raise ValueError("question must not be blank")
@@ -1782,7 +1711,7 @@ def run_agent(question: str, collection: str, config: ResolvedPipelineConfig | N
                 return result
             started = time.perf_counter()
             with observation(f"agent turn {turn}", as_type="generation", input=messages[-2:], model=settings.model) as turn_obs:
-                reply = _ollama_chat(messages, tool_specs, settings, on_answer=on_token)
+                reply = _ollama_chat(messages, tool_specs, settings)
                 message = reply.get("message") or {}
                 update_observation(turn_obs, output={"content": (message.get("content") or "")[:2000],
                                                      "tool_calls": message.get("tool_calls")})
