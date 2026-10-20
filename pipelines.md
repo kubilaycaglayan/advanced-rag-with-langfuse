@@ -163,7 +163,7 @@ Recorded pre-agent QA baseline flow.
       "revision": null
     }
   },
-  "notes": "Reference: QA baseline 2026-10-19, execution 1a226c46-3093-427c-871b-c7558cdd2fb8. Code revision omitted because recorded revision predates these settings. Code-only rules: name completion thresholds, BM25 k1/b, word lists, English share definition, expansion count enforcement, passage join, evidence format, citation regex."
+  "notes": "Reference: last default QA baseline 2026-10-19, execution d39a54ec-f72e-4354-9f4e-0cdf115ae5db. Code revision omitted because recorded revision predates these settings. Code-only rules: name completion thresholds, BM25 k1/b, word lists, English share definition, expansion count enforcement, passage join, evidence format, citation regex."
 }
 ```
 
