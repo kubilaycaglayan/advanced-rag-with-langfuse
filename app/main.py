@@ -225,11 +225,9 @@ def _run_agent_ask(request: AskRequest, prepared: dict[str, Any], *, on_token=No
             on_status("thinking")
 
     result = run_agent(request.question, prepared["collection"], prepared["config"],
-                       settings=AgentSettings(model=model), on_event=on_event)
+                       settings=AgentSettings(model=model), on_event=on_event, on_token=on_token)
     evidence = list(result.get("evidence") or [])
     citations = [label if str(label).startswith("[") else f"[{label}]" for label in result.get("citations") or []]
-    if on_token and result.get("answer"):
-        on_token(result["answer"])
     if on_status:
         on_status("answering")
     return {
