@@ -31,6 +31,7 @@ try:
     from .prompt_assets import ManagedJudgePrompt, load_managed_evaluators, load_prompt_bundle, prompt_manifests
     from .resolved_config import ResolvedPipelineConfig, resolve_ollama_model, resolve_pipeline_model_identities
     from .pipeline_resolver import ResolvedRun, resolve
+    from .pipeline_catalog import load_catalog
     from .pipeline_runner import run as run_resolved_pipeline
 except ImportError:
     from evaluation import citation_support, correctness, is_explicit_abstention
@@ -45,6 +46,7 @@ except ImportError:
     from prompt_assets import ManagedJudgePrompt, load_managed_evaluators, load_prompt_bundle, prompt_manifests
     from resolved_config import ResolvedPipelineConfig, resolve_ollama_model, resolve_pipeline_model_identities
     from pipeline_resolver import ResolvedRun, resolve
+    from pipeline_catalog import load_catalog
     from pipeline_runner import run as run_resolved_pipeline
 
 _jobs: queue.Queue[str] = queue.Queue()
@@ -481,7 +483,7 @@ def cli() -> int:
     parser.add_argument("--dataset-version", help="ISO-8601 UTC dataset version timestamp")
     parser.add_argument("--variant", default=None)
     parser.add_argument("--prompt-label", default=None)
-    parser.add_argument("--pipeline", default="v2")
+    parser.add_argument("--pipeline", default=None)
     settings_group = parser.add_mutually_exclusive_group()
     settings_group.add_argument("--settings", type=Path, help="JSON settings overrides file")
     settings_group.add_argument("--config", type=Path, help="alias for --settings")
@@ -489,8 +491,10 @@ def cli() -> int:
     parser.add_argument("--correctness-evaluator", choices=sorted(CORRECTNESS_SPECS), default=DEFAULT_CORRECTNESS)
     args = parser.parse_args()
     settings_file = args.settings or args.config
+    default_pipeline = load_catalog().default
+    selected_pipeline = args.pipeline or default_pipeline
     payload = {"dataset_name": args.dataset, "dataset_version": args.dataset_version,
-               "pipeline": args.pipeline, "variant_label": args.variant or args.pipeline,
+               "pipeline": selected_pipeline, "variant_label": args.variant or selected_pipeline,
                "settings": json.loads(settings_file.read_text()) if settings_file else {},
                "item_ids": args.item_ids, "prompt_label": args.prompt_label,
                "correctness_evaluator": args.correctness_evaluator}

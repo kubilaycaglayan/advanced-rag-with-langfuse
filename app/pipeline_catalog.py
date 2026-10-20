@@ -28,6 +28,7 @@ V2_SETTINGS = {"retrieval_mode", "hyde", "expansion_count", "name_completion", "
                "generation", "parallel_transformations", "scene_thinking"}
 AGENT_KEYS = {"model", "tools", "max_turns", "max_tool_calls", "min_tool_calls", "timeout_seconds",
               "context_length", "num_predict", "think", "snippet_chars", "instruction_fingerprint"}
+AGENT_OPTIONAL_KEYS = {"query_aware_reranking"}
 
 
 def fingerprint(block: dict[str, Any]) -> str:
@@ -114,7 +115,9 @@ def load_catalog(path: Path = CATALOG, releases_path: Path = RELEASES) -> Pipeli
             raise ValueError(f"{version}: agent must not pin managed RAG prompts")
         if block["engine"] == "fixed" and len(block["prompts"]) != 7:
             raise ValueError(f"{version}: fixed pipeline must pin all seven managed prompts")
-        if block["engine"] == "agent" and (not isinstance(block["agent"], dict) or set(block["agent"]) != AGENT_KEYS):
+        if block["engine"] == "agent" and (not isinstance(block["agent"], dict) or
+                not AGENT_KEYS <= set(block["agent"]) or
+                set(block["agent"]) - AGENT_KEYS - AGENT_OPTIONAL_KEYS):
             raise ValueError(f"{version}: agent settings required")
         if block["engine"] == "fixed" and block["agent"] is not None:
             raise ValueError(f"{version}: fixed flow cannot have agent settings")

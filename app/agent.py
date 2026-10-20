@@ -100,6 +100,7 @@ class AgentSettings:
     num_predict: int = 1600
     think: bool = False
     snippet_chars: int = 300
+    query_aware_reranking: bool = False
 
     def with_model(self, model: str) -> "AgentSettings":
         return AgentSettings(**{**self.__dict__, "model": model})
@@ -123,16 +124,21 @@ class AgentState:
     resolved_names: set[str] = field(default_factory=set)
     coverage_checks: int = 0
     focus: list[str] = field(default_factory=list)
+    retrieval_queries: dict[str, list[str]] = field(default_factory=dict)
     speech_hint: dict[str, str] | None = None
     trace: list[dict[str, Any]] = field(default_factory=list)
     usage: dict[str, int] = field(default_factory=lambda: {"prompt_tokens": 0, "completion_tokens": 0})
 
-    def remember(self, rows: list[dict[str, Any]]) -> None:
+    def remember(self, rows: list[dict[str, Any]], query: str | None = None) -> None:
         for row in rows:
             short = str(row["id"])[:8]
             if short not in self.evidence:
                 self.evidence[short] = row
                 self.order.append(short)
+            if query:
+                queries = self.retrieval_queries.setdefault(short, [])
+                if query not in queries:
+                    queries.append(query)
 
     def focus_on(self, rows: list[dict[str, Any]]) -> None:
         """Passages a tool read on purpose: these stay in front of the answer and the forced-answer digest."""
@@ -208,7 +214,8 @@ def _scene_member_rows(collection: str, members: list[str]) -> list[dict[str, An
     return sorted(rows, key=_passage_position)
 
 
-def _scene_payload(state: "AgentState", point: Any, score: float, *, full: bool) -> dict[str, Any]:
+def _scene_payload(state: "AgentState", point: Any, score: float, *, full: bool,
+                   query: str | None = None) -> dict[str, Any]:
     """A scene as the agent sees it: compact by default, every member at full length when asked.
 
     The compact form keeps the first four 110-character snippets (the old payload) and adds the scene id and all
@@ -217,7 +224,7 @@ def _scene_payload(state: "AgentState", point: Any, score: float, *, full: bool)
     """
     members = [str(member) for member in (point.payload.get("members") or [])]
     rows = _scene_member_rows(state.collection, members)
-    state.remember(rows)
+    state.remember(rows, query=query)
     if full:
         state.focus_on(rows)
     shown = rows[:6] if full else rows[:4]
@@ -309,7 +316,7 @@ def _tool_semantic_search(state: AgentState, args: dict[str, Any]) -> dict[str, 
     rows = _semantic_rows(state, query, k)
     if not rows:
         return {"query": query, "hits": []}
-    state.remember(rows)
+    state.remember(rows, query=query)
     return {"query": query, "hits": [_passage(row, state.settings.snippet_chars) for row in rows],
             "name_hints": _name_hints(state.collection, query)}
 
@@ -324,7 +331,7 @@ def _tool_keyword_search(state: AgentState, args: dict[str, Any]) -> dict[str, A
         return {"query": query, "hits": [], "note": "no passage shares a content word with this query"}
     for row in rows:
         row["score"] = row["keyword_score"]
-    state.remember(rows)
+    state.remember(rows, query=query)
     return {"query": query, "hits": [_passage(row, state.settings.snippet_chars) for row in rows],
             "name_hints": _name_hints(state.collection, query)}
 
@@ -354,7 +361,7 @@ def _tool_scene_search(state: AgentState, args: dict[str, Any]) -> dict[str, Any
         return {"error": error}
     if not ranked:
         return {"query": query, "scenes": []}
-    scenes = [_scene_payload(state, point, score, full=full) for point, score in ranked]
+    scenes = [_scene_payload(state, point, score, full=full, query=query) for point, score in ranked]
     return {"query": query, "people": names, "scenes": scenes,
             "note": "pass a scene_id to read_scene for every member passage in reading order"}
 
@@ -1563,6 +1570,27 @@ def _synthesis_rows(state: AgentState, limit: int = 10) -> list[dict[str, Any]]:
     focused = [state.evidence[short] for short in state.focus if short in state.evidence]
     if len(rows) <= limit:
         return rows
+    if state.settings.query_aware_reranking and focused:
+        ranked_pairs = []
+        for row in focused:
+            short = str(row["id"])[:8]
+            queries = list(dict.fromkeys([state.question, *state.retrieval_queries.get(short, [])[-3:]]))
+            ranked_pairs.extend((short, query, row.get("text") or "") for query in queries)
+        scores = _reranker(state.config.reranker_model.name, state.config.reranker_model.revision).predict(
+            [(query, text) for _, query, text in ranked_pairs], show_progress_bar=False)
+        row_scores: dict[str, float] = {}
+        for (short, _, _), score in zip(ranked_pairs, scores):
+            row_scores[short] = max(row_scores.get(short, float("-inf")), float(score))
+        focused = sorted(focused, key=lambda row: row_scores.get(str(row["id"])[:8], -1e9),
+                         reverse=True)[:limit]
+        rest = [row for row in rows if row["id"] not in {item["id"] for item in focused}]
+        if len(focused) >= limit or not rest:
+            return focused
+        scores = _reranker(state.config.reranker_model.name, state.config.reranker_model.revision).predict(
+            [(state.question, row.get("text") or "") for row in rest], show_progress_bar=False)
+        ranked = [row for row, score in sorted(zip(rest, (float(value) for value in scores)),
+                                               key=lambda pair: pair[1], reverse=True)[:limit - len(focused)]]
+        return focused + ranked
     # The passages a tool read on purpose (a full scene, a true-account reveal) must survive the rerank: they were
     # fetched for a reason the question's wording does not capture. Without such a read, the pre-check passages stay.
     kept = (focused or rows[:4])[:limit]

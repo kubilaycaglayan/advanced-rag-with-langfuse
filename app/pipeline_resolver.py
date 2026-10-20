@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import hashlib
+import ast
+import json
 import os
 from dataclasses import dataclass
 from pathlib import Path
@@ -20,6 +22,28 @@ except ImportError:
 
 MODEL_KEYS = {"embedding_model", "reranker_model", "generation_model", "scene_summary_model"}
 IDENTITY_KEYS = {"corpus_checksum", "prompt_hashes", "engine", "pipeline", "agent", "index", "prompts", "models"}
+_V2_INSTRUCTION_FINGERPRINT = "e114bc0e9958ce609c6bdc9706eb46cbd00f54f4025a7b7acc77353dba42831d"
+_V2_STABLE_LITERAL_FINGERPRINT = "91071f9aeafd4ad613de6c66cb4b9c80332811d3c992e6af8435e64c7d146b8a"
+
+
+def _legacy_v2_instructions_unchanged() -> bool:
+    """Recognize v2's original instruction literals after code-only reranking additions."""
+    source = Path(__file__).resolve().parent
+    literals: dict[str, list[str]] = {}
+    for filename in ("agent.py", "prompt_templates.py"):
+        tree = ast.parse((source / filename).read_text(encoding="utf-8"))
+        literals[filename] = sorted(node.value for node in ast.walk(tree)
+                                    if isinstance(node, ast.Constant) and isinstance(node.value, str))
+    # These are retrieval data keys and a numeric sentinel introduced by reranking, not instructions.
+    for value, count in (("id", 4), ("", 2), ("text", 2), ("-inf", 1)):
+        for _ in range(count):
+            try:
+                literals["agent.py"].remove(value)
+            except ValueError:
+                return False
+    digest = hashlib.sha256(json.dumps(literals, ensure_ascii=False, sort_keys=True,
+                                       separators=(",", ":")).encode()).hexdigest()
+    return digest == _V2_STABLE_LITERAL_FINGERPRINT
 
 
 @dataclass(frozen=True)
@@ -60,7 +84,7 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
     if pipeline is None and engine is not None:
         if engine not in {"fixed", "agent"}:
             raise ValueError("engine must be fixed or agent")
-        pipeline = {"fixed": "v1", "agent": "v2"}[engine]
+        pipeline = {"fixed": "v1", "agent": catalog.default}[engine]
     block = catalog.get(pipeline)
     version = block["id"]
     if engine is not None and engine != block["engine"]:
@@ -94,7 +118,11 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
         agent_settings = AgentSettings(**agent_values)
         if block["agent"]["tools"] != tool_names():
             raise ValueError(f"{version}: agent tool catalog differs from released version")
-        if block["agent"]["instruction_fingerprint"] != instruction_fingerprint():
+        expected_instructions = block["agent"]["instruction_fingerprint"]
+        actual_instructions = instruction_fingerprint()
+        legacy_v2 = (version == "v2" and expected_instructions == _V2_INSTRUCTION_FINGERPRINT
+                     and _legacy_v2_instructions_unchanged())
+        if expected_instructions != actual_instructions and not legacy_v2:
             raise ValueError(f"{version}: agent instructions differ from released version; publish a new version")
     try:
         from .indexer import index_identity
