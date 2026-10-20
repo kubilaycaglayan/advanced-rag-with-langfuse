@@ -255,7 +255,10 @@ class ResolvedPipelineConfig:
             if key in value and isinstance(value[key], str):
                 value[key] = ModelIdentity(value[key])
             elif key in value and isinstance(value[key], Mapping):
-                value[key] = ModelIdentity(**value[key])
+                try:
+                    value[key] = ModelIdentity(**value[key])
+                except TypeError as exc:
+                    raise ValueError(f"{key} has invalid model identity fields") from exc
             elif key in value:
                 raise ValueError(f"{key} must be a model name or model identity object")
         if "generation" in value:
@@ -267,8 +270,13 @@ class ResolvedPipelineConfig:
                 raise ValueError(f"unknown generation fields: {', '.join(sorted(unknown_generation))}")
             generation = dict(generation)
             if "output_budgets" in generation:
+                if not isinstance(generation["output_budgets"], (list, tuple)):
+                    raise ValueError("generation output_budgets must be an array")
                 generation["output_budgets"] = tuple(generation["output_budgets"])
-            value["generation"] = GenerationSettings(**generation)
+            try:
+                value["generation"] = GenerationSettings(**generation)
+            except TypeError as exc:
+                raise ValueError("generation has invalid fields") from exc
         return cls(**value)
 
 

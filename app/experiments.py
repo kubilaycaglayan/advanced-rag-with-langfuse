@@ -477,7 +477,7 @@ def cli() -> int:
     parser = argparse.ArgumentParser(description="Run Millennium RAG against a pinned Langfuse dataset version")
     parser.add_argument("--dataset", default=os.getenv("DATASET_NAME", "QA.csv"))
     parser.add_argument("--dataset-version", help="ISO-8601 UTC dataset version timestamp")
-    parser.add_argument("--variant", default="full")
+    parser.add_argument("--variant", default=None)
     parser.add_argument("--prompt-label", default=None)
     parser.add_argument("--pipeline", default="v2")
     settings_group = parser.add_mutually_exclusive_group()
@@ -488,7 +488,7 @@ def cli() -> int:
     args = parser.parse_args()
     settings_file = args.settings or args.config
     payload = {"dataset_name": args.dataset, "dataset_version": args.dataset_version,
-               "pipeline": args.pipeline, "variant_label": args.variant,
+               "pipeline": args.pipeline, "variant_label": args.variant or args.pipeline,
                "settings": json.loads(settings_file.read_text()) if settings_file else {},
                "item_ids": args.item_ids, "prompt_label": args.prompt_label,
                "correctness_evaluator": args.correctness_evaluator}

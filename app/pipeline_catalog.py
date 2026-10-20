@@ -5,19 +5,27 @@ import hashlib
 import json
 import re
 from dataclasses import dataclass
+from dataclasses import fields
 from pathlib import Path
 from typing import Any
 
 try:
     from .identity import canonical_json
+    from .resolved_config import ResolvedPipelineConfig
 except ImportError:
     from identity import canonical_json
+    from resolved_config import ResolvedPipelineConfig
 
 ROOT = Path(__file__).resolve().parents[1]
 CATALOG = ROOT / "pipelines.md"
 RELEASES = ROOT / "pipelines.sha256"
 FINGERPRINT_KEYS = ("id", "engine", "flow", "agent", "settings", "prompts", "index", "models")
 VERSION_KEYS = set(FINGERPRINT_KEYS) | {"status", "notes", "code"}
+MODEL_KEYS = {"embedding_model", "reranker_model", "generation_model", "scene_summary_model"}
+IDENTITY_KEYS = {"corpus_checksum", "prompt_hashes"}
+V2_SETTINGS = {"retrieval_mode", "hyde", "expansion_count", "name_completion", "scene_search_hits",
+               "scene_window", "scene_stride", "passage_chars", "min_passage_chars", "passage_overlap",
+               "generation", "parallel_transformations", "scene_thinking"}
 
 
 def fingerprint(block: dict[str, Any]) -> str:
@@ -88,6 +96,16 @@ def load_catalog(path: Path = CATALOG, releases_path: Path = RELEASES) -> Pipeli
             raise ValueError(f"{version}: invalid settings/prompts/index/models")
         if set(block["index"]) != {"collection", "corpus_checksum"}:
             raise ValueError(f"{version}: index needs collection and corpus_checksum")
+        known_settings = {field.name for field in fields(ResolvedPipelineConfig)} - MODEL_KEYS - IDENTITY_KEYS
+        required_settings = known_settings if block["engine"] == "fixed" else V2_SETTINGS
+        if set(block["settings"]) != required_settings:
+            raise ValueError(f"{version}: settings must match engine settings; missing={sorted(required_settings - set(block['settings']))}, extra={sorted(set(block['settings']) - required_settings)}")
+        if set(block["models"]) != MODEL_KEYS:
+            raise ValueError(f"{version}: models must list generation, embedding, reranker, and scene summary")
+        if block["engine"] == "agent" and block["prompts"]:
+            raise ValueError(f"{version}: agent must not pin managed RAG prompts")
+        if block["engine"] == "fixed" and len(block["prompts"]) != 7:
+            raise ValueError(f"{version}: fixed pipeline must pin all seven managed prompts")
         if block["engine"] == "agent" and not isinstance(block["agent"], dict):
             raise ValueError(f"{version}: agent settings required")
         if block["engine"] == "fixed" and block["agent"] is not None:

@@ -210,7 +210,7 @@ def index(request: IndexRequest) -> dict[str, Any]:
         if request.pipeline is None:
             config = resolve_pipeline_model_identities(ResolvedPipelineConfig.from_mapping(request.config))
             return build_index(config, explicit_rebuild=request.explicit_rebuild)
-        if request.config and request.settings is not None:
+        if "config" in request.model_fields_set and "settings" in request.model_fields_set:
             raise ValueError("config and settings cannot both be present")
         resolved = resolve(request.pipeline, request.settings if request.settings is not None else request.config)
         result = build_index(resolved.config, explicit_rebuild=request.explicit_rebuild)

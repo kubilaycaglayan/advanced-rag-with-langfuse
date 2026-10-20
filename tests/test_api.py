@@ -7,8 +7,9 @@ from types import SimpleNamespace
 from unittest import TestCase
 from unittest.mock import patch
 from fastapi import HTTPException
+from fastapi.testclient import TestClient
 
-from app.main import AskRequest, ask, ask_stream
+from app.main import AskRequest, app, ask, ask_stream
 from app.experiments import _fingerprints
 from app.pipeline_setup import current_pipeline_setup
 from app.resolved_config import ResolvedPipelineConfig
@@ -48,18 +49,16 @@ class InteractiveAskContract(TestCase):
             return nullcontext(None)
 
         prompts = {"rag-answer": {"id": "prompt-1", "version": 2, "label": "production"}}
+        resolved = SimpleNamespace(version="v1", derived=False)
+        prepared = {"config": ResolvedPipelineConfig(), "collection": "collection", "bundle": {},
+                    "prompts": prompts, "pipeline_id": "pipeline-v1-12345678", "resolved": resolved}
         client = SimpleNamespace(get_current_trace_id=lambda: "a" * 32)
-        with patch("app.main.resolve_pipeline_model_identities", side_effect=lambda config: config), \
-             patch("app.main.index_identity", return_value=("collection", None, None, None)), \
-             patch("app.main.validate_index"), \
-             patch("app.main.Langfuse"), \
-             patch("app.main.load_prompt_bundle", return_value={}), \
-             patch("app.main.prompt_manifests", return_value=prompts), \
-             patch("app.main.current_pipeline_setup", return_value={"pipeline_id": "pipeline-123"}), \
+        with patch("app.main._prepare_ask", return_value=prepared), \
              patch("app.main.propagate_attributes", side_effect=propagate), \
              patch("app.main.observation", side_effect=observe), \
              patch("app.main.get_client", return_value=client), \
-             patch("app.main.run_pipeline", return_value={"answer": "A [E1]", "citations": ["[E1]"]}), \
+             patch("app.main.run_resolved_pipeline", return_value={"answer": "A [E1]", "citations": ["[E1]"],
+                                                                    "pipeline_version": "v1", "pipeline_derived": False}), \
              patch.dict("os.environ", {"FRONTEND_RATE_LIMIT_ENABLED": "true"}), \
              patch("app.main.reserve_request") as reserve:
             result = ask(AskRequest(question="Who?", engine="fixed", source="frontend", session_id="ui-127-0-0-1", user_id="interactive-ui-browser", client_ip="127.0.0.1"))
@@ -67,19 +66,24 @@ class InteractiveAskContract(TestCase):
             reserve.assert_not_called()
 
         self.assertEqual(result["trace_id"], "a" * 32)
-        self.assertEqual(result["pipeline_id"], "pipeline-123")
+        self.assertEqual(result["pipeline_id"], "pipeline-v1-12345678")
+        self.assertEqual(result["pipeline_version"], "v1")
         self.assertEqual(attributes[0]["environment"], "interactive-ui")
         self.assertEqual(attributes[0]["session_id"], "ui-127-0-0-1")
         self.assertEqual(attributes[0]["user_id"], "interactive-ui-browser")
         self.assertIsNone(attributes[1]["user_id"])
-        self.assertEqual(attributes[0]["metadata"]["pipeline_id"], "pipeline-123")
-        self.assertIn("pipeline:pipeline-123", attributes[0]["tags"])
+        self.assertEqual(attributes[0]["metadata"]["pipeline_id"], "pipeline-v1-12345678")
+        self.assertIn("pipeline:pipeline-v1-12345678", attributes[0]["tags"])
         self.assertEqual(observations[0]["metadata"], {"clientIp": "127.0.0.1"})
         self.assertIsNone(observations[1]["metadata"])
 
     def test_ask_defaults_to_the_agent_engine(self):
+        resolved = SimpleNamespace(version="v2", derived=False, engine="agent", config=ResolvedPipelineConfig(),
+                                   agent_settings=SimpleNamespace(model="qwen3.6:35b"),
+                                   version_fields={"pipeline_id": "pipeline-v2-12345678", "pipeline_version": "v2",
+                                                   "pipeline_derived": False})
         prepared = {"config": ResolvedPipelineConfig(), "collection": "collection", "bundle": {}, "prompts": {},
-                    "pipeline_id": "pipeline-123"}
+                    "pipeline_id": "pipeline-v2-12345678", "resolved": resolved}
         agent_result = {
             "question": "Who?", "answer": "A [E1]", "citations": ["E1"], "passage_ids": ["ab12cd34"],
             "evidence": [{"agent_label": "E1", "id": "ab12cd34-0000-0000-0000-000000000000", "book": "B",
@@ -92,14 +96,15 @@ class InteractiveAskContract(TestCase):
              patch("app.main.observation", return_value=nullcontext(None)), \
              patch("app.main.update_observation"), \
              patch("app.main.get_client", return_value=client), \
-             patch("app.main.run_agent", return_value=agent_result) as agent:
+             patch("app.pipeline_runner.run_agent", return_value=agent_result) as agent:
             result = ask(AskRequest(question="Who?"))
         self.assertEqual(result["engine"], "agent")
         self.assertEqual(result["mode"], "agent")
         self.assertEqual(result["citations"], ["[E1]"])
         self.assertEqual(result["reranked"], agent_result["evidence"])
         self.assertEqual(result["trace_id"], "a" * 32)
-        self.assertEqual(result["pipeline_id"], "pipeline-123")
+        self.assertEqual(result["pipeline_id"], "pipeline-v2-12345678")
+        self.assertEqual(result["pipeline_version"], "v2")
         agent.assert_called_once()
 
     def test_stream_emits_trace_status_tokens_and_the_same_done_result(self):
@@ -130,3 +135,28 @@ class InteractiveAskContract(TestCase):
                 return [json.loads(chunk) async for chunk in response.body_iterator]
             events = asyncio.run(collect())
         self.assertEqual(events, [{"type": "error", "status": 400, "detail": "bad question"}])
+
+
+class VersionPayloadContract(TestCase):
+    def test_ask_rejects_unknown_or_unused_settings_before_execution(self):
+        slot = SimpleNamespace(close=lambda: None)
+        with patch("app.main._reserve_ask_slot", return_value=slot):
+            client = TestClient(app)
+            for payload in ({"question": "Who?", "pipeline": "missing"},
+                            {"question": "Who?", "pipeline": "v2", "settings": {"candidate_count": 50}},
+                            {"question": "Who?", "pipeline": "v1", "settings": {"expansion_count": "three"}},
+                            {"question": "Who?", "pipeline": "v1", "prompt_label": "production"},
+                            {"question": "Who?", "pipeline": "v1", "collection": "wrong"}):
+                with self.subTest(payload=payload):
+                    self.assertEqual(client.post("/ask", json=payload).status_code, 400)
+
+    def test_experiment_rejects_invalid_version_before_queueing(self):
+        with patch.dict("os.environ", {"EXPERIMENT_TRIGGER_TOKEN": "test-token"}):
+            client = TestClient(app)
+            headers = {"X-Experiment-Trigger-Token": "test-token"}
+            for payload in ({"pipeline": "missing"},
+                            {"pipeline": "v1", "config": {}, "settings": {}},
+                            {"pipeline": "v1", "prompt_label": "production"}):
+                with self.subTest(payload=payload):
+                    response = client.post("/experiments/run", json={"customPayload": payload}, headers=headers)
+                    self.assertEqual(response.status_code, 400, response.text)

@@ -368,7 +368,7 @@ class Stage3Checks(unittest.TestCase):
     def test_queued_job_lifecycle_and_restart_marking(self):
         with tempfile.TemporaryDirectory() as directory, patch.dict(os.environ, {"EXPERIMENT_DATA_DIR": directory}):
             initialize()
-            row, created = enqueue("execution-1", {"dataset_name": "QA.csv"}, "retry-key")
+            row, created = enqueue("execution-1", {"dataset_name": "QA.csv", "pipeline": "v1", "settings": {}}, "retry-key")
             self.assertTrue(created)
             same, created_again = enqueue("execution-2", {"dataset_name": "QA.csv"}, "retry-key")
             self.assertFalse(created_again)
@@ -384,7 +384,8 @@ class Stage3Checks(unittest.TestCase):
     def test_item_and_telemetry_failures_are_reported_separately(self):
         with tempfile.TemporaryDirectory() as directory, patch.dict(os.environ, {"EXPERIMENT_DATA_DIR": directory}):
             initialize()
-            enqueue("execution-partial", {"dataset_name": "QA.csv", "config": {}, "correctness_evaluator": "answer_correctness_v1"}, None)
+            enqueue("execution-partial", {"dataset_name": "QA.csv", "pipeline": "v1", "settings": {},
+                                          "correctness_evaluator": "answer_correctness_v1"}, None)
             items = [SimpleNamespace(id=f"item-{i}", input={"question": f"q{i}"},
                                      expected_output={"answer": f"a{i}"}, metadata={}) for i in (1, 2)]
             dataset = SimpleNamespace(id="dataset-1", name="QA.csv", items=items)
@@ -419,7 +420,7 @@ class Stage3Checks(unittest.TestCase):
                  patch.object(experiments_module, "prompt_manifests", return_value={}), \
                  patch.object(experiments_module, "load_managed_evaluators", return_value=managed), \
                  patch.object(experiments_module, "resolve_pipeline_model_identities", side_effect=lambda config: config), \
-                 patch.object(experiments_module, "build_index", return_value={"collection": "collection-test"}), \
+                 patch.object(experiments_module, "build_index", return_value={"collection": "millennium_books_a7ebc5a988df037cd2ee"}), \
                  patch.object(experiments_module, "_verify_trace_upload", return_value=None), \
                  patch.object(experiments_module, "_fingerprints", return_value=(pipeline, evaluator, "checksum")):
                 result = experiments_module.execute_execution("execution-partial")

@@ -94,13 +94,15 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
             raise ValueError(f"{version}: agent tool catalog differs from released version")
         if block["agent"]["instruction_fingerprint"] != instruction_fingerprint():
             raise ValueError(f"{version}: agent instructions differ from released version; publish a new version")
-    expected_collection = block["index"]["collection"]
-    if overrides and any(key in overrides for key in {"passage_chars", "min_passage_chars", "passage_overlap", "embedding_model"}):
-        try:
-            from .indexer import index_identity
-        except ImportError:
-            from indexer import index_identity
-        expected_collection = index_identity(config)[0]
+    try:
+        from .indexer import index_identity
+    except ImportError:
+        from indexer import index_identity
+    actual_collection = index_identity(config)[0]
+    changes_index = bool(set(overrides) & {"passage_chars", "min_passage_chars", "passage_overlap", "embedding_model"})
+    expected_collection = actual_collection if changes_index else block["index"]["collection"]
+    if not changes_index and actual_collection != expected_collection:
+        raise ValueError(f"{version}: pinned index {expected_collection!r} differs from current index identity {actual_collection!r}")
     if collection is not None and collection != expected_collection:
         raise ValueError(f"{version}: collection must be {expected_collection!r}, got {collection!r}")
     released_fingerprint = catalog.releases.get(version) or fingerprint(block)
