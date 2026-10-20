@@ -7,6 +7,7 @@ COPY app/requirements.txt /workspace/app/requirements.txt
 RUN pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu torch \
     && pip install --no-cache-dir -r app/requirements.txt
 COPY app/ /workspace/app/
+COPY pipelines.md pipelines.sha256 /workspace/
 COPY tests/ /workspace/tests/
 COPY QA.csv /workspace/QA.csv
 COPY Dockerfile compose.yaml .dockerignore /workspace/

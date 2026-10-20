@@ -35,6 +35,9 @@ try:
     from .prompt_assets import load_prompt_bundle, prompt_manifests
     from .pipeline import run_pipeline
     from .pipeline_setup import current_pipeline_setup
+    from .pipeline_catalog import load_catalog
+    from .pipeline_resolver import resolve
+    from .pipeline_runner import run as run_resolved_pipeline
     from .resolved_config import ResolvedPipelineConfig, resolve_pipeline_model_identities
 except ImportError:
     from agent import AgentSettings, run_agent
@@ -47,6 +50,9 @@ except ImportError:
     from prompt_assets import load_prompt_bundle, prompt_manifests
     from pipeline import run_pipeline
     from pipeline_setup import current_pipeline_setup
+    from pipeline_catalog import load_catalog
+    from pipeline_resolver import resolve
+    from pipeline_runner import run as run_resolved_pipeline
     from resolved_config import ResolvedPipelineConfig, resolve_pipeline_model_identities
 
 app = FastAPI(title="Millennium RAG Experiment Runner", version="0.2.0")
@@ -82,10 +88,12 @@ def _custom_payload(incoming: dict[str, Any]) -> dict[str, Any]:
 
 class AskRequest(BaseModel):
     question: str = Field(min_length=1)
-    candidate_count: int = Field(default=30, ge=5, le=100)
-    top_k: int = Field(default=10, ge=1, le=30)
-    mode: str = Field(default="full", pattern="^(baseline|hyde|query_expansion|hyde_query_expansion|full)$")
-    engine: str = Field(default="agent", pattern="^(agent|fixed)$")
+    pipeline: str | None = None
+    settings: Any = None
+    candidate_count: int | None = Field(default=None, ge=5, le=100)
+    top_k: int | None = Field(default=None, ge=1, le=30)
+    mode: str | None = Field(default=None, pattern="^(baseline|hyde|query_expansion|hyde_query_expansion|full)$")
+    engine: str | None = Field(default=None, pattern="^(agent|fixed)$")
     passage_chars: int | None = Field(default=None, ge=1)
     collection: str | None = None
     prompt_label: str | None = None
@@ -98,11 +106,14 @@ class AskRequest(BaseModel):
 
 class IndexRequest(BaseModel):
     config: dict[str, Any] = Field(default_factory=dict)
+    pipeline: str | None = None
+    settings: Any = None
     explicit_rebuild: bool = False
 
 
 @app.on_event("startup")
 def startup() -> None:
+    load_catalog()
     initialize()
     start_worker()
 
@@ -196,8 +207,18 @@ async def langfuse_ollama_proxy(path: str, request: Request) -> Response:
 @app.post("/index")
 def index(request: IndexRequest) -> dict[str, Any]:
     try:
-        config = resolve_pipeline_model_identities(ResolvedPipelineConfig.from_mapping(request.config))
-        return build_index(config, explicit_rebuild=request.explicit_rebuild)
+        if request.pipeline is None:
+            config = resolve_pipeline_model_identities(ResolvedPipelineConfig.from_mapping(request.config))
+            return build_index(config, explicit_rebuild=request.explicit_rebuild)
+        if request.config and request.settings is not None:
+            raise ValueError("config and settings cannot both be present")
+        resolved = resolve(request.pipeline, request.settings if request.settings is not None else request.config)
+        result = build_index(resolved.config, explicit_rebuild=request.explicit_rebuild)
+        if result["collection"] != resolved.index["collection"]:
+            raise ValueError(f"{resolved.version}: built collection differs from pinned collection")
+        return {**result, "pipeline_version": resolved.version}
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
@@ -213,72 +234,30 @@ def _prepare_ask(request: AskRequest) -> dict[str, Any]:
             raise HTTPException(status_code=429, detail="Question limit reached. Please try again later.",
                                 headers={"Retry-After": str(retry_after)})
     try:
-        values = {"retrieval_mode": request.mode, "candidate_count": request.candidate_count,
-                  "top_k": min(request.top_k, request.candidate_count)}
-        if request.passage_chars is not None:
-            values["passage_chars"] = request.passage_chars
-        config = resolve_pipeline_model_identities(ResolvedPipelineConfig.from_mapping(values))
-        collection = request.collection
-        if collection is None:
-            collection = index_identity(config)[0]
-        validate_index(collection, config)
-        bundle = load_prompt_bundle(Langfuse(), label=request.prompt_label)
+        if request.settings is not None and not isinstance(request.settings, dict):
+            raise ValueError("settings must be an object")
+        values = dict(request.settings or {})
+        for legacy, key in (("mode", "retrieval_mode"), ("candidate_count", "candidate_count"),
+                            ("top_k", "top_k"), ("passage_chars", "passage_chars")):
+            value = getattr(request, legacy)
+            if value is not None:
+                if key in values:
+                    raise ValueError(f"{legacy} and settings.{key} cannot both be present")
+                values[key] = value
+        resolved = resolve(request.pipeline, values, engine=request.engine,
+                           prompt_label=request.prompt_label, collection=request.collection)
+        collection = resolved.index["collection"]
+        validate_index(collection, resolved.config)
+        bundle = (load_prompt_bundle(Langfuse(), versions=resolved.prompts) if resolved.engine == "fixed"
+                  and resolved.status != "draft" else
+                  load_prompt_bundle(Langfuse(), label=request.prompt_label) if resolved.engine == "fixed" else {})
         prompts = prompt_manifests(bundle)
-        pipeline_id = current_pipeline_setup(config, prompts)["pipeline_id"]
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
-    return {"config": config, "collection": collection, "bundle": bundle, "prompts": prompts, "pipeline_id": pipeline_id}
-
-
-def _run_agent_ask(request: AskRequest, prepared: dict[str, Any], *, on_token=None, on_status=None) -> dict[str, Any]:
-    """Answer with the agent and shape the result like the fixed pipeline's for the frontend."""
-    model = os.getenv("AGENT_MODEL", "qwen3.6:35b")
-
-    def on_event(event: dict[str, Any]) -> None:
-        if on_status and event.get("type") == "tool":
-            on_status(f"searching · {event.get('name')}")
-        elif on_status and event.get("type") == "turn":
-            on_status("thinking")
-
-    result = run_agent(request.question, prepared["collection"], prepared["config"],
-                       settings=AgentSettings(model=model), on_event=on_event)
-    evidence = list(result.get("evidence") or [])
-    citations = [label if str(label).startswith("[") else f"[{label}]" for label in result.get("citations") or []]
-    if on_status:
-        on_status("answering")
-    if on_token:
-        # The agent returns its validated answer as a native tool call, which Ollama only exposes when that
-        # generation is complete. Reveal that exact answer in small pieces without another model call.
-        words = result["answer"].split(" ")
-        for index, word in enumerate(words):
-            on_token(word + (" " if index < len(words) - 1 else ""))
-            if index < len(words) - 1:
-                time.sleep(0.04)
-    return {
-        "question": request.question,
-        "answer": result["answer"],
-        "citations": citations,
-        "reranked": evidence,
-        "candidates": evidence,
-        "baseline": [],
-        "evidence": "\n\n".join(f"[E{position}] {row.get('text', '')}" for position, row in enumerate(evidence, 1)),
-        "generated_queries": [call.get("arguments", {}).get("query") for call in result.get("trace", [])
-                              if call.get("arguments", {}).get("query")],
-        "timings": {"agent_seconds": result.get("latency_seconds")},
-        "latency_seconds": result.get("latency_seconds"),
-        "generation_model": result.get("model", model),
-        "engine": "agent",
-        "mode": "agent",
-        "tool_calls": result.get("tool_calls"),
-        "agent_stopped": result.get("stopped"),
-        "agent_trace": result.get("trace", []),
-        "answer_thinking": None,
-        "translated_question": None,
-        "name_completed_question": None,
-        "low_confidence": None,
-    }
+    return {"config": resolved.config, "collection": collection, "bundle": bundle, "prompts": prompts,
+            "pipeline_id": resolved.pipeline_id, "resolved": resolved}
 
 
 def _run_ask(request: AskRequest, prepared: dict[str, Any], *, on_trace=None, on_token=None, on_status=None) -> dict[str, Any]:
@@ -286,7 +265,9 @@ def _run_ask(request: AskRequest, prepared: dict[str, Any], *, on_trace=None, on
     pipeline_id, prompts = prepared["pipeline_id"], prepared["prompts"]
     session_id = request.session_id or "interactive-" + hashlib.sha256(" ".join(request.question.casefold().split()).encode()).hexdigest()[:24]
     environment = "interactive-ui" if request.source == "frontend" else "default"
-    trace_metadata = {"pipeline_id": pipeline_id, "collection": prepared["collection"], "source": request.source}
+    trace_metadata = {"pipeline_id": pipeline_id, "pipeline_version": prepared["resolved"].version,
+                      "pipeline_derived": prepared["resolved"].derived,
+                      "collection": prepared["collection"], "source": request.source}
     trace_metadata.update({f"prompt_{name}": f"{asset['id']}@{asset['version']}:{asset['label']}"
                            for name, asset in prompts.items()})
     root_metadata = {"clientIp": str(request.client_ip)} if request.source == "frontend" and request.client_ip else None
@@ -297,11 +278,8 @@ def _run_ask(request: AskRequest, prepared: dict[str, Any], *, on_trace=None, on
         trace_id = get_client().get_current_trace_id()
         if on_trace:
             on_trace(trace_id)
-        if request.engine == "agent":
-            result = _run_agent_ask(request, prepared, on_token=on_token, on_status=on_status)
-        else:
-            result = run_pipeline(request.question, prepared["config"], collection=prepared["collection"], prompt_bundle=prepared["bundle"],
-                                  on_token=on_token, on_status=on_status)
+        result = run_resolved_pipeline(request.question, prepared["resolved"], prepared["collection"],
+                                       prepared["bundle"], on_token=on_token, on_status=on_status)
         result["prompts"] = prompts
         result["session_id"] = session_id
         result["trace_id"] = trace_id
@@ -410,7 +388,7 @@ async def trigger_experiment(request: Request,
     dataset_id = incoming.get("datasetId", incoming.get("dataset_id"))
     dataset_name = dataset_name or custom.pop("dataset_name", None)
     dataset_id = dataset_id or custom.pop("dataset_id", None)
-    allowed = {"variant_label", "config", "dataset_version", "item_ids", "prompt_label", "correctness_evaluator"}
+    allowed = {"variant_label", "pipeline", "settings", "config", "dataset_version", "item_ids", "prompt_label", "correctness_evaluator"}
     unknown = set(custom) - allowed
     if unknown:
         raise HTTPException(status_code=400, detail=f"unsupported trigger fields: {', '.join(sorted(unknown))}")
@@ -421,8 +399,13 @@ async def trigger_experiment(request: Request,
     if "correctness_evaluator" in custom and custom["correctness_evaluator"] not in CORRECTNESS_SPECS:
         raise HTTPException(status_code=400, detail=f"correctness_evaluator must be one of {', '.join(sorted(CORRECTNESS_SPECS))}")
     try:
-        config = ResolvedPipelineConfig.from_mapping(custom.get("config"))
-        custom["config"] = config.manifest()
+        if "config" in custom and "settings" in custom:
+            raise ValueError("config and settings cannot both be present")
+        settings = custom.pop("config", custom.get("settings", {}))
+        resolved = resolve(custom.get("pipeline"), settings, prompt_label=custom.get("prompt_label"))
+        custom["pipeline"] = resolved.version
+        custom["settings"] = resolved.overrides
+        custom.setdefault("variant_label", resolved.version)
     except (ValueError, TypeError) as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     item_ids = custom.get("item_ids")
@@ -470,6 +453,8 @@ def experiment_status(execution_id: str) -> dict[str, Any]:
             "evaluation_failure_count": result.get("evaluation_failure_count") if result else None,
             "telemetry_failure_count": result.get("telemetry_failure_count") if result else None,
             "pipeline_id": result.get("pipeline_id") if result else None,
+            "pipeline_version": result.get("pipeline_version") if result else payload.get("pipeline"),
+            "pipeline_derived": result.get("pipeline_derived") if result else bool(payload.get("settings")),
             "evaluator_id": result.get("evaluator_id") if result else None,
             "experiment_id": result.get("experiment_id") if result else None,
             "dataset_run_url": result.get("dataset_run_url") if result else None,

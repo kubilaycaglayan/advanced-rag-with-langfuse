@@ -72,14 +72,26 @@ def prompt_version(prompt: Any, label: str | None = None) -> dict[str, Any]:
     return {"id": remote.get("id"), "name": name, "version": version, "label": chosen_label}
 
 
-def load_prompt_bundle(client: Langfuse, *, label: str | None = None) -> dict[str, Any]:
-    """Fetch every asset by an explicit label and pin its returned version in memory."""
+def load_prompt_bundle(client: Langfuse, *, versions: dict[str, int] | None = None,
+                       label: str | None = None) -> dict[str, Any]:
+    """Fetch the exact released versions, or a label when authoring a draft."""
     chosen_label = label or PROMPT_LABEL
+    if versions is not None and set(versions) != set(PROMPT_CATALOG):
+        raise ValueError("prompt pins must name every managed RAG prompt")
     bundle: dict[str, Any] = {}
     for name, spec in PROMPT_CATALOG.items():
-        # No fallback: absent names and labels must fail the execution preflight.
-        prompt = client.get_prompt(name, label=chosen_label, type=spec["type"], cache_ttl_seconds=0)
+        try:
+            if versions is None:
+                prompt = client.get_prompt(name, label=chosen_label, type=spec["type"], cache_ttl_seconds=0)
+            else:
+                prompt = client.get_prompt(name, version=versions[name], type=spec["type"], cache_ttl_seconds=0)
+        except Exception as exc:
+            if versions is not None:
+                raise RuntimeError(f"Langfuse prompt {name!r} version {versions[name]} is unavailable") from exc
+            raise
         declared = prompt_version(prompt, chosen_label)
+        if versions is not None and declared["version"] != versions[name]:
+            raise RuntimeError(f"Langfuse prompt {name!r} returned version {declared['version']}, expected {versions[name]}")
         if not declared["id"] or not isinstance(declared["version"], int):
             raise RuntimeError(f"Langfuse prompt {name!r} did not return an immutable ID and version")
         bundle[name] = {"client": prompt, "manifest": declared}

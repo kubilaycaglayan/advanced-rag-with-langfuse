@@ -153,7 +153,7 @@ Recorded pre-agent QA baseline flow.
       "revision": "233902d25c440f23af6f7d6e94d2946bac0bee0a"
     },
     "generation_model": {
-      "digest": null,
+      "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
       "name": "qwen3:8b",
       "revision": null
     },
@@ -251,7 +251,7 @@ Current agent flow used by the web UI.
     "num_predict": 1600,
     "think": false,
     "snippet_chars": 300,
-    "instruction_fingerprint": "9d7d2bf9b60ffe34c43c5fd9bcfcdd354e09fc19219ded79531597f80e5c643b"
+    "instruction_fingerprint": "0b495e4a66f5a8825c27a064f954e938cf3400c4c086e5c2eeeebf463a95a0b8"
   },
   "settings": {
     "retrieval_mode": "full",
@@ -263,7 +263,17 @@ Current agent flow used by the web UI.
     "scene_stride": 3,
     "passage_chars": 1200,
     "min_passage_chars": 400,
-    "passage_overlap": 0
+    "passage_overlap": 0,
+    "generation": {
+      "temperature": 0.0,
+      "context_length": 8192,
+      "output_budgets": [
+        4096,
+        8192
+      ]
+    },
+    "parallel_transformations": false,
+    "scene_thinking": false
   },
   "prompts": {},
   "index": {
@@ -280,7 +290,7 @@ Current agent flow used by the web UI.
       "revision": "233902d25c440f23af6f7d6e94d2946bac0bee0a"
     },
     "generation_model": {
-      "digest": null,
+      "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
       "name": "qwen3:8b",
       "revision": null
     },

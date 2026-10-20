@@ -21,6 +21,8 @@ PIPELINE_SOURCE_PATHS = (
     "compose.yaml",
 )
 PIPELINE_SOURCE_FILES = (
+    "pipelines.md",
+    "pipelines.sha256",
     "app/requirements.txt",
     "Dockerfile",
     "compose.yaml",

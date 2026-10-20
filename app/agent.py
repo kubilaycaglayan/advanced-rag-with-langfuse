@@ -22,12 +22,14 @@ and the collected passages are labelled ``[E1]``... in that order.
 from __future__ import annotations
 
 import difflib
+import hashlib
 import json
 import os
 import re
 import time
 from dataclasses import dataclass, field
 from functools import lru_cache
+from pathlib import Path
 from typing import Any, Callable
 
 import requests
@@ -1411,6 +1413,24 @@ def _tool_specs() -> list[dict[str, Any]]:
     ]
 
 
+def tool_names() -> list[str]:
+    return [spec["function"]["name"] for spec in _tool_specs()]
+
+
+def instruction_fingerprint() -> str:
+    """Fingerprint the in-code agent instructions and tool definitions.
+
+    The source file is deliberately included in full: inline nudge and verification
+    messages live inside control flow and must not evade the release check.
+    """
+    source = Path(__file__).resolve().parent
+    digest = hashlib.sha256()
+    for filename in ("agent.py", "prompt_templates.py"):
+        digest.update(filename.encode())
+        digest.update((source / filename).read_bytes())
+    return digest.hexdigest()
+
+
 def _compact(messages: list[dict[str, Any]], keep: int = 6, budget: int = 22000) -> None:
     """Drop the body of older tool results when the conversation grows; their ids stay for read_passage."""
     tool_indexes = [index for index, message in enumerate(messages) if message.get("role") == "tool"]
@@ -1590,8 +1610,9 @@ def _finish(state: AgentState, answer: str, ids: list[str], *, stopped: str,
         # passages, then rewrite when the answer is missing the confrontation or most of the sequence.
         covered = _covered_stages(answer)
         if "confrontation" not in covered or len(covered) < 3:
-            _coverage_hint(state, answer)
-            synthesized = _synthesize(state)
+            with observation("coverage rewrite", input=answer):
+                _coverage_hint(state, answer)
+                synthesized = _synthesize(state)
             if synthesized:
                 rewrite, rewrite_ids = synthesized
                 rewrite_stages = _covered_stages(rewrite)
@@ -1599,7 +1620,8 @@ def _finish(state: AgentState, answer: str, ids: list[str], *, stopped: str,
                     answer, ids = rewrite, rewrite_ids
     cited = re.search(r"\[(?:E\d+|[0-9a-fA-F]{8})\]", answer)
     if (not ids or _looks_like_abstention(answer) or not cited) and state.evidence:
-        synthesized = _synthesize(state)
+        with observation("abstention synthesis", input=answer):
+            synthesized = _synthesize(state)
         if synthesized:
             answer, ids = synthesized[0], synthesized[1]
             stopped = stopped + "+synthesis"
@@ -1666,7 +1688,8 @@ def run_agent(question: str, collection: str, config: ResolvedPipelineConfig | N
     normalized, name_notes = _normalize_question(state)
     state.question = normalized
     state.name_notes = name_notes
-    precheck = _connection_precheck(state)
+    with observation("connection pre-check", input=state.question):
+        precheck = _connection_precheck(state)
     messages: list[dict[str, Any]] = [{"role": "system", "content": SYSTEM_PROMPT},
                                       {"role": "user", "content": normalized}]
     if precheck:
@@ -1674,7 +1697,8 @@ def run_agent(question: str, collection: str, config: ResolvedPipelineConfig | N
         state.trace.append({"tool": "connection pre-check", "arguments": {"person_a": precheck["person_a"],
                                                                           "person_b": precheck["person_b"]},
                             "seconds": 0.0, "error": None, "result_ids": [row["passage_ids"][0] for row in precheck["facts"] if row["passage_ids"]]})
-    true_check = _true_account_precheck(state)
+    with observation("true account pre-check", input=state.question):
+        true_check = _true_account_precheck(state)
     if true_check:
         messages.append({"role": "user", "content": _true_account_message(true_check)})
         state.trace.append({"tool": "true account pre-check",
@@ -1682,13 +1706,15 @@ def run_agent(question: str, collection: str, config: ResolvedPipelineConfig | N
                                           "other_people": true_check.get("other_people")},
                             "seconds": 0.0, "error": None,
                             "result_ids": [row["id"] for row in (true_check.get("passages") or [])]})
-    sequence_check = _sequence_precheck(state)
+    with observation("sequence pre-check", input=state.question):
+        sequence_check = _sequence_precheck(state)
     if sequence_check:
         messages.append({"role": "user", "content": _sequence_message(sequence_check)})
         state.trace.append({"tool": "sequence pre-check", "arguments": {"question": state.question},
                             "seconds": 0.0, "error": None,
                             "result_ids": [row["id"][:8] for row in (sequence_check.get("scene_passages") or [])]})
-    moment_check = _moment_precheck(state)
+    with observation("moment pre-check", input=state.question):
+        moment_check = _moment_precheck(state)
     if moment_check:
         messages.append({"role": "user", "content": _moment_message(moment_check)})
         state.trace.append({"tool": "moment pre-check", "arguments": {"question": state.question},
@@ -1706,7 +1732,8 @@ def run_agent(question: str, collection: str, config: ResolvedPipelineConfig | N
             state.turns = turn
             if time.perf_counter() - state.started > settings.timeout_seconds:
                 emit({"type": "timeout"})
-                result = _forced_answer(state, messages)
+                with observation("forced answer", input={"reason": "timeout"}):
+                    result = _forced_answer(state, messages)
                 update_observation(root, output=result)
                 return result
             started = time.perf_counter()
@@ -1737,10 +1764,12 @@ def run_agent(question: str, collection: str, config: ResolvedPipelineConfig | N
                         f"You have made {state.tool_calls} tool calls; investigate more before answering (at least "
                         f"{state.settings.min_tool_calls}). Check each part of the question and search for the part the "
                         "passages do not yet state.")})
-                    emit({"type": "nudge", "turn": turn})
+                    with observation("minimum tool nudge", input={"turn": turn}):
+                        emit({"type": "nudge", "turn": turn})
                     continue
                 if state.evidence:
-                    gap = _coverage_gap(state, content)
+                    with observation("coverage check", input=content):
+                        gap = _coverage_gap(state, content)
                     if gap:
                         messages.append({"role": "assistant", "content": content})
                         messages.append({"role": "tool", "content": _clip(gap)})
@@ -1750,7 +1779,8 @@ def run_agent(question: str, collection: str, config: ResolvedPipelineConfig | N
                 if ids and state.verifications < 2:
                     state.verifications += 1
                     focus = [short for short in state.focus if short not in ids][:6]
-                    supported, reason = _verify_submission(state, content, ids, focus)
+                    with observation("submission verification", input={"answer": content, "ids": ids}):
+                        supported, reason = _verify_submission(state, content, ids, focus)
                     emit({"type": "verify", "supported": supported, "reason": reason})
                     if not supported:
                         messages.append({"role": "assistant", "content": content})
@@ -1764,7 +1794,8 @@ def run_agent(question: str, collection: str, config: ResolvedPipelineConfig | N
                     messages.append({"role": "user", "content": (
                         "You did not call a tool. If you have enough evidence, call submit_answer with the answer and the "
                         "8-character passage_ids it relies on; otherwise continue searching.")})
-                    emit({"type": "nudge", "turn": turn})
+                    with observation("no tool nudge", input={"turn": turn}):
+                        emit({"type": "nudge", "turn": turn})
                     continue
                 result = _finish(state, content, ids, stopped="content")
                 update_observation(root, output=result)
@@ -1800,14 +1831,16 @@ def run_agent(question: str, collection: str, config: ResolvedPipelineConfig | N
                       "error": payload.get("error") if isinstance(payload, dict) else None})
                 if name == "find_names" and payload.get("likely") and payload.get("name") not in state.resolved_names:
                     state.resolved_names.add(payload["name"])
-                    messages.append({"role": "user", "content": (
-                        f"Name check: the books do not use {payload['name']!r}; the person meant is {payload['likely']}. "
-                        "Continue the question with that name; do not answer that the character does not exist.")})
+                    with observation("name check message", input=payload):
+                        messages.append({"role": "user", "content": (
+                            f"Name check: the books do not use {payload['name']!r}; the person meant is {payload['likely']}. "
+                            "Continue the question with that name; do not answer that the character does not exist.")})
                 if stop:
                     if state.verifications < 2 and payload["passage_ids"]:
                         state.verifications += 1
                         focus = [short for short in state.focus if short not in payload["passage_ids"]][:6]
-                        supported, reason = _verify_submission(state, payload["raw_answer"], payload["passage_ids"], focus)
+                        with observation("submission verification", input=payload):
+                            supported, reason = _verify_submission(state, payload["raw_answer"], payload["passage_ids"], focus)
                         emit({"type": "verify", "supported": supported, "reason": reason})
                         if not supported:
                             messages.append({"role": "tool", "content": _clip({
@@ -1823,10 +1856,12 @@ def run_agent(question: str, collection: str, config: ResolvedPipelineConfig | N
                 messages.append({"role": "tool", "content": _clip(payload)})
                 if state.tool_calls >= settings.max_tool_calls:
                     emit({"type": "tool_budget"})
-                    result = _forced_answer(state, messages)
+                    with observation("forced answer", input={"reason": "tool_budget"}):
+                        result = _forced_answer(state, messages)
                     update_observation(root, output=result)
                     return result
         emit({"type": "turn_budget"})
-        result = _forced_answer(state, messages)
+        with observation("forced answer", input={"reason": "turn_budget"}):
+            result = _forced_answer(state, messages)
         update_observation(root, output=result)
         return result

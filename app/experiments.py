@@ -30,6 +30,8 @@ try:
     from .pipeline import PROMPT_HASHES, run_pipeline
     from .prompt_assets import ManagedJudgePrompt, load_managed_evaluators, load_prompt_bundle, prompt_manifests
     from .resolved_config import ResolvedPipelineConfig, resolve_ollama_model, resolve_pipeline_model_identities
+    from .pipeline_resolver import ResolvedRun, resolve
+    from .pipeline_runner import run as run_resolved_pipeline
 except ImportError:
     from evaluation import citation_support, correctness, is_explicit_abstention
     from experiment_store import (enqueue, get_execution, initialize, mark_interrupted,
@@ -42,6 +44,8 @@ except ImportError:
     from pipeline import PROMPT_HASHES, run_pipeline
     from prompt_assets import ManagedJudgePrompt, load_managed_evaluators, load_prompt_bundle, prompt_manifests
     from resolved_config import ResolvedPipelineConfig, resolve_ollama_model, resolve_pipeline_model_identities
+    from pipeline_resolver import ResolvedRun, resolve
+    from pipeline_runner import run as run_resolved_pipeline
 
 _jobs: queue.Queue[str] = queue.Queue()
 _worker: threading.Thread | None = None
@@ -107,7 +111,8 @@ def _evaluator_prompt_manifest(prompt_versions: dict[str, Any]) -> dict[str, Any
 
 
 def _fingerprints(config: ResolvedPipelineConfig, version: datetime, prompt_versions: dict[str, Any],
-                  managed_evaluators: dict[str, Any], correctness_name: str = DEFAULT_CORRECTNESS) -> tuple[dict[str, Any], dict[str, Any], str]:
+                  managed_evaluators: dict[str, Any], correctness_name: str = DEFAULT_CORRECTNESS,
+                  resolved: ResolvedRun | None = None) -> tuple[dict[str, Any], dict[str, Any], str]:
     repo_root = Path(__file__).resolve().parents[1]
     sources = source_manifest(str(repo_root))
     corpus_files = corpus_paths()
@@ -116,13 +121,17 @@ def _fingerprints(config: ResolvedPipelineConfig, version: datetime, prompt_vers
     enriched = config.manifest()
     enriched["prompt_hashes"] = {name: hashlib.sha256(canonical_json(asset).encode()).hexdigest()
                                   for name, asset in prompt_versions.items()}
-    enriched["generation_model"] = _ollama_identity(config.generation_model.name)
+    enriched["generation_model"] = (config.generation_model.__dict__ if resolved else _ollama_identity(config.generation_model.name))
     enriched["embedding_model"] = {"name": config.embedding_model.name, "revision": config.embedding_model.revision}
     enriched["reranker_model"] = {"name": config.reranker_model.name, "revision": config.reranker_model.revision}
     enriched["corpus_checksum"] = corpus_checksum
-    pipeline = pipeline_identity(git_revision=sources["git_revision"], dirty=sources["dirty"],
-                                 source_fingerprint=sources["source_fingerprint"], resolved_config=enriched,
-                                 corpus_checksum=corpus_checksum)
+    pipeline = ({**resolved.version_fields, "fingerprint": resolved.fingerprint,
+                 "git_revision": sources["git_revision"], "dirty": sources["dirty"],
+                 "source_fingerprint": sources["source_fingerprint"], "resolved_config": enriched,
+                 "corpus_checksum": corpus_checksum} if resolved else
+                pipeline_identity(git_revision=sources["git_revision"], dirty=sources["dirty"],
+                                  source_fingerprint=sources["source_fingerprint"], resolved_config=enriched,
+                                  corpus_checksum=corpus_checksum))
     pipeline["source_manifest"] = sources
     pipeline["corpus_manifest"] = corpus_manifest
     evaluator_model_name = os.getenv("EVALUATOR_MODEL", "qwen3:8b")
@@ -247,10 +256,13 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
     client: Langfuse | None = None
     client_cleanup_attempted = False
     try:
-        config = resolve_pipeline_model_identities(ResolvedPipelineConfig.from_mapping(payload.get("config")))
+        resolved = resolve(payload.get("pipeline"), payload.get("settings"), prompt_label=payload.get("prompt_label"))
+        config = resolved.config
         client = _client()
         dataset, version = _dataset_for(payload, client)
-        prompt_bundle = load_prompt_bundle(client, label=payload.get("prompt_label"))
+        prompt_bundle = (load_prompt_bundle(client, versions=resolved.prompts) if resolved.engine == "fixed"
+                         and resolved.status != "draft" else
+                         load_prompt_bundle(client, label=payload.get("prompt_label")) if resolved.engine == "fixed" else {})
         prompt_versions = prompt_manifests(prompt_bundle)
         correctness_name = payload.get("correctness_evaluator") or DEFAULT_CORRECTNESS
         if correctness_name not in CORRECTNESS_SPECS:
@@ -272,14 +284,16 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
 
         index = build_index(config)
         collection = index["collection"]
-        pipeline_manifest, evaluator_manifest, corpus_checksum = _fingerprints(config, version, prompt_versions, managed_evaluators, correctness_name)
+        if collection != resolved.index["collection"]:
+            raise ValueError(f"{resolved.version}: built collection differs from pinned collection")
+        pipeline_manifest, evaluator_manifest, corpus_checksum = _fingerprints(config, version, prompt_versions, managed_evaluators, correctness_name, resolved)
         # Include the selected frozen snapshot and exact corpus content in each execution manifest.
-        variant = re.sub(r"[^A-Za-z0-9._-]+", "-", payload.get("variant_label", "full")).strip("-")[:50] or "run"
+        variant = re.sub(r"[^A-Za-z0-9._-]+", "-", payload.get("variant_label", resolved.version)).strip("-")[:50] or "run"
         run_name = f"{variant}-{execution_id}"
         (Path(os.getenv("EXPERIMENT_DATA_DIR", "./data")) / "executions" / execution_id).mkdir(parents=True, exist_ok=True)
         manifest = {"execution_id": execution_id, "variant_label": variant, "dataset_snapshot": snapshot,
                     "pipeline": pipeline_manifest, "evaluator": evaluator_manifest,
-                    "prompt_label": payload.get("prompt_label") or os.getenv("LANGFUSE_PROMPT_LABEL", "production"),
+                    "prompt_label": payload.get("prompt_label"),
                     "prompts": prompt_versions,
                     "index": index, "config": config.manifest(), "run_name": run_name,
                     "selected_item_ids": [item.id for item in items],
@@ -295,18 +309,21 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
                     trace_metadata = {"execution_id": execution_id, "dataset_id": dataset.id,
                             "dataset_version": version.isoformat(), "dataset_item_id": item.id,
                             "pipeline_id": pipeline_manifest["pipeline_id"],
+                            "pipeline_version": resolved.version, "pipeline_derived": resolved.derived,
                             "evaluator_id": evaluator_manifest["evaluator_id"], "experiment_run": run_name}
                     trace_metadata.update({f"prompt_{name}": f"{asset['id']}@{asset['version']}:{asset['label']}"
                                            for name, asset in prompt_versions.items()})
                     trace_metadata.update({f"managed_eval_{name}": f"{asset['id']}@{asset['version']}"
                                            for name, asset in managed_evaluators.items()})
-                    with propagate_attributes(session_id=session, metadata=trace_metadata):
-                        return run_pipeline(str(question), config, collection=collection, prompt_bundle=prompt_bundle)
+                    with propagate_attributes(session_id=session, metadata=trace_metadata,
+                                              tags=[f"pipeline:{resolved.pipeline_id}"]):
+                        return run_resolved_pipeline(str(question), resolved, collection, prompt_bundle)
             except Exception as exc:
                 return {"error": f"{type(exc).__name__}: {exc}", "answer": "", "citations": [],
                         "candidates": [], "reranked": [], "evidence": ""}
 
         experiment_metadata = {"execution_id": execution_id, "pipeline_id": pipeline_manifest["pipeline_id"],
+                      "pipeline_version": resolved.version, "pipeline_derived": resolved.derived,
                       "evaluator_id": evaluator_manifest["evaluator_id"], "dataset_version": version.isoformat(),
                       "variant_label": variant, "snapshot_sha256": snapshot["sha256"],
                       "correctness_evaluator": correctness_name}
@@ -389,7 +406,8 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
                           "scores": summaries, "codex_usage": codex_usage, "abstention_count": sum(1 for row in item_results
                               if isinstance(row["output"], dict) and is_explicit_abstention(str(row["output"].get("answer", "")))),
                           "telemetry_failure_count": len(telemetry_failures), "telemetry_errors": telemetry_failures,
-                          "pipeline_id": pipeline_manifest["pipeline_id"], "evaluator_id": evaluator_manifest["evaluator_id"],
+                          "pipeline_id": pipeline_manifest["pipeline_id"], "pipeline_version": resolved.version,
+                          "pipeline_derived": resolved.derived, "evaluator_id": evaluator_manifest["evaluator_id"],
                           "managed_evaluators": managed_evaluators, "prompts": prompt_versions,
                           "experiment_id": result.experiment_id, "dataset_run_id": result.dataset_run_id,
                           "dataset_run_url": result.dataset_run_url, "item_results": item_results}
@@ -429,6 +447,8 @@ def submit_retry(execution_id: str, *, idempotency_key: str | None = None) -> tu
     if source["status"] not in {"failed", "partial"}:
         raise ValueError(f"only failed or partial executions can be retried (status={source['status']})")
     payload = json.loads(source["payload_json"])
+    if "pipeline" not in payload:
+        raise ValueError("pre-migration executions cannot be retried")
     payload["retry_of_execution_id"] = execution_id
     return submit(payload, idempotency_key=idempotency_key)
 
@@ -458,13 +478,18 @@ def cli() -> int:
     parser.add_argument("--dataset", default=os.getenv("DATASET_NAME", "QA.csv"))
     parser.add_argument("--dataset-version", help="ISO-8601 UTC dataset version timestamp")
     parser.add_argument("--variant", default="full")
-    parser.add_argument("--prompt-label", default=os.getenv("LANGFUSE_PROMPT_LABEL", "production"))
-    parser.add_argument("--config", type=Path, help="JSON resolved pipeline config")
+    parser.add_argument("--prompt-label", default=None)
+    parser.add_argument("--pipeline", default="v2")
+    settings_group = parser.add_mutually_exclusive_group()
+    settings_group.add_argument("--settings", type=Path, help="JSON settings overrides file")
+    settings_group.add_argument("--config", type=Path, help="alias for --settings")
     parser.add_argument("--item-id", action="append", dest="item_ids")
     parser.add_argument("--correctness-evaluator", choices=sorted(CORRECTNESS_SPECS), default=DEFAULT_CORRECTNESS)
     args = parser.parse_args()
+    settings_file = args.settings or args.config
     payload = {"dataset_name": args.dataset, "dataset_version": args.dataset_version,
-               "variant_label": args.variant, "config": json.loads(args.config.read_text()) if args.config else {},
+               "pipeline": args.pipeline, "variant_label": args.variant,
+               "settings": json.loads(settings_file.read_text()) if settings_file else {},
                "item_ids": args.item_ids, "prompt_label": args.prompt_label,
                "correctness_evaluator": args.correctness_evaluator}
     initialize()

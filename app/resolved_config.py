@@ -223,19 +223,22 @@ class ResolvedPipelineConfig:
         return value
 
     @classmethod
-    def from_mapping(cls, value: Mapping[str, Any] | None = None) -> "ResolvedPipelineConfig":
+    def from_mapping(cls, value: Mapping[str, Any] | None = None, *, use_environment: bool = True) -> "ResolvedPipelineConfig":
         """Validate a JSON config without accepting unknown or identity fields."""
         value = dict(value or {})
         defaults: dict[str, Any] = {
             "retrieval_mode": "full",
             "candidate_count": 30,
             "top_k": 10,
-            "passage_chars": int(os.getenv("PASSAGE_CHARS", "1200")),
-            "min_passage_chars": int(os.getenv("MIN_PASSAGE_CHARS", "400")),
-            "embedding_model": os.getenv("EMBEDDING_MODEL", "sentence-transformers/multi-qa-MiniLM-L6-cos-v1"),
-            "reranker_model": os.getenv("RERANKER_MODEL", "cross-encoder/ms-marco-MiniLM-L-6-v2"),
-            "generation_model": os.getenv("GENERATION_MODEL", "qwen3:8b"),
         }
+        if use_environment:
+            defaults.update({
+                "passage_chars": int(os.getenv("PASSAGE_CHARS", "1200")),
+                "min_passage_chars": int(os.getenv("MIN_PASSAGE_CHARS", "400")),
+                "embedding_model": os.getenv("EMBEDDING_MODEL", "sentence-transformers/multi-qa-MiniLM-L6-cos-v1"),
+                "reranker_model": os.getenv("RERANKER_MODEL", "cross-encoder/ms-marco-MiniLM-L-6-v2"),
+                "generation_model": os.getenv("GENERATION_MODEL", "qwen3:8b"),
+            })
         defaults.update(value)
         value = defaults
         allowed = {"retrieval_mode", "candidate_count", "top_k", "passage_chars", "embedding_model", "reranker_model", "generation_model", "generation", "rrf_constant",
