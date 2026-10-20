@@ -4,6 +4,9 @@ Status: proposed; not implemented. Prepared 2026-10-20; open questions resolved 
 same day. This is the handoff spec: the sections "Decisions taken", "Payload contract", "Endpoints",
 "Resolution, identity and traces" and "Implementation guide" are normative.
 
+An owner review of this draft resolved two remaining points: pre-migration experiment payloads are
+out of scope, and the agent's non-tool steps emit named spans so the flow test covers them.
+
 ## Context
 
 Two pipelines exist today — the fixed RAG flow and the agentic flow — but neither can be
@@ -60,7 +63,8 @@ Catalog and identity:
   `notes` are outside the fingerprint for that reason.
 - A released version's `code` entry is a best-effort provenance bookmark, not a requirement:
   some recorded runs carry only `unknown`, so it may be absent.
-- `flow` uses the instrumentation names emitted today, unchanged. A step that is not a span
+- `flow` uses the instrumentation names emitted today, unchanged, except for the agent's
+  non-tool steps, which gain spans so they can be named (see Version 2). A step that is not a span
   (the wider-pool admission, the low-confidence path) is recorded as a condition on the stage
   it affects, not invented as a stage name.
 - v1 reproduces the recorded pre-agent run — its settings, its prompt versions, its index — not
@@ -69,8 +73,9 @@ Catalog and identity:
 - v2 records its own `agent` section: model, tool set, loop limits, and a fingerprint of the
   in-code instructions. It records only the settings the agent reads; `notes` says which
   retrieval settings belong to the fixed flow.
-- Environment variables never affect a released version. v2's model and limits change only by
-  publishing a new version, never by editing `.env`.
+- No environment variable supplies a setting inside a released version (endpoints and model
+  keep-alive remain deployment configuration). v2's model and limits change only by publishing a new
+  version, never by editing `.env`.
 
 Payload and recording:
 
@@ -78,8 +83,9 @@ Payload and recording:
 - `settings` overrides are allowed; such a run is recorded as *derived*, its identity carries
   a `derived-` marker, and it is never presented as the released flow.
 - The engine cannot be overridden by `settings`; a different engine is a different version.
-- Legacy payload fields keep working as aliases (see "Payload contract"), so existing callers
-  and the Langfuse dataset trigger do not break.
+- Legacy payload fields are accepted as aliases (see "Payload contract") for convenience, not for
+  migration: pre-migration experiment payloads are not supported, and old executions are not
+  retried across this change.
 - `variant_label` stays on the experiment trigger: it labels the run, not the pipeline, and
   defaults to the version id.
 - Draft versions are selectable for authoring and are recorded as `draft`. Retired versions
@@ -95,9 +101,11 @@ Payload and recording:
   followed by one fenced JSON block.
 
 A parser reads the blocks at app startup; a malformed catalog fails startup and the test
-suite. The test fingerprints every released block into `pipelines.sha256`, so editing a
-released version fails the tests. A change to a released version is published as a new
-version.
+suite. The image copies `pipelines.md` and `pipelines.sha256`, so the container parses the same
+catalog and the source manifest can hash both. A separate command writes `pipelines.sha256`; the
+test only compares, so editing a released version fails the tests. Editing a block and its line
+together still passes: the file is a speed bump, not tamper evidence. A change to a released
+version is published as a new version.
 
 Each version block records:
 
@@ -134,7 +142,9 @@ traces speak the same language: "query translation", "HyDE transformation", "que
 "answer generation", "citation extraction". A version's `flow` lists the ones it runs, in order,
 with a `when` for each conditional one. Spans nested inside a stage (a query embedding per search,
 a generation call inside each rewrite) are not separate entries; the order check compares first
-occurrences, so a stage emitted several times still matches. Admission rules that are not spans
+occurrences, so a stage emitted several times still matches. Stages that run concurrently —
+v1.1's parallel transformations — are listed as one parallel group, so the order check does not
+depend on scheduling. Admission rules that are not spans
 (the wider pool, the low-confidence path) belong in the condition that admits them, not in the
 stage list.
 
@@ -147,8 +157,9 @@ the flow test plus code review are the guard. Reading the code, this is the full
   the stop-word/title/scope/anchor word lists, the "English share" definition (only its threshold
   is a setting), the rule that query expansion raises unless it returns exactly `expansion_count`
   alternatives, the previous-passage join, the evidence text format, and the citation regex.
-- v2: the system prompt, forced-answer prompt and synthesis prompt, the name-normalization
-  cutoffs, the trigger regexes behind the pre-checks, and the tool snippet sizes.
+- v2: the name-normalization cutoffs, the trigger regexes behind the pre-checks, and the tool
+  snippet sizes. The prompts and messages themselves are fingerprinted (see Version 2); the code
+  that applies them is not.
 
 A version therefore pins the *method as configured*, not every line of code that implements it.
 This is deliberate: the alternative is freezing source hashes and never being able to fix a bug.
@@ -195,7 +206,12 @@ temperature 0 with 8k context and 4096/8192 output budgets).
 Prompts: the seven `rag-*` versions recorded by that run, pinned by version — answer, hyde,
 query-expansion, query-translation, grammar-correction, scene-moment, scene-select.
 
-Index and corpus: the collection and checksum recorded by that run.
+Index and corpus: the collection and checksum recorded by that run. The block records the
+pipeline-style checksum (the list-of-files value the reference run's manifest carries); the
+indexer's own checksum is recomputed from disk for the collection name and is not stored twice.
+The recorded embedding and reranker revisions are pinned literally, and a released version never
+re-resolves them from the Hub. The reference run's recorded revision (`35b543a`) is stale — it
+predates the settings that run used — so `code` is omitted for v1.
 
 `v1.1` is the same flow with parallel transformations enabled; it is the minor-version
 example and is not required for the first release.
@@ -236,10 +252,15 @@ behavior and must be frozen with the version:
 - the recorded stop reason (`submit`, `content`, `budget`, plus any synthesis or speech
   fallback).
 
+Each of these steps emits a span of its own; the block lists those names in `flow`, so the flow
+test asserts them the same way it asserts v1's stages. The tools stay in `agent.tools`: the model
+chooses the order, so a replay compares the declared tool set, not the sequence of calls.
+
 The agent's instructions live in code and the `rag-*` prompts are not used by this engine;
-the version records a fingerprint of the system prompt, the forced-answer prompt, the synthesis
-prompt and the templates the tools compile, so nobody assumes the managed prompts still shape
-v2 and an instruction edit cannot pass as the same version.
+the version records a fingerprint of every prompt and message template in `agent.py`: the system
+prompt, the forced-answer prompt, the synthesis prompt, the pre-check, nudge, verification and
+coverage messages, and the templates the tools compile, so nobody assumes the managed prompts
+still shape v2 and an instruction edit cannot pass as the same version.
 
 ## Payload contract
 
@@ -324,7 +345,7 @@ No endpoint is added; eight exist before and after.
 | `POST /index` | Optional `pipeline` + `settings` (resolved the same way) so the index a version needs can be built; result gains `pipeline_version` |
 | `POST /experiments/run` | `pipeline` + `settings`; `config` alias; `variant_label` kept |
 | `GET /experiments/{execution_id}` | Response adds `pipeline_version` and `pipeline_derived` |
-| `POST /experiments/{execution_id}/retry` | Unchanged; copies the stored payload, so the retry keeps the version and its derived state |
+| `POST /experiments/{execution_id}/retry` | Unchanged for executions created after this change; the copied payload keeps the version and its derived state. Pre-migration executions are not retried |
 | `GET /health`, `POST/GET /langfuse-ollama/v1/{path}` | Unchanged |
 
 ## Resolution, identity and traces
@@ -357,13 +378,14 @@ Primary — static flow test:
   occurrence, because one stage can be emitted several times).
 - Conditional stages are listed with their condition; the fixture forces each trigger so the
   branch must appear.
-- For the agent, assert the tool catalog, the loop limits and the declared non-tool steps
-  (pre-checks, nudges, verification, forced answer, synthesis).
+- For the agent, assert the tool catalog, the loop limits, and that each declared non-tool step
+  emits its span (pre-checks, nudges, verification, forced answer, synthesis).
 
 Secondary — replay:
 
-- Replay a small question set and compare the ordered instrumentation (stage names, tool
-  calls) with the reference trace.
+- Replay a small question set and compare the ordered stage names with the reference trace. For
+  the agent, compare the declared tool catalog and the stages, not the model's tool-call sequence:
+  the model chooses the calls, so their order is not stable.
 - Branches that depend on retrieval or model scores may differ between runs; those are not
   failures. The check is that the stages and methods are the same, not that the same branch
   fires.
@@ -388,23 +410,28 @@ No answer diffing is part of acceptance.
 ### Changes to existing modules
 
 - `resolved_config.py`: split `from_mapping` so the version path reads no environment variables
-  (keep the env-default variant for `/index` when no pipeline is given).
+  (keep the env-default variant for `/index` when no pipeline is given). A released version's
+  model identities are literal, so the version path never calls `resolve_pipeline_model_identities`.
 - `main.py`: `AskRequest` gains `pipeline`/`settings` and `None` defaults for the legacy
   retrieval fields; `_prepare_ask` uses the resolver; `_run_ask` uses the runner; traces and the
   result gain the version fields; `/index` accepts the optional pipeline.
 - `experiments.py`: resolve once per execution, run through `pipeline_runner`, put the version
   fields in the manifest and the experiment metadata, accept `config` as a `settings` alias,
-  add `--pipeline`/`--settings` to the CLI.
+  add `--pipeline`/`--settings` to the CLI, and default `--prompt-label` to `None` so the CLI does
+  not reject a released version by its own default.
 - `prompt_assets.py`: `load_prompt_bundle(client, versions=None, label=None)` — fetch each prompt
   by its pinned version when `versions` is given, by label only for drafts; a missing version
   fails preflight with the prompt name and version.
-- `agent.py`: behavior unchanged. Expose the tool names and `AgentSettings` defaults as data so
-  the catalog test can compare them; take the model from the resolver, never from the environment.
+- `agent.py`: answers unchanged. Expose the tool names and `AgentSettings` defaults as data so
+  the catalog test can compare them; take the model from the resolver, never from the environment;
+  emit a span for each declared non-tool step (pre-checks, nudges, verification, forced answer,
+  synthesis).
 - `identity.py`: add `pipelines.md`, `pipelines.sha256` to `PIPELINE_SOURCE_FILES`.
 
 ### Tests to add (`tests/test_pipelines.py`, plus cases in `tests/test_api.py`)
 
-1. Every block parses; ids unique; `default` names a released version; no unknown fields.
+1. Every block parses; ids unique; `default` names a released version; no unknown fields; every
+   setting the engine reads is present, so a missing field cannot fall back to a code default.
 2. Every released version matches `pipelines.sha256`; an edited released block fails; a line
    without a block fails; a draft without a line passes.
 3. `v1` resolution reproduces the recorded run's settings and prompt pins.
@@ -416,7 +443,8 @@ No answer diffing is part of acceptance.
 7. Legacy `engine: fixed` resolves to v1 with no overrides; the UI payload with no pipeline
    resolves to v2.
 8. Static flow order for v1 with stubbed models; forced branch fixture.
-9. Agent catalog/limits/non-tool steps match the block.
+9. Agent catalog, limits and non-tool step spans match the block; the replay check ignores the
+   model's tool-call order.
 10. Prompt loading by version; missing version fails before the run.
 11. Experiment path: `/experiments/run` with `pipeline: v2` reaches the agent runner and the
     manifest records the version and `derived: false`.
@@ -467,11 +495,11 @@ evaluators and manifests as `v1`.
   catalog and force it in the fixture.
 - **Overrides weaken the guarantee.** They are allowed, but always marked derived and never
   described as the released flow.
-- **Legacy payloads are everywhere.** Old scripts and the saved Langfuse dataset payload still
-  send `engine`/`config`/`prompt_label`; the alias rules above keep them working, and tests cover
-  each one.
+- **Pre-migration payloads are not expected.** The saved Langfuse dataset payload is updated once
+  during rollout, and old executions are not retried; the alias rules remain for convenience, not
+  compatibility.
 - **Code can drift from the recorded revision.** The released flow test, not the revision
-  hash, is the guard; the revision stays for provenance.
+  hash, is the guard; a revision, where known, stays for provenance.
 - **Existing runs cannot be renamed.** They keep their hashed IDs; the catalog takes effect
   for new runs.
 - **A pinned corpus or index no longer exists.** The run stops with a message naming the version
