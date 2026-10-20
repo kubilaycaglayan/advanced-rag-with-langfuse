@@ -24,6 +24,8 @@ Langfuse is the project's workspace for **prompts, traces, and experiments**:
 - **Traces:** Each question records its search steps, retrieved passages, reranking, answer, and timing. The web app can show the trace for a question and send a helpfulness rating.
 - **Experiments:** A question-and-answer dataset can be run through different pipeline settings. Langfuse links each answer to its trace and scores answer correctness and citation support, making runs easier to compare. Reference answers are used for evaluation, never to generate the answer. New runs use the fact-based `answer_correctness_v2` judge by default; the optional `answer_correctness_v3` runs through a local `opencode serve`.
 
+The optional `answer_correctness_codex_v1` evaluator uses `gpt-5.6-luna` through `codex exec`. Each question starts a fresh ephemeral Codex session. Langfuse lists the evaluator as active using the local Ollama connection as a registry placeholder; the experiment worker sends judging requests to the host bridge at `CODEX_JUDGE_URL`. Run `python app/codex_judge_server.py` on the host with an authenticated Codex CLI before selecting this evaluator in an experiment. The trace contains a nested `gpt-5.6-luna` generation with input, cached input, and output token usage. Each score also includes the raw Codex counts; the bridge records the account's five hour usage percentage before and after each judge call when Codex exposes it. Experiment results include token totals and a per 100 question projection.
+
 Langfuse helps explain *why* an answer changed when a prompt or search setting changes. The actual book search runs through Qdrant, and the language model calls run through Ollama.
 
 ## Explore the project

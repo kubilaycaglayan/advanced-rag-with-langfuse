@@ -100,13 +100,25 @@ ANSWER_CORRECTNESS_V3 = EvaluatorSpec(
     prompt_template=ANSWER_CORRECTNESS_V2.prompt_template,
 )
 
-EVALUATOR_SPECS = (ANSWER_CORRECTNESS_V1, ANSWER_CORRECTNESS_V2, ANSWER_CORRECTNESS_V3, CITATION_SUPPORT_V1)
-CORRECTNESS_SPECS = {spec.name: spec for spec in (ANSWER_CORRECTNESS_V1, ANSWER_CORRECTNESS_V2, ANSWER_CORRECTNESS_V3)}
-FACT_SPECS = (ANSWER_CORRECTNESS_V2, ANSWER_CORRECTNESS_V3)
+ANSWER_CORRECTNESS_CODEX_V1 = EvaluatorSpec(
+    name="answer_correctness_codex_v1",
+    version=1,
+    minimum=0.0,
+    maximum=1.0,
+    rubric=ANSWER_CORRECTNESS_V2.rubric,
+    prompt_template=ANSWER_CORRECTNESS_V2.prompt_template,
+)
+
+EVALUATOR_SPECS = (ANSWER_CORRECTNESS_V1, ANSWER_CORRECTNESS_V2, ANSWER_CORRECTNESS_V3, ANSWER_CORRECTNESS_CODEX_V1, CITATION_SUPPORT_V1)
+CORRECTNESS_SPECS = {spec.name: spec for spec in (ANSWER_CORRECTNESS_V1, ANSWER_CORRECTNESS_V2, ANSWER_CORRECTNESS_V3, ANSWER_CORRECTNESS_CODEX_V1)}
+FACT_SPECS = (ANSWER_CORRECTNESS_V2, ANSWER_CORRECTNESS_V3, ANSWER_CORRECTNESS_CODEX_V1)
 # Judges that do not use EVALUATOR_MODEL: (Langfuse provider label, model, opencode variant).
 # An "opencode/" model runs through `opencode serve` (OPENCODE_JUDGE_URL). Langfuse stores only
 # provider and model, so the variant stays here.
-JUDGE_MODELS = {ANSWER_CORRECTNESS_V3.name: ("opencode", "opencode/deepseek-v4.1-flash-free", "low")}
+JUDGE_MODELS = {
+    ANSWER_CORRECTNESS_V3.name: ("opencode", "opencode/deepseek-v4.1-flash-free", "low"),
+    ANSWER_CORRECTNESS_CODEX_V1.name: ("codex-cli", "gpt-5.6-luna", None),
+}
 DEFAULT_CORRECTNESS = ANSWER_CORRECTNESS_V2.name
 
 

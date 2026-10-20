@@ -140,7 +140,7 @@ class WorkflowChecks(unittest.TestCase):
                  'prompt': [{'role':'user', 'content':'Edited rubric: {{answer}}'}],
                  'variables': ['answer'], 'modelConfig': {'model':'qwen3:8b', 'provider':'ollama-local'},
                  'outputDefinition': {'dataType':'NUMERIC','minValue':0,'maxValue':1}}
-                for name in ['answer_correctness_v1','answer_correctness_v2','citation_support_v1']]
+                for name in ['answer_correctness_v1','answer_correctness_v2','answer_correctness_codex_v1','citation_support_v1']]
         rows.append({'id': 'v3', 'name': 'millennium-answer_correctness_v3', 'version': 1,
                      'type': 'llm_as_judge', 'status': 'paused', 'pausedReason': 'LLM_CONNECTION_MISSING',
                      'pausedMessage': 'no LLM connection found for the provider used by this evaluator',
@@ -172,7 +172,7 @@ class WorkflowChecks(unittest.TestCase):
                  'prompt': [{'role':'user', 'content':'Judge {{answer}}'}], 'variables': ['answer'],
                  'modelConfig': {'model':'qwen3:8b', 'provider':'ollama-local'},
                  'outputDefinition': {'dataType':'NUMERIC','minValue':0,'maxValue':1}}
-                for name in ['answer_correctness_v1', 'answer_correctness_v2','citation_support_v1']]
+                for name in ['answer_correctness_v1', 'answer_correctness_v2','answer_correctness_codex_v1','citation_support_v1']]
         rows.append({'id': 'v3', 'name': 'millennium-answer_correctness_v3', 'version': 1,
                      'type': 'llm_as_judge', 'status': 'paused', 'pausedReason': 'LLM_CONNECTION_MISSING',
                      'prompt': [{'role':'user', 'content':'Judge {{answer}}'}], 'variables': ['answer'],

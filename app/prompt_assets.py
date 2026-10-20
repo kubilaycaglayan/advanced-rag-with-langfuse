@@ -113,7 +113,12 @@ def _evaluator_definitions() -> list[dict[str, Any]]:
     for spec in EVALUATOR_SPECS:
         name = f"millennium-{spec.name}"
         execution = JUDGE_MODELS.get(spec.name)
-        if execution is not None:
+        if execution is not None and execution[0] == "codex-cli":
+            provider = os.getenv("LANGFUSE_EVALUATOR_PROVIDER", "ollama-local")
+            spec_model = model
+            execution_text = (f"fresh Codex CLI session per question using {execution[1]}; "
+                              f"Langfuse registry model {spec_model} is a placeholder")
+        elif execution is not None:
             # The local runner executes this judge through opencode. Langfuse still needs an
             # active registry model, so the catalog keeps the project's local connection as a
             # placeholder; it is not the execution path.
@@ -171,13 +176,14 @@ def load_managed_evaluators() -> dict[str, dict[str, Any]]:
         # if that connection is removed, Langfuse pauses it with LLM_CONNECTION_MISSING, which is
         # still safe for the local runner. Every other paused evaluator (including an ollama judge
         # whose connection was removed) fails preflight because the runner could not execute it.
-        opencode_without_connection = (status == "paused"
-                                       and str(model.get("model", "")).startswith("opencode/")
-                                       and actual.get("pausedReason") == "LLM_CONNECTION_MISSING")
-        if status != "active" and not opencode_without_connection:
+        external_without_connection = (status == "paused"
+            and actual.get("pausedReason") == "LLM_CONNECTION_MISSING"
+            and (str(model.get("model", "")).startswith("opencode/")
+                 or (model.get("provider") == "codex-cli" and model.get("model") == "gpt-5.6-luna")))
+        if status != "active" and not external_without_connection:
             raise RuntimeError(f"managed evaluator {expected['name']!r} is not active: {actual.get('pausedMessage') or status}")
-        if opencode_without_connection:
-            logger.warning("managed evaluator %r is paused in Langfuse (%s); running it through OPENCODE_JUDGE_URL",
+        if external_without_connection:
+            logger.warning("managed evaluator %r is paused in Langfuse (%s); running it through its external executor",
                            expected["name"], actual.get("pausedMessage"))
         allowed_variables = {"question", "reference_answer", "answer", "evidence", "rubric", "required_facts", "supporting_details"}
         unknown = set(actual.get("variables", [])) - allowed_variables

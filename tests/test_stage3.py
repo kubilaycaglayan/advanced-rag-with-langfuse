@@ -18,8 +18,8 @@ from app.identity import pipeline_identity, question_label, question_session_id
 from app.resolved_config import ResolvedPipelineConfig
 from app.experiment_store import enqueue, get_execution, initialize, mark_interrupted, update_execution
 from app.seed_dataset import _seed_dataset
-from app.evaluation import FALLBACK_FACTS, _judge, _opencode_chat, answer_facts, fact_score
-from app.evaluator_specs import ANSWER_CORRECTNESS_V1, ANSWER_CORRECTNESS_V2, ANSWER_CORRECTNESS_V3
+from app.evaluation import FALLBACK_FACTS, _judge, _opencode_chat, _codex_chat, _langfuse_usage, answer_facts, fact_score
+from app.evaluator_specs import ANSWER_CORRECTNESS_V1, ANSWER_CORRECTNESS_V2, ANSWER_CORRECTNESS_V3, ANSWER_CORRECTNESS_CODEX_V1
 from app.indexer import index_identity
 from app.experiments import _flush_client, submit_retry
 from app.prompt_assets import load_prompt_bundle
@@ -225,6 +225,59 @@ class Stage3Checks(unittest.TestCase):
         self.assertEqual(result["score"], 1.0)
         self.assertEqual(opencode.call_args.args[1], "opencode/deepseek-v4.1-flash-free")
         self.assertEqual(opencode.call_args.args[2], "low")
+
+    def test_codex_judge_starts_a_fresh_ephemeral_session_and_records_tokens(self):
+        commands = []
+        def run(command, **kwargs):
+            commands.append(command)
+            Path(command[command.index("--output-last-message") + 1]).write_text(
+                '{"R1":{"quote":"answer","verdict":"present"},"explanation":"stated"}')
+            return SimpleNamespace(returncode=0, stderr="", stdout=json.dumps({
+                "type": "turn.completed", "usage": {"input_tokens": 100, "cached_input_tokens": 20,
+                                                 "output_tokens": 30}}))
+        schema = {"type": "object"}
+        with patch.dict(os.environ, {"CODEX_JUDGE_URL": ""}), \
+             patch("app.evaluation.subprocess.run", side_effect=run):
+            first = _codex_chat([{"role": "user", "content": "first"}], "gpt-5.6-luna", schema)
+            second = _codex_chat([{"role": "user", "content": "second"}], "gpt-5.6-luna", schema)
+        self.assertEqual(first[1], {"input_tokens": 100, "cached_input_tokens": 20, "output_tokens": 30})
+        self.assertEqual(second[1], first[1])
+        self.assertEqual(len(commands), 2)
+        self.assertNotEqual(commands[0][commands[0].index("--cd") + 1],
+                            commands[1][commands[1].index("--cd") + 1])
+        self.assertTrue(all("--ephemeral" in command and "--json" in command for command in commands))
+
+    def test_codex_score_carries_token_usage(self):
+        managed = SimpleNamespace(model="qwen3:8b", compile=lambda **variables: [{"role": "user", "content": "judge"}])
+        judged = '{"R1":{"quote":"answer","verdict":"present"},"explanation":"stated"}'
+        with patch("app.evaluation._codex_chat", return_value=(judged, {"input_tokens": 100,
+             "cached_input_tokens": 0, "output_tokens": 30})), \
+             patch("app.evaluation.observation", return_value=nullcontext(None)):
+            result = correctness(input={"question": "q"}, output={"answer": "answer"},
+                                 expected_output={"answer": "answer", "required_facts": ["answer"]},
+                                 spec=ANSWER_CORRECTNESS_CODEX_V1, managed_prompt=managed)
+        self.assertEqual(result["value"], 1.0)
+        self.assertEqual(result["metadata"]["evaluator_model"], "gpt-5.6-luna")
+        self.assertEqual(result["metadata"]["codex_usage"]["output_tokens"], 30)
+
+    def test_codex_model_generation_reports_exclusive_token_buckets(self):
+        generation = object()
+        seen = []
+        def observe(name, **kwargs):
+            seen.append((name, kwargs))
+            return nullcontext(generation if kwargs["as_type"] == "generation" else None)
+        judged = '{"R1":{"quote":"answer","verdict":"present"},"explanation":"stated"}'
+        with patch("app.evaluation._codex_chat", return_value=(judged, {"input_tokens": 100,
+             "cached_input_tokens": 20, "output_tokens": 30})), \
+             patch("app.evaluation.observation", side_effect=observe), \
+             patch("app.evaluation.update_observation") as update:
+            _judge(ANSWER_CORRECTNESS_CODEX_V1, question="q", answer="answer", facts=(["answer"], []))
+        self.assertEqual(seen[1][1]["as_type"], "generation")
+        self.assertEqual(seen[1][1]["model"], "gpt-5.6-luna")
+        update.assert_any_call(generation, output=judged,
+                               usage_details={"input": 80, "input_cached_tokens": 20, "output": 30})
+        with self.assertRaisesRegex(ValueError, "invalid token counts"):
+            _langfuse_usage({"input_tokens": 10, "cached_input_tokens": 11, "output_tokens": 1})
 
     def test_opencode_judge_error_is_retried_then_reported(self):
         managed = SimpleNamespace(model="qwen3:8b",

@@ -21,6 +21,7 @@ services:
     environment:
       QDRANT_URL: http://127.0.0.1:6334
       OLLAMA_URL: http://127.0.0.1:11434
+      CODEX_JUDGE_URL: http://127.0.0.1:4097
       LANGFUSE_BASE_URL: http://127.0.0.1:28420
       EXPERIMENT_DATA_DIR: /data
       FRONTEND_RATE_LIMIT_ENABLED: "true"

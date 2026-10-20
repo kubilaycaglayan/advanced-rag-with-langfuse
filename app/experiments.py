@@ -25,7 +25,7 @@ try:
     from .identity import (canonical_json, dataset_snapshot, evaluator_identity,
                            pipeline_identity, question_label, question_session_id, source_manifest)
     from .indexer import build_index, corpus_paths
-    from .evaluator_specs import CORRECTNESS_SPECS, DEFAULT_CORRECTNESS, evaluator_manifest
+    from .evaluator_specs import CORRECTNESS_SPECS, DEFAULT_CORRECTNESS, JUDGE_MODELS, evaluator_manifest
     from .observability import use_client
     from .pipeline import PROMPT_HASHES, run_pipeline
     from .prompt_assets import ManagedJudgePrompt, load_managed_evaluators, load_prompt_bundle, prompt_manifests
@@ -37,7 +37,7 @@ except ImportError:
     from identity import (canonical_json, dataset_snapshot, evaluator_identity,
                          pipeline_identity, question_label, question_session_id, source_manifest)
     from indexer import build_index, corpus_paths
-    from evaluator_specs import CORRECTNESS_SPECS, DEFAULT_CORRECTNESS, evaluator_manifest
+    from evaluator_specs import CORRECTNESS_SPECS, DEFAULT_CORRECTNESS, JUDGE_MODELS, evaluator_manifest
     from observability import use_client
     from pipeline import PROMPT_HASHES, run_pipeline
     from prompt_assets import ManagedJudgePrompt, load_managed_evaluators, load_prompt_bundle, prompt_manifests
@@ -107,7 +107,7 @@ def _evaluator_prompt_manifest(prompt_versions: dict[str, Any]) -> dict[str, Any
 
 
 def _fingerprints(config: ResolvedPipelineConfig, version: datetime, prompt_versions: dict[str, Any],
-                  managed_evaluators: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any], str]:
+                  managed_evaluators: dict[str, Any], correctness_name: str = DEFAULT_CORRECTNESS) -> tuple[dict[str, Any], dict[str, Any], str]:
     repo_root = Path(__file__).resolve().parents[1]
     sources = source_manifest(str(repo_root))
     corpus_files = corpus_paths()
@@ -131,6 +131,9 @@ def _fingerprints(config: ResolvedPipelineConfig, version: datetime, prompt_vers
         evaluator_model = resolve_ollama_model(evaluator_model_name, evaluator_endpoint).__dict__
     except Exception:
         evaluator_model = {"name": evaluator_model_name, "digest": None}
+    if correctness_name in JUDGE_MODELS:
+        executor, judge_model, _ = JUDGE_MODELS[correctness_name]
+        evaluator_model = {"name": judge_model, "digest": None, "executor": executor}
     evaluator_prompt = canonical_json({"specs": evaluator_manifest(), "managed": managed_evaluators,
                                        # Labels are aliases. The immutable prompt ID/version defines the
                                        # evaluator behavior, so moving the same version under another
@@ -269,7 +272,7 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
 
         index = build_index(config)
         collection = index["collection"]
-        pipeline_manifest, evaluator_manifest, corpus_checksum = _fingerprints(config, version, prompt_versions, managed_evaluators)
+        pipeline_manifest, evaluator_manifest, corpus_checksum = _fingerprints(config, version, prompt_versions, managed_evaluators, correctness_name)
         # Include the selected frozen snapshot and exact corpus content in each execution manifest.
         variant = re.sub(r"[^A-Za-z0-9._-]+", "-", payload.get("variant_label", "full")).strip("-")[:50] or "run"
         run_name = f"{variant}-{execution_id}"
@@ -356,6 +359,15 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
                                  "failed": failed})
         means = {name: (sum(values) / len(values) if values else None) for name, values in score_values.items()}
         summaries = {name: {"mean": means[name], "valid_count": len(values)} for name, values in score_values.items()}
+        codex_scores = [score for row in item_results for score in row["evaluations"]
+                        if score.get("name") == "answer_correctness_codex_v1"
+                        and isinstance((score.get("metadata") or {}).get("codex_usage"), dict)]
+        codex_usage = {key: sum(score["metadata"]["codex_usage"].get(key, 0) for score in codex_scores)
+                       for key in ("input_tokens", "cached_input_tokens", "output_tokens")}
+        codex_usage["question_count"] = len(codex_scores)
+        codex_usage["estimated_per_100_questions"] = {
+            key: round(value * 100 / len(codex_scores)) if codex_scores else None
+            for key, value in codex_usage.items() if key != "question_count"}
         telemetry_failures = []
         if not result.dataset_run_id:
             telemetry_failures.append("Langfuse did not return a dataset run ID")
@@ -374,7 +386,7 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
                           "dataset_id": dataset.id, "dataset_version": version.isoformat(), "dataset_snapshot_sha256": snapshot["sha256"],
                           "dataset_item_count": len(items), "completed_item_count": len(item_results), "failed_item_count": errors,
                           "evaluation_failure_count": sum(1 for row in item_results for score in row["evaluations"] if str(score.get("name", "")).endswith("_error")),
-                          "scores": summaries, "abstention_count": sum(1 for row in item_results
+                          "scores": summaries, "codex_usage": codex_usage, "abstention_count": sum(1 for row in item_results
                               if isinstance(row["output"], dict) and is_explicit_abstention(str(row["output"].get("answer", "")))),
                           "telemetry_failure_count": len(telemetry_failures), "telemetry_errors": telemetry_failures,
                           "pipeline_id": pipeline_manifest["pipeline_id"], "evaluator_id": evaluator_manifest["evaluator_id"],
