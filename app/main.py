@@ -9,9 +9,12 @@ import os
 import time
 import asyncio
 import contextvars
+import errno
+import fcntl
 import queue
 import threading
-from typing import Any
+from pathlib import Path
+from typing import Any, BinaryIO
 
 import requests
 from fastapi import FastAPI, Header, HTTPException, Request
@@ -48,6 +51,21 @@ except ImportError:
 
 app = FastAPI(title="Millennium RAG Experiment Runner", version="0.2.0")
 logger = logging.getLogger(__name__)
+
+
+def _reserve_ask_slot() -> BinaryIO:
+    """Allow one interactive question across workers sharing the data directory."""
+    path = Path(os.getenv("EXPERIMENT_DATA_DIR", "./data")) / "interactive-ask.lock"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    slot = path.open("a+b")
+    try:
+        fcntl.flock(slot.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError as exc:
+        slot.close()
+        if exc.errno in (errno.EACCES, errno.EAGAIN):
+            raise HTTPException(status_code=429, detail="A question is already in progress. Please try again later.") from exc
+        raise
+    return slot
 
 
 def _custom_payload(incoming: dict[str, Any]) -> dict[str, Any]:
@@ -294,13 +312,18 @@ def _run_ask(request: AskRequest, prepared: dict[str, Any], *, on_trace=None, on
 
 @app.post("/ask")
 def ask(request: AskRequest) -> dict[str, Any]:
-    prepared = _prepare_ask(request)
+    slot = _reserve_ask_slot()
     try:
+        prepared = _prepare_ask(request)
         return _run_ask(request, prepared)
+    except HTTPException:
+        raise
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
+    finally:
+        slot.close()
 
 
 @app.post("/ask/stream")
@@ -310,7 +333,12 @@ def ask_stream(request: AskRequest) -> StreamingResponse:
     The pipeline runs in its own thread, in a copy of this request's context, so its Langfuse trace is the one /ask
     records; it finishes and records its trace even if the client goes away.
     """
-    prepared = _prepare_ask(request)
+    slot = _reserve_ask_slot()
+    try:
+        prepared = _prepare_ask(request)
+    except BaseException:
+        slot.close()
+        raise
     events: queue.Queue = queue.Queue()
 
     def work() -> None:
@@ -322,9 +350,14 @@ def ask_stream(request: AskRequest) -> StreamingResponse:
         except Exception as exc:
             events.put({"type": "error", "status": 400 if isinstance(exc, ValueError) else 502, "detail": str(exc)})
         finally:
+            slot.close()
             events.put(None)
 
-    threading.Thread(target=contextvars.copy_context().run, args=(work,), daemon=True).start()
+    try:
+        threading.Thread(target=contextvars.copy_context().run, args=(work,), daemon=True).start()
+    except BaseException:
+        slot.close()
+        raise
 
     def lines():
         while (event := events.get()) is not None:
