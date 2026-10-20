@@ -459,8 +459,9 @@ def experiment_status(execution_id: str) -> dict[str, Any]:
             "evaluation_failure_count": result.get("evaluation_failure_count") if result else None,
             "telemetry_failure_count": result.get("telemetry_failure_count") if result else None,
             "pipeline_id": result.get("pipeline_id") if result else None,
-            "pipeline_version": result.get("pipeline_version") if result else payload.get("pipeline"),
-            "pipeline_derived": result.get("pipeline_derived") if result else bool(payload.get("settings")),
+            "pipeline_version": (result.get("pipeline_version") or payload.get("pipeline")) if result else payload.get("pipeline"),
+            "pipeline_derived": (result["pipeline_derived"] if "pipeline_derived" in result else bool(payload.get("settings")))
+                                 if result else bool(payload.get("settings")),
             "evaluator_id": result.get("evaluator_id") if result else None,
             "experiment_id": result.get("experiment_id") if result else None,
             "dataset_run_url": result.get("dataset_run_url") if result else None,

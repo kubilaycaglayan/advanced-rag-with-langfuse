@@ -9,7 +9,7 @@ from unittest.mock import patch
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
-from app.main import AskRequest, app, ask, ask_stream
+from app.main import AskRequest, app, ask, ask_stream, experiment_status
 from app.experiments import _fingerprints
 from app.pipeline_setup import current_pipeline_setup
 from app.resolved_config import ResolvedPipelineConfig
@@ -138,6 +138,16 @@ class InteractiveAskContract(TestCase):
 
 
 class VersionPayloadContract(TestCase):
+    def test_failed_execution_status_keeps_requested_version(self):
+        row = {"result_json": json.dumps({"status": "failed", "error": "prompt missing"}),
+               "payload_json": json.dumps({"pipeline": "v1", "settings": {"passage_chars": 600}}),
+               "status": "failed", "created_at": None, "updated_at": None,
+               "started_at": None, "finished_at": None, "error": "prompt missing"}
+        with patch("app.main.get_execution", return_value=row):
+            status = experiment_status("execution-1")
+        self.assertEqual(status["pipeline_version"], "v1")
+        self.assertTrue(status["pipeline_derived"])
+
     def test_ask_rejects_unknown_or_unused_settings_before_execution(self):
         slot = SimpleNamespace(close=lambda: None)
         with patch("app.main._reserve_ask_slot", return_value=slot):

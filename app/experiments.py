@@ -423,6 +423,8 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
             _flush_client(client)
             client_cleanup_attempted = True
         failure = {"execution_id": execution_id, "status": "failed", "error": f"{type(exc).__name__}: {exc}"}
+        if "resolved" in locals():
+            failure.update(resolved.version_fields)
         (execution_dir / "results.json").write_text(json.dumps(failure, ensure_ascii=False, sort_keys=True, indent=2), encoding="utf-8")
         update_execution(execution_id, status="failed", result=failure, error=failure["error"], finished=True)
         return failure
