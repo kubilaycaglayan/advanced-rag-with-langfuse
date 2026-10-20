@@ -38,8 +38,11 @@ can touch, shrink that to only what it should touch, then confirm on the full da
 
 ## Rounds
 
+The target-only milestone below is a retrieval diagnostic, not a full-dataset validation.
+
 | Date | Round | QA.csv correctness | Citation | Improved (answer correctness) | Regressed | Commit |
 |---|---|---|---|---|---|---|
+| 2026-10-20 | Salander fortune retrieval<br>(target-only diagnostic) | Target item: 1.0 in all 3 runs<br>(`answer_correctness_v2`; not a dataset mean) | Not scored | Read-passage expansion (query = question + anchor names/terms) returned direct fortune passage `8e30edbb` at rank 4, even with a new-name gate and query-aware reranking off. Removing the name gate enabled a generic-anchor search but did not find that passage; query-aware reranking showed no visible answer change. | Other questions not evaluated;<br>direct passage was retrieved but absent from final evidence IDs | — |
 | 2026-10-19 | Agentic retrieval is the default<br>`/ask` engine (`engine: "agent"`) | QA.csv 0.897;<br>Additional 0.628, set3 0.668,<br>right-set-3 0.835 | — | Q1/Q2, Harriet, Armageddon shirt,<br>Bjurman money; Langfuse dataset runs<br>for all four datasets | ≈25 s vs ≈18 s per question;<br>partial answers remain (5 QA items);<br>fixed engine kept as `engine: "fixed"` | this commit |
 | 2026-10-19 | Agentic tools experiment<br>(`qwen3.6:35b`, not promoted) | QA.csv 0.897<br>(35 items, simple fact judge)<br>Q1 3/3, Q2 4/4 | — | Q1 "How did Mikhail first know<br>about Salander?" (report she wrote,<br>given by Frode); QA: Harriet,<br>Armageddon shirt, Bjurman money | QA regressions: Bjurman demands<br>0.93 → 0.47, Martin 0.93 → 0.5;<br>5 residual failures | this commit |
 | 2026-10-19 | Judge: deepseek through<br>`opencode` (`answer_correctness_v3`,<br>optional, local-only) | saved QA.csv answers:<br>deepseek 0.677 (v2 rubric + tweak) | — | 14/14 disagreements with qwen v1:<br>deepseek right or very close | Q19 under-scored by ~0.2;<br>opencode free tier blocked this host's IP<br>during the live check | this commit |
