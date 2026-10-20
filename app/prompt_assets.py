@@ -92,6 +92,8 @@ def load_prompt_bundle(client: Langfuse, *, versions: dict[str, int] | None = No
         declared = prompt_version(prompt, chosen_label)
         if versions is not None and declared["version"] != versions[name]:
             raise RuntimeError(f"Langfuse prompt {name!r} returned version {declared['version']}, expected {versions[name]}")
+        if versions is not None:
+            declared["label"] = "version-pinned"
         if not declared["id"] or not isinstance(declared["version"], int):
             raise RuntimeError(f"Langfuse prompt {name!r} did not return an immutable ID and version")
         bundle[name] = {"client": prompt, "manifest": declared}
