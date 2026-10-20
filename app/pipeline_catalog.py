@@ -26,6 +26,8 @@ IDENTITY_KEYS = {"corpus_checksum", "prompt_hashes"}
 V2_SETTINGS = {"retrieval_mode", "hyde", "expansion_count", "name_completion", "scene_search_hits",
                "scene_window", "scene_stride", "passage_chars", "min_passage_chars", "passage_overlap",
                "generation", "parallel_transformations", "scene_thinking"}
+AGENT_KEYS = {"model", "tools", "max_turns", "max_tool_calls", "min_tool_calls", "timeout_seconds",
+              "context_length", "num_predict", "think", "snippet_chars", "instruction_fingerprint"}
 
 
 def fingerprint(block: dict[str, Any]) -> str:
@@ -39,7 +41,7 @@ class PipelineCatalog:
     releases: dict[str, str]
 
     def get(self, version: str | None = None) -> dict[str, Any]:
-        key = version or self.default
+        key = self.default if version is None else version
         if key not in self.versions:
             raise ValueError(f"unknown pipeline {key!r}")
         return self.versions[key]
@@ -92,6 +94,12 @@ def load_catalog(path: Path = CATALOG, releases_path: Path = RELEASES) -> Pipeli
                 set(step) <= {"name", "when", "parallel"} and ("name" in step or "parallel" in step)
                 for step in block["flow"]):
             raise ValueError(f"{version}: invalid flow")
+        if any(("name" in step and (not isinstance(step["name"], str) or not step["name"])) or
+               ("when" in step and not isinstance(step["when"], str)) or
+               ("parallel" in step and (not isinstance(step["parallel"], list) or
+                not all(isinstance(name, str) and name for name in step["parallel"])))
+               for step in block["flow"]):
+            raise ValueError(f"{version}: invalid flow stage")
         if not isinstance(block["settings"], dict) or not isinstance(block["prompts"], dict) or not isinstance(block["index"], dict) or not isinstance(block["models"], dict):
             raise ValueError(f"{version}: invalid settings/prompts/index/models")
         if set(block["index"]) != {"collection", "corpus_checksum"}:
@@ -106,7 +114,7 @@ def load_catalog(path: Path = CATALOG, releases_path: Path = RELEASES) -> Pipeli
             raise ValueError(f"{version}: agent must not pin managed RAG prompts")
         if block["engine"] == "fixed" and len(block["prompts"]) != 7:
             raise ValueError(f"{version}: fixed pipeline must pin all seven managed prompts")
-        if block["engine"] == "agent" and not isinstance(block["agent"], dict):
+        if block["engine"] == "agent" and (not isinstance(block["agent"], dict) or set(block["agent"]) != AGENT_KEYS):
             raise ValueError(f"{version}: agent settings required")
         if block["engine"] == "fixed" and block["agent"] is not None:
             raise ValueError(f"{version}: fixed flow cannot have agent settings")

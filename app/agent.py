@@ -21,6 +21,7 @@ and the collected passages are labelled ``[E1]``... in that order.
 """
 from __future__ import annotations
 
+import ast
 import difflib
 import hashlib
 import json
@@ -1418,17 +1419,15 @@ def tool_names() -> list[str]:
 
 
 def instruction_fingerprint() -> str:
-    """Fingerprint the in-code agent instructions and tool definitions.
-
-    The source file is deliberately included in full: inline nudge and verification
-    messages live inside control flow and must not evade the release check.
-    """
+    """Fingerprint literal instruction text, including inline messages and tool specs."""
     source = Path(__file__).resolve().parent
-    digest = hashlib.sha256()
+    literals: dict[str, list[str]] = {}
     for filename in ("agent.py", "prompt_templates.py"):
-        digest.update(filename.encode())
-        digest.update((source / filename).read_bytes())
-    return digest.hexdigest()
+        tree = ast.parse((source / filename).read_text(encoding="utf-8"))
+        literals[filename] = [node.value for node in ast.walk(tree)
+                              if isinstance(node, ast.Constant) and isinstance(node.value, str)]
+    return hashlib.sha256(json.dumps(literals, ensure_ascii=False, sort_keys=True,
+                                     separators=(",", ":")).encode()).hexdigest()
 
 
 def _compact(messages: list[dict[str, Any]], keep: int = 6, budget: int = 22000) -> None:

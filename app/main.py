@@ -212,6 +212,8 @@ def index(request: IndexRequest) -> dict[str, Any]:
             return build_index(config, explicit_rebuild=request.explicit_rebuild)
         if "config" in request.model_fields_set and "settings" in request.model_fields_set:
             raise ValueError("config and settings cannot both be present")
+        if "settings" in request.model_fields_set and not isinstance(request.settings, dict):
+            raise ValueError("settings must be an object")
         resolved = resolve(request.pipeline, request.settings if request.settings is not None else request.config)
         result = build_index(resolved.config, explicit_rebuild=request.explicit_rebuild)
         if result["collection"] != resolved.index["collection"]:
@@ -234,7 +236,7 @@ def _prepare_ask(request: AskRequest) -> dict[str, Any]:
             raise HTTPException(status_code=429, detail="Question limit reached. Please try again later.",
                                 headers={"Retry-After": str(retry_after)})
     try:
-        if request.settings is not None and not isinstance(request.settings, dict):
+        if "settings" in request.model_fields_set and not isinstance(request.settings, dict):
             raise ValueError("settings must be an object")
         values = dict(request.settings or {})
         for legacy, key in (("mode", "retrieval_mode"), ("candidate_count", "candidate_count"),
@@ -396,12 +398,16 @@ async def trigger_experiment(request: Request,
         dataset_name = os.getenv("DATASET_NAME", "QA.csv")
     if "prompt_label" in custom and (not isinstance(custom["prompt_label"], str) or not custom["prompt_label"].strip()):
         raise HTTPException(status_code=400, detail="prompt_label must be a non-empty string")
+    if "variant_label" in custom and (not isinstance(custom["variant_label"], str) or not custom["variant_label"].strip()):
+        raise HTTPException(status_code=400, detail="variant_label must be a non-empty string")
     if "correctness_evaluator" in custom and custom["correctness_evaluator"] not in CORRECTNESS_SPECS:
         raise HTTPException(status_code=400, detail=f"correctness_evaluator must be one of {', '.join(sorted(CORRECTNESS_SPECS))}")
     try:
         if "config" in custom and "settings" in custom:
             raise ValueError("config and settings cannot both be present")
         settings = custom.pop("config", custom.get("settings", {}))
+        if not isinstance(settings, dict):
+            raise ValueError("settings must be an object")
         resolved = resolve(custom.get("pipeline"), settings, prompt_label=custom.get("prompt_label"))
         custom["pipeline"] = resolved.version
         custom["settings"] = resolved.overrides

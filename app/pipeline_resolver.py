@@ -55,6 +55,8 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
             catalog: PipelineCatalog | None = None, engine: str | None = None,
             prompt_label: str | None = None, collection: str | None = None) -> ResolvedRun:
     catalog = catalog or load_catalog()
+    if pipeline is not None and (not isinstance(pipeline, str) or not pipeline):
+        raise ValueError("pipeline must be a non-empty version id")
     if pipeline is None and engine is not None:
         if engine not in {"fixed", "agent"}:
             raise ValueError("engine must be fixed or agent")

@@ -5,16 +5,19 @@ import ast
 import json
 import tempfile
 from contextlib import nullcontext
+from datetime import datetime, timezone
 from pathlib import Path
 from types import SimpleNamespace
 from unittest import TestCase
 from unittest.mock import patch
 
-from app.agent import instruction_fingerprint, tool_names
+from app.agent import AgentSettings, instruction_fingerprint, run_agent, tool_names
 from app.pipeline_catalog import CATALOG, RELEASES, fingerprint, load_catalog
 from app.pipeline_resolver import resolve
 from app.prompt_assets import PROMPT_CATALOG, load_prompt_bundle
 from app.pipeline import run_pipeline
+from app import experiments as experiments_module
+from app.experiment_store import enqueue, initialize
 
 
 class PipelineVersions(TestCase):
@@ -75,6 +78,25 @@ class PipelineVersions(TestCase):
         declared = {step["name"] for step in load_catalog().get("v2")["flow"]}
         self.assertTrue(declared <= spans, sorted(declared - spans))
 
+    def test_agent_prechecks_nudge_and_forced_answer_emit_spans(self):
+        spans = []
+        def observe(name, **kwargs):
+            spans.append(name)
+            return nullcontext(None)
+        with patch("app.agent.observation", side_effect=observe), \
+             patch("app.agent._normalize_question", side_effect=lambda state: (state.question, [])), \
+             patch("app.agent._connection_precheck", return_value=None), \
+             patch("app.agent._true_account_precheck", return_value=None), \
+             patch("app.agent._sequence_precheck", return_value=None), \
+             patch("app.agent._moment_precheck", return_value=None), \
+             patch("app.agent._ollama_chat", return_value={"message": {"content": "No passage found", "tool_calls": []}}):
+            result = run_agent("Who?", "fixture", resolve("v2").config,
+                               settings=AgentSettings(model="qwen3.6:35b", max_turns=1, min_tool_calls=0))
+        self.assertEqual(result["stopped"], "budget")
+        for name in ("connection pre-check", "true account pre-check", "sequence pre-check",
+                     "moment pre-check", "no tool nudge", "forced answer"):
+            self.assertIn(name, spans)
+
     def test_fixed_flow_emits_declared_stage_order(self):
         spans: list[str] = []
         point = SimpleNamespace(id="abcd1234-0000", score=0.9,
@@ -129,3 +151,39 @@ class PipelineVersions(TestCase):
                 "id": "id", "name": prompt.name, "version": prompt.version, "label": label}):
             bundle = load_prompt_bundle(Client(), versions=pins)
         self.assertEqual(set(bundle), set(PROMPT_CATALOG))
+
+    def test_dataset_execution_dispatches_v2_and_records_version(self):
+        item = SimpleNamespace(id="item-1", input={"question": "Who?"}, expected_output={"answer": "A"}, metadata={})
+        dataset = SimpleNamespace(id="dataset-1", name="QA.csv", items=[item])
+        manifest = {"pipeline_id": "pipeline-v2-12345678", "pipeline_version": "v2", "pipeline_derived": False}
+        evaluators = {name: {"id": name, "name": name, "version": 1,
+                             "model_config": {"model": "qwen3:8b"}, "prompt": []}
+                      for name in ("answer_correctness_v2", "citation_support_v1")}
+
+        class Client:
+            def flush(self):
+                pass
+            def run_experiment(self, **kwargs):
+                output = kwargs["task"](item=item)
+                return SimpleNamespace(dataset_run_id="run-1", dataset_run_url="https://example.test/run",
+                                       experiment_id="experiment-1", item_results=[SimpleNamespace(
+                                           item=item, trace_id="trace-1", output=output, evaluations=[])])
+
+        with tempfile.TemporaryDirectory() as directory, patch.dict("os.environ", {"EXPERIMENT_DATA_DIR": directory}):
+            initialize()
+            enqueue("execution-v2", {"dataset_name": "QA.csv", "pipeline": "v2", "settings": {}}, None)
+            with patch.object(experiments_module, "_client", return_value=Client()), \
+                 patch.object(experiments_module, "_dataset_for", return_value=(dataset, datetime(2026, 10, 20, tzinfo=timezone.utc))), \
+                 patch.object(experiments_module, "load_managed_evaluators", return_value=evaluators), \
+                 patch.object(experiments_module, "build_index", return_value={"collection": resolve("v2").index["collection"]}), \
+                 patch.object(experiments_module, "_fingerprints", return_value=(manifest, {"evaluator_id": "eval-1"}, "checksum")), \
+                 patch.object(experiments_module, "_flush_client", return_value={"completed": True, "error": None}), \
+                 patch.object(experiments_module, "_verify_trace_upload", return_value=None), \
+                 patch.object(experiments_module, "propagate_attributes", return_value=nullcontext()), \
+                 patch.object(experiments_module, "run_resolved_pipeline", return_value={"answer": "A", "citations": [], "evidence": ""}) as runner:
+                result = experiments_module.execute_execution("execution-v2")
+            recorded = json.loads((Path(directory) / "executions" / "execution-v2" / "manifest.json").read_text())
+        self.assertEqual(result["status"], "completed", result)
+        self.assertEqual(result["pipeline_version"], "v2")
+        self.assertFalse(recorded["pipeline"]["pipeline_derived"])
+        self.assertEqual(runner.call_args.args[1].engine, "agent")

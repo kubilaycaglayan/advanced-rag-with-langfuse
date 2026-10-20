@@ -160,3 +160,21 @@ class VersionPayloadContract(TestCase):
                 with self.subTest(payload=payload):
                     response = client.post("/experiments/run", json={"customPayload": payload}, headers=headers)
                     self.assertEqual(response.status_code, 400, response.text)
+
+    def test_langfuse_remote_payload_selects_v2_before_queueing(self):
+        dataset = SimpleNamespace(id="dataset-1", project_id="project-1")
+        project = SimpleNamespace(id="project-1", name="millenium")
+        fake = SimpleNamespace(get_dataset=lambda name: dataset,
+                               api=SimpleNamespace(projects=SimpleNamespace(get=lambda: SimpleNamespace(data=[project]))))
+        row = {"execution_id": "execution-1", "status": "queued"}
+        with patch.dict("os.environ", {"EXPERIMENT_TRIGGER_TOKEN": "test-token"}), \
+             patch("app.main.Langfuse", return_value=fake), \
+             patch("app.main.submit", return_value=(row, True)) as submit:
+            response = TestClient(app).post("/experiments/run", json={"datasetName": "QA.csv",
+                "customPayload": json.dumps({"pipeline": "v2"})},
+                headers={"X-Experiment-Trigger-Token": "test-token"})
+        self.assertEqual(response.status_code, 202, response.text)
+        payload = submit.call_args.args[0]
+        self.assertEqual(payload["pipeline"], "v2")
+        self.assertEqual(payload["settings"], {})
+        self.assertEqual(payload["variant_label"], "v2")

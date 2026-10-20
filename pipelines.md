@@ -16,7 +16,7 @@ Recorded pre-agent QA baseline flow.
   "flow": [
     {
       "name": "query translation",
-      "when": "English word share below english_word_share"
+      "when": "query_translation enabled, non-baseline mode, and English share below english_word_share"
     },
     {
       "name": "HyDE transformation"
@@ -29,7 +29,7 @@ Recorded pre-agent QA baseline flow.
     },
     {
       "name": "name completion",
-      "when": "bare name matches corpus"
+      "when": "name_completion enabled; a matching bare name changes the query"
     },
     {
       "name": "candidate retrieval"
@@ -39,31 +39,31 @@ Recorded pre-agent QA baseline flow.
     },
     {
       "name": "cross encoder reranking",
-      "when": "include wider pool when score margin admits it"
+      "when": "always; wider-pool hits are admitted only by score margin"
     },
     {
       "name": "keyword search",
-      "when": "keyword_margin and keyword_hits enable it"
+      "when": "keyword_hits enabled, admission threshold set, and non-baseline mode"
     },
     {
       "name": "scene context search",
-      "when": "scene_context enabled and context found"
+      "when": "scene_context enabled, scene_margin set, and non-baseline mode"
     },
     {
       "name": "entity names",
-      "when": "entity_names enabled"
+      "when": "entity_names enabled and non-baseline mode"
     },
     {
       "name": "entity matrix",
-      "when": "entity_matrix enabled"
+      "when": "entity_matrix enabled, non-baseline mode, and no entity-name hit"
     },
     {
       "name": "scene search",
-      "when": "scene_margin enabled"
+      "when": "scene_margin set, non-baseline mode, and confidence is sufficient"
     },
     {
       "name": "moment scene search",
-      "when": "scene_moment enabled and scene search finds moments"
+      "when": "scene_moment enabled and scene search returned no hits"
     },
     {
       "name": "evidence formatting"
@@ -179,51 +179,51 @@ Current agent flow used by the web UI.
   "flow": [
     {
       "name": "connection pre-check",
-      "when": "question or loop condition triggers this step"
+      "when": "always checks the question; gathers facts for a connection cue"
     },
     {
       "name": "true account pre-check",
-      "when": "question or loop condition triggers this step"
+      "when": "always checks the question; gathers facts for a death or crime cue"
     },
     {
       "name": "sequence pre-check",
-      "when": "question or loop condition triggers this step"
+      "when": "always checks the question; gathers sequence facts for a place event"
     },
     {
       "name": "moment pre-check",
-      "when": "question or loop condition triggers this step"
+      "when": "always checks the question; gathers moment facts for a detail cue"
     },
     {
       "name": "minimum tool nudge",
-      "when": "question or loop condition triggers this step"
-    },
-    {
-      "name": "no tool nudge",
-      "when": "question or loop condition triggers this step"
+      "when": "reply has no tool calls and tool count is below minimum"
     },
     {
       "name": "coverage check",
-      "when": "question or loop condition triggers this step"
+      "when": "reply has no tool calls and evidence exists"
     },
     {
       "name": "submission verification",
-      "when": "question or loop condition triggers this step"
+      "when": "cited or submitted answer has passage ids and fewer than two verifications ran"
+    },
+    {
+      "name": "no tool nudge",
+      "when": "reply has no usable citation ids and fewer than two nudges ran"
     },
     {
       "name": "name check message",
-      "when": "question or loop condition triggers this step"
+      "when": "find_names returns a likely spelling not yet resolved"
     },
     {
       "name": "forced answer",
-      "when": "question or loop condition triggers this step"
-    },
-    {
-      "name": "abstention synthesis",
-      "when": "question or loop condition triggers this step"
+      "when": "timeout, turn budget, or tool budget is reached"
     },
     {
       "name": "coverage rewrite",
-      "when": "question or loop condition triggers this step"
+      "when": "sequence answer lacks confrontation or three sequence stages"
+    },
+    {
+      "name": "abstention synthesis",
+      "when": "answer lacks citations, abstains, or has no passage ids while evidence exists"
     }
   ],
   "agent": {
@@ -251,7 +251,7 @@ Current agent flow used by the web UI.
     "num_predict": 1600,
     "think": false,
     "snippet_chars": 300,
-    "instruction_fingerprint": "0b495e4a66f5a8825c27a064f954e938cf3400c4c086e5c2eeeebf463a95a0b8"
+    "instruction_fingerprint": "e114bc0e9958ce609c6bdc9706eb46cbd00f54f4025a7b7acc77353dba42831d"
   },
   "settings": {
     "retrieval_mode": "full",
