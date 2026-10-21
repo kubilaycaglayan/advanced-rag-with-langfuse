@@ -7,3 +7,4 @@ EbookLib==0.20
 qdrant-client==1.15.1
 sentence-transformers==5.1.2
 PyYAML==6.0.3
+redis>=5.0,<7.0

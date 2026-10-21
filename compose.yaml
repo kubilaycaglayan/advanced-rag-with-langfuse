@@ -1,4 +1,13 @@
 services:
+  redis:
+    image: redis:8.2.10-alpine
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6379:6379"
+    command: ["redis-server", "--appendonly", "yes", "--appendfsync", "everysec"]
+    volumes:
+      - redis_cache_data:/data
+
   qdrant:
     image: qdrant/qdrant:v1.15.1
     restart: unless-stopped
@@ -24,6 +33,7 @@ services:
       CODEX_JUDGE_URL: http://127.0.0.1:4097
       LANGFUSE_BASE_URL: http://127.0.0.1:28420
       EXPERIMENT_DATA_DIR: /data
+      ANSWER_CACHE_REDIS_URL: redis://127.0.0.1:6379/0
       FRONTEND_RATE_LIMIT_ENABLED: "true"
       CORPUS_ID: millennium
       CORPUS_ROOT: /corpora/millennium
@@ -69,5 +79,6 @@ services:
         max-file: "3"
 
 volumes:
+  redis_cache_data:
   qdrant_data:
   model_cache:

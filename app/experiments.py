@@ -19,6 +19,7 @@ from langfuse import Langfuse, propagate_attributes
 from opentelemetry import trace as otel_trace_api
 
 try:
+    from . import answer_cache
     from .corpus_config import corpus_config, corpus_data_dir, corpus_id, langfuse_project, langfuse_dataset_name
     from .corpus_profiles import profile_identity, prompt_identity
     from .evaluation import citation_support, correctness, is_explicit_abstention
@@ -36,6 +37,7 @@ try:
     from .pipeline_catalog import load_catalog
     from .pipeline_runner import run as run_resolved_pipeline
 except ImportError:
+    import answer_cache
     from corpus_config import corpus_config, corpus_data_dir, corpus_id, langfuse_project, langfuse_dataset_name
     from corpus_profiles import profile_identity, prompt_identity
     from evaluation import citation_support, correctness, is_explicit_abstention
@@ -64,6 +66,28 @@ def _item_question(item: Any) -> Any:
 
 def _item_session(dataset_name: str, item: Any) -> str:
     return question_session_id(dataset_name, item.id, item.metadata, _item_question(item))
+
+
+def _answer_cache_identity(question: str, resolved: ResolvedRun, collection: str) -> dict[str, Any]:
+    return answer_cache.identity(
+        project_id=langfuse_project(), corpus_id=resolved.corpus_id,
+        pipeline_version=resolved.version, pipeline_fingerprint=resolved.fingerprint,
+        pipeline_id=resolved.pipeline_id, corpus_checksum=resolved.corpus_checksum,
+        profile_id=resolved.profile_id, profile_identity=resolved.profile_identity,
+        prompt_identity=resolved.prompt_identity, collection=collection, question=str(question),
+        config=resolved.config.manifest(),
+        agent_settings=(resolved.agent_settings.__dict__ if resolved.agent_settings else None))
+
+
+def _cached_output_with_timing(payload: dict[str, Any], source_trace_id: str | None,
+                               lookup_seconds: float) -> dict[str, Any]:
+    elapsed = round(lookup_seconds, 4)
+    output = dict(payload)
+    output.update({"answer_cache_status": "hit", "cache_hit": True,
+                   "cache_source_trace_id": source_trace_id,
+                   "cache_latency_seconds": elapsed, "latency_seconds": elapsed,
+                   "timings": {"answer_cache_lookup_seconds": elapsed}})
+    return output
 
 
 class ExperimentLangfuse(Langfuse):
@@ -267,6 +291,11 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
     client: Langfuse | None = None
     client_cleanup_attempted = False
     try:
+        cache_mode = payload.get("cache_mode", "bypass")
+        if cache_mode not in {"use", "bypass", "refresh"}:
+            raise ValueError("cache_mode must be use, bypass, or refresh")
+        cache_layers = answer_cache.normalize_layers(payload.get("cache_layers"))
+        cache_enabled = cache_mode != "bypass" and "answer" in cache_layers
         resolved = resolve(payload.get("pipeline"), payload.get("settings"), prompt_label=payload.get("prompt_label"))
         config = resolved.config
         client = _client()
@@ -309,20 +338,41 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
                     "prompts": prompt_versions,
                     "index": index, "config": config.manifest(), "run_name": run_name,
                     "selected_item_ids": [item.id for item in items],
+                    "answer_cache": {"mode": cache_mode, "layers": list(cache_layers)},
                     "retry_of_execution_id": payload.get("retry_of_execution_id")}
         manifest_path = execution_dir / "manifest.json"
         manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, sort_keys=True, indent=2), encoding="utf-8")
 
+        cache_scopes: dict[str, dict[str, Any]] = {}
+        cache_statuses: dict[str, str] = {}
+
         def task(*, item: Any, **kwargs: Any) -> dict[str, Any]:
             question = _item_question(item)
             session = _item_session(dataset.name, item)
+            cache_scope = _answer_cache_identity(str(question), resolved, collection) if cache_enabled else None
+            if cache_scope is not None:
+                cache_scopes[item.id] = cache_scope
+            cached_output, cache_status, cache_source = None, "bypassed", None
+            if cache_scope is not None and cache_mode == "use":
+                cache_lookup_started = time.perf_counter()
+                cached_output, cache_status, cache_source = answer_cache.lookup(cache_scope)
+                cache_lookup_seconds = time.perf_counter() - cache_lookup_started
+            elif cache_scope is not None:
+                cache_status = "refreshed"
+                cache_lookup_seconds = 0.0
+            else:
+                cache_lookup_seconds = 0.0
+            cache_statuses[item.id] = "hit" if cached_output is not None else cache_status
             try:
                 with use_client(client):
                     trace_metadata = {"execution_id": execution_id, "dataset_id": dataset.id,
                             "dataset_version": version.isoformat(), "dataset_item_id": item.id,
                             "pipeline_id": pipeline_manifest["pipeline_id"],
                             "pipeline_version": resolved.version, "pipeline_derived": resolved.derived,
-                            "evaluator_id": evaluator_manifest["evaluator_id"], "experiment_run": run_name}
+                            "evaluator_id": evaluator_manifest["evaluator_id"], "experiment_run": run_name,
+                            "answer_cache_status": cache_statuses[item.id]}
+                    if cache_source:
+                        trace_metadata["answer_cache_source_trace_id"] = cache_source
                     if resolved.agent_settings:
                         trace_metadata["agent_provider"] = resolved.agent_settings.provider
                         trace_metadata["agent_model"] = resolved.agent_settings.model
@@ -335,7 +385,12 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
                                            for name, asset in managed_evaluators.items()})
                     with propagate_attributes(session_id=session, metadata=trace_metadata,
                                               tags=[f"pipeline:{resolved.pipeline_id}"]):
-                        return run_resolved_pipeline(str(question), resolved, collection, prompt_bundle)
+                        if cached_output is not None:
+                            return _cached_output_with_timing(cached_output, cache_source,
+                                                              cache_lookup_seconds)
+                        output = run_resolved_pipeline(str(question), resolved, collection, prompt_bundle)
+                        output["answer_cache_status"] = cache_status
+                        return output
             except Exception as exc:
                 return {"error": f"{type(exc).__name__}: {exc}", "answer": "", "citations": [],
                         "candidates": [], "reranked": [], "evidence": ""}
@@ -344,7 +399,8 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
                       "pipeline_version": resolved.version, "pipeline_derived": resolved.derived,
                       "evaluator_id": evaluator_manifest["evaluator_id"], "dataset_version": version.isoformat(),
                       "variant_label": variant, "snapshot_sha256": snapshot["sha256"],
-                      "correctness_evaluator": correctness_name}
+                      "correctness_evaluator": correctness_name,
+                      "answer_cache_mode": cache_mode, "answer_cache_layers": list(cache_layers)}
         if resolved.agent_settings:
             experiment_metadata["agent_provider"] = resolved.agent_settings.provider
             experiment_metadata["agent_model"] = resolved.agent_settings.model
@@ -392,16 +448,31 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
             failed = not isinstance(out, dict) or bool(out.get("error"))
             errors += int(failed)
             scores = []
+            correctness_score = None
             for score in item_result.evaluations:
                 score_data = _jsonable(score)
                 scores.append(score_data)
                 name = _get(score, "name")
                 value = _get(score, "value")
+                if name == correctness_name and isinstance(value, (float, int)) and not isinstance(value, bool):
+                    correctness_score = float(value)
                 if name in score_values and isinstance(value, (float, int)) and not isinstance(value, bool):
                     score_values[name].append(float(value))
+            cache_write = False
+            scope = cache_scopes.get(item_result.item.id)
+            if (cache_enabled and scope is not None and isinstance(out, dict)
+                    and correctness_score is not None and correctness_score > 0.95):
+                cache_write = answer_cache.store_approved(
+                    scope, out, trace_id=item_result.trace_id, approval_source="correctness",
+                    correctness_score=correctness_score)
+            if isinstance(out, dict):
+                out["answer_cache_status"] = cache_statuses.get(item_result.item.id, "bypassed")
+                out["answer_cache_approved"] = cache_write
+            cache_statuses[item_result.item.id] = "approved" if cache_write else cache_statuses.get(item_result.item.id, "bypassed")
             item_results.append({"item_id": item_result.item.id, "session_id": _item_session(dataset.name, item_result.item),
                                  "trace_id": item_result.trace_id, "output": _jsonable(out), "evaluations": scores,
-                                 "failed": failed})
+                                 "failed": failed, "answer_cache_status": cache_statuses[item_result.item.id],
+                                 "correctness_score": correctness_score})
         means = {name: (sum(values) / len(values) if values else None) for name, values in score_values.items()}
         summaries = {name: {"mean": means[name], "valid_count": len(values)} for name, values in score_values.items()}
         agent_usage_rows = [row["output"].get("agent_usage") for row in item_results
@@ -532,6 +603,10 @@ def cli() -> int:
     parser.add_argument("--variant", default=None)
     parser.add_argument("--prompt-label", default=None)
     parser.add_argument("--pipeline", default=None)
+    parser.add_argument("--cache-mode", choices=("use", "bypass", "refresh"), default="bypass",
+                        help="answer-cache mode; experiments bypass by default")
+    parser.add_argument("--cache-layer", action="append", dest="cache_layers", choices=("answer",),
+                        help="cache layer to use; repeatable, defaults to all supported layers")
     settings_group = parser.add_mutually_exclusive_group()
     settings_group.add_argument("--settings", type=Path, help="JSON settings overrides file")
     settings_group.add_argument("--config", type=Path, help="alias for --settings")
@@ -545,6 +620,7 @@ def cli() -> int:
                "pipeline": selected_pipeline, "variant_label": args.variant or selected_pipeline,
                "settings": json.loads(settings_file.read_text()) if settings_file else {},
                "item_ids": args.item_ids, "prompt_label": args.prompt_label,
+               "cache_mode": args.cache_mode, "cache_layers": args.cache_layers,
                "correctness_evaluator": args.correctness_evaluator}
     initialize()
     row, _ = enqueue(str(uuid.uuid4()), payload, None)

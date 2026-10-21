@@ -10,7 +10,7 @@ from unittest.mock import Mock, patch
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
-from app.main import AskRequest, app, ask, ask_stream, experiment_status
+from app.main import AskRequest, app, ask, ask_stream, experiment_status, _run_ask
 from app.experiments import _fingerprints
 from app.pipeline_setup import current_pipeline_setup
 from app.resolved_config import ResolvedPipelineConfig
@@ -29,6 +29,7 @@ class InteractiveAskContract(TestCase):
                                        "LANGFUSE_SECRET_KEY": "sk-test", "EXPERIMENT_DATA_DIR": directory}), \
              patch("app.main._prepare_ask", return_value=prepared), \
              patch("app.main.run_resolved_pipeline", return_value={"answer": "A", "citations": []}), \
+             patch("app.main.langfuse_enabled", return_value=False), \
              patch("app.main.get_client") as get_client:
             result = ask(AskRequest(question="Who?"))
         self.assertIsNone(result["trace_id"])
@@ -83,8 +84,8 @@ class InteractiveAskContract(TestCase):
                                                                     "pipeline_version": "v1", "pipeline_derived": False}), \
              patch.dict("os.environ", {"FRONTEND_RATE_LIMIT_ENABLED": "true"}), \
              patch("app.main.reserve_request") as reserve:
-            result = ask(AskRequest(question="Who?", engine="fixed", source="frontend", session_id="ui-127-0-0-1", user_id="interactive-ui-browser", client_ip="127.0.0.1"))
-            ask(AskRequest(question="Who?", engine="fixed", source="api", client_ip="192.0.2.12"))
+            result = ask(AskRequest(question="Who?", engine="fixed", source="frontend", session_id="ui-127-0-0-1", user_id="interactive-ui-browser", client_ip="127.0.0.1", cache_mode="bypass"))
+            ask(AskRequest(question="Who?", engine="fixed", source="api", client_ip="192.0.2.12", cache_mode="bypass"))
             reserve.assert_not_called()
 
         self.assertEqual(result["trace_id"], "a" * 32)
@@ -116,12 +117,12 @@ class InteractiveAskContract(TestCase):
         client = SimpleNamespace(get_current_trace_id=lambda: "a" * 32)
         with patch("app.main._prepare_ask", return_value=prepared), \
              patch("app.main.trace_scope", return_value=nullcontext()), \
-             patch("app.main.langfuse_enabled", return_value=True), \
+            patch("app.main.langfuse_enabled", return_value=True), \
              patch("app.main.observation", return_value=nullcontext(None)), \
              patch("app.main.update_observation"), \
              patch("app.main.get_client", return_value=client), \
              patch("app.pipeline_runner.run_agent", return_value=agent_result) as agent:
-            result = ask(AskRequest(question="Who?"))
+            result = ask(AskRequest(question="Who?", cache_mode="bypass"))
         self.assertEqual(result["engine"], "agent")
         self.assertEqual(result["mode"], "agent")
         self.assertEqual(result["citations"], ["[E1]"])
@@ -130,6 +131,52 @@ class InteractiveAskContract(TestCase):
         self.assertEqual(result["pipeline_id"], "pipeline-v2-12345678")
         self.assertEqual(result["pipeline_version"], "v2")
         agent.assert_called_once()
+
+    def test_cache_feedback_route_records_owner_scoped_rating(self):
+        with patch("app.main.answer_cache.record_feedback", return_value="promoted") as record:
+            response = TestClient(app).post("/cache/feedback", json={
+                "trace_id": "a" * 32, "owner_id": "interactive-ui-browser", "helpful": True})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"saved": True, "cache_status": "promoted"})
+        record.assert_called_once_with(trace_id="a" * 32, owner_id="interactive-ui-browser", helpful=True)
+
+    def test_cache_hit_uses_fresh_trace_and_streams_cached_answer(self):
+        trace_metadata = []
+
+        @contextmanager
+        def trace_scope(**kwargs):
+            trace_metadata.append(kwargs)
+            yield
+
+        resolved = SimpleNamespace(
+            version="v2.7", derived=False, fingerprint="fingerprint", pipeline_id="pipeline-v2.7",
+            corpus_id="millennium", corpus_checksum="checksum", profile_id="millennium",
+            profile_identity="profile", prompt_identity="prompt", version_fields={},
+            agent_settings=None, config=ResolvedPipelineConfig())
+        prepared = {"config": resolved.config, "collection": "collection", "bundle": {},
+                    "prompts": {}, "pipeline_id": resolved.pipeline_id, "resolved": resolved}
+        client = SimpleNamespace(get_current_trace_id=lambda: "b" * 32)
+        cached = {"question": "Who?", "answer": "Cached answer [E1]", "citations": ["[E1]"]}
+        tokens, statuses = [], []
+        with patch("app.main.trace_scope", side_effect=trace_scope), \
+             patch("app.main.observation", return_value=nullcontext(None)), \
+             patch("app.main.update_observation"), \
+             patch("app.main.langfuse_enabled", return_value=True), \
+             patch("app.main.get_client", return_value=client), \
+             patch("app.main.answer_cache.lookup", return_value=(cached, "hit", "a" * 32)), \
+             patch("app.main.answer_cache.mark_served") as mark_served, \
+             patch("app.main.run_resolved_pipeline") as run_pipeline:
+            result = _run_ask(AskRequest(question="Who?", user_id="browser-a"), prepared,
+                              on_token=tokens.append, on_status=statuses.append)
+
+        self.assertEqual(result["trace_id"], "b" * 32)
+        self.assertEqual(result["cache_source_trace_id"], "a" * 32)
+        self.assertEqual(result["answer_cache_status"], "hit")
+        self.assertEqual(tokens, ["Cached answer [E1]"])
+        self.assertEqual(statuses, ["answering"])
+        self.assertEqual(trace_metadata[0]["metadata"]["answer_cache_source_trace_id"], "a" * 32)
+        mark_served.assert_called_once()
+        run_pipeline.assert_not_called()
 
     def test_stream_emits_trace_status_tokens_and_the_same_done_result(self):
         prepared = {"config": ResolvedPipelineConfig(), "collection": "collection", "bundle": {}, "prompts": {}, "pipeline_id": "pipeline-123"}

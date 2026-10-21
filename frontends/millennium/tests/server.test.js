@@ -19,6 +19,7 @@ before(async () => {
       trace_id: traceId, pipeline_id: 'pipeline-123', latency_seconds: 3.4 }), { status: 200 })
     if (url.includes('/v2/observations?')) return new Response(JSON.stringify({ data: [{ isRootObservation: true, name: 'rag ask', sessionId: 'ui-127-0-0-1', userId: sessionId, environment: 'interactive-ui' }] }), { status: 200 })
     if (url.endsWith('/scores')) return new Response(JSON.stringify({ id: 'score-1' }), { status: 200 })
+    if (url.endsWith('/cache/feedback')) return new Response(JSON.stringify({ saved: true }), { status: 200 })
     return new Response('{}', { status: 404 })
   } })
   await new Promise(resolve => { server = app.listen(0, resolve) })
@@ -231,6 +232,8 @@ test('links helpfulness feedback to an owned trace in the UI environment', async
     assert.equal(sent.value, 0)
     assert.equal(sent.dataType, 'BOOLEAN')
     assert.equal(sent.environment, 'interactive-ui')
+    const cacheUpdate = calls.findLast(call => call.url.endsWith('/cache/feedback'))
+    assert.deepEqual(JSON.parse(cacheUpdate.options.body), { trace_id: traceId, owner_id: sessionId, helpful: false })
   } finally {
     delete process.env.LANGFUSE_PUBLIC_KEY
     delete process.env.LANGFUSE_SECRET_KEY

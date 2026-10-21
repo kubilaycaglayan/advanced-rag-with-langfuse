@@ -25,6 +25,7 @@ from pydantic import BaseModel, Field, IPvAnyAddress
 from qdrant_client import QdrantClient
 
 try:
+    from . import answer_cache
     from .corpus_config import corpus_config, corpus_data_dir, langfuse_project, langfuse_dataset_name
     from .corpus_profiles import langfuse_enabled
     from .agent import AgentSettings, run_agent
@@ -42,6 +43,7 @@ try:
     from .pipeline_runner import run as run_resolved_pipeline
     from .resolved_config import ResolvedPipelineConfig, resolve_pipeline_model_identities
 except ImportError:
+    import answer_cache
     from corpus_config import corpus_config, corpus_data_dir, langfuse_project, langfuse_dataset_name
     from corpus_profiles import langfuse_enabled
     from agent import AgentSettings, run_agent
@@ -106,6 +108,8 @@ class AskRequest(BaseModel):
     source: str = Field(default="api", pattern="^(api|frontend)$")
     client_ip: IPvAnyAddress | None = None
     production: bool = False
+    cache_mode: str = Field(default="use", pattern="^(use|bypass|refresh)$")
+    cache_layers: list[str] | None = None
 
 
 class IndexRequest(BaseModel):
@@ -113,6 +117,12 @@ class IndexRequest(BaseModel):
     pipeline: str | None = None
     settings: Any = None
     explicit_rebuild: bool = False
+
+
+class CacheFeedbackRequest(BaseModel):
+    trace_id: str = Field(pattern="^[0-9a-f]{32}$")
+    owner_id: str = Field(min_length=1, max_length=200)
+    helpful: bool
 
 
 @app.on_event("startup")
@@ -243,6 +253,7 @@ def _prepare_ask(request: AskRequest) -> dict[str, Any]:
     try:
         if "settings" in request.model_fields_set and not isinstance(request.settings, dict):
             raise ValueError("settings must be an object")
+        answer_cache.normalize_layers(request.cache_layers)
         values = dict(request.settings or {})
         for legacy, key in (("mode", "retrieval_mode"), ("candidate_count", "candidate_count"),
                             ("top_k", "top_k"), ("passage_chars", "passage_chars")):
@@ -275,14 +286,40 @@ def _prepare_ask(request: AskRequest) -> dict[str, Any]:
             "pipeline_id": resolved.pipeline_id, "resolved": resolved}
 
 
+def _answer_cache_identity(question: str, prepared: dict[str, Any]) -> dict[str, Any]:
+    resolved = prepared["resolved"]
+    return answer_cache.identity(
+        project_id=langfuse_project(), corpus_id=resolved.corpus_id,
+        pipeline_version=resolved.version, pipeline_fingerprint=resolved.fingerprint,
+        pipeline_id=resolved.pipeline_id, corpus_checksum=resolved.corpus_checksum,
+        profile_id=resolved.profile_id, profile_identity=resolved.profile_identity,
+        prompt_identity=resolved.prompt_identity, collection=prepared["collection"],
+        question=question, config=resolved.config.manifest(),
+        agent_settings=(resolved.agent_settings.__dict__ if resolved.agent_settings else None))
+
+
 def _run_ask(request: AskRequest, prepared: dict[str, Any], *, on_trace=None, on_token=None, on_status=None) -> dict[str, Any]:
     """Answer one question inside its Langfuse trace (the same trace whether or not the answer is streamed)."""
     pipeline_id, prompts = prepared["pipeline_id"], prepared["prompts"]
     session_id = request.session_id or "interactive-" + hashlib.sha256(" ".join(request.question.casefold().split()).encode()).hexdigest()[:24]
     environment = "interactive-ui" if request.source == "frontend" else "default"
+    cache_layers = answer_cache.normalize_layers(request.cache_layers)
+    cache_enabled = ("answer" in cache_layers and request.cache_mode != "bypass"
+                     and langfuse_enabled())
+    cache_scope = _answer_cache_identity(request.question, prepared) if cache_enabled else None
+    cache_started = time.perf_counter()
+    cached_result, cache_status, cache_source_trace_id = None, "bypassed", None
+    if cache_enabled and request.cache_mode == "use":
+        cached_result, cache_status, cache_source_trace_id = answer_cache.lookup(cache_scope)
+    elif cache_enabled:
+        cache_status = "refreshed"
+    cache_lookup_seconds = time.perf_counter() - cache_started
     trace_metadata = {"pipeline_id": pipeline_id, "pipeline_version": prepared["resolved"].version,
                       "pipeline_derived": prepared["resolved"].derived,
-                      "collection": prepared["collection"], "source": request.source}
+                      "collection": prepared["collection"], "source": request.source,
+                      "answer_cache_status": "hit" if cached_result is not None else cache_status}
+    if cache_source_trace_id:
+        trace_metadata["answer_cache_source_trace_id"] = cache_source_trace_id
     trace_metadata.update({key: prepared["resolved"].version_fields[key]
                            for key in ("corpus_id", "corpus_checksum", "profile_id", "profile_identity", "prompt_identity")
                            if key in prepared["resolved"].version_fields})
@@ -303,15 +340,43 @@ def _run_ask(request: AskRequest, prepared: dict[str, Any], *, on_trace=None, on
             trace_id = get_client().get_current_trace_id() if langfuse_enabled() else None
         except Exception:
             trace_id = None
+        if cached_result is not None and trace_id is None:
+            cached_result = None
+            cache_status = "unavailable"
         if on_trace:
             on_trace(trace_id)
+        if cached_result is not None:
+            result = dict(cached_result)
+            result.update({"question": request.question, "trace_id": trace_id, "session_id": session_id,
+                           "pipeline_id": pipeline_id, "answer_cache_status": "hit", "cache_hit": True,
+                           "cache_source_trace_id": cache_source_trace_id,
+                           "cache_latency_seconds": round(cache_lookup_seconds, 4),
+                           "latency_seconds": round(cache_lookup_seconds, 4),
+                           "timings": {"answer_cache_lookup_seconds": round(cache_lookup_seconds, 4)}})
+            answer_cache.mark_served(trace_id=trace_id, scope=cache_scope,
+                                     owner_id=request.user_id, source_trace_id=cache_source_trace_id)
+            if on_status:
+                on_status("answering")
+            if on_token:
+                on_token(result.get("answer", ""))
+            update_observation(obs, output={"answer": result.get("answer"), "citations": result.get("citations"),
+                                            "answer_cache_status": "hit",
+                                            "answer_cache_source_trace_id": cache_source_trace_id})
+            return result
         result = run_resolved_pipeline(request.question, prepared["resolved"], prepared["collection"],
                                        prepared["bundle"], on_token=on_token, on_status=on_status)
         result["prompts"] = prompts
         result["session_id"] = session_id
         result["trace_id"] = trace_id
         result["pipeline_id"] = pipeline_id
-        update_observation(obs, output={"answer": result.get("answer"), "citations": result.get("citations")})
+        result["answer_cache_status"] = cache_status
+        if cache_enabled and cache_status in {"miss", "refreshed"}:
+            held = answer_cache.stage_candidate(cache_scope, result, trace_id=trace_id, owner_id=request.user_id)
+            result["cache_candidate_held"] = held
+            if trace_id and request.user_id and not held:
+                result["answer_cache_status"] = "unavailable"
+        update_observation(obs, output={"answer": result.get("answer"), "citations": result.get("citations"),
+                                        "answer_cache_status": result.get("answer_cache_status")})
         return result
 
 
@@ -329,6 +394,19 @@ def ask(request: AskRequest) -> dict[str, Any]:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
     finally:
         slot.close()
+
+
+@app.post("/cache/feedback")
+def cache_feedback(request: CacheFeedbackRequest) -> dict[str, Any]:
+    try:
+        status = answer_cache.record_feedback(trace_id=request.trace_id, owner_id=request.owner_id,
+                                              helpful=request.helpful)
+        return {"saved": True, "cache_status": status}
+    except PermissionError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
+    except Exception as exc:
+        logger.warning("Answer cache feedback update failed: %s", exc)
+        return {"saved": True, "cache_status": "unavailable"}
 
 
 @app.post("/ask/stream")
@@ -415,7 +493,8 @@ async def trigger_experiment(request: Request,
     dataset_id = incoming.get("datasetId", incoming.get("dataset_id"))
     dataset_name = dataset_name or custom.pop("dataset_name", None)
     dataset_id = dataset_id or custom.pop("dataset_id", None)
-    allowed = {"variant_label", "pipeline", "settings", "config", "dataset_version", "item_ids", "prompt_label", "correctness_evaluator"}
+    allowed = {"variant_label", "pipeline", "settings", "config", "dataset_version", "item_ids", "prompt_label",
+               "correctness_evaluator", "cache_mode", "cache_layers"}
     unknown = set(custom) - allowed
     if unknown:
         raise HTTPException(status_code=400, detail=f"unsupported trigger fields: {', '.join(sorted(unknown))}")
@@ -429,6 +508,12 @@ async def trigger_experiment(request: Request,
         raise HTTPException(status_code=400, detail="variant_label must be a non-empty string")
     if "correctness_evaluator" in custom and custom["correctness_evaluator"] not in CORRECTNESS_SPECS:
         raise HTTPException(status_code=400, detail=f"correctness_evaluator must be one of {', '.join(sorted(CORRECTNESS_SPECS))}")
+    if custom.get("cache_mode", "bypass") not in {"use", "bypass", "refresh"}:
+        raise HTTPException(status_code=400, detail="cache_mode must be use, bypass, or refresh")
+    try:
+        answer_cache.normalize_layers(custom.get("cache_layers"))
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     try:
         if "config" in custom and "settings" in custom:
             raise ValueError("config and settings cannot both be present")

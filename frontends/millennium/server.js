@@ -195,6 +195,12 @@ export function createApp({ fetcher = fetch, production = process.env.NODE_ENV =
         signal: AbortSignal.timeout(15_000),
       })
       if (!scoreResponse.ok) throw new Error(`Score submission failed: ${scoreResponse.status}`)
+      const cacheResponse = await fetcher(`${ragUrl}/cache/feedback`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ trace_id: traceId, owner_id: sessionId, helpful: req.body.helpful }),
+        signal: AbortSignal.timeout(15_000),
+      })
+      if (!cacheResponse.ok) throw new Error(`Answer cache feedback update failed: ${cacheResponse.status}`)
       res.json({ saved: true })
     } catch {
       res.status(502).json({ error: 'Feedback could not be saved to Langfuse. Please try again.' })
