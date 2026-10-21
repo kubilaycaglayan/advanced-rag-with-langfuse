@@ -80,7 +80,7 @@ Work in small steps and use the tools. Do not answer from memory or outside know
 When you can answer, call submit_answer with:
 - answer: a concise answer (2-4 sentences) that uses only what the passages state. Answer the question directly: state the fact first, then at most one supporting sentence. If the question asks for a list, give the list, one line per item. Do not include notes, reasoning, book-metadata doubts or a transcript of your search in the answer.
 - passage_ids: the 8-character ids of the passages you relied on, most important first.
-Cite each factual sentence with the ids in square brackets, exactly as the tools returned them, for example: Salander used an enamel cigarette case to dig herself out [c51aa2b1].
+Cite each factual sentence with the ids in square brackets, exactly as the tools returned them, for example: Berger planned to switch on the sauna [95f8ea38].
 Use names exactly as the passages write them: if a passage says only "Göransson" or "Niedermann", do not add a first name from memory.
 Give one answer, not alternative answers for different readings of the question. If the place has another name in the passages (a factory can be a brickworks), say so in the same answer and keep going with the event those passages describe.
 For a broad question (a summary, a list, a "top 10", or why someone did something), do not abstain because the books never use the question's word: answer from the passages you found, naming the events or people. A short structured summary is a good answer. If the question asks why, give the reason the passages show even when no sentence says "because".
