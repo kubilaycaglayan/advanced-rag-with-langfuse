@@ -50,14 +50,15 @@ def _fact_ids(facts: tuple[list[str], list[str]]) -> list[str]:
     return [f"R{n}" for n in range(1, len(facts[0]) + 1)] + [f"D{n}" for n in range(1, len(facts[1]) + 1)]
 
 
-def _fact_schema(facts: tuple[list[str], list[str]]) -> dict[str, Any]:
+def _fact_schema(facts: tuple[list[str], list[str]], n_acceptable_answers: int = 0) -> dict[str, Any]:
     # A JSON schema makes Ollama return a verdict for every fact ID; free-form JSON
     # dropped or relabelled verdicts in trials.
     fact = {"type": "object", "properties": {"quote": {"type": "string"}, "verdict": {"type": "string", "enum": list(FACT_POINTS)}},
             "required": ["quote", "verdict"]}
     ids = _fact_ids(facts)
-    return {"type": "object", "properties": {**{fact_id: fact for fact_id in ids}, "explanation": {"type": "string"}},
-            "required": ids + ["explanation"]}
+    alternative_ids = [f"A{n}" for n in range(1, n_acceptable_answers + 1)]
+    return {"type": "object", "properties": {**{fact_id: fact for fact_id in ids + alternative_ids}, "explanation": {"type": "string"}},
+            "required": ids + alternative_ids + ["explanation"]}
 
 
 _SCORE_SCHEMA = {"type": "object", "properties": {"score": {"type": ["number", "null"]}, "explanation": {"type": "string"}},
@@ -146,13 +147,15 @@ def _codex_chat(messages: list[dict[str, str]], model: str, schema: dict[str, An
         return output_path.read_text(encoding="utf-8"), tokens
 
 
-def fact_score(verdicts: dict[str, Any], n_required: int, n_details: int) -> float:
-    """Required facts carry 90% of the score and supporting details 10% (all of it without details)."""
+def fact_score(verdicts: dict[str, Any], n_required: int, n_details: int,
+               alternative_ids: list[str] | None = None) -> float:
+    """Required facts carry 90%, details 10%; an approved answer alternative is an additive route."""
     points = lambda fact_id: FACT_POINTS[str(verdicts[fact_id]["verdict"]).lower()]
     score = sum(points(f"R{n}") for n in range(1, n_required + 1)) / n_required
     if n_details:
         score = 0.9 * score + 0.1 * sum(points(f"D{n}") for n in range(1, n_details + 1)) / n_details
-    return round(score, 4)
+    alternative_score = max((points(fact_id) for fact_id in alternative_ids or []), default=0.0)
+    return round(max(score, alternative_score), 4)
 
 
 def _langfuse_usage(usage: dict[str, Any]) -> dict[str, int]:
@@ -169,12 +172,18 @@ def _langfuse_usage(usage: dict[str, Any]) -> dict[str, int]:
 def _judge(spec: Any, *, question: str, answer: str, expected: str | None = None, evidence: str = "",
            evaluator_id: str | None = None, langfuse_client: Any = None, managed_prompt: Any = None,
            evaluator_version: int | None = None, managed_evaluator_id: str | None = None,
-           facts: tuple[list[str], list[str]] | None = None) -> dict[str, Any]:
+           facts: tuple[list[str], list[str]] | None = None,
+           acceptable_answer_variants: list[str] | None = None) -> dict[str, Any]:
+    acceptable_answer_variants = acceptable_answer_variants or []
     values = {"question": question, "reference_answer": expected or "", "answer": answer,
               "evidence": evidence, "rubric": spec.rubric}
     if facts is not None:
         values["required_facts"] = "\n".join(f"R{n}. {fact}" for n, fact in enumerate(facts[0], 1))
-        values["supporting_details"] = "\n".join(f"D{n}. {fact}" for n, fact in enumerate(facts[1], 1)) or "(none)"
+        supporting = "\n".join(f"D{n}. {fact}" for n, fact in enumerate(facts[1], 1)) or "(none)"
+        alternatives = "\n\n".join(
+            f"A{n}. {variant}" for n, variant in enumerate(acceptable_answer_variants, 1)
+        ) or "(none; use only the required facts and supporting details)"
+        values["supporting_details"] = f"{supporting}\n\nApproved answer alternatives (independent paths):\n{alternatives}"
     prompt = managed_prompt.compile(**values) if managed_prompt is not None else spec.prompt_template.format(**values)
     execution = JUDGE_MODELS.get(spec.name)
     model = (execution[1] if execution is not None else
@@ -199,15 +208,15 @@ def _judge(spec: Any, *, question: str, answer: str, expected: str | None = None
                                      input=messages, metadata={"executor": "codex-cli",
                                         "managed_evaluator_id": managed_evaluator_id}) as generation:
                         raw, usage = _codex_chat(messages, execution[1],
-                                          _fact_schema(facts) if facts is not None else _SCORE_SCHEMA)
+                                          _fact_schema(facts, len(acceptable_answer_variants)) if facts is not None else _SCORE_SCHEMA)
                         update_observation(generation, output=raw, usage_details=_langfuse_usage(usage))
                 elif execution is not None:
                     _, opencode_model, variant = execution
                     raw = _opencode_chat(messages, opencode_model, variant,
-                                         _fact_schema(facts) if facts is not None else _SCORE_SCHEMA)
+                                         _fact_schema(facts, len(acceptable_answer_variants)) if facts is not None else _SCORE_SCHEMA)
                 else:
                     response = requests.post(f"{url}/api/chat", json={"model": model, "messages": messages,
-                        "think": False, "stream":False,"format": _fact_schema(facts) if facts is not None else "json",
+                        "think": False, "stream":False,"format": _fact_schema(facts, len(acceptable_answer_variants)) if facts is not None else "json",
                         "options":{"temperature":0}}, timeout=(10, 300))
                     response.raise_for_status()
                     raw = response.json().get("message", {}).get("content", "")
@@ -217,8 +226,9 @@ def _judge(spec: Any, *, question: str, answer: str, expected: str | None = None
                     explanation = str(data.get("explanation", "")).strip()
                     if not explanation:
                         raise ValueError("judge JSON must have an explanation")
-                    verdicts = {fact_id: data[fact_id] for fact_id in _fact_ids(facts)}
-                    return {"score": fact_score(verdicts, len(facts[0]), len(facts[1])), "explanation": explanation,
+                    alternative_ids = [f"A{n}" for n in range(1, len(acceptable_answer_variants) + 1)]
+                    verdicts = {fact_id: data[fact_id] for fact_id in _fact_ids(facts) + alternative_ids}
+                    return {"score": fact_score(verdicts, len(facts[0]), len(facts[1]), alternative_ids), "explanation": explanation,
                             "verdicts": verdicts, "latency_seconds": round(time.perf_counter() - started, 4),
                             "usage": usage}
                 score = data.get("score")
@@ -242,13 +252,18 @@ def correctness(*, input: Any, output: Any, expected_output: Any = None, spec: A
     answer = output.get("answer", "") if isinstance(output, dict) else str(output)
     question = input.get("question", "") if isinstance(input, dict) else str(input)
     expected = expected_output.get("answer", "") if isinstance(expected_output, dict) else expected_output
+    acceptable_answer_variants = (expected_output.get("accepted_answer_variants", [])
+                                  if isinstance(expected_output, dict) else [])
+    if not isinstance(acceptable_answer_variants, list) or not all(isinstance(value, str) for value in acceptable_answer_variants):
+        acceptable_answer_variants = []
     try:
         evaluator_id = kwargs.get("evaluator_id")
         result = _judge(spec, question=question, answer=answer, expected=str(expected or ""),
                         evaluator_id=evaluator_id, langfuse_client=kwargs.get("langfuse_client"),
                         managed_prompt=kwargs.get("managed_prompt"), evaluator_version=kwargs.get("evaluator_version"),
                         managed_evaluator_id=kwargs.get("managed_evaluator_id"),
-                        facts=answer_facts(expected_output) if spec in FACT_SPECS else None)
+                        facts=answer_facts(expected_output) if spec in FACT_SPECS else None,
+                        acceptable_answer_variants=acceptable_answer_variants if spec in FACT_SPECS else None)
     except Exception as exc:
         return {"name": f"{spec.name}_error", "value": "error", "comment": str(exc), "data_type": "CATEGORICAL",
                 "metadata": {"evaluator_id": kwargs.get("evaluator_id"), "managed_evaluator_id": kwargs.get("managed_evaluator_id"),

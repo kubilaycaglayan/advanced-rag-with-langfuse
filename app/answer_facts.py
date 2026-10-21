@@ -29,6 +29,11 @@ def plan(client: Langfuse, facts: dict[str, Any]) -> list[dict[str, Any]]:
             expected = dict(item.expected_output or {})
             updated = {**expected, "required_facts": item_facts["required_facts"],
                        "supporting_details": item_facts["supporting_details"], "facts_version": facts["version"]}
+            variants = item_facts.get("accepted_answer_variants")
+            if variants:
+                updated["accepted_answer_variants"] = variants
+            else:
+                updated.pop("accepted_answer_variants", None)
             if updated != expected:
                 changes.append({"dataset_name": dataset_name, "id": item_id, "input": item.input,
                                 "expected_output": updated, "metadata": item.metadata})

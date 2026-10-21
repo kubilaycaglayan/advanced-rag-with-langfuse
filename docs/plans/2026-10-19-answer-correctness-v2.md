@@ -49,6 +49,17 @@ Two causes: the rubric never says that extra claims are fine, and the three-step
 - To revise facts, edit `datasets/answer-facts.json`, bump its `version` and run `app/answer_facts.py --apply`. Each
   upload is a new dataset version, and items record `facts_version`.
 
+### Version 3: additive human-approved answer alternatives (2026-10-21)
+
+- The canonical required facts and supporting details remain in place. Eight responses with human score 1 also have
+  an `accepted_answer_variants` entry. The judge evaluates each entry as an independent alternative path; the final
+  score is the maximum of the original fact score and each alternative verdict. An item without variants keeps the
+  original scoring path.
+- The fact judge prompt and scorer contract are versioned together. Dataset version 2 (including the stricter Zala /
+  Salander name-connection fact) remains available; version 3 is the new default after upload.
+- A rollback uses the prior dataset version and the prior managed evaluator version. Existing experiment results
+  stay tied to the versions they used.
+
 ## Trial (offline re-scoring of saved answers)
 
 The latest saved run of each dataset was re-scored with three prototype prompts, with no new pipeline runs (scripts and
