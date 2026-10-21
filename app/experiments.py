@@ -293,7 +293,10 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
     client: Langfuse | None = None
     client_cleanup_attempted = False
     try:
-        cache_mode = payload.get("cache_mode", "bypass")
+        # Experiments always compute answers, but refresh reusable intermediate
+        # results and correctness-approved answers by default. Explicit bypass
+        # remains available for fully isolated runs.
+        cache_mode = payload.get("cache_mode", "refresh")
         if cache_mode not in {"use", "bypass", "refresh"}:
             raise ValueError("cache_mode must be use, bypass, or refresh")
         cache_layers = answer_cache.normalize_layers(payload.get("cache_layers"))
@@ -613,8 +616,8 @@ def cli() -> int:
     parser.add_argument("--variant", default=None)
     parser.add_argument("--prompt-label", default=None)
     parser.add_argument("--pipeline", default=None)
-    parser.add_argument("--cache-mode", choices=("use", "bypass", "refresh"), default="bypass",
-                        help="answer-cache mode; experiments bypass by default")
+    parser.add_argument("--cache-mode", choices=("use", "bypass", "refresh"), default="refresh",
+                        help="cache mode; experiments refresh by default without reading cached answers")
     parser.add_argument("--cache-layer", action="append", dest="cache_layers", choices=sorted(answer_cache.LAYERS),
                         help="cache layer to use; repeatable, defaults to all supported layers")
     settings_group = parser.add_mutually_exclusive_group()

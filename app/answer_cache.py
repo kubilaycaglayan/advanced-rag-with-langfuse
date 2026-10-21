@@ -72,7 +72,11 @@ def identity(*, project_id: str, corpus_id: str, pipeline_version: str,
         "agent_settings": agent_settings,
         "question": question,
     }
-    return {**dimensions, "cache_key": hashlib.sha256(canonical_json(dimensions).encode("utf-8")).hexdigest()}
+    # Keep the submitted spelling for traceability and scoped cache clearing, but
+    # make answer reuse insensitive to capitalization.
+    key_dimensions = {**dimensions, "question": str(question).casefold()}
+    return {**dimensions, "cache_key": hashlib.sha256(
+        canonical_json(key_dimensions).encode("utf-8")).hexdigest()}
 
 
 def _scope_prefix(scope: dict[str, Any]) -> str:
@@ -86,13 +90,40 @@ def _answer_key(scope: dict[str, Any]) -> str:
     return f"{_scope_prefix(scope)}:answer/{scope['cache_key']}"
 
 
+def _same_identity_ignoring_question_case(candidate: dict[str, Any], scope: dict[str, Any]) -> bool:
+    def normalized(value: dict[str, Any]) -> dict[str, Any]:
+        dimensions = {key: item for key, item in value.items() if key != "cache_key"}
+        dimensions["question"] = str(dimensions.get("question", "")).casefold()
+        return dimensions
+
+    return canonical_json(normalized(candidate)) == canonical_json(normalized(scope))
+
+
 def _answer_payload(payload: dict[str, Any]) -> dict[str, Any]:
     return {key: value for key, value in payload.items() if key in ANSWER_FIELDS}
 
 
 def lookup(scope: dict[str, Any]) -> tuple[dict[str, Any] | None, str, str | None]:
     try:
-        encoded = _redis_client().get(_answer_key(scope))
+        client = _redis_client()
+        key = _answer_key(scope)
+        encoded = client.get(key)
+        if encoded is None:
+            # Existing entries were keyed with the original question casing.
+            # Find a compatible legacy entry once, then copy it to the new key.
+            prefix = _scope_prefix(scope)
+            for legacy_key in client.scan_iter(match=f"{prefix}:answer/*", count=200):
+                legacy_encoded = client.get(legacy_key)
+                try:
+                    legacy_record = json.loads(legacy_encoded or "{}")
+                except (TypeError, ValueError):
+                    continue
+                legacy_scope = legacy_record.get("scope")
+                if (legacy_key != key and isinstance(legacy_scope, dict)
+                        and _same_identity_ignoring_question_case(legacy_scope, scope)):
+                    encoded = legacy_encoded
+                    client.set(key, encoded)
+                    break
         if encoded is None:
             return None, "miss", None
         record = json.loads(encoded)
@@ -189,7 +220,7 @@ def _matches(scope: dict[str, Any], project_id: str, corpus_id: str,
              pipeline_version: str | None, question: str | None) -> bool:
     return (scope.get("project_id") == project_id and scope.get("corpus_id") == corpus_id
             and (pipeline_version is None or scope.get("pipeline_version") == pipeline_version)
-            and (question is None or scope.get("question") == question))
+            and (question is None or str(scope.get("question", "")).casefold() == str(question).casefold()))
 
 
 def _scan(match: str) -> list[str]:
@@ -216,7 +247,7 @@ def clear(*, project_id: str | None, selected_corpus_id: str | None,
         try:
             record = json.loads(client.get(key) or "{}")
             scope = record.get("scope") or {}
-            if question is None or scope.get("question") == question:
+            if question is None or str(scope.get("question", "")).casefold() == str(question).casefold():
                 keys_to_delete.add(key)
         except (TypeError, ValueError):
             keys_to_delete.add(key)
