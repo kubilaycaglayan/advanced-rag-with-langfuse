@@ -20,6 +20,9 @@ from typing import Any
 
 from langfuse import propagate_attributes
 
+from app.corpus_config import corpus_data_dir
+from app.corpus_config import corpus_config
+
 from app.agent import AgentSettings, run_agent
 from app.evaluation import correctness
 from app.experiments import ExperimentLangfuse, _dataset_for, _item_session, _jsonable
@@ -31,7 +34,7 @@ from app.resolved_config import ResolvedPipelineConfig, resolve_pipeline_model_i
 from app.evaluator_specs import ANSWER_CORRECTNESS_V2
 
 
-DATASETS = ("QA.csv", "Additional Questions", "set3", "right-set-3")
+DATASETS = tuple(corpus_config().question_sets)
 
 
 def _identity(config: ResolvedPipelineConfig, collection: str, agent_model: str,
@@ -169,7 +172,7 @@ def run_dataset(dataset_name: str) -> dict[str, Any]:
         "answer_correctness_v2_count": len(scores),
         "items": traces,
     }
-    out_dir = Path(os.getenv("EXPERIMENT_DATA_DIR", "./data")) / "agentic-experiments"
+    out_dir = corpus_data_dir() / "agentic-experiments"
     out_dir.mkdir(parents=True, exist_ok=True)
     out_path = out_dir / f"{slug}-{run_id}.json"
     out_path.write_text(json.dumps(artifact, ensure_ascii=False, indent=2), encoding="utf-8")

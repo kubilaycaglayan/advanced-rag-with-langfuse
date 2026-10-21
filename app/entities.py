@@ -23,11 +23,15 @@ import requests
 from qdrant_client import QdrantClient
 
 try:
+    from .corpus_config import corpus_dir_path, corpus_file_path
+    from .corpus_profiles import profile_prompt
     from .identity import canonical_json
     from .prompt_templates import PROMPT_TEMPLATES
     from .resolved_config import ResolvedPipelineConfig
     from .scenes import passages_in_order, scene_windows, summary_model
 except ImportError:
+    from corpus_config import corpus_dir_path, corpus_file_path
+    from corpus_profiles import profile_prompt
     from identity import canonical_json
     from prompt_templates import PROMPT_TEMPLATES
     from resolved_config import ResolvedPipelineConfig
@@ -37,11 +41,11 @@ ENTITY_WINDOW = 6
 
 
 def _cache_path() -> Path:
-    return Path(os.getenv("ENTITY_CACHE", "/data/entities.jsonl"))
+    return corpus_file_path("ENTITY_CACHE", "entities.jsonl")
 
 
 def _prompt_hash() -> str:
-    return hashlib.sha256(PROMPT_TEMPLATES["entity_extraction_system"].encode("utf-8")).hexdigest()
+    return hashlib.sha256(profile_prompt("entity_extraction_system", PROMPT_TEMPLATES["entity_extraction_system"]).encode("utf-8")).hexdigest()
 
 
 def _window_key(members: list[str], config: ResolvedPipelineConfig) -> str:
@@ -51,7 +55,7 @@ def _window_key(members: list[str], config: ResolvedPipelineConfig) -> str:
 def entity_cards_path(collection: str, config: ResolvedPipelineConfig) -> Path:
     identity = {"passages": collection, "window": ENTITY_WINDOW, "prompt": _prompt_hash(), "model": summary_model(config),
                 "merge": hashlib.sha256(inspect.getsource(merge_entities).encode("utf-8")).hexdigest()}
-    directory = Path(os.getenv("ENTITY_CARDS_DIR", "/data/entity-cards"))
+    directory = corpus_dir_path("ENTITY_CARDS_DIR", "entity-cards")
     return directory / f"{collection}_entities_{hashlib.sha256(canonical_json(identity).encode()).hexdigest()[:12]}.json"
 
 
@@ -59,7 +63,7 @@ def _extract(points: list[Any], config: ResolvedPipelineConfig) -> tuple[list[di
     body = "\n".join(point.payload["text"] for point in points)
     response = requests.post(os.getenv("OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/") + "/api/chat", json={
         "model": summary_model(config), "think": False, "stream": False, "format": "json",
-        "messages": [{"role": "system", "content": PROMPT_TEMPLATES["entity_extraction_system"]},
+        "messages": [{"role": "system", "content": profile_prompt("entity_extraction_system", PROMPT_TEMPLATES["entity_extraction_system"])},
                      {"role": "user", "content": f"Book: {points[0].payload['book']}\n\nEXCERPT:\n{body}"}],
         "options": {"temperature": 0, "num_ctx": 6144, "num_predict": 1500}}, timeout=(10, 900))
     response.raise_for_status()
@@ -120,17 +124,17 @@ EVENT_CARRY_CHARS = 4000
 
 
 def _events_cache_path() -> Path:
-    return Path(os.getenv("ENTITY_EVENTS_CACHE", "/data/entity-events.jsonl"))
+    return corpus_file_path("ENTITY_EVENTS_CACHE", "entity-events.jsonl")
 
 
 def _events_prompt_hash() -> str:
-    return hashlib.sha256(PROMPT_TEMPLATES["entity_events_system"].encode("utf-8")).hexdigest()
+    return hashlib.sha256(profile_prompt("entity_events_system", PROMPT_TEMPLATES["entity_events_system"]).encode("utf-8")).hexdigest()
 
 
 def entity_events_path(collection: str, config: ResolvedPipelineConfig) -> Path:
     identity = {"passages": collection, "window": ENTITY_WINDOW, "carry": EVENT_CARRY_CHARS, "prompt": _events_prompt_hash(),
                 "model": summary_model(config)}
-    directory = Path(os.getenv("ENTITY_CARDS_DIR", "/data/entity-cards"))
+    directory = corpus_dir_path("ENTITY_CARDS_DIR", "entity-cards")
     return directory / f"{collection}_events_{hashlib.sha256(canonical_json(identity).encode()).hexdigest()[:12]}.json"
 
 
@@ -138,7 +142,7 @@ def _extract_events(points: list[Any], before: str, config: ResolvedPipelineConf
     body = "\n".join(point.payload["text"] for point in points)
     response = requests.post(os.getenv("OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/") + "/api/chat", json={
         "model": summary_model(config), "think": False, "stream": False, "format": "json",
-        "messages": [{"role": "system", "content": PROMPT_TEMPLATES["entity_events_system"]},
+        "messages": [{"role": "system", "content": profile_prompt("entity_events_system", PROMPT_TEMPLATES["entity_events_system"])},
                      {"role": "user", "content": f"Book: {points[0].payload['book']}\n\nTEXT BEFORE (only for who is who):\n{before}\n\nEXCERPT:\n{body}"}],
         "options": {"temperature": 0, "num_ctx": 8192, "num_predict": 1500}}, timeout=(10, 900))
     response.raise_for_status()

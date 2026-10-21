@@ -1,0 +1,22 @@
+id: millennium
+title: Millennium
+language: en
+profile: millennium
+books: books
+question_sets:
+  QA.csv:
+    path: QA.csv
+    langfuse_dataset: QA.csv
+  Additional Questions:
+    langfuse_dataset: Additional Questions
+  set3:
+    langfuse_dataset: set3
+  right-set-3:
+    langfuse_dataset: right-set-3
+answer_facts: answer-facts.json
+langfuse:
+  enabled: true
+  project: millenium
+  default_dataset: QA.csv
+  evaluator_prefix: millennium
+  prompt_label: production

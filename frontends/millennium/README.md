@@ -11,15 +11,15 @@ Copy `example.env` to `.env`, fill in the Langfuse project keys, and make sure t
 
 The build sets `STATIC_SPA=true`, which turns the UI into a static single-page app in `ui/dist/client`; the Express server serves those files and every `/api` route. Without it, the UI builds for Lovable's own hosting.
 
-To update the UI, commit inside `ui/`, push it to the UI repository, then commit the new submodule pointer here (`git add frontend/ui`).
+To update the UI, commit inside `ui/`, push it to the UI repository, then commit the new submodule pointer here (`git add frontends/millennium/ui`).
 
-The server reads `frontend/.env` when present. `RAG_API_URL` is the server-side API address; `LANGFUSE_BASE_URL` is the server-side Langfuse address; `LANGFUSE_UI_URL` is the browser-reachable Langfuse address.
+The server reads `frontends/millennium/.env` when present. `RAG_API_URL` is the server-side API address; `LANGFUSE_BASE_URL` is the server-side Langfuse address; `LANGFUSE_UI_URL` is the browser-reachable Langfuse address.
 
 For Docker, check out the submodule, then run `docker compose up -d --build --no-deps frontend` from the repository root after the API is running. The image builds the UI from `ui/` and serves it with the Express server. The frontend service uses host networking and listens on `127.0.0.1:43179`. It reads the existing root `.env` for Langfuse keys and connects to the existing API on port `8001`.
 
 To publish the frontend through a dashboard-managed Cloudflare Tunnel, set `CLOUDFLARE_PRODUCTION_TUNNEL_TOKEN` in the root `.env` and run `docker compose --profile cloudflare up -d --build --no-deps frontend cloudflared` after the API is running. In Cloudflare, configure a published application route for your chosen hostname with service URL `http://127.0.0.1:43179`. The tunnel connector and frontend share the host network; the frontend stays bound to loopback. The tunnel UUID is not needed to run this connector.
 
-Interactive questions and feedback use the Langfuse `interactive-ui` environment. Oracle UI questions pin pipeline `v2.6` and enable `automatic_scene_search`; other API callers continue to use the catalog default unless they send their own pipeline settings. The Python `/ask` endpoint supplies exact trace and pipeline IDs. The frontend server listens on `FRONTEND_PORT` (default `43179`).
+Interactive questions and feedback use the Langfuse `interactive-ui` environment. Oracle UI questions pin pipeline `v2.7` and enable `automatic_scene_search`; other API callers continue to use the catalog default unless they send their own pipeline settings. The Python `/ask` endpoint supplies exact trace and pipeline IDs. The frontend server listens on `FRONTEND_PORT` (default `43179`).
 
 Interactive question traces store the client's IP address as `clientIp` metadata on the root “rag ask” observation. With `TRUST_CLOUDFLARE_PROXY=true`, the frontend uses `CF-Connecting-IP` only when the connection comes from loopback. Other forwarding headers are ignored. Keep the frontend bound to loopback when enabling this setting.
 

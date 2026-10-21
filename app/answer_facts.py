@@ -1,4 +1,4 @@
-"""Add answer facts from datasets/answer-facts.json to Langfuse dataset items as a new dataset version.
+"""Add answer facts from the selected corpus's answer_facts file to Langfuse dataset items as a new dataset version.
 
 Each item keeps its expected `answer` and gains `required_facts` and `supporting_details`, which only
 `answer_correctness_v2` reads. Langfuse keeps the earlier item versions, so a run pinned to an earlier
@@ -13,7 +13,12 @@ from typing import Any
 
 from langfuse import Langfuse
 
-FACTS_PATH = Path(__file__).resolve().parents[1] / "datasets" / "answer-facts.json"
+try:
+    from .corpus_config import corpus_config
+except ImportError:
+    from corpus_config import corpus_config
+
+FACTS_PATH = corpus_config().answer_facts
 
 
 def plan(client: Langfuse, facts: dict[str, Any]) -> list[dict[str, Any]]:
@@ -44,6 +49,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--apply", action="store_true", help="upload the changes (default: dry run)")
     args = parser.parse_args()
+    if FACTS_PATH is None:
+        raise RuntimeError("the selected corpus does not define answer facts")
     facts = json.loads(FACTS_PATH.read_text(encoding="utf-8"))
     client = Langfuse()
     try:

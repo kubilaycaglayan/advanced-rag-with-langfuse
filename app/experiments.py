@@ -19,6 +19,8 @@ from langfuse import Langfuse, propagate_attributes
 from opentelemetry import trace as otel_trace_api
 
 try:
+    from .corpus_config import corpus_config, corpus_data_dir, corpus_id, langfuse_project, langfuse_dataset_name
+    from .corpus_profiles import profile_identity, prompt_identity
     from .evaluation import citation_support, correctness, is_explicit_abstention
     from .experiment_store import (enqueue, get_execution, initialize, mark_interrupted,
                                    pending_jobs, update_execution)
@@ -34,6 +36,8 @@ try:
     from .pipeline_catalog import load_catalog
     from .pipeline_runner import run as run_resolved_pipeline
 except ImportError:
+    from corpus_config import corpus_config, corpus_data_dir, corpus_id, langfuse_project, langfuse_dataset_name
+    from corpus_profiles import profile_identity, prompt_identity
     from evaluation import citation_support, correctness, is_explicit_abstention
     from experiment_store import (enqueue, get_execution, initialize, mark_interrupted,
                                   pending_jobs, update_execution)
@@ -127,6 +131,9 @@ def _fingerprints(config: ResolvedPipelineConfig, version: datetime, prompt_vers
     enriched["embedding_model"] = {"name": config.embedding_model.name, "revision": config.embedding_model.revision}
     enriched["reranker_model"] = {"name": config.reranker_model.name, "revision": config.reranker_model.revision}
     enriched["corpus_checksum"] = corpus_checksum
+    enriched["corpus_id"] = (resolved.corpus_id if resolved else corpus_id())
+    enriched["profile_identity"] = profile_identity()
+    enriched["prompt_identity"] = prompt_identity()
     pipeline = ({**resolved.version_fields, "fingerprint": resolved.fingerprint,
                  "git_revision": sources["git_revision"], "dirty": sources["dirty"],
                  "source_fingerprint": sources["source_fingerprint"], "resolved_config": enriched,
@@ -220,7 +227,7 @@ def _verify_trace_upload(client: Langfuse, trace_id: str | None, *, attempts: in
 
 
 def _dataset_for(payload: dict[str, Any], client: Langfuse) -> tuple[Any, datetime]:
-    name = payload.get("dataset_name") or os.getenv("DATASET_NAME", "QA.csv")
+    name = langfuse_dataset_name(payload.get("dataset_name") or os.getenv("DATASET_NAME"))
     supplied_version = payload.get("dataset_version")
     version = datetime.fromisoformat(supplied_version.replace("Z", "+00:00")) if supplied_version else None
     if version is not None and version.utcoffset() is None:
@@ -239,9 +246,9 @@ def _dataset_for(payload: dict[str, Any], client: Langfuse) -> tuple[Any, dateti
     if payload.get("dataset_id") and payload["dataset_id"] != dataset.id:
         raise ValueError("trigger dataset_id does not match dataset_name")
     projects = getattr(client.api.projects.get(), "data", []) or []
-    matches = [project for project in projects if project.name == "millenium" and project.id == dataset.project_id]
+    matches = [project for project in projects if project.name == langfuse_project() and project.id == dataset.project_id]
     if len(matches) != 1:
-        raise RuntimeError("dataset does not belong to configured Langfuse project 'millenium'")
+        raise RuntimeError(f"dataset does not belong to configured Langfuse project {langfuse_project()!r}")
     resolved_version = dataset.version or version
     if resolved_version.utcoffset() is None:
         resolved_version = resolved_version.replace(tzinfo=timezone.utc)
@@ -253,7 +260,7 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
     if row is None:
         raise KeyError(execution_id)
     payload = json.loads(row["payload_json"])
-    execution_dir = Path(os.getenv("EXPERIMENT_DATA_DIR", "./data")) / "executions" / execution_id
+    execution_dir = corpus_data_dir() / "executions" / execution_id
     execution_dir.mkdir(parents=True, exist_ok=True)
     (execution_dir / "request.json").write_text(json.dumps(payload, ensure_ascii=False, sort_keys=True, indent=2), encoding="utf-8")
     update_execution(execution_id, status="running", started=True)
@@ -294,7 +301,8 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
         # Include the selected frozen snapshot and exact corpus content in each execution manifest.
         variant = re.sub(r"[^A-Za-z0-9._-]+", "-", payload.get("variant_label", resolved.version)).strip("-")[:50] or "run"
         run_name = f"{variant}-{execution_id}"
-        (Path(os.getenv("EXPERIMENT_DATA_DIR", "./data")) / "executions" / execution_id).mkdir(parents=True, exist_ok=True)
+        corpus_title = corpus_config().title
+        (corpus_data_dir() / "executions" / execution_id).mkdir(parents=True, exist_ok=True)
         manifest = {"execution_id": execution_id, "variant_label": variant, "dataset_snapshot": snapshot,
                     "pipeline": pipeline_manifest, "evaluator": evaluator_manifest,
                     "prompt_label": payload.get("prompt_label"),
@@ -360,7 +368,7 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
         sdk_flush = client.flush
         client.flush = lambda: None  # type: ignore[method-assign]
         try:
-            result = client.run_experiment(name=f"Millennium RAG: {variant}", run_name=run_name,
+            result = client.run_experiment(name=f"{corpus_title} RAG: {variant}", run_name=run_name,
                 description=f"Execution {execution_id}; pipeline {pipeline_manifest['pipeline_id']}; dataset version {version.isoformat()}",
                 data=items, task=task,
                 evaluators=[partial(correctness, evaluator_id=evaluator_manifest["evaluator_id"], langfuse_client=client,

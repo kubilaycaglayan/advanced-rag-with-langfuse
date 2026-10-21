@@ -1,7 +1,7 @@
 # Query pipeline catalog
 
 ```json
-{"default": "v2.6"}
+{"default": "v2.7"}
 ```
 
 ## Version 1 — fixed RAG
@@ -1014,5 +1014,150 @@ Selectable experiment variant; v2.2 remains the default.
     }
   },
   "notes": "Behavior matches v2.2 by default: local qwen3.6:35b query agent, automatic_scene_search disabled, 20 scene candidates, and the same flow, tools, retrieval settings, index and configured local answer generation. For a derived run, settings may set agent_provider to openai (GPT-6 Luna) and/or automatic_scene_search to true. Enabling automatic_scene_search uses 30 scene candidates by default, matching the successful v2.5 automatic-probe trials; scene_candidate_count can be set explicitly from 1 to 100. OpenAI query-agent errors fail the run without local fallback; the answer generation model remains local/configured."
+}
+```
+
+## Version 2.7 — corpus-portable agent flow
+
+The v2.6 agent flow and shared settings, resolved against the active corpus profile and index.
+
+```json
+{
+  "id": "v2.7",
+  "status": "released",
+  "engine": "agent",
+  "flow": [
+    {
+      "name": "connection pre-check",
+      "when": "always checks the question; gathers facts for a connection cue"
+    },
+    {
+      "name": "true account pre-check",
+      "when": "always checks the question; gathers facts for a death or crime cue"
+    },
+    {
+      "name": "sequence pre-check",
+      "when": "always checks the question; gathers sequence facts for a place event"
+    },
+    {
+      "name": "moment pre-check",
+      "when": "always checks the question; gathers moment facts for a detail cue"
+    },
+    {
+      "name": "minimum tool nudge",
+      "when": "reply has no tool calls and tool count is below minimum"
+    },
+    {
+      "name": "coverage check",
+      "when": "reply has no tool calls and evidence exists"
+    },
+    {
+      "name": "submission verification",
+      "when": "cited or submitted answer has passage ids and fewer than two verifications ran"
+    },
+    {
+      "name": "no tool nudge",
+      "when": "reply has no usable citation ids and fewer than two nudges ran"
+    },
+    {
+      "name": "name check message",
+      "when": "find_names returns a likely spelling not yet resolved"
+    },
+    {
+      "name": "forced answer",
+      "when": "timeout, turn budget, or tool budget is reached"
+    },
+    {
+      "name": "coverage rewrite",
+      "when": "sequence answer lacks confrontation or three sequence stages"
+    },
+    {
+      "name": "abstention synthesis",
+      "when": "answer lacks citations, abstains, or has no passage ids while evidence exists"
+    },
+    {
+      "name": "query-aware evidence reranking",
+      "when": "reranks synthesis evidence using question and retrieval queries attached to evidence"
+    }
+  ],
+  "agent": {
+    "model": "qwen3.6:35b",
+    "tools": [
+      "semantic_search",
+      "keyword_search",
+      "expand_query",
+      "search_scenes",
+      "read_scene",
+      "scene_moment",
+      "true_account",
+      "entity_card",
+      "find_connections",
+      "find_names",
+      "read_passage",
+      "read_chapter",
+      "submit_answer"
+    ],
+    "max_turns": 10,
+    "max_tool_calls": 16,
+    "min_tool_calls": 4,
+    "timeout_seconds": 900.0,
+    "context_length": 16384,
+    "num_predict": 1600,
+    "think": false,
+    "snippet_chars": 300,
+    "instruction_fingerprint": "4f3c86b9ec0ebe2f76328df25168cc4900e9ad6ecb8626c67780df12163042a8",
+    "query_aware_reranking": true,
+    "provider": "ollama",
+    "scene_candidate_count": 20,
+    "initial_scene_probe": false
+  },
+  "settings": {
+    "retrieval_mode": "full",
+    "hyde": true,
+    "expansion_count": 3,
+    "name_completion": true,
+    "scene_search_hits": 10,
+    "scene_window": 6,
+    "scene_stride": 3,
+    "passage_chars": 1200,
+    "min_passage_chars": 400,
+    "passage_overlap": 0,
+    "generation": {
+      "temperature": 0.0,
+      "context_length": 8192,
+      "output_budgets": [
+        4096,
+        8192
+      ]
+    },
+    "parallel_transformations": false,
+    "scene_thinking": false
+  },
+  "prompts": {},
+  "index": {
+    "collection": null,
+    "corpus_checksum": null
+  },
+  "models": {
+    "embedding_model": {
+      "name": "sentence-transformers/multi-qa-MiniLM-L6-cos-v1",
+      "revision": "b207367332321f8e44f96e224ef15bc607f4dbf0"
+    },
+    "reranker_model": {
+      "name": "cross-encoder/ms-marco-MiniLM-L-6-v2",
+      "revision": "233902d25c440f23af6f7d6e94d2946bac0bee0a"
+    },
+    "generation_model": {
+      "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+      "name": "qwen3:8b",
+      "revision": null
+    },
+    "scene_summary_model": {
+      "digest": null,
+      "name": "gemma4:26b",
+      "revision": null
+    }
+  },
+  "notes": "Corpus-portable release based on v2.6. It uses the active corpus profile and index; the resolved corpus checksum, profile identity, prompt identity and isolated collection are recorded per run."
 }
 ```

@@ -16,14 +16,16 @@ from langfuse import Langfuse
 from langfuse.api import NotFoundError
 
 try:
+    from .corpus_config import langfuse_evaluator_prefix, langfuse_prompt_label
     from .evaluator_specs import EVALUATOR_SPECS, FACT_SPECS, JUDGE_MODELS
     from .prompt_templates import PROMPT_TEMPLATES
 except ImportError:
+    from corpus_config import langfuse_evaluator_prefix, langfuse_prompt_label
     from evaluator_specs import EVALUATOR_SPECS, FACT_SPECS, JUDGE_MODELS
     from prompt_templates import PROMPT_TEMPLATES
 
 
-PROMPT_LABEL = os.getenv("LANGFUSE_PROMPT_LABEL", "production")
+PROMPT_LABEL = os.getenv("LANGFUSE_PROMPT_LABEL") or langfuse_prompt_label()
 logger = logging.getLogger(__name__)
 PROMPT_CATALOG: dict[str, dict[str, Any]] = {
     "rag-answer": {"type": "chat", "prompt": [
@@ -125,7 +127,7 @@ def _evaluator_definitions() -> list[dict[str, Any]]:
     model = os.getenv("EVALUATOR_MODEL", "qwen3:8b")
     result = []
     for spec in EVALUATOR_SPECS:
-        name = f"millennium-{spec.name}"
+        name = f"{langfuse_evaluator_prefix()}-{spec.name}"
         execution = JUDGE_MODELS.get(spec.name)
         if execution is not None and execution[0] == "codex-cli":
             provider = os.getenv("LANGFUSE_EVALUATOR_PROVIDER", "ollama-local")
@@ -205,7 +207,7 @@ def load_managed_evaluators() -> dict[str, dict[str, Any]]:
             raise RuntimeError(f"unsupported evaluator variables: {sorted(unknown)}")
         if not actual.get("id") or not isinstance(actual.get("version"), int):
             raise RuntimeError(f"managed evaluator {expected['name']!r} has no stable ID/version")
-        spec_key = expected["name"].removeprefix("millennium-")
+        spec_key = expected["name"].removeprefix(f"{langfuse_evaluator_prefix()}-")
         resolved[spec_key] = {"id": actual["id"], "name": actual["name"], "version": actual["version"],
                               "model_config": model, "output_definition": actual.get("outputDefinition"),
                               "prompt": actual["prompt"], "status": status,

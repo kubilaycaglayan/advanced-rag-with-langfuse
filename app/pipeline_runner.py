@@ -5,10 +5,12 @@ import time
 from typing import Any, Callable
 
 try:
+    from .corpus_profiles import agent_prompt
     from .agent import run_agent
     from .pipeline import run_pipeline
     from .pipeline_resolver import ResolvedRun
 except ImportError:
+    from corpus_profiles import agent_prompt
     from agent import run_agent
     from pipeline import run_pipeline
     from pipeline_resolver import ResolvedRun
@@ -28,7 +30,8 @@ def run(question: str, resolved: ResolvedRun, collection: str, prompt_bundle: di
                 on_status("thinking")
 
         agent = run_agent(question, collection, resolved.config,
-                          settings=resolved.agent_settings, on_event=on_event)
+                          settings=resolved.agent_settings, on_event=on_event,
+                          system_prompt=agent_prompt() if resolved.version == "v2.7" or resolved.corpus_id != "millennium" else None)
         evidence = list(agent.get("evidence") or [])
         citations = [label if str(label).startswith("[") else f"[{label}]" for label in agent.get("citations") or []]
         if on_status:

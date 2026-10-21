@@ -15,12 +15,14 @@ from qdrant_client import QdrantClient, models
 from sentence_transformers import SentenceTransformer
 
 try:
+    from .corpus_config import corpus_config, corpus_id
     from .experiment_store import get_index_manifest, get_ready_manifest, save_index_manifest
     from .identity import canonical_json
     from .resolved_config import ResolvedPipelineConfig
     from .entities import build_entity_cards, build_entity_events, entity_cards_path, entity_events_path
     from .scenes import build_context_index, build_scene_index, context_collection, scene_collection
 except ImportError:
+    from corpus_config import corpus_config, corpus_id
     from experiment_store import get_index_manifest, get_ready_manifest, save_index_manifest
     from identity import canonical_json
     from resolved_config import ResolvedPipelineConfig
@@ -31,7 +33,8 @@ SPLITTER_VERSION = "sentence-word-splitter-v1"
 
 
 def corpus_paths() -> list[Path]:
-    directory = Path(os.getenv("CORPUS_DIR", str(Path(__file__).resolve().parents[1] / "corpus")))
+    configured = os.getenv("CORPUS_DIR")
+    directory = Path(configured) if configured else corpus_config().books
     return sorted(directory.glob("*.epub"))
 
 
@@ -209,8 +212,8 @@ def _passages(path: Path, config: ResolvedPipelineConfig) -> list[dict[str, Any]
 
 def index_identity(config: ResolvedPipelineConfig) -> tuple[str, str, dict[str, Any], dict[str, str]]:
     paths = corpus_paths()
-    if len(paths) != 3:
-        raise RuntimeError(f"expected exactly three EPUBs in {paths[0].parent if paths else os.getenv('CORPUS_DIR', 'corpus')}, found {len(paths)}")
+    if not paths:
+        raise RuntimeError(f"no EPUBs found in {os.getenv('CORPUS_DIR', str(corpus_config().books))}")
     corpus = {path.name: hashlib.sha256(path.read_bytes()).hexdigest() for path in paths}
     corpus_checksum = hashlib.sha256(canonical_json(corpus).encode()).hexdigest()
     model_id = config.embedding_model.name
@@ -224,7 +227,7 @@ def index_identity(config: ResolvedPipelineConfig) -> tuple[str, str, dict[str, 
         # Added only when enabled so existing unmerged index identities stay valid.
         manifest["merge"] = merge
     fingerprint = hashlib.sha256(canonical_json(manifest).encode()).hexdigest()
-    collection = "millennium_books_" + fingerprint[:20]
+    collection = f"{corpus_id()}_books_" + fingerprint[:20]
     return collection, fingerprint, manifest, corpus
 
 

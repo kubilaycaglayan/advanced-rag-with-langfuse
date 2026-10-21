@@ -10,11 +10,15 @@ from pathlib import Path
 from typing import Any, Mapping
 
 try:
+    from .corpus_config import corpus_config, corpus_id
+    from .corpus_profiles import profile_identity, prompt_identity
     from .agent import AgentSettings, instruction_fingerprint, tool_names
     from .identity import canonical_json
     from .pipeline_catalog import PipelineCatalog, fingerprint, load_catalog
     from .resolved_config import ResolvedPipelineConfig
 except ImportError:
+    from corpus_config import corpus_config, corpus_id
+    from corpus_profiles import profile_identity, prompt_identity
     from agent import AgentSettings, instruction_fingerprint, tool_names
     from identity import canonical_json
     from pipeline_catalog import PipelineCatalog, fingerprint, load_catalog
@@ -64,18 +68,26 @@ class ResolvedRun:
     derived: bool
     overrides: dict[str, Any]
     fingerprint: str
+    corpus_id: str = "millennium"
+    corpus_checksum: str = ""
+    profile_id: str = "millennium"
+    profile_identity: str = ""
+    prompt_identity: str = ""
 
     @property
     def version_fields(self) -> dict[str, Any]:
         return {"pipeline_id": self.pipeline_id, "pipeline_version": self.version,
-                "pipeline_derived": self.derived, "pipeline_status": self.status}
+                "pipeline_derived": self.derived, "pipeline_status": self.status,
+                "corpus_id": self.corpus_id, "corpus_checksum": self.corpus_checksum,
+                "profile_id": self.profile_id, "profile_identity": self.profile_identity,
+                "prompt_identity": self.prompt_identity}
 
 
 def corpus_checksum() -> str:
-    root = Path(os.getenv("CORPUS_DIR", Path(__file__).resolve().parents[1] / "corpus"))
+    root = Path(os.getenv("CORPUS_DIR", corpus_config().books))
     paths = sorted(root.glob("*.epub"))
-    if len(paths) != 3:
-        raise ValueError(f"expected three EPUBs for pinned corpus in {root}, found {len(paths)}")
+    if not paths:
+        raise ValueError(f"no EPUBs found for corpus in {root}")
     files = [{"path": path.name, "sha256": hashlib.sha256(path.read_bytes()).hexdigest()} for path in paths]
     return hashlib.sha256(canonical_json(files).encode()).hexdigest()
 
@@ -107,12 +119,12 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
     agent_effort = overrides.get("agent_reasoning_effort")
     agent_provider = overrides.get("agent_provider")
     scene_candidate_count = overrides.get("scene_candidate_count")
-    if version == "v2.6" and overrides.get("automatic_scene_search") is True and scene_candidate_count is None:
+    if version in {"v2.6", "v2.7"} and overrides.get("automatic_scene_search") is True and scene_candidate_count is None:
         # The validated automatic probe trials used 30 candidates; the v2.2-compatible default remains 20.
         overrides["scene_candidate_count"] = 30
         scene_candidate_count = 30
     allowed = set(block["settings"]) | (MODEL_KEYS if block["engine"] == "fixed" else set())
-    if version == "v2.6":
+    if version in {"v2.6", "v2.7"}:
         allowed.update({"agent_provider", "automatic_scene_search", "scene_candidate_count"})
     if (block["engine"] == "agent" and
             (block.get("agent", {}).get("provider") == "openai" or agent_provider == "openai")):
@@ -120,7 +132,10 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
     unknown = set(overrides) - allowed
     if unknown:
         raise ValueError(f"settings not used by {version}: {', '.join(sorted(unknown))}")
-    if corpus_checksum() != block["index"]["corpus_checksum"]:
+    source_checksum = corpus_checksum()
+    selected_id = corpus_id()
+    if (selected_id == "millennium" and block["index"].get("corpus_checksum")
+            and source_checksum != block["index"]["corpus_checksum"]):
         raise ValueError(f"{version}: local corpus differs from pinned corpus checksum")
     values = dict(block["settings"])
     values.update(block["models"])
@@ -161,18 +176,22 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
         expected_instructions = block["agent"]["instruction_fingerprint"]
         actual_instructions = instruction_fingerprint()
         legacy_v2 = (version == "v2" and expected_instructions == _V2_INSTRUCTION_FINGERPRINT
-                     and (_legacy_v2_instructions_unchanged() or actual_instructions == _V25_SCENE_PROBE_FINGERPRINT))
+                     and (_legacy_v2_instructions_unchanged() or actual_instructions in {
+                         _V25_SCENE_PROBE_FINGERPRINT, _V26_PROBE_TRACE_FINGERPRINT}))
         legacy_v22 = (version == "v2.2" and expected_instructions == _V22_ORIGINAL_INSTRUCTION_FINGERPRINT
                       and actual_instructions in {_V22_PROVIDER_ADAPTER_COMPAT_FINGERPRINT,
                                                   _V23_HIGH_REASONING_ADAPTER_FINGERPRINT,
-                                                  _V25_SCENE_PROBE_FINGERPRINT})
+                                                  _V25_SCENE_PROBE_FINGERPRINT,
+                                                  _V26_PROBE_TRACE_FINGERPRINT})
         compatible_v23_adapter = (version == "v2.3" and expected_instructions == _V22_PROVIDER_ADAPTER_COMPAT_FINGERPRINT
                                   and actual_instructions in {_V23_HIGH_REASONING_ADAPTER_FINGERPRINT,
-                                                              _V25_SCENE_PROBE_FINGERPRINT})
-        compatible_v26_probe_trace = (version == "v2.6" and expected_instructions == _V25_SCENE_PROBE_FINGERPRINT
-                                      and actual_instructions == _V26_PROBE_TRACE_FINGERPRINT)
+                                                              _V25_SCENE_PROBE_FINGERPRINT,
+                                                              _V26_PROBE_TRACE_FINGERPRINT})
+        compatible_probe_trace = (version in {"v2.4", "v2.5", "v2.6", "v2.7"}
+                                  and expected_instructions == _V25_SCENE_PROBE_FINGERPRINT
+                                  and actual_instructions == _V26_PROBE_TRACE_FINGERPRINT)
         if expected_instructions != actual_instructions and not (legacy_v2 or legacy_v22 or compatible_v23_adapter
-                                                                  or compatible_v26_probe_trace):
+                                                                  or compatible_probe_trace):
             raise ValueError(f"{version}: agent instructions differ from released version; publish a new version")
     try:
         from .indexer import index_identity
@@ -180,7 +199,8 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
         from indexer import index_identity
     actual_collection = index_identity(config)[0]
     changes_index = bool(set(overrides) & {"passage_chars", "min_passage_chars", "passage_overlap", "embedding_model"})
-    expected_collection = actual_collection if changes_index else block["index"]["collection"]
+    expected_collection = (actual_collection if changes_index or selected_id != "millennium"
+                           or block["index"].get("collection") is None else block["index"]["collection"])
     if not changes_index and actual_collection != expected_collection:
         raise ValueError(f"{version}: pinned index {expected_collection!r} differs from current index identity {actual_collection!r}")
     if collection is not None and collection != expected_collection:
@@ -189,6 +209,9 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
     digest = hashlib.sha256(canonical_json({"id": version, "fingerprint": released_fingerprint,
                                             "overrides": overrides}).encode()).hexdigest()[:8]
     prefix = "draft" if block["status"] == "draft" else "derived" if overrides else "pipeline"
+    selected_corpus = corpus_config()
     return ResolvedRun(version, block["status"], block["engine"], config, agent_settings,
                        dict(block["prompts"]), {**block["index"], "collection": expected_collection},
-                       f"{prefix}-{version}-{digest}", bool(overrides), overrides, released_fingerprint)
+                       f"{prefix}-{version}-{digest}", bool(overrides), overrides, released_fingerprint,
+                       corpus_id(), source_checksum, selected_corpus.profile_id,
+                       profile_identity(), prompt_identity())

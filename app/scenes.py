@@ -27,10 +27,14 @@ import requests
 from qdrant_client import QdrantClient, models
 
 try:
+    from .corpus_config import corpus_file_path
+    from .corpus_profiles import load_profile, profile_prompt
     from .identity import canonical_json
     from .prompt_templates import PROMPT_TEMPLATES
     from .resolved_config import ResolvedPipelineConfig
 except ImportError:
+    from corpus_config import corpus_file_path
+    from corpus_profiles import load_profile, profile_prompt
     from identity import canonical_json
     from prompt_templates import PROMPT_TEMPLATES
     from resolved_config import ResolvedPipelineConfig
@@ -42,11 +46,11 @@ def summary_model(config: ResolvedPipelineConfig) -> str:
 
 
 def _cache_path() -> Path:
-    return Path(os.getenv("SCENE_SUMMARY_CACHE", "/data/scene-summaries.jsonl"))
+    return corpus_file_path("SCENE_SUMMARY_CACHE", "scene-summaries.jsonl")
 
 
 def _prompt_hash() -> str:
-    return hashlib.sha256(PROMPT_TEMPLATES["scene_summary_system"].encode("utf-8")).hexdigest()
+    return hashlib.sha256(profile_prompt("scene_summary_system", PROMPT_TEMPLATES["scene_summary_system"]).encode("utf-8")).hexdigest()
 
 
 def scene_collection(collection: str, config: ResolvedPipelineConfig) -> str:
@@ -86,21 +90,19 @@ def scene_windows(points: list[Any], window: int, stride: int) -> list[list[Any]
     return windows
 
 
-_NAME = r"[A-ZÅÄÖ][a-zåäöéü]{2,}(?:-[A-ZÅÄÖ][a-zåäöéü]+)?"
-# "In Chapter 5 of *The Girl ...*," and similar openings: the model is never told the chapter, so drop the reference.
-_META = re.compile(r"^\s*In (?:Chapter \d+(?: of)? )?\*?The Girl[^,]*?,\s*|^\s*In Chapter \d+,\s*")
-
-
 class NameLexicon:
     """Which capitalised words are names in the books, and the two-word name each one is most often part of."""
 
     def __init__(self, texts: list[str]):
+        profile = load_profile()
+        self.name_pattern = profile.name_pattern
+        self.chapter_reference_pattern = profile.chapter_reference_pattern
         corpus = "\n".join(texts)
-        self.capital = Counter(re.findall(rf"\b{_NAME}\b", corpus))
-        self.mid = Counter(re.findall(rf"(?<=[a-zåäöé,] )({_NAME})\b", corpus))
+        self.capital = Counter(re.findall(rf"\b{self.name_pattern}\b", corpus))
+        self.mid = Counter(re.findall(rf"(?<=[a-zåäöé,] )({self.name_pattern})\b", corpus))
         self.lower = Counter(re.findall(r"\b[a-zåäöéü]+\b", corpus))
         names: dict[str, Counter] = defaultdict(Counter)
-        for first, last in re.findall(rf"\b({_NAME}) ({_NAME})\b", corpus):
+        for first, last in re.findall(rf"\b({self.name_pattern}) ({self.name_pattern})\b", corpus):
             names[first][last] += 1
             names[last][first] += 1
         self.partner = {word: other.most_common(1)[0][0] for word, other in names.items()
@@ -112,19 +114,19 @@ class NameLexicon:
         return unseen or (self.mid[word] >= 3 and self.lower[word.lower()] < self.capital[word])
 
     def names(self, text: str) -> list[str]:
-        return list(dict.fromkeys(word for word in re.findall(rf"\b{_NAME}\b", text) if self.is_name(word)))
+        return list(dict.fromkeys(word for word in re.findall(rf"\b{self.name_pattern}\b", text) if self.is_name(word)))
 
 
 def foreign_names(summary: str, excerpt: str, lexicon: NameLexicon) -> list[str]:
     """Names in the summary that the excerpt does not contain."""
-    present = set(re.findall(rf"\b{_NAME}\b", excerpt))
+    present = set(re.findall(rf"\b{lexicon.name_pattern}\b", excerpt))
     return [name for name in lexicon.names(summary) if name not in present]
 
 
 def repair_summary(summary: str, excerpt: str, lexicon: NameLexicon) -> tuple[str, list[str]]:
     """Write names as the excerpt does; returns the summary and the names that could not be traced to the excerpt."""
-    present = set(re.findall(rf"\b{_NAME}\b", excerpt))
-    text = _META.sub("In the excerpt, ", summary, count=1)
+    present = set(re.findall(rf"\b{lexicon.name_pattern}\b", excerpt))
+    text = re.sub(lexicon.chapter_reference_pattern, "In the excerpt, ", summary, count=1, flags=re.I)
 
     def two_words(match: re.Match) -> str:
         first, last = match[1], match[2]
@@ -135,7 +137,7 @@ def repair_summary(summary: str, excerpt: str, lexicon: NameLexicon) -> tuple[st
                 return first
         return match[0]
 
-    text = re.sub(rf"\b({_NAME}) ({_NAME})\b", two_words, text)
+    text = re.sub(rf"\b({lexicon.name_pattern}) ({lexicon.name_pattern})\b", two_words, text)
     for name in foreign_names(text, excerpt, lexicon):
         # A bare first name the excerpt writes as the other half of that name ("Lisbeth" -> "Salander"), or a misspelt
         # name of the excerpt ("Wadensjö" -> "Wadensjöö").
@@ -143,7 +145,7 @@ def repair_summary(summary: str, excerpt: str, lexicon: NameLexicon) -> tuple[st
         fix = lexicon.partner.get(name) if lexicon.partner.get(name) in present else (close[0] if close else None)
         if fix:
             text = re.sub(rf"\b{name}\b", fix, text)
-    text = re.sub(rf"\b({_NAME}) \1\b", r"\1", text)
+    text = re.sub(rf"\b({lexicon.name_pattern}) \1\b", r"\1", text)
     return text, foreign_names(text, excerpt, lexicon)
 
 
@@ -152,7 +154,7 @@ def _summarise(points: list[Any], config: ResolvedPipelineConfig, names: list[st
     listed = f"Names used in the excerpt (use only these): {', '.join(names) or 'none'}\n\n" if names is not None else ""
     response = requests.post(os.getenv("OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/") + "/api/chat", json={
         "model": summary_model(config), "think": False, "stream": False,
-        "messages": [{"role": "system", "content": PROMPT_TEMPLATES["scene_summary_system"]},
+        "messages": [{"role": "system", "content": profile_prompt("scene_summary_system", PROMPT_TEMPLATES["scene_summary_system"])},
                      {"role": "user", "content": f"Book: {points[0].payload['book']}\n\n{listed}EXCERPT:\n{body}"}],
         "options": {"temperature": 0, "num_ctx": 4096, "num_predict": 220}}, timeout=(10, 600))
     response.raise_for_status()

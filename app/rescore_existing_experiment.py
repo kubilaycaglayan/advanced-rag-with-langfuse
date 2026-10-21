@@ -13,10 +13,12 @@ import time
 from langfuse import Langfuse
 
 try:
+    from .corpus_config import corpus_data_dir
     from .evaluation import correctness
     from .evaluator_specs import ANSWER_CORRECTNESS_CODEX_V1
     from .prompt_assets import ManagedJudgePrompt, load_managed_evaluators
 except ImportError:
+    from corpus_config import corpus_data_dir
     from evaluation import correctness
     from evaluator_specs import ANSWER_CORRECTNESS_CODEX_V1
     from prompt_assets import ManagedJudgePrompt, load_managed_evaluators
@@ -31,7 +33,7 @@ def _save(path: Path, state: dict) -> None:
 def run(execution_id: str, *, max_items: int | None = None, workers: int = 2) -> dict:
     if not 1 <= workers <= 2:
         raise ValueError("workers must be 1 or 2")
-    execution_dir = Path(os.getenv("EXPERIMENT_DATA_DIR", "./data")) / "executions" / execution_id
+    execution_dir = corpus_data_dir() / "executions" / execution_id
     source = json.loads((execution_dir / "results.json").read_text(encoding="utf-8"))
     request = json.loads((execution_dir / "request.json").read_text(encoding="utf-8"))
     if source.get("status") != "completed" or source.get("dataset_item_count") != source.get("completed_item_count"):
@@ -39,7 +41,7 @@ def run(execution_id: str, *, max_items: int | None = None, workers: int = 2) ->
     rows = source["item_results"]
     if len(rows) != len({row["item_id"] for row in rows}) or any(not row.get("trace_id") for row in rows):
         raise ValueError("source execution has missing or duplicate item identities")
-    state_path = Path(os.getenv("EXPERIMENT_DATA_DIR", "./data")) / "codex_rescores" / f"{execution_id}.json"
+    state_path = corpus_data_dir() / "codex_rescores" / f"{execution_id}.json"
     state_path.parent.mkdir(parents=True, exist_ok=True)
     state = (json.loads(state_path.read_text(encoding="utf-8")) if state_path.exists() else
              {"source_execution_id": execution_id, "dataset_run_id": source["dataset_run_id"],

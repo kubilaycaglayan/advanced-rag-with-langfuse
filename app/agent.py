@@ -120,6 +120,7 @@ class AgentState:
     config: ResolvedPipelineConfig
     settings: AgentSettings
     started: float
+    system_prompt: str = SYSTEM_PROMPT
     asked: str = ""
     name_notes: list[dict[str, str]] = field(default_factory=list)
     evidence: dict[str, dict[str, Any]] = field(default_factory=dict)
@@ -1903,7 +1904,7 @@ def _evidence_digest(state: AgentState, limit: int = 14) -> str:
 
 def _forced_answer(state: AgentState, messages: list[dict[str, Any]]) -> dict[str, Any]:
     prompt = f"{FORCED_ANSWER_PROMPT}\n\nQuestion: {state.question}\n\nPassages found:\n{_evidence_digest(state)}"
-    reply = _tracked_agent_chat(state, [{"role": "system", "content": SYSTEM_PROMPT},
+    reply = _tracked_agent_chat(state, [{"role": "system", "content": state.system_prompt},
                                         {"role": "user", "content": prompt}], None, "forced answer")
     message = reply.get("message") or {}
     content = (message.get("content") or "").strip()
@@ -1930,20 +1931,22 @@ def _final(state: AgentState, answer: str, ids: list[str], *, stopped: str, raw_
 
 
 def run_agent(question: str, collection: str, config: ResolvedPipelineConfig | None = None, *,
-              settings: AgentSettings | None = None, on_event: Callable[[dict[str, Any]], None] | None = None) -> dict[str, Any]:
+              settings: AgentSettings | None = None, on_event: Callable[[dict[str, Any]], None] | None = None,
+              system_prompt: str | None = None) -> dict[str, Any]:
     """Answer ``question`` with the model choosing among the tools; returns the answer, its evidence and the trace."""
     if not question.strip():
         raise ValueError("question must not be blank")
     config = config or ResolvedPipelineConfig()
     settings = settings or AgentSettings(model=config.generation_model.name)
-    state = AgentState(question=question, asked=question, collection=collection, config=config, settings=settings,
+    state = AgentState(question=question, asked=question, collection=collection, config=config,
+                       system_prompt=system_prompt or SYSTEM_PROMPT, settings=settings,
                        started=time.perf_counter())
     normalized, name_notes = _normalize_question(state)
     state.question = normalized
     state.name_notes = name_notes
     with observation("connection pre-check", input=state.question):
         precheck = _connection_precheck(state)
-    messages: list[dict[str, Any]] = [{"role": "system", "content": SYSTEM_PROMPT},
+    messages: list[dict[str, Any]] = [{"role": "system", "content": state.system_prompt},
                                       {"role": "user", "content": normalized}]
     if settings.initial_scene_probe:
         started_probe = time.perf_counter()

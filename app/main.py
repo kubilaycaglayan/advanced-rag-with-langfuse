@@ -20,18 +20,20 @@ import requests
 from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.responses import Response, StreamingResponse
 from starlette.background import BackgroundTask
-from langfuse import Langfuse, get_client, propagate_attributes
+from langfuse import Langfuse, get_client
 from pydantic import BaseModel, Field, IPvAnyAddress
 from qdrant_client import QdrantClient
 
 try:
+    from .corpus_config import corpus_config, corpus_data_dir, langfuse_project, langfuse_dataset_name
+    from .corpus_profiles import langfuse_enabled
     from .agent import AgentSettings, run_agent
     from .evaluator_specs import CORRECTNESS_SPECS
     from .experiment_store import get_execution, initialize
     from .frontend_rate_limit import reserve_request
     from .experiments import start_worker, submit, submit_retry
     from .indexer import build_index, index_identity, validate_index
-    from .observability import observation, update as update_observation
+    from .observability import observation, trace_scope, update as update_observation
     from .prompt_assets import load_prompt_bundle, prompt_manifests
     from .pipeline import run_pipeline
     from .pipeline_setup import current_pipeline_setup
@@ -40,13 +42,15 @@ try:
     from .pipeline_runner import run as run_resolved_pipeline
     from .resolved_config import ResolvedPipelineConfig, resolve_pipeline_model_identities
 except ImportError:
+    from corpus_config import corpus_config, corpus_data_dir, langfuse_project, langfuse_dataset_name
+    from corpus_profiles import langfuse_enabled
     from agent import AgentSettings, run_agent
     from evaluator_specs import CORRECTNESS_SPECS
     from experiment_store import get_execution, initialize
     from frontend_rate_limit import reserve_request
     from experiments import start_worker, submit, submit_retry
     from indexer import build_index, index_identity, validate_index
-    from observability import observation, update as update_observation
+    from observability import observation, trace_scope, update as update_observation
     from prompt_assets import load_prompt_bundle, prompt_manifests
     from pipeline import run_pipeline
     from pipeline_setup import current_pipeline_setup
@@ -55,13 +59,13 @@ except ImportError:
     from pipeline_runner import run as run_resolved_pipeline
     from resolved_config import ResolvedPipelineConfig, resolve_pipeline_model_identities
 
-app = FastAPI(title="Millennium RAG Experiment Runner", version="0.2.0")
+app = FastAPI(title=f"{corpus_config().title} RAG Experiment Runner", version="0.2.0")
 logger = logging.getLogger(__name__)
 
 
 def _reserve_ask_slot() -> BinaryIO:
     """Allow one interactive question across workers sharing the data directory."""
-    path = Path(os.getenv("EXPERIMENT_DATA_DIR", "./data")) / "interactive-ask.lock"
+    path = corpus_data_dir() / "interactive-ask.lock"
     path.parent.mkdir(parents=True, exist_ok=True)
     slot = path.open("a+b")
     try:
@@ -122,7 +126,8 @@ def startup() -> None:
 def health() -> dict[str, Any]:
     try:
         QdrantClient(url=os.getenv("QDRANT_URL", "http://127.0.0.1:6333"), timeout=5).get_collections()
-        return {"status": "ok", "qdrant": "ok", "corpus_dir": os.getenv("CORPUS_DIR", "corpus")}
+        return {"status": "ok", "qdrant": "ok", "corpus_id": corpus_config().id,
+                "corpus_dir": str(corpus_config().books)}
     except Exception as exc:
         return {"status": "degraded", "qdrant": str(exc)}
 
@@ -250,10 +255,18 @@ def _prepare_ask(request: AskRequest) -> dict[str, Any]:
                            prompt_label=request.prompt_label, collection=request.collection)
         collection = resolved.index["collection"]
         validate_index(collection, resolved.config)
-        bundle = (load_prompt_bundle(Langfuse(), versions=resolved.prompts) if resolved.engine == "fixed"
-                  and resolved.status != "draft" else
-                  load_prompt_bundle(Langfuse(), label=request.prompt_label) if resolved.engine == "fixed" else {})
+        if resolved.engine == "fixed" and langfuse_enabled() and resolved.corpus_id == "millennium":
+            try:
+                bundle = (load_prompt_bundle(Langfuse(), versions=resolved.prompts) if resolved.status != "draft"
+                          else load_prompt_bundle(Langfuse(), label=request.prompt_label))
+            except Exception:
+                logger.warning("Langfuse prompts are unavailable; using the selected corpus profile prompts", exc_info=True)
+                bundle = {}
+        else:
+            bundle = {}
         prompts = prompt_manifests(bundle)
+    except HTTPException:
+        raise
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
@@ -270,6 +283,9 @@ def _run_ask(request: AskRequest, prepared: dict[str, Any], *, on_trace=None, on
     trace_metadata = {"pipeline_id": pipeline_id, "pipeline_version": prepared["resolved"].version,
                       "pipeline_derived": prepared["resolved"].derived,
                       "collection": prepared["collection"], "source": request.source}
+    trace_metadata.update({key: prepared["resolved"].version_fields[key]
+                           for key in ("corpus_id", "corpus_checksum", "profile_id", "profile_identity", "prompt_identity")
+                           if key in prepared["resolved"].version_fields})
     agent_settings = prepared["resolved"].agent_settings
     if agent_settings:
         trace_metadata.update({"agent_provider": agent_settings.provider,
@@ -279,11 +295,14 @@ def _run_ask(request: AskRequest, prepared: dict[str, Any], *, on_trace=None, on
     trace_metadata.update({f"prompt_{name}": f"{asset['id']}@{asset['version']}:{asset['label']}"
                            for name, asset in prompts.items()})
     root_metadata = {"clientIp": str(request.client_ip)} if request.source == "frontend" and request.client_ip else None
-    with propagate_attributes(session_id=session_id, user_id=request.user_id, environment=environment, metadata=trace_metadata,
-                              tags=[f"pipeline:{pipeline_id}"]), observation("rag ask", as_type="span",
+    with trace_scope(session_id=session_id, user_id=request.user_id, environment=environment, metadata=trace_metadata,
+                     tags=[f"pipeline:{pipeline_id}"]), observation("rag ask", as_type="span",
                                                                                input={"question": request.question},
                                                                                metadata=root_metadata) as obs:
-        trace_id = get_client().get_current_trace_id()
+        try:
+            trace_id = get_client().get_current_trace_id() if langfuse_enabled() else None
+        except Exception:
+            trace_id = None
         if on_trace:
             on_trace(trace_id)
         result = run_resolved_pipeline(request.question, prepared["resolved"], prepared["collection"],
@@ -401,7 +420,9 @@ async def trigger_experiment(request: Request,
     if unknown:
         raise HTTPException(status_code=400, detail=f"unsupported trigger fields: {', '.join(sorted(unknown))}")
     if not dataset_name:
-        dataset_name = os.getenv("DATASET_NAME", "QA.csv")
+        dataset_name = langfuse_dataset_name(os.getenv("DATASET_NAME"))
+    else:
+        dataset_name = langfuse_dataset_name(str(dataset_name))
     if "prompt_label" in custom and (not isinstance(custom["prompt_label"], str) or not custom["prompt_label"].strip()):
         raise HTTPException(status_code=400, detail="prompt_label must be a non-empty string")
     if "variant_label" in custom and (not isinstance(custom["variant_label"], str) or not custom["variant_label"].strip()):
@@ -424,6 +445,8 @@ async def trigger_experiment(request: Request,
     if item_ids is not None and (not isinstance(item_ids, list) or not all(isinstance(value, str) for value in item_ids)):
         raise HTTPException(status_code=400, detail="item_ids must be an array of strings")
     try:
+        if not langfuse_enabled():
+            raise HTTPException(status_code=503, detail="Langfuse dataset experiments are disabled by configuration")
         # Langfuse's tracer/score queues are process-wide singletons keyed by
         # credentials. Do not shut this client down here: the queued worker uses
         # the same resource manager to export the experiment's traces and scores.
@@ -433,9 +456,9 @@ async def trigger_experiment(request: Request,
             raise ValueError("trigger dataset_id does not match dataset_name")
         projects = getattr(client.api.projects.get(), "data", []) or []
         configured_project = next((project for project in projects
-                                   if project.name == "millenium" and project.id == dataset.project_id), None)
+                                   if project.name == langfuse_project() and project.id == dataset.project_id), None)
         if configured_project is None:
-            raise ValueError("dataset does not belong to configured Langfuse project 'millenium'")
+            raise ValueError(f"dataset does not belong to configured Langfuse project {langfuse_project()!r}")
         requested_project_id = incoming.get("projectId", incoming.get("project_id"))
         if requested_project_id and requested_project_id not in {dataset.project_id, configured_project.name}:
             raise ValueError("trigger projectId does not match dataset project")

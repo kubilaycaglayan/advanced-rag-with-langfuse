@@ -1,11 +1,12 @@
 """Narrow contract check for the interactive API's Langfuse identities."""
 import asyncio
 import json
+import tempfile
 from contextlib import contextmanager, nullcontext
 from datetime import datetime, timezone
 from types import SimpleNamespace
 from unittest import TestCase
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
@@ -16,6 +17,23 @@ from app.resolved_config import ResolvedPipelineConfig
 
 
 class InteractiveAskContract(TestCase):
+    def test_ask_runs_without_langfuse_credentials(self):
+        resolved = SimpleNamespace(version="v1", derived=False, agent_settings=None, corpus_id="millennium",
+                                   version_fields={"corpus_id": "millennium", "corpus_checksum": "checksum",
+                                                   "profile_id": "millennium", "profile_identity": "profile",
+                                                   "prompt_identity": "prompt"})
+        prepared = {"config": ResolvedPipelineConfig(), "collection": "collection", "bundle": {},
+                    "prompts": {}, "pipeline_id": "pipeline-v1-12345678", "resolved": resolved}
+        with tempfile.TemporaryDirectory() as directory, \
+             patch.dict("os.environ", {"LANGFUSE_ENABLED": "false", "LANGFUSE_PUBLIC_KEY": "pk-test",
+                                       "LANGFUSE_SECRET_KEY": "sk-test", "EXPERIMENT_DATA_DIR": directory}), \
+             patch("app.main._prepare_ask", return_value=prepared), \
+             patch("app.main.run_resolved_pipeline", return_value={"answer": "A", "citations": []}), \
+             patch("app.main.get_client") as get_client:
+            result = ask(AskRequest(question="Who?"))
+        self.assertIsNone(result["trace_id"])
+        get_client.assert_not_called()
+
     def test_remote_frontend_quota_rejection_is_429_with_retry_after(self):
         with patch.dict("os.environ", {"FRONTEND_RATE_LIMIT_ENABLED": "true"}), \
              patch("app.main.reserve_request", return_value=60) as reserve:
@@ -49,13 +67,17 @@ class InteractiveAskContract(TestCase):
             return nullcontext(None)
 
         prompts = {"rag-answer": {"id": "prompt-1", "version": 2, "label": "production"}}
-        resolved = SimpleNamespace(version="v1", derived=False)
+        resolved = SimpleNamespace(version="v1", derived=False, agent_settings=None, corpus_id="millennium",
+                                   version_fields={"corpus_id": "millennium", "corpus_checksum": "checksum",
+                                                   "profile_id": "millennium", "profile_identity": "profile",
+                                                   "prompt_identity": "prompt"})
         prepared = {"config": ResolvedPipelineConfig(), "collection": "collection", "bundle": {},
                     "prompts": prompts, "pipeline_id": "pipeline-v1-12345678", "resolved": resolved}
         client = SimpleNamespace(get_current_trace_id=lambda: "a" * 32)
         with patch("app.main._prepare_ask", return_value=prepared), \
-             patch("app.main.propagate_attributes", side_effect=propagate), \
+             patch("app.main.trace_scope", side_effect=propagate), \
              patch("app.main.observation", side_effect=observe), \
+             patch("app.main.langfuse_enabled", return_value=True), \
              patch("app.main.get_client", return_value=client), \
              patch("app.main.run_resolved_pipeline", return_value={"answer": "A [E1]", "citations": ["[E1]"],
                                                                     "pipeline_version": "v1", "pipeline_derived": False}), \
@@ -78,8 +100,9 @@ class InteractiveAskContract(TestCase):
         self.assertIsNone(observations[1]["metadata"])
 
     def test_ask_defaults_to_the_agent_engine(self):
-        resolved = SimpleNamespace(version="v2", derived=False, engine="agent", config=ResolvedPipelineConfig(),
-                                   agent_settings=SimpleNamespace(model="qwen3.6:35b"),
+        resolved = SimpleNamespace(version="v2", derived=False, corpus_id="millennium", engine="agent", config=ResolvedPipelineConfig(),
+                                   agent_settings=SimpleNamespace(model="qwen3.6:35b", provider="ollama",
+                                                                  initial_scene_probe=False, scene_candidate_count=20),
                                    version_fields={"pipeline_id": "pipeline-v2-12345678", "pipeline_version": "v2",
                                                    "pipeline_derived": False})
         prepared = {"config": ResolvedPipelineConfig(), "collection": "collection", "bundle": {}, "prompts": {},
@@ -92,7 +115,8 @@ class InteractiveAskContract(TestCase):
             "stopped": "submit", "latency_seconds": 12.3, "model": "qwen3.6:35b"}
         client = SimpleNamespace(get_current_trace_id=lambda: "a" * 32)
         with patch("app.main._prepare_ask", return_value=prepared), \
-             patch("app.main.propagate_attributes", return_value=nullcontext()), \
+             patch("app.main.trace_scope", return_value=nullcontext()), \
+             patch("app.main.langfuse_enabled", return_value=True), \
              patch("app.main.observation", return_value=nullcontext(None)), \
              patch("app.main.update_observation"), \
              patch("app.main.get_client", return_value=client), \
@@ -138,6 +162,36 @@ class InteractiveAskContract(TestCase):
 
 
 class VersionPayloadContract(TestCase):
+    def test_experiment_trigger_maps_corpus_question_set_to_hosted_dataset(self):
+        import tempfile
+        from pathlib import Path
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "corpus.yaml").write_text(
+                "id: questions\nprofile: millennium\nquestion_sets:\n"
+                "  Local set:\n    path: questions.csv\n    langfuse_dataset: Hosted set\n"
+                "langfuse:\n  project: questions-project\n", encoding="utf-8")
+            dataset = SimpleNamespace(id="dataset-1", project_id="project-1")
+            project = SimpleNamespace(id="project-1", name="questions-project")
+            get_dataset = Mock(return_value=dataset)
+            fake = SimpleNamespace(get_dataset=get_dataset,
+                                   api=SimpleNamespace(projects=SimpleNamespace(
+                                       get=lambda: SimpleNamespace(data=[project]))))
+            queued = {"execution_id": "execution-1", "status": "queued"}
+            with patch.dict("os.environ", {"CORPUS_ID": "questions", "CORPUS_ROOT": directory,
+                                           "EXPERIMENT_TRIGGER_TOKEN": "test-token"}), \
+                 patch("app.main.Langfuse", return_value=fake), \
+                 patch("app.main.langfuse_enabled", return_value=True), \
+                 patch("app.main.resolve", return_value=SimpleNamespace(version="v2", overrides={})), \
+                 patch("app.main.submit", return_value=(queued, True)) as submit:
+                response = TestClient(app).post("/experiments/run", json={"datasetName": "Local set",
+                    "customPayload": json.dumps({"pipeline": "v2"})},
+                    headers={"X-Experiment-Trigger-Token": "test-token"})
+            self.assertEqual(response.status_code, 202, response.text)
+            get_dataset.assert_called_once_with("Hosted set")
+            self.assertEqual(submit.call_args.args[0]["dataset_name"], "Hosted set")
+
     def test_failed_execution_status_keeps_requested_version(self):
         row = {"result_json": json.dumps({"status": "failed", "error": "prompt missing"}),
                "payload_json": json.dumps({"pipeline": "v1", "settings": {"passage_chars": 600}}),
@@ -179,6 +233,7 @@ class VersionPayloadContract(TestCase):
         row = {"execution_id": "execution-1", "status": "queued"}
         with patch.dict("os.environ", {"EXPERIMENT_TRIGGER_TOKEN": "test-token"}), \
              patch("app.main.Langfuse", return_value=fake), \
+             patch("app.main.langfuse_enabled", return_value=True), \
              patch("app.main.submit", return_value=(row, True)) as submit:
             response = TestClient(app).post("/experiments/run", json={"datasetName": "QA.csv",
                 "customPayload": json.dumps({"pipeline": "v2"})},

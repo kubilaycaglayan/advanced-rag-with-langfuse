@@ -8,7 +8,7 @@
 /.venv/
 /data/
 /outputs/
-/corpus/
+/corpora/*/books/
 /docs/plans/LANGFUSE_INTEGRATION_PLAN.md
 **/__pycache__/
 *.py[cod]

@@ -15,6 +15,11 @@ from langfuse import Langfuse
 from langfuse.api import NotFoundError
 
 try:
+    from .corpus_config import corpus_config, corpus_data_dir, langfuse_dataset_name, langfuse_project
+except ImportError:
+    from corpus_config import corpus_config, corpus_data_dir, langfuse_dataset_name, langfuse_project
+
+try:
     from .identity import canonical_json, normalize_question, seed_row_key, seeded_item_id
 except ImportError:
     from identity import canonical_json, normalize_question, seed_row_key, seeded_item_id
@@ -68,9 +73,9 @@ def _item_payload(item: Any) -> dict[str, Any]:
 def _resolve_project_and_dataset(client: Langfuse, dataset_name: str) -> tuple[Any, Any | None]:
     project_response = client.api.projects.get()
     projects = getattr(project_response, "data", []) or []
-    matches = [candidate for candidate in projects if candidate.name == "millenium"]
+    matches = [candidate for candidate in projects if candidate.name == langfuse_project()]
     if len(matches) != 1:
-        raise RuntimeError("configured credentials do not resolve to exactly one project named 'millenium'")
+        raise RuntimeError(f"configured credentials do not resolve to exactly one project named {langfuse_project()!r}")
     project = matches[0]
 
     try:
@@ -116,7 +121,7 @@ def _seed_dataset(
         if previous.get("source_checksum") != checksum:
             raise RuntimeError("QA.csv differs from the original seed; edit QA items in Langfuse instead")
     mapping_path.parent.mkdir(parents=True, exist_ok=True)
-    dataset_name = os.getenv("DATASET_NAME", "QA.csv")
+    dataset_name = langfuse_dataset_name(os.getenv("DATASET_NAME"))
 
     project, dataset = _resolve_project_and_dataset(client, dataset_name)
     exists = dataset is not None
@@ -209,19 +214,32 @@ def seed_dataset(csv_path: Path, mapping_path: Path, *, reconcile_existing: bool
         client.shutdown()
 
 
+def default_seed_path(question_set: str | None = None) -> Path | None:
+    config = corpus_config()
+    selected = question_set or str(config.langfuse.get("default_dataset", ""))
+    definition = config.question_sets.get(selected, {})
+    if not definition:
+        definition = next((entry for entry in config.question_sets.values()
+                           if entry.get("langfuse_dataset") == selected), {})
+    path = definition.get("path")
+    return (config.root / path) if isinstance(path, str) else None
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--csv", type=Path, default=Path(__file__).resolve().parents[1] / "QA.csv")
+    parser.add_argument("--csv", type=Path, default=default_seed_path(os.getenv("DATASET_NAME")))
     parser.add_argument("--mapping", type=Path)
     parser.add_argument("--check-only", action="store_true", help="verify project/dataset access without creating or changing data")
     parser.add_argument("--reconcile-existing", action="store_true", help="verify existing items by their deterministic IDs and provenance")
     args = parser.parse_args()
-    data_dir = Path(os.getenv("EXPERIMENT_DATA_DIR", "./data"))
+    data_dir = corpus_data_dir()
     mapping = args.mapping or data_dir / "seed-mapping.json"
     try:
         if args.check_only:
-            print(json.dumps(inspect_langfuse(os.getenv("DATASET_NAME", "QA.csv")), indent=2))
+            print(json.dumps(inspect_langfuse(langfuse_dataset_name(os.getenv("DATASET_NAME"))), indent=2))
         else:
+            if args.csv is None:
+                raise ValueError("selected question set has no local path; provide --csv")
             print(json.dumps(seed_dataset(args.csv, mapping, reconcile_existing=args.reconcile_existing), indent=2))
     except Exception as exc:
         detail = type(exc).__name__ if type(exc).__module__.startswith("langfuse") else f"{type(exc).__name__}: {exc}"

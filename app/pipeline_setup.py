@@ -11,10 +11,14 @@ from pathlib import Path
 from typing import Any
 
 try:
+    from .corpus_config import corpus_id
+    from .corpus_profiles import profile_identity, prompt_identity
     from .identity import canonical_json, pipeline_identity, source_manifest
     from .indexer import corpus_paths
     from .resolved_config import ResolvedPipelineConfig, resolve_ollama_model
 except ImportError:
+    from corpus_config import corpus_id
+    from corpus_profiles import profile_identity, prompt_identity
     from identity import canonical_json, pipeline_identity, source_manifest
     from indexer import corpus_paths
     from resolved_config import ResolvedPipelineConfig, resolve_ollama_model
@@ -38,6 +42,9 @@ def current_pipeline_setup(config: ResolvedPipelineConfig, prompt_versions: dict
     enriched["embedding_model"] = {"name": config.embedding_model.name, "revision": config.embedding_model.revision}
     enriched["reranker_model"] = {"name": config.reranker_model.name, "revision": config.reranker_model.revision}
     enriched["corpus_checksum"] = corpus_checksum
+    enriched["corpus_id"] = corpus_id()
+    enriched["profile_identity"] = profile_identity()
+    enriched["prompt_identity"] = prompt_identity()
     return pipeline_identity(git_revision=sources["git_revision"], dirty=sources["dirty"],
                              source_fingerprint=sources["source_fingerprint"], resolved_config=enriched,
                              corpus_checksum=corpus_checksum)

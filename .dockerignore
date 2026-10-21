@@ -6,6 +6,6 @@
 **/__pycache__
 **/*.py[cod]
 data
-corpus
+corpora/*/books
 outputs
 LANGFUSE_INTEGRATION_PLAN.md

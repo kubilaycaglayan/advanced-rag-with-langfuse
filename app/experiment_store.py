@@ -10,15 +10,17 @@ from pathlib import Path
 from typing import Any
 
 try:
+    from .corpus_config import corpus_data_dir
     from .identity import canonical_json
 except ImportError:
+    from corpus_config import corpus_data_dir
     from identity import canonical_json
 
 _local = threading.local()
 
 
 def db_path() -> Path:
-    path = Path(os.getenv("EXPERIMENT_DATA_DIR", "./data")) / "experiments.sqlite3"
+    path = corpus_data_dir() / "experiments.sqlite3"
     path.parent.mkdir(parents=True, exist_ok=True)
     return path
 

@@ -1,4 +1,4 @@
-"""Reusable Millennium RAG answer pipeline shared by HTTP and experiments."""
+"""Reusable corpus-agnostic RAG answer pipeline shared by HTTP and experiments."""
 from __future__ import annotations
 
 import contextvars
@@ -19,12 +19,14 @@ from sentence_transformers import CrossEncoder, SentenceTransformer
 from qdrant_client import models
 
 try:
+    from .corpus_profiles import load_profile, profile_prompt
     from .resolved_config import ResolvedPipelineConfig
     from .observability import observation as _observe, update as _update
     from .prompt_templates import PROMPT_HASHES, PROMPT_TEMPLATES
     from .entities import entity_cards_path, entity_events_path
     from .scenes import context_collection, scene_collection
 except ImportError:
+    from corpus_profiles import load_profile, profile_prompt
     from resolved_config import ResolvedPipelineConfig
     from observability import observation as _observe, update as _update
     from prompt_templates import PROMPT_HASHES, PROMPT_TEMPLATES
@@ -141,7 +143,7 @@ def _translate(question: str, config: ResolvedPipelineConfig, prompt_bundle: dic
     """
     with _observe("query translation", input=question) as obs:
         messages = (prompt_bundle["rag-query-translation"]["client"].compile(question=question) if prompt_bundle else [
-            {"role": "system", "content": PROMPT_TEMPLATES["query_translation_system"]}, {"role": "user", "content": question}])
+            {"role": "system", "content": profile_prompt("query_translation_system", PROMPT_TEMPLATES["query_translation_system"])}, {"role": "user", "content": question}])
         reply = _ollama(messages, config.generation_model.name, config.generation.output_budgets, config.generation.temperature, config.generation.context_length,
                         prompt=prompt_bundle["rag-query-translation"]["client"] if prompt_bundle else None, name="English translation generation")
         fields = {key.strip().upper(): value.strip().strip('"') for key, _, value in (line.partition(":") for line in reply.splitlines())}
@@ -159,7 +161,7 @@ def _transform(question: str, config: ResolvedPipelineConfig, prompt_bundle: dic
     def hyde() -> str:
         with _observe("HyDE transformation", input=question) as obs:
             messages = (prompt_bundle["rag-hyde"]["client"].compile(question=question) if prompt_bundle else [
-                {"role": "system", "content": PROMPT_TEMPLATES["hyde_system"]}, {"role": "user", "content": question}])
+                {"role": "system", "content": profile_prompt("hyde_system", PROMPT_TEMPLATES["hyde_system"])}, {"role": "user", "content": question}])
             hypothetical = _ollama(messages, config.generation_model.name, config.generation.output_budgets, config.generation.temperature, config.generation.context_length,
                                    prompt=prompt_bundle["rag-hyde"]["client"] if prompt_bundle else None, name="hypothetical document generation")
             _update(obs, output=hypothetical)
@@ -169,7 +171,7 @@ def _transform(question: str, config: ResolvedPipelineConfig, prompt_bundle: dic
         with _observe("query expansion", input=question) as obs:
             # Prompts may reference {{expansion_count}}; templates without it ignore the value.
             messages = (prompt_bundle["rag-query-expansion"]["client"].compile(question=question, expansion_count=str(config.expansion_count)) if prompt_bundle else [
-                {"role": "system", "content": PROMPT_TEMPLATES["query_expansion_system"].replace("{{expansion_count}}", str(config.expansion_count))},
+                {"role": "system", "content": profile_prompt("query_expansion_system", PROMPT_TEMPLATES["query_expansion_system"]).replace("{{expansion_count}}", str(config.expansion_count))},
                 {"role": "user", "content": question}])
             raw = _ollama(messages, config.generation_model.name, config.generation.output_budgets, config.generation.temperature, config.generation.context_length,
                           prompt=prompt_bundle["rag-query-expansion"]["client"] if prompt_bundle else None, name="literary query generation")
@@ -183,7 +185,7 @@ def _transform(question: str, config: ResolvedPipelineConfig, prompt_bundle: dic
     def grammar() -> str:
         with _observe("grammar correction", input=question) as obs:
             messages = (prompt_bundle["rag-grammar-correction"]["client"].compile(question=question) if prompt_bundle else [
-                {"role": "system", "content": PROMPT_TEMPLATES["grammar_system"]}, {"role": "user", "content": question}])
+                {"role": "system", "content": profile_prompt("grammar_system", PROMPT_TEMPLATES["grammar_system"])}, {"role": "user", "content": question}])
             corrected = _ollama(messages, config.generation_model.name, config.generation.output_budgets,
                                 config.generation.temperature, config.generation.context_length,
                                 prompt=prompt_bundle["rag-grammar-correction"]["client"] if prompt_bundle else None, name="grammar corrected query generation")
@@ -217,7 +219,8 @@ def _rrf(rankings: list[list[Any]], limit: int, k: int) -> list[dict[str, Any]]:
     return sorted(fused.values(), key=lambda row: row["rrf_score"], reverse=True)[:limit]
 
 
-_NAME_WORD = r"[A-ZÅÄÖ][a-zåäöéü]+"
+def _name_word_pattern() -> str:
+    return load_profile().name_word_pattern
 
 
 @lru_cache(maxsize=8)
@@ -233,8 +236,8 @@ def _name_pairs(collection: str) -> tuple[dict[str, tuple[str, int, int]], Count
         points, offset = qdrant_client().scroll(collection_name=collection, limit=1000, offset=offset, with_payload=["text"])
         for point in points:
             text = (point.payload or {}).get("text", "")
-            words.update(re.findall(rf"\b{_NAME_WORD}\b", text))
-            for first, last in re.findall(rf"\b({_NAME_WORD}) ({_NAME_WORD})\b", text):
+            words.update(re.findall(rf"\b{_name_word_pattern()}\b", text))
+            for first, last in re.findall(rf"\b({_name_word_pattern()}) ({_name_word_pattern()})\b", text):
                 by_word[first][f"{first} {last}"] += 1
                 by_word[last][f"{first} {last}"] += 1
         if offset is None:
@@ -291,7 +294,7 @@ def _with_previous_passage(row: dict[str, Any], collection: str) -> dict[str, An
 def _rare_question_words(question: str, collection: str, share: float) -> set[str]:
     """The question's content words, names aside, that occur in fewer than ``share`` of the passages."""
     rows, _, _, frequency = _keyword_index(collection)
-    names = {word for name in re.findall(rf"(?<!^)\b{_NAME_WORD}", question.strip()) for word in _keywords(name)}
+    names = {word for name in re.findall(rf"(?<!^)\b{_name_word_pattern()}", question.strip()) for word in _keywords(name)}
     return {word for word in _keywords(question) if len(word) > 1 and word not in names and 0 < frequency[word] < share * len(rows)}
 
 
@@ -726,7 +729,7 @@ def _complete_names(question: str, collection: str, min_count: int = 20, min_sha
     """
     pairs, words = _name_pairs(collection)
     completed = question
-    for word in dict.fromkeys(re.findall(rf"\b{_NAME_WORD}\b", question)):
+    for word in dict.fromkeys(re.findall(rf"\b{_name_word_pattern()}\b", question)):
         if word not in pairs:
             continue
         full, count, total = pairs[word]
@@ -798,7 +801,7 @@ def _prompted(prompt_bundle: dict[str, Any] | None, asset: str, system: str, use
               **variables: str) -> str:
     """One generation-model request with a Langfuse prompt (``asset``), or the local template when there is no bundle."""
     client = prompt_bundle[asset]["client"] if prompt_bundle else None
-    messages = client.compile(**variables) if client else [{"role": "system", "content": PROMPT_TEMPLATES[system]}, {"role": "user", "content": user}]
+    messages = client.compile(**variables) if client else [{"role": "system", "content": profile_prompt(system, PROMPT_TEMPLATES[system])}, {"role": "user", "content": user}]
     return _ollama(messages, config.generation_model.name, config.generation.output_budgets, config.generation.temperature,
                    config.generation.context_length, prompt=client, name=name)
 
@@ -1117,7 +1120,7 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
     if translated:
         answer_question = asked if answer_question == translated else f"{asked} ({answer_question})"
     messages = (prompt_bundle["rag-answer"]["client"].compile(question=answer_question, evidence=evidence) if prompt_bundle else [
-        {"role": "system", "content": PROMPT_TEMPLATES["answer_system"]},
+        {"role": "system", "content": profile_prompt("answer_system", PROMPT_TEMPLATES["answer_system"])},
         {"role": "user", "content": f"Question: {answer_question}\n\nEvidence passages:\n{evidence}"}])
     stage = time.perf_counter()
     think = config.answer_thinking or low_confidence or bool(scene_hits and config.scene_thinking)

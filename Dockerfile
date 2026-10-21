@@ -9,7 +9,7 @@ RUN pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu 
 COPY app/ /workspace/app/
 COPY pipelines.md pipelines.sha256 /workspace/
 COPY tests/ /workspace/tests/
-COPY QA.csv /workspace/QA.csv
+COPY corpora/millennium/corpus.yaml corpora/millennium/QA.csv corpora/millennium/answer-facts.json /workspace/corpora/millennium/
 COPY Dockerfile compose.yaml .dockerignore /workspace/
 EXPOSE 8000
 CMD ["uvicorn", "main:app", "--app-dir", "app", "--host", "0.0.0.0", "--port", "8000"]

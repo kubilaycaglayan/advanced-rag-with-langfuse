@@ -105,6 +105,9 @@ def load_catalog(path: Path = CATALOG, releases_path: Path = RELEASES) -> Pipeli
             raise ValueError(f"{version}: invalid settings/prompts/index/models")
         if set(block["index"]) != {"collection", "corpus_checksum"}:
             raise ValueError(f"{version}: index needs collection and corpus_checksum")
+        if ((block["index"]["collection"] is None) != (block["index"]["corpus_checksum"] is None)
+                or any(value is not None and not isinstance(value, str) for value in block["index"].values())):
+            raise ValueError(f"{version}: generic indexes must leave collection and corpus_checksum unset together")
         known_settings = {field.name for field in fields(ResolvedPipelineConfig)} - MODEL_KEYS - IDENTITY_KEYS
         required_settings = known_settings if block["engine"] == "fixed" else V2_SETTINGS
         if set(block["settings"]) != required_settings:

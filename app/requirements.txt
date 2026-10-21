@@ -6,3 +6,4 @@ beautifulsoup4==4.14.2
 EbookLib==0.20
 qdrant-client==1.15.1
 sentence-transformers==5.1.2
+PyYAML==6.0.3

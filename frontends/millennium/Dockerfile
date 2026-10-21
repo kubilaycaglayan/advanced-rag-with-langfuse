@@ -1,4 +1,4 @@
-# Build from the repository's frontend/ directory with the ui submodule checked out
+# Build from the repository's frontends/millennium/ directory with the ui submodule checked out
 # (git submodule update --init).
 FROM node:22-alpine AS build
 WORKDIR /frontend/ui

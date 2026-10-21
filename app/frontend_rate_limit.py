@@ -8,6 +8,11 @@ import time
 from contextlib import closing
 from pathlib import Path
 
+try:
+    from .corpus_config import corpus_data_dir
+except ImportError:
+    from corpus_config import corpus_data_dir
+
 
 WINDOWS = ((60, 3), (30 * 60, 10), (60 * 60, 15), (24 * 60 * 60, 25))
 
@@ -17,7 +22,7 @@ def reserve_request(ip: str, *, path: Path | None = None, now_ms: int | None = N
     if now_ms is None:
         now_ms = time.time_ns() // 1_000_000
     if path is None:
-        path = Path(os.getenv("EXPERIMENT_DATA_DIR", "./data")) / "frontend-rate-limits.sqlite3"
+        path = corpus_data_dir() / "frontend-rate-limits.sqlite3"
     path.parent.mkdir(parents=True, exist_ok=True)
     with closing(sqlite3.connect(path, timeout=30, isolation_level=None)) as db:
         db.execute("PRAGMA busy_timeout=30000")
