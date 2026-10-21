@@ -7,6 +7,11 @@ services:
     command: ["redis-server", "--appendonly", "yes", "--appendfsync", "everysec"]
     volumes:
       - redis_cache_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
   qdrant:
     image: qdrant/qdrant:v1.15.1
@@ -22,7 +27,10 @@ services:
       args:
         GIT_REVISION: ${GIT_REVISION:-unknown}
     depends_on:
-      - qdrant
+      qdrant:
+        condition: service_started
+      redis:
+        condition: service_healthy
     restart: unless-stopped
     network_mode: host
     env_file:
