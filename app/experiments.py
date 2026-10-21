@@ -471,7 +471,10 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
             if isinstance(out, dict):
                 out["answer_cache_status"] = cache_statuses.get(item_result.item.id, "bypassed")
                 out["answer_cache_approved"] = cache_write
-            cache_statuses[item_result.item.id] = "approved" if cache_write else cache_statuses.get(item_result.item.id, "bypassed")
+            previous_cache_status = cache_statuses.get(item_result.item.id, "bypassed")
+            cache_statuses[item_result.item.id] = (
+                "approved" if cache_write and previous_cache_status != "hit" else previous_cache_status
+            )
             item_results.append({"item_id": item_result.item.id, "session_id": _item_session(dataset.name, item_result.item),
                                  "trace_id": item_result.trace_id, "output": _jsonable(out), "evaluations": scores,
                                  "failed": failed, "answer_cache_status": cache_statuses[item_result.item.id],
