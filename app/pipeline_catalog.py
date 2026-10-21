@@ -28,7 +28,7 @@ V2_SETTINGS = {"retrieval_mode", "hyde", "expansion_count", "name_completion", "
                "generation", "parallel_transformations", "scene_thinking"}
 AGENT_KEYS = {"model", "tools", "max_turns", "max_tool_calls", "min_tool_calls", "timeout_seconds",
               "context_length", "num_predict", "think", "snippet_chars", "instruction_fingerprint"}
-AGENT_OPTIONAL_KEYS = {"query_aware_reranking", "scene_candidate_count", "initial_scene_probe", "provider"}
+AGENT_OPTIONAL_KEYS = {"query_aware_reranking", "scene_candidate_count", "initial_scene_probe", "provider", "progress_control", "premise_early_stop"}
 
 
 def fingerprint(block: dict[str, Any]) -> str:

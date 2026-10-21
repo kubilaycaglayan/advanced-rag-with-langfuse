@@ -384,6 +384,7 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
                         trace_metadata["agent_reasoning_effort"] = resolved.agent_settings.reasoning_effort
                         trace_metadata["agent_automatic_scene_search"] = resolved.agent_settings.initial_scene_probe
                         trace_metadata["agent_scene_candidate_count"] = resolved.agent_settings.scene_candidate_count
+                        trace_metadata["agent_premise_early_stop"] = resolved.agent_settings.premise_early_stop
                     trace_metadata.update({f"prompt_{name}": f"{asset['id']}@{asset['version']}:{asset['label']}"
                                            for name, asset in prompt_versions.items()})
                     trace_metadata.update({f"managed_eval_{name}": f"{asset['id']}@{asset['version']}"
@@ -417,6 +418,7 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
             experiment_metadata["agent_reasoning_effort"] = resolved.agent_settings.reasoning_effort
             experiment_metadata["agent_automatic_scene_search"] = resolved.agent_settings.initial_scene_probe
             experiment_metadata["agent_scene_candidate_count"] = resolved.agent_settings.scene_candidate_count
+            experiment_metadata["agent_premise_early_stop"] = resolved.agent_settings.premise_early_stop
             experiment_metadata["agent_endpoint"] = ("responses" if resolved.agent_settings.provider == "openai"
                                                       and resolved.agent_settings.reasoning_effort != "none"
                                                       else "chat_completions" if resolved.agent_settings.provider == "openai"

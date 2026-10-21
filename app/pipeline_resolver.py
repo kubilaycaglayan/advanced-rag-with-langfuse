@@ -119,6 +119,7 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
     agent_effort = overrides.get("agent_reasoning_effort")
     agent_provider = overrides.get("agent_provider")
     scene_candidate_count = overrides.get("scene_candidate_count")
+    premise_early_stop = overrides.get("premise_early_stop")
     if version in {"v2.6", "v2.7", "v2.8", "v2.9", "v2.10"} and overrides.get("automatic_scene_search") is True and scene_candidate_count is None:
         # The validated automatic probe trials used 30 candidates; the v2.2-compatible default remains 20.
         overrides["scene_candidate_count"] = 30
@@ -126,6 +127,8 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
     allowed = set(block["settings"]) | (MODEL_KEYS if block["engine"] == "fixed" else set())
     if version in {"v2.6", "v2.7", "v2.8", "v2.9", "v2.10"}:
         allowed.update({"agent_provider", "automatic_scene_search", "scene_candidate_count"})
+    if version == "v2.11":
+        allowed.add("premise_early_stop")
     if (block["engine"] == "agent" and
             (block.get("agent", {}).get("provider") == "openai" or agent_provider == "openai")):
         allowed.add("agent_reasoning_effort")
@@ -142,7 +145,7 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
     if "generation" in overrides and isinstance(overrides["generation"], Mapping):
         overrides["generation"] = {**values["generation"], **overrides["generation"]}
     agent_override_keys = {"agent_provider", "automatic_scene_search", "agent_reasoning_effort",
-                           "scene_candidate_count"}
+                           "scene_candidate_count", "premise_early_stop"}
     config_overrides = {key: value for key, value in overrides.items() if key not in agent_override_keys}
     values.update(config_overrides)
     config = ResolvedPipelineConfig.from_mapping(values, use_environment=False)
@@ -167,6 +170,11 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
                 raise ValueError("scene_candidate_count must be an integer from 1 to 100")
             agent_settings = AgentSettings(**{**agent_settings.__dict__,
                                               "scene_candidate_count": scene_candidate_count})
+        if premise_early_stop is not None:
+            if not isinstance(premise_early_stop, bool):
+                raise ValueError("premise_early_stop must be a boolean")
+            agent_settings = AgentSettings(**{**agent_settings.__dict__,
+                                              "premise_early_stop": premise_early_stop})
         if agent_effort is not None:
             if agent_effort not in {"none", "low", "medium", "high", "xhigh", "max"}:
                 raise ValueError("agent_reasoning_effort must be none, low, medium, high, xhigh, or max")
@@ -190,8 +198,12 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
         compatible_probe_trace = (version in {"v2.4", "v2.5", "v2.6", "v2.7"}
                                   and expected_instructions == _V25_SCENE_PROBE_FINGERPRINT
                                   and actual_instructions == _V26_PROBE_TRACE_FINGERPRINT)
+        draft_block = catalog.versions.get("v2.11") or {}
+        draft_progress_compatible = (actual_instructions ==
+                                     (draft_block.get("agent") or {}).get("instruction_fingerprint")
+                                     and version != "v2.11" and block["status"] != "draft")
         if expected_instructions != actual_instructions and not (legacy_v2 or legacy_v22 or compatible_v23_adapter
-                                                                  or compatible_probe_trace):
+                                                                  or compatible_probe_trace or draft_progress_compatible):
             raise ValueError(f"{version}: agent instructions differ from released version; publish a new version")
     try:
         from .indexer import index_identity

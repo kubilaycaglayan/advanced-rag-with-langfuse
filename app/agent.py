@@ -112,6 +112,8 @@ class AgentSettings:
     initial_scene_probe: bool = False
     query_aware_reranking: bool = False
     reasoning_effort: str = "none"
+    progress_control: bool = False
+    premise_early_stop: bool = True
 
     def with_model(self, model: str) -> "AgentSettings":
         return AgentSettings(**{**self.__dict__, "model": model})
@@ -141,6 +143,9 @@ class AgentState:
     trace: list[dict[str, Any]] = field(default_factory=list)
     usage: dict[str, Any] = field(default_factory=dict)
     read_capture: dict[str, list[str]] | None = field(default=None, repr=False)
+    rejected_answers: set[str] = field(default_factory=set)
+    premise_evidence: list[str] = field(default_factory=list)
+    search_history: list[tuple[str, set[str]]] = field(default_factory=list)
 
     def remember(self, rows: list[dict[str, Any]], query: str | None = None) -> None:
         for row in rows:
@@ -1791,19 +1796,82 @@ def _verify_submission(state: AgentState, answer: str, ids: list[str], extra_ids
                 "unambiguously identify the person the question asks about. Additional background the passages do not "
                 "mention is not a failure. Reply with JSON only: "
                 '{"supported": true or false, "reason": "one sentence"}')
+    if state.settings.progress_control:
+        prompt += ("\nFor this draft, every factual claim must be supported; override the earlier allowance for unsupported background. "
+                   "Check the answer's central claim and the question's premise against all passages, including contradictions. "
+                   "An intention, accusation, question, or earlier belief does not establish that an event happened. "
+                   "If a later passage establishes the subject is alive, reject an answer saying someone killed them. "
+                   "If the answer changes the subject of who was killed, reject it unless it also answers the question directly. "
+                   "Return supported=false for any unsupported central claim or unresolved contradiction.")
     try:
         reply = _tracked_agent_chat(state, [{"role": "system", "content": "You check whether evidence supports an answer."},
                                             {"role": "user", "content": prompt}], None, "submission verification")
         content = ((reply.get("message") or {}).get("content") or "").strip()
         match = re.search(r"\{.*\}", content, re.S)
         verdict = json.loads(match.group(0)) if match else {}
-        return bool(verdict.get("supported", True)), str(verdict.get("reason") or "")
+        return bool(verdict.get("supported", not state.settings.progress_control)), str(verdict.get("reason") or "")
     except (ValueError, TypeError, KeyError, AttributeError):
-        return True, "verifier reply could not be parsed"
+        return not state.settings.progress_control, "verifier reply could not be parsed"
     except Exception as exc:  # verification must not end the run
         if state.settings.provider == "openai":
             raise
-        return True, f"verifier failed: {type(exc).__name__}"
+        return not state.settings.progress_control, f"verifier failed: {type(exc).__name__}"
+
+
+def _premise_probe(state: AgentState) -> str | None:
+    """Put a direct counter-hypothesis beside a question that presumes a death."""
+    match = re.search(r"\bwho\s+(?:killed|murdered)\s+([^?.,]+)", state.question, re.I)
+    if not match:
+        return None
+    person = match.group(1).strip()
+    rows = _semantic_rows(state, f"{person} is alive", 8)
+    direct = [row for row in rows if re.search(r"\b(?:alive|surviv(?:ed|es)|still living)\b", row.get("text") or "", re.I)]
+    if not direct:
+        return None
+    state.remember(direct, query=f"{person} is alive")
+    state.focus_on(direct[:3])
+    state.premise_evidence = [row["id"][:8] for row in direct[:3]]
+    return ("Premise check: the question assumes a death. These passages may contradict that assumption. "
+            "Resolve whether the person actually died before naming a killer; read the surrounding passage if needed.\n\n"
+            + "\n\n".join(f"[{row['id'][:8]}] {(row.get('text') or '')[:900]}" for row in direct[:3]))
+
+
+def _answer_key(answer: str) -> str:
+    return re.sub(r"\s+", " ", re.sub(r"\[[0-9a-fA-F]{8}\]", "", answer)).strip().casefold()
+
+
+def _direct_premise_resolution(state: AgentState) -> tuple[str, list[str]] | None:
+    """Answer a false death premise from a later passage that directly confirms the subject is alive."""
+    match = re.search(r"\bwho\s+(?:killed|murdered)\s+([^?.,]+)", state.question, re.I)
+    if not match:
+        return None
+    person = match.group(1).strip()
+    first = person.split()[0].casefold()
+    ordered = sorted(state.premise_evidence,
+                     key=lambda short: bool(re.search(r"\b(?:i[’']m|i am) alive\b",
+                                                     str(state.evidence[short].get("text") or ""), re.I)),
+                     reverse=True)
+    for short in ordered:
+        text = str(state.evidence[short].get("text") or "")
+        if (first in text.casefold() and
+                re.search(r"\b(?:that you[’']re|you are|i[’']m|i am) alive\b", text, re.I)):
+            return f"No one killed {person}; {person} is alive [{short}].", [short]
+    return None
+
+
+def _search_progress_hint(state: AgentState, name: str, args: dict[str, Any], payload: dict[str, Any]) -> str | None:
+    if name not in {"semantic_search", "keyword_search", "search_scenes"}:
+        return None
+    query = str(args.get("query") or "")
+    terms = set(re.findall(r"[a-z]+", query.casefold())) - {"who", "what", "the", "was", "by", "to", "vanger"}
+    ids = {str(row.get("id")) for row in (payload.get("hits") or payload.get("scenes") or []) if row.get("id")}
+    repeated = any(len(terms & old_terms) / max(1, len(terms | old_terms)) >= 0.5
+                   and len(ids - old_ids) <= 2 for old_terms, old_ids in state.search_history[-3:])
+    state.search_history.append((terms, ids))
+    if repeated:
+        return ("This search substantially repeats an earlier hypothesis and adds little distinct evidence. "
+                "State the unresolved claim, inspect context or test a competing explanation before searching again.")
+    return None
 
 
 _SYNTHESIS_SYSTEM = """You answer a question about Stieg Larsson's Millennium trilogy from the evidence passages given.
@@ -2036,6 +2104,14 @@ def run_agent(question: str, collection: str, config: ResolvedPipelineConfig | N
                             "seconds": 0.0, "error": None,
                             "result_ids": [row["id"][:8] for row in (moment_check.get("keywords") or [])[:3]
                                            + (moment_check.get("scene_rows") or [])[:6]]})
+    if settings.progress_control:
+        with observation("premise probe", input=state.question) as premise_observation:
+            premise_message = _premise_probe(state)
+            update_observation(premise_observation, output={"passage_ids": state.premise_evidence})
+        if premise_message:
+            messages.append({"role": "user", "content": premise_message})
+            state.trace.append({"tool": "premise probe", "arguments": {"question": state.question},
+                                "seconds": 0.0, "error": None, "result_ids": state.premise_evidence})
     tool_specs = _tool_specs()
 
     def emit(event: dict[str, Any]) -> None:
@@ -2043,6 +2119,18 @@ def run_agent(question: str, collection: str, config: ResolvedPipelineConfig | N
             on_event(event)
 
     with observation("agent run", input={"question": question, "model": settings.model}) as root:
+        if settings.progress_control and settings.premise_early_stop:
+            direct = _direct_premise_resolution(state)
+            if direct:
+                with observation("direct premise resolution", input={"answer": direct[0], "ids": direct[1]}):
+                    supported, reason = _verify_submission(state, direct[0], direct[1])
+                state.trace.append({"tool": "direct premise resolution", "arguments": {"reason": reason},
+                                    "seconds": 0.0, "error": None if supported else "unsupported",
+                                    "result_ids": direct[1]})
+                if supported:
+                    result = _finish(state, direct[0], direct[1], stopped="premise_resolved")
+                    update_observation(root, output=result)
+                    return result
         for turn in range(1, settings.max_turns + 1):
             state.turns = turn
             if time.perf_counter() - state.started > settings.timeout_seconds:
@@ -2072,6 +2160,10 @@ def run_agent(question: str, collection: str, config: ResolvedPipelineConfig | N
                 ids = [short.casefold() for short in re.findall(r"\[([0-9a-fA-F]{8})\]", content)
                        if short.casefold() in state.evidence]
                 ids = list(dict.fromkeys(ids))
+                if settings.progress_control and _answer_key(content) in state.rejected_answers:
+                    messages.append({"role": "assistant", "content": content})
+                    messages.append({"role": "user", "content": "That central answer was already rejected. Resolve the contradiction or give a different, supported answer."})
+                    continue
                 if state.tool_calls < state.settings.min_tool_calls and state.nudges < 2:
                     state.nudges += 1
                     messages.append({"role": "assistant", "content": content})
@@ -2091,13 +2183,16 @@ def run_agent(question: str, collection: str, config: ResolvedPipelineConfig | N
                         emit({"type": "coverage", "covered": gap.get("covered_stages"),
                               "people": gap.get("people_involved")})
                         continue
-                if ids and state.verifications < 2:
+                if ids and (settings.progress_control or state.verifications < 2):
                     state.verifications += 1
-                    focus = [short for short in state.focus if short not in ids][:6]
+                    focus = list(dict.fromkeys([*state.premise_evidence, *state.focus]))
+                    focus = [short for short in focus if short not in ids][:6]
                     with observation("submission verification", input={"answer": content, "ids": ids}):
                         supported, reason = _verify_submission(state, content, ids, focus)
                     emit({"type": "verify", "supported": supported, "reason": reason})
                     if not supported:
+                        if settings.progress_control:
+                            state.rejected_answers.add(_answer_key(content))
                         messages.append({"role": "assistant", "content": content})
                         messages.append({"role": "tool", "content": _clip({
                             "error": "the answer is not supported by the cited passages", "reason": reason,
@@ -2111,6 +2206,10 @@ def run_agent(question: str, collection: str, config: ResolvedPipelineConfig | N
                         "8-character passage_ids it relies on; otherwise continue searching.")})
                     with observation("no tool nudge", input={"turn": turn}):
                         emit({"type": "nudge", "turn": turn})
+                    continue
+                if settings.progress_control and not ids:
+                    messages.append({"role": "assistant", "content": content})
+                    messages.append({"role": "user", "content": "Submit a supported answer with passage IDs, or say the evidence is insufficient."})
                     continue
                 result = _finish(state, content, ids, stopped="content")
                 update_observation(root, output=result)
@@ -2147,6 +2246,12 @@ def run_agent(question: str, collection: str, config: ResolvedPipelineConfig | N
                                     "result_ids": [hit.get("id") for hit in (payload.get("hits") or [])] if isinstance(payload, dict) else []})
                 emit({"type": "tool", "name": name, "arguments": arguments, "seconds": seconds,
                       "error": payload.get("error") if isinstance(payload, dict) else None})
+                progress_hint = (_search_progress_hint(state, name, arguments, payload)
+                                 if settings.progress_control and isinstance(payload, dict) else None)
+                if settings.progress_control and stop and _answer_key(payload["raw_answer"]) in state.rejected_answers:
+                    messages.append({"role": "tool", "tool_call_id": call.get("id"), "content": _clip({
+                        "error": "this answer was already rejected; resolve its unsupported claim before submitting again"})})
+                    continue
                 if name == "find_names" and payload.get("likely") and payload.get("name") not in state.resolved_names:
                     state.resolved_names.add(payload["name"])
                     with observation("name check message", input=payload):
@@ -2154,13 +2259,16 @@ def run_agent(question: str, collection: str, config: ResolvedPipelineConfig | N
                             f"Name check: the books do not use {payload['name']!r}; the person meant is {payload['likely']}. "
                             "Continue the question with that name; do not answer that the character does not exist.")})
                 if stop:
-                    if state.verifications < 2 and payload["passage_ids"]:
+                    if payload["passage_ids"] and (settings.progress_control or state.verifications < 2):
                         state.verifications += 1
-                        focus = [short for short in state.focus if short not in payload["passage_ids"]][:6]
+                        focus = list(dict.fromkeys([*state.premise_evidence, *state.focus]))
+                        focus = [short for short in focus if short not in payload["passage_ids"]][:6]
                         with observation("submission verification", input=payload):
                             supported, reason = _verify_submission(state, payload["raw_answer"], payload["passage_ids"], focus)
                         emit({"type": "verify", "supported": supported, "reason": reason})
                         if not supported:
+                            if settings.progress_control:
+                                state.rejected_answers.add(_answer_key(payload["raw_answer"]))
                             messages.append({"role": "tool", "tool_call_id": call.get("id"), "content": _clip({
                                 "error": "the answer is not supported by the cited passages",
                                 "reason": reason,
@@ -2172,6 +2280,10 @@ def run_agent(question: str, collection: str, config: ResolvedPipelineConfig | N
                     update_observation(root, output=result)
                     return result
                 messages.append({"role": "tool", "tool_call_id": call.get("id"), "content": _clip(payload)})
+                if progress_hint:
+                    messages.append({"role": "user", "content": progress_hint})
+                    state.trace.append({"tool": "progress nudge", "arguments": {"query": arguments.get("query")},
+                                        "seconds": 0.0, "error": None, "result_ids": []})
                 if state.tool_calls >= settings.max_tool_calls:
                     emit({"type": "tool_budget"})
                     with observation("forced answer", input={"reason": "tool_budget"}):
