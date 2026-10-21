@@ -26,6 +26,7 @@ _V2_INSTRUCTION_FINGERPRINT = "e114bc0e9958ce609c6bdc9706eb46cbd00f54f4025a7b7ac
 _V2_STABLE_LITERAL_FINGERPRINT = "91071f9aeafd4ad613de6c66cb4b9c80332811d3c992e6af8435e64c7d146b8a"
 _V22_ORIGINAL_INSTRUCTION_FINGERPRINT = "b457df458c964b4d225d82d784b73bae7232c68c1c124ac120299a209085ae86"
 _V22_PROVIDER_ADAPTER_COMPAT_FINGERPRINT = "edfc2ec1fbd340498afc2b139dc14f151a74de825c2d95428fe108a6b77ac720"
+_V23_HIGH_REASONING_ADAPTER_FINGERPRINT = "d117d53070e4cf4ccaeab0db35444bb8a5db4a7ff3750dea91fc15e1786a528f"
 
 
 def _legacy_v2_instructions_unchanged() -> bool:
@@ -101,7 +102,10 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
     identity = set(overrides) & IDENTITY_KEYS
     if identity:
         raise ValueError(f"identity keys cannot be settings: {', '.join(sorted(identity))}")
+    agent_effort = overrides.get("agent_reasoning_effort")
     allowed = set(block["settings"]) | (MODEL_KEYS if block["engine"] == "fixed" else set())
+    if block["engine"] == "agent" and block.get("agent", {}).get("provider") == "openai":
+        allowed.add("agent_reasoning_effort")
     unknown = set(overrides) - allowed
     if unknown:
         raise ValueError(f"settings not used by {version}: {', '.join(sorted(unknown))}")
@@ -111,13 +115,18 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
     values.update(block["models"])
     if "generation" in overrides and isinstance(overrides["generation"], Mapping):
         overrides["generation"] = {**values["generation"], **overrides["generation"]}
-    values.update(overrides)
+    config_overrides = {key: value for key, value in overrides.items() if key != "agent_reasoning_effort"}
+    values.update(config_overrides)
     config = ResolvedPipelineConfig.from_mapping(values, use_environment=False)
     agent_settings = None
     if block["engine"] == "agent":
         agent_values = {key: value for key, value in block["agent"].items()
                         if key not in {"tools", "instruction_fingerprint"}}
         agent_settings = AgentSettings(**agent_values)
+        if agent_effort is not None:
+            if agent_effort not in {"none", "low", "medium", "high", "xhigh", "max"}:
+                raise ValueError("agent_reasoning_effort must be none, low, medium, high, xhigh, or max")
+            agent_settings = AgentSettings(**{**agent_settings.__dict__, "reasoning_effort": agent_effort})
         if block["agent"]["tools"] != tool_names():
             raise ValueError(f"{version}: agent tool catalog differs from released version")
         expected_instructions = block["agent"]["instruction_fingerprint"]
@@ -126,7 +135,9 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
                      and _legacy_v2_instructions_unchanged())
         legacy_v22 = (version == "v2.2" and expected_instructions == _V22_ORIGINAL_INSTRUCTION_FINGERPRINT
                       and actual_instructions == _V22_PROVIDER_ADAPTER_COMPAT_FINGERPRINT)
-        if expected_instructions != actual_instructions and not (legacy_v2 or legacy_v22):
+        compatible_v23_adapter = (version == "v2.3" and expected_instructions == _V22_PROVIDER_ADAPTER_COMPAT_FINGERPRINT
+                                  and actual_instructions == _V23_HIGH_REASONING_ADAPTER_FINGERPRINT)
+        if expected_instructions != actual_instructions and not (legacy_v2 or legacy_v22 or compatible_v23_adapter):
             raise ValueError(f"{version}: agent instructions differ from released version; publish a new version")
     try:
         from .indexer import index_identity

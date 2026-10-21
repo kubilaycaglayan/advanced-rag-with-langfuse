@@ -105,6 +105,7 @@ class AgentSettings:
     think: bool = False
     snippet_chars: int = 300
     query_aware_reranking: bool = False
+    reasoning_effort: str = "none"
 
     def with_model(self, model: str) -> "AgentSettings":
         return AgentSettings(**{**self.__dict__, "model": model})
@@ -1480,6 +1481,70 @@ def _agent_chat(messages: list[dict[str, Any]], tools: list[dict[str, Any]] | No
         raise RuntimeError("OPENAI_API_KEY is required for the OpenAI query agent")
     if tools:
         _compact(messages)
+    if settings.reasoning_effort != "none":
+        response_input: list[dict[str, Any]] = []
+        for item in messages:
+            role = item.get("role")
+            if role == "tool":
+                call_id = item.get("tool_call_id")
+                if call_id:
+                    response_input.append({"type": "function_call_output", "call_id": call_id,
+                                           "output": item.get("content") or ""})
+                else:
+                    response_input.append({"role": "user", "content": f"Tool result: {item.get('content') or ''}"})
+            elif role == "assistant" and item.get("tool_calls"):
+                if item.get("content"):
+                    response_input.append({"role": "assistant", "content": item["content"]})
+                for call in item["tool_calls"]:
+                    function = call.get("function") or {}
+                    arguments = function.get("arguments") or {}
+                    if not isinstance(arguments, str):
+                        arguments = json.dumps(arguments, ensure_ascii=False)
+                    response_input.append({"type": "function_call", "call_id": call.get("id"),
+                                           "name": function.get("name"), "arguments": arguments})
+            else:
+                response_input.append({"role": role, "content": item.get("content") or ""})
+        payload: dict[str, Any] = {"model": settings.model, "input": response_input,
+                                   "max_output_tokens": settings.num_predict,
+                                   "reasoning": {"effort": settings.reasoning_effort}}
+        if tools:
+            payload["parallel_tool_calls"] = False
+            payload["tools"] = [{"type": "function", **(tool.get("function") or {}), "strict": False}
+                                for tool in tools]
+            payload["tool_choice"] = "auto"
+        response = requests.post("https://api.openai.com/v1/responses", json=payload,
+                                 headers={"Authorization": f"Bearer {api_key}"}, timeout=(10, 300))
+        if not response.ok:
+            try:
+                detail = (response.json().get("error") or {}).get("message")
+            except (ValueError, AttributeError):
+                detail = None
+            raise RuntimeError(f"OpenAI Responses query-agent request failed (HTTP {response.status_code}): {detail or 'no error detail returned'}")
+        result = response.json()
+        text_parts: list[str] = []
+        normalized_calls = []
+        for output in result.get("output") or []:
+            if output.get("type") == "function_call":
+                try:
+                    arguments = json.loads(output.get("arguments") or "{}")
+                except (json.JSONDecodeError, TypeError):
+                    arguments = {}
+                normalized_calls.append({"id": output.get("call_id"), "function": {
+                    "name": output.get("name"), "arguments": arguments}})
+            elif output.get("type") == "message":
+                text_parts.extend(part.get("text", "") for part in output.get("content") or []
+                                  if part.get("type") == "output_text")
+        usage = result.get("usage") or {}
+        input_details = usage.get("input_tokens_details") or {}
+        output_details = usage.get("output_tokens_details") or {}
+        return {"message": {"content": "".join(text_parts), "tool_calls": normalized_calls},
+                "prompt_eval_count": usage.get("input_tokens", 0), "eval_count": usage.get("output_tokens", 0),
+                "provider_usage": {"provider": "openai", "model": settings.model,
+                                   "prompt_tokens": usage.get("input_tokens", 0),
+                                   "completion_tokens": usage.get("output_tokens", 0),
+                                   "total_tokens": usage.get("total_tokens", 0),
+                                   "cached_prompt_tokens": input_details.get("cached_tokens", 0),
+                                   "reasoning_tokens": output_details.get("reasoning_tokens", 0)}}
     payload: dict[str, Any] = {
         "model": settings.model,
         "messages": [],
@@ -1557,6 +1622,7 @@ def _record_agent_usage(state: AgentState, reply: dict[str, Any], purpose: str) 
         cost = round(cost, 10)
     if not state.usage:
         state.usage = {"provider": state.settings.provider, "model": state.settings.model,
+                       "reasoning_effort": state.settings.reasoning_effort,
                        "calls": 0, "prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0,
                        "cached_prompt_tokens": 0, "reasoning_tokens": 0,
                        "estimated_cost_usd": 0.0, "call_details": []}
@@ -1565,7 +1631,11 @@ def _record_agent_usage(state: AgentState, reply: dict[str, Any], purpose: str) 
         state.usage[key] += int(usage.get(key) or 0)
     if cost is not None:
         state.usage["estimated_cost_usd"] = round(state.usage["estimated_cost_usd"] + cost, 10)
-    detail = {"purpose": purpose, **usage, "estimated_cost_usd": cost}
+    detail = {"purpose": purpose, **usage,
+              "reasoning_effort": state.settings.reasoning_effort,
+              "endpoint": ("responses" if state.settings.provider == "openai" and state.settings.reasoning_effort != "none"
+                           else "chat_completions" if state.settings.provider == "openai" else "ollama"),
+              "estimated_cost_usd": cost}
     state.usage["call_details"].append(detail)
     if usage.get("provider") == "openai":
         logger.info("OpenAI query-agent usage purpose=%s model=%s input_tokens=%d output_tokens=%d cached_input_tokens=%d reasoning_tokens=%d estimated_cost_usd=%s",
@@ -1579,7 +1649,9 @@ def _tracked_agent_chat(state: AgentState, messages: list[dict[str, Any]],
     with observation(f"query agent model: {purpose}", as_type="generation",
                      input=json.dumps(messages, ensure_ascii=False),
                      model=state.settings.model,
-                     metadata={"provider": state.settings.provider, "purpose": purpose}) as generation:
+                     metadata={"provider": state.settings.provider, "purpose": purpose,
+                               "reasoning_effort": state.settings.reasoning_effort,
+                               "endpoint": "responses" if state.settings.provider == "openai" and state.settings.reasoning_effort != "none" else "chat_completions"}) as generation:
         reply = _agent_chat(messages, tools, state.settings)
         usage = _record_agent_usage(state, reply, purpose)
         message = reply.get("message") or {}
@@ -1594,6 +1666,7 @@ def _tracked_agent_chat(state: AgentState, messages: list[dict[str, Any]],
                                          "total": usage["estimated_cost_usd"]}
                                         if usage["estimated_cost_usd"] is not None else None),
                            metadata={"provider": state.settings.provider, "purpose": purpose,
+                                     "reasoning_effort": state.settings.reasoning_effort,
                                      "cached_prompt_tokens": usage["cached_prompt_tokens"],
                                      "reasoning_tokens": usage["reasoning_tokens"]})
     return reply

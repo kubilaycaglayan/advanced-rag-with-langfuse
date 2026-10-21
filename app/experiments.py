@@ -136,6 +136,8 @@ def _fingerprints(config: ResolvedPipelineConfig, version: datetime, prompt_vers
                                   corpus_checksum=corpus_checksum))
     pipeline["source_manifest"] = sources
     pipeline["corpus_manifest"] = corpus_manifest
+    if resolved and resolved.agent_settings:
+        pipeline["agent_settings"] = resolved.agent_settings.__dict__
     evaluator_model_name = os.getenv("EVALUATOR_MODEL", "qwen3:8b")
     evaluator_endpoint = os.getenv("EVALUATOR_OLLAMA_URL") or os.getenv("OLLAMA_URL", "http://127.0.0.1:11434")
     try:
@@ -316,6 +318,7 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
                     if resolved.agent_settings:
                         trace_metadata["agent_provider"] = resolved.agent_settings.provider
                         trace_metadata["agent_model"] = resolved.agent_settings.model
+                        trace_metadata["agent_reasoning_effort"] = resolved.agent_settings.reasoning_effort
                     trace_metadata.update({f"prompt_{name}": f"{asset['id']}@{asset['version']}:{asset['label']}"
                                            for name, asset in prompt_versions.items()})
                     trace_metadata.update({f"managed_eval_{name}": f"{asset['id']}@{asset['version']}"
@@ -335,6 +338,11 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
         if resolved.agent_settings:
             experiment_metadata["agent_provider"] = resolved.agent_settings.provider
             experiment_metadata["agent_model"] = resolved.agent_settings.model
+            experiment_metadata["agent_reasoning_effort"] = resolved.agent_settings.reasoning_effort
+            experiment_metadata["agent_endpoint"] = ("responses" if resolved.agent_settings.provider == "openai"
+                                                      and resolved.agent_settings.reasoning_effort != "none"
+                                                      else "chat_completions" if resolved.agent_settings.provider == "openai"
+                                                      else "ollama")
         # One key per setting: Langfuse drops propagated metadata values over 200 characters.
         experiment_metadata.update({f"config_{key}": value if isinstance(value, str) else json.dumps(value, sort_keys=True)
                                     for key, value in config.manifest().items() if key != "prompt_hashes"})
@@ -390,6 +398,11 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
         agent_usage = {
             "provider": resolved.agent_settings.provider if resolved.agent_settings else None,
             "model": resolved.agent_settings.model if resolved.agent_settings else None,
+            "reasoning_effort": resolved.agent_settings.reasoning_effort if resolved.agent_settings else None,
+            "endpoint": ("responses" if resolved.agent_settings and resolved.agent_settings.provider == "openai"
+                         and resolved.agent_settings.reasoning_effort != "none"
+                         else "chat_completions" if resolved.agent_settings and resolved.agent_settings.provider == "openai"
+                         else "ollama" if resolved.agent_settings else None),
             "question_count": len(agent_usage_rows),
             "calls": sum(int(usage.get("calls") or 0) for usage in agent_usage_rows),
             "prompt_tokens": sum(int(usage.get("prompt_tokens") or 0) for usage in agent_usage_rows),
