@@ -119,12 +119,12 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
     agent_effort = overrides.get("agent_reasoning_effort")
     agent_provider = overrides.get("agent_provider")
     scene_candidate_count = overrides.get("scene_candidate_count")
-    if version in {"v2.6", "v2.7", "v2.8"} and overrides.get("automatic_scene_search") is True and scene_candidate_count is None:
+    if version in {"v2.6", "v2.7", "v2.8", "v2.9"} and overrides.get("automatic_scene_search") is True and scene_candidate_count is None:
         # The validated automatic probe trials used 30 candidates; the v2.2-compatible default remains 20.
         overrides["scene_candidate_count"] = 30
         scene_candidate_count = 30
     allowed = set(block["settings"]) | (MODEL_KEYS if block["engine"] == "fixed" else set())
-    if version in {"v2.6", "v2.7", "v2.8"}:
+    if version in {"v2.6", "v2.7", "v2.8", "v2.9"}:
         allowed.update({"agent_provider", "automatic_scene_search", "scene_candidate_count"})
     if (block["engine"] == "agent" and
             (block.get("agent", {}).get("provider") == "openai" or agent_provider == "openai")):

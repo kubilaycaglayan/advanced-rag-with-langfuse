@@ -19,6 +19,10 @@ from app.resolved_config import ResolvedPipelineConfig
 class InteractiveAskContract(TestCase):
     def test_ask_runs_without_langfuse_credentials(self):
         resolved = SimpleNamespace(version="v1", derived=False, agent_settings=None, corpus_id="millennium",
+                                   corpus_checksum="checksum", fingerprint="fingerprint",
+                                   pipeline_id="pipeline-v1-12345678", profile_id="millennium",
+                                   profile_identity="profile", prompt_identity="prompt",
+                                   config=ResolvedPipelineConfig(),
                                    version_fields={"corpus_id": "millennium", "corpus_checksum": "checksum",
                                                    "profile_id": "millennium", "profile_identity": "profile",
                                                    "prompt_identity": "prompt"})
@@ -69,6 +73,10 @@ class InteractiveAskContract(TestCase):
 
         prompts = {"rag-answer": {"id": "prompt-1", "version": 2, "label": "production"}}
         resolved = SimpleNamespace(version="v1", derived=False, agent_settings=None, corpus_id="millennium",
+                                   corpus_checksum="checksum", fingerprint="fingerprint",
+                                   pipeline_id="pipeline-v1-12345678",
+                                   profile_id="millennium", profile_identity="profile", prompt_identity="prompt",
+                                   config=ResolvedPipelineConfig(),
                                    version_fields={"corpus_id": "millennium", "corpus_checksum": "checksum",
                                                    "profile_id": "millennium", "profile_identity": "profile",
                                                    "prompt_identity": "prompt"})
@@ -101,13 +109,16 @@ class InteractiveAskContract(TestCase):
         self.assertIsNone(observations[1]["metadata"])
 
     def test_ask_defaults_to_the_agent_engine(self):
-        resolved = SimpleNamespace(version="v2", derived=False, corpus_id="millennium", engine="agent", config=ResolvedPipelineConfig(),
+        resolved = SimpleNamespace(version="v2.9", derived=False, corpus_id="millennium", corpus_checksum="checksum",
+                                   fingerprint="fingerprint", pipeline_id="pipeline-v2.9-12345678",
+                                   profile_id="millennium", profile_identity="profile", prompt_identity="prompt",
+                                   engine="agent", config=ResolvedPipelineConfig(),
                                    agent_settings=SimpleNamespace(model="qwen3.6:35b", provider="ollama",
                                                                   initial_scene_probe=False, scene_candidate_count=20),
-                                   version_fields={"pipeline_id": "pipeline-v2-12345678", "pipeline_version": "v2",
+                                   version_fields={"pipeline_id": "pipeline-v2.9-12345678", "pipeline_version": "v2.9",
                                                    "pipeline_derived": False})
         prepared = {"config": ResolvedPipelineConfig(), "collection": "collection", "bundle": {}, "prompts": {},
-                    "pipeline_id": "pipeline-v2-12345678", "resolved": resolved}
+                    "pipeline_id": "pipeline-v2.9-12345678", "resolved": resolved}
         agent_result = {
             "question": "Who?", "answer": "A [E1]", "citations": ["E1"], "passage_ids": ["ab12cd34"],
             "evidence": [{"agent_label": "E1", "id": "ab12cd34-0000-0000-0000-000000000000", "book": "B",
@@ -128,8 +139,8 @@ class InteractiveAskContract(TestCase):
         self.assertEqual(result["citations"], ["[E1]"])
         self.assertEqual(result["reranked"], agent_result["evidence"])
         self.assertEqual(result["trace_id"], "a" * 32)
-        self.assertEqual(result["pipeline_id"], "pipeline-v2-12345678")
-        self.assertEqual(result["pipeline_version"], "v2")
+        self.assertEqual(result["pipeline_id"], "pipeline-v2.9-12345678")
+        self.assertEqual(result["pipeline_version"], "v2.9")
         agent.assert_called_once()
 
     def test_cache_feedback_route_records_owner_scoped_rating(self):
@@ -230,10 +241,10 @@ class VersionPayloadContract(TestCase):
                                            "EXPERIMENT_TRIGGER_TOKEN": "test-token"}), \
                  patch("app.main.Langfuse", return_value=fake), \
                  patch("app.main.langfuse_enabled", return_value=True), \
-                 patch("app.main.resolve", return_value=SimpleNamespace(version="v2", overrides={})), \
+                 patch("app.main.resolve", return_value=SimpleNamespace(version="v2.9", overrides={})), \
                  patch("app.main.submit", return_value=(queued, True)) as submit:
                 response = TestClient(app).post("/experiments/run", json={"datasetName": "Local set",
-                    "customPayload": json.dumps({"pipeline": "v2"})},
+                    "customPayload": json.dumps({"pipeline": "v2.9"})},
                     headers={"X-Experiment-Trigger-Token": "test-token"})
             self.assertEqual(response.status_code, 202, response.text)
             get_dataset.assert_called_once_with("Hosted set")
@@ -254,7 +265,7 @@ class VersionPayloadContract(TestCase):
         with patch("app.main._reserve_ask_slot", return_value=slot):
             client = TestClient(app)
             for payload in ({"question": "Who?", "pipeline": "missing"},
-                            {"question": "Who?", "pipeline": "v2", "settings": {"candidate_count": 50}},
+                            {"question": "Who?", "pipeline": "v2.9", "settings": {"candidate_count": 50}},
                             {"question": "Who?", "pipeline": "v1", "settings": {"expansion_count": "three"}},
                             {"question": "Who?", "pipeline": "v1", "prompt_label": "production"},
                             {"question": "Who?", "pipeline": "v1", "collection": "wrong"}):
@@ -272,7 +283,7 @@ class VersionPayloadContract(TestCase):
                     response = client.post("/experiments/run", json={"customPayload": payload}, headers=headers)
                     self.assertEqual(response.status_code, 400, response.text)
 
-    def test_langfuse_remote_payload_selects_v2_before_queueing(self):
+    def test_langfuse_remote_payload_selects_v2_8_before_queueing(self):
         dataset = SimpleNamespace(id="dataset-1", project_id="project-1")
         project = SimpleNamespace(id="project-1", name="millenium")
         fake = SimpleNamespace(get_dataset=lambda name: dataset,
@@ -283,10 +294,10 @@ class VersionPayloadContract(TestCase):
              patch("app.main.langfuse_enabled", return_value=True), \
              patch("app.main.submit", return_value=(row, True)) as submit:
             response = TestClient(app).post("/experiments/run", json={"datasetName": "QA.csv",
-                "customPayload": json.dumps({"pipeline": "v2"})},
+                "customPayload": json.dumps({"pipeline": "v2.9"})},
                 headers={"X-Experiment-Trigger-Token": "test-token"})
         self.assertEqual(response.status_code, 202, response.text)
         payload = submit.call_args.args[0]
-        self.assertEqual(payload["pipeline"], "v2")
+        self.assertEqual(payload["pipeline"], "v2.9")
         self.assertEqual(payload["settings"], {})
-        self.assertEqual(payload["variant_label"], "v2")
+        self.assertEqual(payload["variant_label"], "v2.9")

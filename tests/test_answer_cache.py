@@ -47,8 +47,12 @@ class AnswerCache(TestCase):
     def test_identity_separates_project_corpus_pipeline_and_exact_question(self):
         variants = [
             {"project_id": "other"}, {"corpus_id": "other"},
-            {"pipeline_version": "v2.6"}, {"question": "Who is Lisbeth? "},
-            {"collection": "books-b"}, {"prompt_identity": "new-prompt"},
+            {"pipeline_version": "v2.6"}, {"pipeline_fingerprint": "new-pipeline"},
+            {"pipeline_id": "new-resolved-pipeline"}, {"corpus_checksum": "new-source"},
+            {"profile_id": "other-profile"}, {"profile_identity": "new-profile"},
+            {"prompt_identity": "new-prompt"}, {"collection": "books-b"},
+            {"config": {"temperature": 0.1}}, {"agent_settings": {"model": "other-model"}},
+            {"question": "Who is Lisbeth? "},
         ]
         for variant in variants:
             dimensions = {key: value for key, value in self.scope.items()

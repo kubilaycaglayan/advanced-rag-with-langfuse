@@ -131,7 +131,7 @@ class WideCandidateChecks(unittest.TestCase):
         client = MagicMock()
         client.query_points.side_effect = lambda **kw: MagicMock(points=points[6:] if kw["query"] == "q named" else points[:6])
         embedder = MagicMock()
-        embedder.encode.side_effect = lambda text, normalize_embeddings: MagicMock(tolist=lambda: text)
+        embedder.encode.side_effect = lambda text, normalize_embeddings, **kwargs: MagicMock(tolist=lambda: text)
         reranker = MagicMock()
         reranker.predict.side_effect = lambda pairs, show_progress_bar: [(named_scores if q == "q named" else scores)[text] for q, text in pairs]
         config = ResolvedPipelineConfig(**{"retrieval_mode": "query_expansion", "candidate_count": 3, "top_k": 3, "low_confidence_top_k": 3, "wide_candidate_count": 6,
@@ -207,7 +207,7 @@ class WideCandidateChecks(unittest.TestCase):
             self.assertEqual(self._run(base, scene_context=True, scene_margin=1.0, entity_names=False)[0], ["p1", "p2", "p0", "c0", "s0"])
             # The scene path sees the usual evidence only; the context path does not repeat it.
             self.assertEqual([row["id"] for row in scenes.call_args.args[4]], ["p1", "p2", "p0"])
-            self.assertEqual(hits.call_args.args[6], {"p1", "p2", "p0"})
+            self.assertEqual(hits.call_args.args[7], {"p1", "p2", "p0"})
             # Off when switched off, or without the scene index.
             hits.reset_mock()
             self.assertEqual(self._run(base, scene_context=False, scene_margin=1.0, entity_names=False)[0], ["p1", "p2", "p0", "c0", "s0"])
@@ -519,7 +519,8 @@ class SceneContextChecks(unittest.TestCase):
         reranker.predict.side_effect = lambda pairs, show_progress_bar: [scores.get(text.split("\n")[0], 0.0) for _, text in pairs]
         config = ResolvedPipelineConfig(**{"scene_context": True} | settings)
         with patch.object(pipeline, "_reranker", return_value=reranker):
-            rows = pipeline._context_hits("q", config, "c", client, [[0.0], [0.0]], candidates, set(present))
+            rows = pipeline._context_hits("q", config, "c", client, [[0.0], [0.0]], ["q", "q"],
+                                          candidates, set(present))
         return [row["id"] for row in rows]
 
     def test_passages_ranking_among_the_best_with_their_summary_are_added(self):

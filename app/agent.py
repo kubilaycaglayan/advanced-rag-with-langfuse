@@ -1830,26 +1830,41 @@ def _synthesis_rows(state: AgentState, limit: int = 10) -> list[dict[str, Any]]:
     if len(rows) <= limit:
         return rows
     if state.settings.query_aware_reranking and focused:
-        ranked_pairs = []
-        for row in focused:
-            short = str(row["id"])[:8]
-            queries = list(dict.fromkeys([state.question, *state.retrieval_queries.get(short, [])[-3:]]))
-            ranked_pairs.extend((short, query, row.get("text") or "") for query in queries)
-        scores = _reranker(state.config.reranker_model.name, state.config.reranker_model.revision).predict(
-            [(query, text) for _, query, text in ranked_pairs], show_progress_bar=False)
-        row_scores: dict[str, float] = {}
-        for (short, _, _), score in zip(ranked_pairs, scores):
-            row_scores[short] = max(row_scores.get(short, float("-inf")), float(score))
-        focused = sorted(focused, key=lambda row: row_scores.get(str(row["id"])[:8], -1e9),
-                         reverse=True)[:limit]
-        rest = [row for row in rows if row["id"] not in {item["id"] for item in focused}]
-        if len(focused) >= limit or not rest:
-            return focused
-        scores = _reranker(state.config.reranker_model.name, state.config.reranker_model.revision).predict(
-            [(state.question, row.get("text") or "") for row in rest], show_progress_bar=False)
-        ranked = [row for row, score in sorted(zip(rest, (float(value) for value in scores)),
-                                               key=lambda pair: pair[1], reverse=True)[:limit - len(focused)]]
-        return focused + ranked
+        with observation("query-aware evidence reranking", input={
+                "question": state.question,
+                "focused_passage_ids": [str(row["id"]) for row in focused],
+                "candidate_count": len(rows),
+                "limit": limit,
+        }) as rerank_observation:
+            ranked_pairs = []
+            for row in focused:
+                short = str(row["id"])[:8]
+                queries = list(dict.fromkeys([state.question, *state.retrieval_queries.get(short, [])[-3:]]))
+                ranked_pairs.extend((short, query, row.get("text") or "") for query in queries)
+            scores = _reranker(state.config.reranker_model.name, state.config.reranker_model.revision).predict(
+                [(query, text) for _, query, text in ranked_pairs], show_progress_bar=False)
+            row_scores: dict[str, float] = {}
+            for (short, _, _), score in zip(ranked_pairs, scores):
+                row_scores[short] = max(row_scores.get(short, float("-inf")), float(score))
+            focused = sorted(focused, key=lambda row: row_scores.get(str(row["id"])[:8], -1e9),
+                             reverse=True)[:limit]
+            rest = [row for row in rows if row["id"] not in {item["id"] for item in focused}]
+            if len(focused) >= limit or not rest:
+                update_observation(rerank_observation, output={
+                    "selected_passage_ids": [str(row["id"]) for row in focused],
+                    "reranked_candidate_count": len(ranked_pairs),
+                })
+                return focused
+            scores = _reranker(state.config.reranker_model.name, state.config.reranker_model.revision).predict(
+                [(state.question, row.get("text") or "") for row in rest], show_progress_bar=False)
+            ranked = [row for row, score in sorted(zip(rest, (float(value) for value in scores)),
+                                                   key=lambda pair: pair[1], reverse=True)[:limit - len(focused)]]
+            selected = focused + ranked
+            update_observation(rerank_observation, output={
+                "selected_passage_ids": [str(row["id"]) for row in selected],
+                "reranked_candidate_count": len(ranked_pairs) + len(rest),
+            })
+            return selected
     # The passages a tool read on purpose (a full scene, a true-account reveal) must survive the rerank: they were
     # fetched for a reason the question's wording does not capture. Without such a read, the pre-check passages stay.
     kept = (focused or rows[:4])[:limit]

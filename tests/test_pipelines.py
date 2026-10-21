@@ -4,14 +4,14 @@ from __future__ import annotations
 import ast
 import json
 import tempfile
-from contextlib import nullcontext
+from contextlib import contextmanager, nullcontext
 from datetime import datetime, timezone
 from pathlib import Path
 from types import SimpleNamespace
 from unittest import TestCase
 from unittest.mock import patch
 
-from app.agent import AgentSettings, instruction_fingerprint, run_agent, tool_names
+from app.agent import AgentSettings, _synthesis_rows, instruction_fingerprint, run_agent, tool_names
 from app.pipeline_catalog import CATALOG, RELEASES, fingerprint, load_catalog
 from app.pipeline_resolver import resolve
 from app.prompt_assets import PROMPT_CATALOG, load_prompt_bundle
@@ -23,9 +23,9 @@ from app.experiment_store import enqueue, initialize
 class PipelineVersions(TestCase):
     def test_catalog_and_reference_versions(self):
         catalog = load_catalog()
-        self.assertEqual(catalog.default, "v2.8")
-        self.assertEqual(set(catalog.versions), {"v1", "v2", "v2.2", "v2.3", "v2.4", "v2.5", "v2.6", "v2.7", "v2.8"})
-        self.assertEqual(set(catalog.releases), {"v1", "v2", "v2.2", "v2.3", "v2.6", "v2.7", "v2.8"})
+        self.assertEqual(catalog.default, "v2.9")
+        self.assertEqual(set(catalog.versions), {"v1", "v2", "v2.2", "v2.3", "v2.4", "v2.5", "v2.6", "v2.7", "v2.8", "v2.9"})
+        self.assertEqual(set(catalog.releases), {"v1", "v2", "v2.2", "v2.3", "v2.6", "v2.7", "v2.8", "v2.9"})
         self.assertEqual(catalog.versions["v2"]["agent"]["tools"], tool_names())
         self.assertEqual(catalog.versions["v2.7"]["agent"]["instruction_fingerprint"],
                          catalog.versions["v2.6"]["agent"]["instruction_fingerprint"])
@@ -43,10 +43,10 @@ class PipelineVersions(TestCase):
 
     def test_default_and_derived_resolve(self):
         base = resolve()
-        self.assertEqual(base.version, "v2.8")
+        self.assertEqual(base.version, "v2.9")
         self.assertEqual(base.engine, "agent")
         self.assertFalse(base.derived)
-        self.assertTrue(base.pipeline_id.startswith("pipeline-v2.8-"))
+        self.assertTrue(base.pipeline_id.startswith("pipeline-v2.9-"))
         derived = resolve("v1", {"passage_chars": 600})
         self.assertTrue(derived.derived)
         self.assertTrue(derived.pipeline_id.startswith("derived-v1-"))
@@ -55,7 +55,7 @@ class PipelineVersions(TestCase):
 
     def test_invalid_payload_values(self):
         cases = [lambda: resolve("missing"),
-                 lambda: resolve("v2", {"candidate_count": 50}),
+                 lambda: resolve("v2.9", {"candidate_count": 50}),
                  lambda: resolve("v1", {"corpus_checksum": "x"}),
                  lambda: resolve("v1", {"expansion_count": "three"}),
                  lambda: resolve("v1", engine="agent"),
@@ -67,7 +67,7 @@ class PipelineVersions(TestCase):
 
     def test_legacy_engine_alias(self):
         self.assertEqual(resolve(engine="fixed").version, "v1")
-        self.assertEqual(resolve(engine="agent").version, "v2.8")
+        self.assertEqual(resolve(engine="agent").version, "v2.9")
 
     def test_agent_declared_steps_have_instrumentation(self):
         source = Path(__file__).resolve().parents[1] / "app" / "agent.py"
@@ -76,7 +76,7 @@ class PipelineVersions(TestCase):
                  and isinstance(node.func, ast.Name) and node.func.id == "observation"
                  and node.args and isinstance(node.args[0], ast.Constant)
                  and isinstance(node.args[0].value, str)}
-        declared = {step["name"] for step in load_catalog().get("v2")["flow"]}
+        declared = {step["name"] for step in load_catalog().get("v2.9")["flow"]}
         self.assertTrue(declared <= spans, sorted(declared - spans))
 
     def test_agent_prechecks_nudge_and_forced_answer_emit_spans(self):
@@ -91,12 +91,50 @@ class PipelineVersions(TestCase):
              patch("app.agent._sequence_precheck", return_value=None), \
              patch("app.agent._moment_precheck", return_value=None), \
              patch("app.agent._ollama_chat", return_value={"message": {"content": "No passage found", "tool_calls": []}}):
-            result = run_agent("Who?", "fixture", resolve("v2").config,
+            result = run_agent("Who?", "fixture", resolve("v2.9").config,
                                settings=AgentSettings(model="qwen3.6:35b", max_turns=1, min_tool_calls=0))
         self.assertEqual(result["stopped"], "budget")
         for name in ("connection pre-check", "true account pre-check", "sequence pre-check",
                      "moment pre-check", "no tool nudge", "forced answer"):
             self.assertIn(name, spans)
+
+    def test_query_aware_synthesis_reranking_emits_declared_span(self):
+        spans = []
+
+        @contextmanager
+        def observe(name, **kwargs):
+            spans.append(name)
+            yield SimpleNamespace(update=lambda **fields: None)
+
+        rows = [
+            {"id": "passage-1", "text": "focused evidence"},
+            {"id": "passage-2", "text": "other evidence"},
+            {"id": "passage-3", "text": "third evidence"},
+        ]
+        state = SimpleNamespace(
+            evidence={row["id"]: row for row in rows},
+            order=[row["id"] for row in rows],
+            focus=["passage-1"],
+            question="Who?",
+            retrieval_queries={},
+            settings=SimpleNamespace(query_aware_reranking=True),
+            config=SimpleNamespace(reranker_model=SimpleNamespace(name="reranker", revision="rev")),
+        )
+
+        class Reranker:
+            def __init__(self):
+                self.calls = 0
+
+            def predict(self, pairs, **kwargs):
+                self.calls += 1
+                return [0.9] if self.calls == 1 else [0.8, 0.7]
+
+        with patch("app.agent.observation", side_effect=observe), \
+             patch("app.agent._reranker", return_value=Reranker()):
+            selected = _synthesis_rows(state, limit=2)
+
+        self.assertEqual([row["id"] for row in selected], ["passage-1", "passage-2"])
+        self.assertIn("query-aware evidence reranking", spans)
 
     def test_fixed_flow_emits_declared_stage_order(self):
         spans: list[str] = []
@@ -153,10 +191,10 @@ class PipelineVersions(TestCase):
             bundle = load_prompt_bundle(Client(), versions=pins)
         self.assertEqual(set(bundle), set(PROMPT_CATALOG))
 
-    def test_dataset_execution_dispatches_v2_and_records_version(self):
+    def test_dataset_execution_defaults_to_cache_bypass_and_dispatches_v2_9(self):
         item = SimpleNamespace(id="item-1", input={"question": "Who?"}, expected_output={"answer": "A"}, metadata={})
         dataset = SimpleNamespace(id="dataset-1", name="QA.csv", items=[item])
-        manifest = {"pipeline_id": "pipeline-v2-12345678", "pipeline_version": "v2", "pipeline_derived": False}
+        manifest = {"pipeline_id": "pipeline-v2.9-12345678", "pipeline_version": "v2.9", "pipeline_derived": False}
         evaluators = {name: {"id": name, "name": name, "version": 1,
                              "model_config": {"model": "qwen3:8b"}, "prompt": []}
                       for name in ("answer_correctness_v2", "citation_support_v1")}
@@ -170,21 +208,30 @@ class PipelineVersions(TestCase):
                                        experiment_id="experiment-1", item_results=[SimpleNamespace(
                                            item=item, trace_id="trace-1", output=output, evaluations=[])])
 
+        cache_modes = []
+
+        @contextmanager
+        def record_cache_mode(mode, layers, scope):
+            cache_modes.append((mode, tuple(layers)))
+            yield
+
         with tempfile.TemporaryDirectory() as directory, patch.dict("os.environ", {"EXPERIMENT_DATA_DIR": str(Path(directory) / "millennium")}):
             initialize()
-            enqueue("execution-v2", {"dataset_name": "QA.csv", "pipeline": "v2", "settings": {}}, None)
+            enqueue("execution-v2.9", {"dataset_name": "QA.csv", "pipeline": "v2.9", "settings": {}}, None)
             with patch.object(experiments_module, "_client", return_value=Client()), \
                  patch.object(experiments_module, "_dataset_for", return_value=(dataset, datetime(2026, 10, 20, tzinfo=timezone.utc))), \
                  patch.object(experiments_module, "load_managed_evaluators", return_value=evaluators), \
-                 patch.object(experiments_module, "build_index", return_value={"collection": resolve("v2").index["collection"]}), \
+                 patch.object(experiments_module, "build_index", return_value={"collection": resolve("v2.9").index["collection"]}), \
                  patch.object(experiments_module, "_fingerprints", return_value=(manifest, {"evaluator_id": "eval-1"}, "checksum")), \
                  patch.object(experiments_module, "_flush_client", return_value={"completed": True, "error": None}), \
                  patch.object(experiments_module, "_verify_trace_upload", return_value=None), \
                  patch.object(experiments_module, "propagate_attributes", return_value=nullcontext()), \
+                 patch.object(experiments_module, "use_intermediate_cache", side_effect=record_cache_mode), \
                  patch.object(experiments_module, "run_resolved_pipeline", return_value={"answer": "A", "citations": [], "evidence": ""}) as runner:
-                result = experiments_module.execute_execution("execution-v2")
-            recorded = json.loads((Path(directory) / "millennium" / "executions" / "execution-v2" / "manifest.json").read_text())
+                result = experiments_module.execute_execution("execution-v2.9")
+            recorded = json.loads((Path(directory) / "millennium" / "executions" / "execution-v2.9" / "manifest.json").read_text())
         self.assertEqual(result["status"], "completed", result)
-        self.assertEqual(result["pipeline_version"], "v2")
+        self.assertEqual(result["pipeline_version"], "v2.9")
         self.assertFalse(recorded["pipeline"]["pipeline_derived"])
         self.assertEqual(runner.call_args.args[1].engine, "agent")
+        self.assertEqual(cache_modes[0][0], "bypass")

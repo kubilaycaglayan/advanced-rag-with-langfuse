@@ -31,7 +31,7 @@ def run(question: str, resolved: ResolvedRun, collection: str, prompt_bundle: di
 
         agent = run_agent(question, collection, resolved.config,
                           settings=resolved.agent_settings, on_event=on_event,
-                          system_prompt=agent_prompt() if resolved.version in {"v2.7", "v2.8"} or resolved.corpus_id != "millennium" else None)
+                          system_prompt=agent_prompt() if resolved.version in {"v2.7", "v2.8", "v2.9"} or resolved.corpus_id != "millennium" else None)
         evidence = list(agent.get("evidence") or [])
         citations = [label if str(label).startswith("[") else f"[{label}]" for label in agent.get("citations") or []]
         if on_status:

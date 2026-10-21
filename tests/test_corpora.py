@@ -73,7 +73,7 @@ class CorpusChecks(unittest.TestCase):
                 self.assertEqual(corpus_config().id, "one-book")
                 self.assertEqual(load_profile().id, "millennium")
                 self.assertEqual(corpus_data_dir(), base / "data" / "one-book")
-                resolved = resolve("v2.7")
+                resolved = resolve("v2.9")
                 self.assertEqual(resolved.corpus_id, "one-book")
                 self.assertEqual(resolved.profile_id, "millennium")
                 self.assertTrue(resolved.index["collection"].startswith("one-book_books_"))
@@ -103,7 +103,7 @@ class CorpusChecks(unittest.TestCase):
                 with patch.dict(os.environ, {"CORPUS_ID": corpus_id, "CORPUS_ROOT": str(root)}):
                     os.environ.pop("CORPUS_DIR", None)
                     collections.append(indexer.index_identity(ResolvedPipelineConfig())[0])
-                    resolved = resolve("v2.6")
+                    resolved = resolve("v2.9")
                     self.assertEqual(resolved.corpus_id, corpus_id)
                     self.assertTrue(resolved.corpus_checksum)
                     self.assertEqual(resolved.version_fields["corpus_id"], corpus_id)
