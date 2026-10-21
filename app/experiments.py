@@ -313,6 +313,9 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
                             "pipeline_id": pipeline_manifest["pipeline_id"],
                             "pipeline_version": resolved.version, "pipeline_derived": resolved.derived,
                             "evaluator_id": evaluator_manifest["evaluator_id"], "experiment_run": run_name}
+                    if resolved.agent_settings:
+                        trace_metadata["agent_provider"] = resolved.agent_settings.provider
+                        trace_metadata["agent_model"] = resolved.agent_settings.model
                     trace_metadata.update({f"prompt_{name}": f"{asset['id']}@{asset['version']}:{asset['label']}"
                                            for name, asset in prompt_versions.items()})
                     trace_metadata.update({f"managed_eval_{name}": f"{asset['id']}@{asset['version']}"
@@ -329,6 +332,9 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
                       "evaluator_id": evaluator_manifest["evaluator_id"], "dataset_version": version.isoformat(),
                       "variant_label": variant, "snapshot_sha256": snapshot["sha256"],
                       "correctness_evaluator": correctness_name}
+        if resolved.agent_settings:
+            experiment_metadata["agent_provider"] = resolved.agent_settings.provider
+            experiment_metadata["agent_model"] = resolved.agent_settings.model
         # One key per setting: Langfuse drops propagated metadata values over 200 characters.
         experiment_metadata.update({f"config_{key}": value if isinstance(value, str) else json.dumps(value, sort_keys=True)
                                     for key, value in config.manifest().items() if key != "prompt_hashes"})
@@ -378,6 +384,22 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
                                  "failed": failed})
         means = {name: (sum(values) / len(values) if values else None) for name, values in score_values.items()}
         summaries = {name: {"mean": means[name], "valid_count": len(values)} for name, values in score_values.items()}
+        agent_usage_rows = [row["output"].get("agent_usage") for row in item_results
+                            if isinstance(row.get("output"), dict)
+                            and isinstance(row["output"].get("agent_usage"), dict)]
+        agent_usage = {
+            "provider": resolved.agent_settings.provider if resolved.agent_settings else None,
+            "model": resolved.agent_settings.model if resolved.agent_settings else None,
+            "question_count": len(agent_usage_rows),
+            "calls": sum(int(usage.get("calls") or 0) for usage in agent_usage_rows),
+            "prompt_tokens": sum(int(usage.get("prompt_tokens") or 0) for usage in agent_usage_rows),
+            "completion_tokens": sum(int(usage.get("completion_tokens") or 0) for usage in agent_usage_rows),
+            "total_tokens": sum(int(usage.get("total_tokens") or 0) for usage in agent_usage_rows),
+            "cached_prompt_tokens": sum(int(usage.get("cached_prompt_tokens") or 0) for usage in agent_usage_rows),
+            "reasoning_tokens": sum(int(usage.get("reasoning_tokens") or 0) for usage in agent_usage_rows),
+            "estimated_cost_usd": round(sum(float(usage.get("estimated_cost_usd") or 0)
+                                             for usage in agent_usage_rows), 10),
+        }
         codex_scores = [score for row in item_results for score in row["evaluations"]
                         if score.get("name") == "answer_correctness_codex_v1"
                         and isinstance((score.get("metadata") or {}).get("codex_usage"), dict)]
@@ -405,7 +427,8 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
                           "dataset_id": dataset.id, "dataset_version": version.isoformat(), "dataset_snapshot_sha256": snapshot["sha256"],
                           "dataset_item_count": len(items), "completed_item_count": len(item_results), "failed_item_count": errors,
                           "evaluation_failure_count": sum(1 for row in item_results for score in row["evaluations"] if str(score.get("name", "")).endswith("_error")),
-                          "scores": summaries, "codex_usage": codex_usage, "abstention_count": sum(1 for row in item_results
+                          "scores": summaries, "codex_usage": codex_usage, "agent_usage": agent_usage,
+                          "abstention_count": sum(1 for row in item_results
                               if isinstance(row["output"], dict) and is_explicit_abstention(str(row["output"].get("answer", "")))),
                           "telemetry_failure_count": len(telemetry_failures), "telemetry_errors": telemetry_failures,
                           "pipeline_id": pipeline_manifest["pipeline_id"], "pipeline_version": resolved.version,

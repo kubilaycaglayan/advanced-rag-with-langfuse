@@ -444,3 +444,146 @@ Current agent flow used by the web UI.
   "notes": "Released reranking-only candidate derived from v2. The target question was How does Lisbeth Salander acquire her massive personal fortune? The change only orders already collected evidence using the question and the queries that retrieved each passage; it adds no searches, evidence expansion, answer injection, or prompt changes."
 }
 ```
+
+## Version 2.3 — OpenAI query agent
+
+Selectable experiment variant; v2.2 remains the default.
+
+```json
+{
+  "id": "v2.3",
+  "status": "released",
+  "engine": "agent",
+  "flow": [
+    {
+      "name": "connection pre-check",
+      "when": "always checks the question; gathers facts for a connection cue"
+    },
+    {
+      "name": "true account pre-check",
+      "when": "always checks the question; gathers facts for a death or crime cue"
+    },
+    {
+      "name": "sequence pre-check",
+      "when": "always checks the question; gathers sequence facts for a place event"
+    },
+    {
+      "name": "moment pre-check",
+      "when": "always checks the question; gathers moment facts for a detail cue"
+    },
+    {
+      "name": "minimum tool nudge",
+      "when": "reply has no tool calls and tool count is below minimum"
+    },
+    {
+      "name": "coverage check",
+      "when": "reply has no tool calls and evidence exists"
+    },
+    {
+      "name": "submission verification",
+      "when": "cited or submitted answer has passage ids and fewer than two verifications ran"
+    },
+    {
+      "name": "no tool nudge",
+      "when": "reply has no usable citation ids and fewer than two nudges ran"
+    },
+    {
+      "name": "name check message",
+      "when": "find_names returns a likely spelling not yet resolved"
+    },
+    {
+      "name": "forced answer",
+      "when": "timeout, turn budget, or tool budget is reached"
+    },
+    {
+      "name": "coverage rewrite",
+      "when": "sequence answer lacks confrontation or three sequence stages"
+    },
+    {
+      "name": "abstention synthesis",
+      "when": "answer lacks citations, abstains, or has no passage ids while evidence exists"
+    },
+    {
+      "name": "query-aware evidence reranking",
+      "when": "reranks synthesis evidence using question and retrieval queries attached to evidence"
+    }
+  ],
+  "agent": {
+    "model": "gpt-6-luna",
+    "tools": [
+      "semantic_search",
+      "keyword_search",
+      "expand_query",
+      "search_scenes",
+      "read_scene",
+      "scene_moment",
+      "true_account",
+      "entity_card",
+      "find_connections",
+      "find_names",
+      "read_passage",
+      "read_chapter",
+      "submit_answer"
+    ],
+    "max_turns": 10,
+    "max_tool_calls": 16,
+    "min_tool_calls": 4,
+    "timeout_seconds": 900.0,
+    "context_length": 16384,
+    "num_predict": 1600,
+    "think": false,
+    "snippet_chars": 300,
+    "instruction_fingerprint": "edfc2ec1fbd340498afc2b139dc14f151a74de825c2d95428fe108a6b77ac720",
+    "query_aware_reranking": true,
+    "provider": "openai"
+  },
+  "settings": {
+    "retrieval_mode": "full",
+    "hyde": true,
+    "expansion_count": 3,
+    "name_completion": true,
+    "scene_search_hits": 10,
+    "scene_window": 6,
+    "scene_stride": 3,
+    "passage_chars": 1200,
+    "min_passage_chars": 400,
+    "passage_overlap": 0,
+    "generation": {
+      "temperature": 0.0,
+      "context_length": 8192,
+      "output_budgets": [
+        4096,
+        8192
+      ]
+    },
+    "parallel_transformations": false,
+    "scene_thinking": false
+  },
+  "prompts": {},
+  "index": {
+    "collection": "millennium_books_a7ebc5a988df037cd2ee",
+    "corpus_checksum": "d5f87c43d9e3b5cc37e6b0ab2131eadc627450d2c2af6d0f508c6ab83275cf9b"
+  },
+  "models": {
+    "embedding_model": {
+      "name": "sentence-transformers/multi-qa-MiniLM-L6-cos-v1",
+      "revision": "b207367332321f8e44f96e224ef15bc607f4dbf0"
+    },
+    "reranker_model": {
+      "name": "cross-encoder/ms-marco-MiniLM-L-6-v2",
+      "revision": "233902d25c440f23af6f7d6e94d2946bac0bee0a"
+    },
+    "generation_model": {
+      "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+      "name": "qwen3:8b",
+      "revision": null
+    },
+    "scene_summary_model": {
+      "digest": null,
+      "name": "gemma4:26b",
+      "revision": null
+    }
+  },
+  "notes": "Experimental OpenAI query-agent variant based on v2.2. Only the query agent model changes; v2.2 remains the catalog default. The agent uses GPT-6 Luna through OpenAI Chat Completions with reasoning_effort=none. OpenAI errors fail the run without local-model fallback. The configured local generation model remains responsible for expand_query transformations; the fixed pipeline, scene summaries, and evaluators remain local/configured. Token usage and estimated OpenAI API cost are recorded per generation and in experiment outputs. Experiment result record: docs/experiments/2026-10-21-v2.3-gpt-6-luna-low-score-eval.md. Claude Haiku 5.5 (claude-haiku-5-5) is recorded as an Anthropic model to consider for future experiments."
+}
+```

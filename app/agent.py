@@ -25,6 +25,7 @@ import ast
 import difflib
 import hashlib
 import json
+import logging
 import os
 import re
 import time
@@ -34,6 +35,8 @@ from pathlib import Path
 from typing import Any, Callable
 
 import requests
+
+logger = logging.getLogger(__name__)
 
 try:
     from .entities import _cache_path as entity_cache_path, entity_cards_path
@@ -92,6 +95,7 @@ FORCED_ANSWER_PROMPT = "You have reached the step limit. Using only the passages
 @dataclass(frozen=True)
 class AgentSettings:
     model: str = "qwen3:8b"
+    provider: str = "ollama"
     max_turns: int = 10
     max_tool_calls: int = 16
     min_tool_calls: int = 4
@@ -127,7 +131,7 @@ class AgentState:
     retrieval_queries: dict[str, list[str]] = field(default_factory=dict)
     speech_hint: dict[str, str] | None = None
     trace: list[dict[str, Any]] = field(default_factory=list)
-    usage: dict[str, int] = field(default_factory=lambda: {"prompt_tokens": 0, "completion_tokens": 0})
+    usage: dict[str, Any] = field(default_factory=dict)
 
     def remember(self, rows: list[dict[str, Any]], query: str | None = None) -> None:
         for row in rows:
@@ -1446,7 +1450,7 @@ def _compact(messages: list[dict[str, Any]], keep: int = 6, budget: int = 22000)
     for index in tool_indexes[:-keep]:
         content = messages[index].get("content") or ""
         ids = list(dict.fromkeys(re.findall(r'"id": "([0-9a-f]{8})"', content)))
-        messages[index] = {"role": "tool", "content": json.dumps(
+        messages[index] = {"role": "tool", "tool_call_id": messages[index].get("tool_call_id"), "content": json.dumps(
             {"compacted": True, "ids": ids[:8], "note": "earlier result compacted to save context; read_passage can reopen an id"})}
 
 
@@ -1462,6 +1466,137 @@ def _ollama_chat(messages: list[dict[str, Any]], tools: list[dict[str, Any]] | N
     response = requests.post(base + "/api/chat", json=payload, timeout=(10, 600))
     response.raise_for_status()
     return response.json()
+
+
+def _agent_chat(messages: list[dict[str, Any]], tools: list[dict[str, Any]] | None,
+                settings: AgentSettings) -> dict[str, Any]:
+    """Call the configured query-agent provider and normalize its response to the Ollama chat shape."""
+    if settings.provider == "ollama":
+        return _ollama_chat(messages, tools, settings)
+    if settings.provider != "openai":
+        raise ValueError(f"unsupported query-agent provider {settings.provider!r}")
+    api_key = os.getenv("OPENAI_API_KEY", "").strip()
+    if not api_key:
+        raise RuntimeError("OPENAI_API_KEY is required for the OpenAI query agent")
+    if tools:
+        _compact(messages)
+    payload: dict[str, Any] = {
+        "model": settings.model,
+        "messages": [],
+        "temperature": 0,
+        "max_completion_tokens": settings.num_predict,
+        # GPT-6 Luna supports Chat Completions tool calling with reasoning disabled.
+        "reasoning_effort": "none",
+    }
+    for item in messages:
+        copied = dict(item)
+        if copied.get("role") == "assistant" and copied.get("tool_calls"):
+            calls = []
+            for call in copied["tool_calls"]:
+                function = dict(call.get("function") or {})
+                arguments = function.get("arguments") or {}
+                if not isinstance(arguments, str):
+                    arguments = json.dumps(arguments, ensure_ascii=False)
+                function["arguments"] = arguments
+                calls.append({"id": call.get("id"), "type": "function", "function": function})
+            copied["tool_calls"] = calls
+        payload["messages"].append(copied)
+    if tools:
+        payload["parallel_tool_calls"] = False
+        payload["tools"] = tools
+        payload["tool_choice"] = "auto"
+    response = requests.post("https://api.openai.com/v1/chat/completions", json=payload,
+                             headers={"Authorization": f"Bearer {api_key}"}, timeout=(10, 180))
+    if not response.ok:
+        try:
+            detail = (response.json().get("error") or {}).get("message")
+        except (ValueError, AttributeError):
+            detail = None
+        raise RuntimeError(f"OpenAI query-agent request failed (HTTP {response.status_code}): {detail or 'no error detail returned'}")
+    result = response.json()
+    choice = (result.get("choices") or [{}])[0]
+    message = choice.get("message") or {}
+    normalized_calls = []
+    for call in message.get("tool_calls") or []:
+        function = call.get("function") or {}
+        arguments = function.get("arguments") or "{}"
+        try:
+            arguments = json.loads(arguments) if isinstance(arguments, str) else arguments
+        except (json.JSONDecodeError, TypeError):
+            arguments = {}
+        normalized_calls.append({"id": call.get("id"), "function": {
+            "name": function.get("name"), "arguments": arguments}})
+    usage = result.get("usage") or {}
+    prompt_details = usage.get("prompt_tokens_details") or {}
+    completion_details = usage.get("completion_tokens_details") or {}
+    return {"message": {"content": message.get("content") or "", "tool_calls": normalized_calls},
+            "prompt_eval_count": usage.get("prompt_tokens", 0),
+            "eval_count": usage.get("completion_tokens", 0),
+            "provider_usage": {"provider": "openai", "model": settings.model,
+                               "prompt_tokens": usage.get("prompt_tokens", 0),
+                               "completion_tokens": usage.get("completion_tokens", 0),
+                               "total_tokens": usage.get("total_tokens", 0),
+                               "cached_prompt_tokens": prompt_details.get("cached_tokens", 0),
+                               "reasoning_tokens": completion_details.get("reasoning_tokens", 0)}}
+
+
+def _record_agent_usage(state: AgentState, reply: dict[str, Any], purpose: str) -> dict[str, Any]:
+    usage = reply.get("provider_usage") or {
+        "provider": state.settings.provider, "model": state.settings.model,
+        "prompt_tokens": int(reply.get("prompt_eval_count") or 0),
+        "completion_tokens": int(reply.get("eval_count") or 0),
+        "total_tokens": int(reply.get("prompt_eval_count") or 0) + int(reply.get("eval_count") or 0),
+        "cached_prompt_tokens": 0, "reasoning_tokens": 0,
+    }
+    prompt = int(usage.get("prompt_tokens") or 0)
+    completion = int(usage.get("completion_tokens") or 0)
+    cached = min(prompt, int(usage.get("cached_prompt_tokens") or 0))
+    cost = None
+    if usage.get("provider") == "openai" and usage.get("model") == "gpt-6-luna":
+        cost = ((prompt - cached) * 0.10 + cached * 0.01 + completion * 0.50) / 1_000_000
+        cost = round(cost, 10)
+    if not state.usage:
+        state.usage = {"provider": state.settings.provider, "model": state.settings.model,
+                       "calls": 0, "prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0,
+                       "cached_prompt_tokens": 0, "reasoning_tokens": 0,
+                       "estimated_cost_usd": 0.0, "call_details": []}
+    state.usage["calls"] += 1
+    for key in ("prompt_tokens", "completion_tokens", "total_tokens", "cached_prompt_tokens", "reasoning_tokens"):
+        state.usage[key] += int(usage.get(key) or 0)
+    if cost is not None:
+        state.usage["estimated_cost_usd"] = round(state.usage["estimated_cost_usd"] + cost, 10)
+    detail = {"purpose": purpose, **usage, "estimated_cost_usd": cost}
+    state.usage["call_details"].append(detail)
+    if usage.get("provider") == "openai":
+        logger.info("OpenAI query-agent usage purpose=%s model=%s input_tokens=%d output_tokens=%d cached_input_tokens=%d reasoning_tokens=%d estimated_cost_usd=%s",
+                    purpose, usage.get("model"), prompt, completion, cached,
+                    int(usage.get("reasoning_tokens") or 0), cost)
+    return detail
+
+
+def _tracked_agent_chat(state: AgentState, messages: list[dict[str, Any]],
+                        tools: list[dict[str, Any]] | None, purpose: str) -> dict[str, Any]:
+    with observation(f"query agent model: {purpose}", as_type="generation",
+                     input=json.dumps(messages, ensure_ascii=False),
+                     model=state.settings.model,
+                     metadata={"provider": state.settings.provider, "purpose": purpose}) as generation:
+        reply = _agent_chat(messages, tools, state.settings)
+        usage = _record_agent_usage(state, reply, purpose)
+        message = reply.get("message") or {}
+        update_observation(generation,
+                           output={"content": (message.get("content") or "")[:2000],
+                                   "tool_calls": message.get("tool_calls")},
+                           usage_details={"input": usage["prompt_tokens"], "output": usage["completion_tokens"],
+                                          "total": usage["total_tokens"]},
+                           cost_details=({"input": round((usage["prompt_tokens"] - usage["cached_prompt_tokens"]) * 0.10 / 1_000_000
+                                                            + usage["cached_prompt_tokens"] * 0.01 / 1_000_000, 10),
+                                         "output": round(usage["completion_tokens"] * 0.50 / 1_000_000, 10),
+                                         "total": usage["estimated_cost_usd"]}
+                                        if usage["estimated_cost_usd"] is not None else None),
+                           metadata={"provider": state.settings.provider, "purpose": purpose,
+                                     "cached_prompt_tokens": usage["cached_prompt_tokens"],
+                                     "reasoning_tokens": usage["reasoning_tokens"]})
+    return reply
 
 
 def _parse_text_tool(content: str) -> tuple[str, dict[str, Any]] | None:
@@ -1533,17 +1668,17 @@ def _verify_submission(state: AgentState, answer: str, ids: list[str], extra_ids
                 "mention is not a failure. Reply with JSON only: "
                 '{"supported": true or false, "reason": "one sentence"}')
     try:
-        reply = _ollama_chat([{"role": "system", "content": "You check whether evidence supports an answer."},
-                              {"role": "user", "content": prompt}], None, state.settings)
+        reply = _tracked_agent_chat(state, [{"role": "system", "content": "You check whether evidence supports an answer."},
+                                            {"role": "user", "content": prompt}], None, "submission verification")
         content = ((reply.get("message") or {}).get("content") or "").strip()
-        state.usage["prompt_tokens"] += int(reply.get("prompt_eval_count") or 0)
-        state.usage["completion_tokens"] += int(reply.get("eval_count") or 0)
         match = re.search(r"\{.*\}", content, re.S)
         verdict = json.loads(match.group(0)) if match else {}
         return bool(verdict.get("supported", True)), str(verdict.get("reason") or "")
     except (ValueError, TypeError, KeyError, AttributeError):
         return True, "verifier reply could not be parsed"
     except Exception as exc:  # verification must not end the run
+        if state.settings.provider == "openai":
+            raise
         return True, f"verifier failed: {type(exc).__name__}"
 
 
@@ -1613,12 +1748,12 @@ def _synthesize(state: AgentState) -> tuple[str, list[str]] | None:
               f"{(row.get('text') or '')[:900]}" for row in rows]
     prompt = f"Question: {state.question}\n\nEvidence:\n" + "\n\n".join(blocks)
     try:
-        reply = _ollama_chat([{"role": "system", "content": _SYNTHESIS_SYSTEM},
-                              {"role": "user", "content": prompt}], None, state.settings)
+        reply = _tracked_agent_chat(state, [{"role": "system", "content": _SYNTHESIS_SYSTEM},
+                                            {"role": "user", "content": prompt}], None, "answer synthesis")
         content = ((reply.get("message") or {}).get("content") or "").strip()
-        state.usage["prompt_tokens"] += int(reply.get("prompt_eval_count") or 0)
-        state.usage["completion_tokens"] += int(reply.get("eval_count") or 0)
     except Exception:
+        if state.settings.provider == "openai":
+            raise
         return None
     ids = [short.casefold() for short in re.findall(r"\[([0-9a-fA-F]{8})\]", content)
            if short.casefold() in state.evidence]
@@ -1676,11 +1811,10 @@ def _evidence_digest(state: AgentState, limit: int = 14) -> str:
 
 def _forced_answer(state: AgentState, messages: list[dict[str, Any]]) -> dict[str, Any]:
     prompt = f"{FORCED_ANSWER_PROMPT}\n\nQuestion: {state.question}\n\nPassages found:\n{_evidence_digest(state)}"
-    reply = _ollama_chat([{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": prompt}], None, state.settings)
+    reply = _tracked_agent_chat(state, [{"role": "system", "content": SYSTEM_PROMPT},
+                                        {"role": "user", "content": prompt}], None, "forced answer")
     message = reply.get("message") or {}
     content = (message.get("content") or "").strip()
-    state.usage["prompt_tokens"] += int(reply.get("prompt_eval_count") or 0)
-    state.usage["completion_tokens"] += int(reply.get("eval_count") or 0)
     ids = [short.casefold() for short in re.findall(r"\[([0-9a-fA-F]{8})\]", content) if short.casefold() in state.evidence]
     return _finish(state, content, list(dict.fromkeys(short.casefold() for short in ids)), stopped="budget")
 
@@ -1764,13 +1898,13 @@ def run_agent(question: str, collection: str, config: ResolvedPipelineConfig | N
                 update_observation(root, output=result)
                 return result
             started = time.perf_counter()
-            with observation(f"agent turn {turn}", as_type="generation", input=messages[-2:], model=settings.model) as turn_obs:
-                reply = _ollama_chat(messages, tool_specs, settings)
+            with observation(f"agent turn {turn}", as_type="span", input=messages[-2:],
+                             metadata={"provider": settings.provider, "model": settings.model}) as turn_obs:
+                reply = _tracked_agent_chat(state, messages, tool_specs, "tool selection and answer")
                 message = reply.get("message") or {}
                 update_observation(turn_obs, output={"content": (message.get("content") or "")[:2000],
-                                                     "tool_calls": message.get("tool_calls")})
-            state.usage["prompt_tokens"] += int(reply.get("prompt_eval_count") or 0)
-            state.usage["completion_tokens"] += int(reply.get("eval_count") or 0)
+                                                     "tool_calls": message.get("tool_calls"),
+                                                     "usage": reply.get("provider_usage")})
             content = (message.get("content") or "").strip()
             calls = list(message.get("tool_calls") or [])
             if not calls:
@@ -1827,6 +1961,9 @@ def run_agent(question: str, collection: str, config: ResolvedPipelineConfig | N
                 result = _finish(state, content, ids, stopped="content")
                 update_observation(root, output=result)
                 return result
+            for index, call in enumerate(calls):
+                if not call.get("id"):
+                    call["id"] = f"agent_{turn}_{index + 1}"
             messages.append({"role": "assistant", "content": content,
                              "tool_calls": [{"id": call.get("id"), "function": {"name": call.get("function", {}).get("name"),
                                                                                "arguments": call.get("function", {}).get("arguments", {})}}
@@ -1870,7 +2007,7 @@ def run_agent(question: str, collection: str, config: ResolvedPipelineConfig | N
                             supported, reason = _verify_submission(state, payload["raw_answer"], payload["passage_ids"], focus)
                         emit({"type": "verify", "supported": supported, "reason": reason})
                         if not supported:
-                            messages.append({"role": "tool", "content": _clip({
+                            messages.append({"role": "tool", "tool_call_id": call.get("id"), "content": _clip({
                                 "error": "the answer is not supported by the cited passages",
                                 "reason": reason,
                                 "note": "search again: find a passage that states the answer, then submit a corrected answer"})})
@@ -1880,7 +2017,7 @@ def run_agent(question: str, collection: str, config: ResolvedPipelineConfig | N
                     result["submitted"] = payload
                     update_observation(root, output=result)
                     return result
-                messages.append({"role": "tool", "content": _clip(payload)})
+                messages.append({"role": "tool", "tool_call_id": call.get("id"), "content": _clip(payload)})
                 if state.tool_calls >= settings.max_tool_calls:
                     emit({"type": "tool_budget"})
                     with observation("forced answer", input={"reason": "tool_budget"}):
