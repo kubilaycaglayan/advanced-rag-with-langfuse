@@ -344,7 +344,11 @@ def _run_ask(request: AskRequest, prepared: dict[str, Any], *, on_trace=None, on
             cached_result = None
             cache_status = "unavailable"
         record_cache_lookup("answer", "hit" if cached_result is not None else cache_status,
-                            cache_lookup_seconds, cache_source_trace_id)
+                            cache_lookup_seconds, cache_source_trace_id,
+                            input={"question": request.question},
+                            output=({"answer": cached_result.get("answer"),
+                                     "citations": cached_result.get("citations")}
+                                    if cached_result is not None else None))
         if on_trace:
             on_trace(trace_id)
         if cached_result is not None:

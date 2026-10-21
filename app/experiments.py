@@ -386,7 +386,8 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
                     with propagate_attributes(session_id=session, metadata=trace_metadata,
                                               tags=[f"pipeline:{resolved.pipeline_id}"]):
                         record_cache_lookup("answer", cache_statuses[item.id],
-                                            cache_lookup_seconds, cache_source)
+                                            cache_lookup_seconds, cache_source,
+                                            input={"question": question}, output=cached_output)
                         if cached_output is not None:
                             return _cached_output_with_timing(cached_output, cache_source,
                                                               cache_lookup_seconds)
