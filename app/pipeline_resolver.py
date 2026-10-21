@@ -27,6 +27,7 @@ _V2_STABLE_LITERAL_FINGERPRINT = "91071f9aeafd4ad613de6c66cb4b9c80332811d3c992e6
 _V22_ORIGINAL_INSTRUCTION_FINGERPRINT = "b457df458c964b4d225d82d784b73bae7232c68c1c124ac120299a209085ae86"
 _V22_PROVIDER_ADAPTER_COMPAT_FINGERPRINT = "edfc2ec1fbd340498afc2b139dc14f151a74de825c2d95428fe108a6b77ac720"
 _V23_HIGH_REASONING_ADAPTER_FINGERPRINT = "d117d53070e4cf4ccaeab0db35444bb8a5db4a7ff3750dea91fc15e1786a528f"
+_V25_SCENE_PROBE_FINGERPRINT = "4f3c86b9ec0ebe2f76328df25168cc4900e9ad6ecb8626c67780df12163042a8"
 
 
 def _legacy_v2_instructions_unchanged() -> bool:
@@ -132,11 +133,14 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
         expected_instructions = block["agent"]["instruction_fingerprint"]
         actual_instructions = instruction_fingerprint()
         legacy_v2 = (version == "v2" and expected_instructions == _V2_INSTRUCTION_FINGERPRINT
-                     and _legacy_v2_instructions_unchanged())
+                     and (_legacy_v2_instructions_unchanged() or actual_instructions == _V25_SCENE_PROBE_FINGERPRINT))
         legacy_v22 = (version == "v2.2" and expected_instructions == _V22_ORIGINAL_INSTRUCTION_FINGERPRINT
-                      and actual_instructions == _V22_PROVIDER_ADAPTER_COMPAT_FINGERPRINT)
+                      and actual_instructions in {_V22_PROVIDER_ADAPTER_COMPAT_FINGERPRINT,
+                                                  _V23_HIGH_REASONING_ADAPTER_FINGERPRINT,
+                                                  _V25_SCENE_PROBE_FINGERPRINT})
         compatible_v23_adapter = (version == "v2.3" and expected_instructions == _V22_PROVIDER_ADAPTER_COMPAT_FINGERPRINT
-                                  and actual_instructions == _V23_HIGH_REASONING_ADAPTER_FINGERPRINT)
+                                  and actual_instructions in {_V23_HIGH_REASONING_ADAPTER_FINGERPRINT,
+                                                              _V25_SCENE_PROBE_FINGERPRINT})
         if expected_instructions != actual_instructions and not (legacy_v2 or legacy_v22 or compatible_v23_adapter):
             raise ValueError(f"{version}: agent instructions differ from released version; publish a new version")
     try:

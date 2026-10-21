@@ -104,6 +104,8 @@ class AgentSettings:
     num_predict: int = 1600
     think: bool = False
     snippet_chars: int = 300
+    scene_candidate_count: int = 20
+    initial_scene_probe: bool = False
     query_aware_reranking: bool = False
     reasoning_effort: str = "none"
 
@@ -265,7 +267,8 @@ def _scene_points(state: "AgentState", query: str, k: int) -> tuple[list[tuple[A
         return [], "the scene index is not built for this collection"
     vector = _embedder(config.embedding_model.name, config.embedding_model.revision).encode(
         query, normalize_embeddings=True, show_progress_bar=False).tolist()
-    points = qdrant.query_points(collection_name=name, query=vector, limit=max(20, k * 4), with_payload=True).points
+    points = qdrant.query_points(collection_name=name, query=vector,
+                                 limit=max(state.settings.scene_candidate_count, k * 4), with_payload=True).points
     if not points:
         return [], ""
     scores = _reranker(config.reranker_model.name, config.reranker_model.revision).predict(
@@ -369,6 +372,22 @@ def _tool_scene_search(state: AgentState, args: dict[str, Any]) -> dict[str, Any
     scenes = [_scene_payload(state, point, score, full=full, query=query) for point, score in ranked]
     return {"query": query, "people": names, "scenes": scenes,
             "note": "pass a scene_id to read_scene for every member passage in reading order"}
+
+
+def _initial_scene_probe(state: AgentState) -> dict[str, Any] | None:
+    """Offer the best scene's source passages before the agent chooses any tools."""
+    ranked, error = _scene_points(state, state.question, 1)
+    if error or not ranked:
+        return None
+    point, score = ranked[0]
+    return _scene_payload(state, point, score, full=True, query=state.question)
+
+
+def _initial_scene_message(scene: dict[str, Any]) -> str:
+    lines = ["Automatic scene search found a possible lead. Check its source passages against the question; "
+             "cite only passages that state the answer, and search further if needed."]
+    lines.extend(f"[{row['id']}] {row['text']}" for row in scene["passages"])
+    return "\n\n".join(lines)
 
 
 def _tool_read_scene(state: AgentState, args: dict[str, Any]) -> dict[str, Any]:
@@ -1926,6 +1945,16 @@ def run_agent(question: str, collection: str, config: ResolvedPipelineConfig | N
         precheck = _connection_precheck(state)
     messages: list[dict[str, Any]] = [{"role": "system", "content": SYSTEM_PROMPT},
                                       {"role": "user", "content": normalized}]
+    if settings.initial_scene_probe:
+        started_probe = time.perf_counter()
+        with observation("initial scene probe", input=state.question):
+            scene = _initial_scene_probe(state)
+        if scene:
+            messages.append({"role": "user", "content": _initial_scene_message(scene)})
+        state.trace.append({"tool": "initial scene probe", "arguments": {"query": state.question},
+                            "seconds": round(time.perf_counter() - started_probe, 2), "error": None,
+                            "result_ids": scene["passage_ids"] if scene else [],
+                            "scene_id": scene["scene_id"] if scene else None})
     if precheck:
         messages.append({"role": "user", "content": _precheck_message(precheck)})
         state.trace.append({"tool": "connection pre-check", "arguments": {"person_a": precheck["person_a"],
