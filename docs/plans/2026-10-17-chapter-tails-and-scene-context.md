@@ -1,7 +1,7 @@
 # Plan: keep chapter tails with their chunk, and give each chunk its scene's context
 
-Status: done, on by default (2026-10-17). Prepared: 2026-10-17. Diagnosis: `data/tuning/LOG.md` (2026-10-17, gun at Gosseberga),
-scripts in `data/tuning/scripts-2026-10-17-gun/`.
+Status: done, on by default (2026-10-17). Prepared: 2026-10-17. Diagnosis: `data/millennium/tuning/LOG.md` (2026-10-17, gun at Gosseberga),
+scripts in `data/millennium/tuning/scripts-2026-10-17-gun/`.
 
 ## Why
 
@@ -48,7 +48,7 @@ no context.
   keyword, scene and entity rows alike, so the bars stay comparable).
 - **Evidence.** The answer model still reads and cites only the book text, never the summary (summaries are written by
   gemma4:26b and can be wrong). Showing the summary as a separate "Scene:" line is a later, separate experiment.
-- No new LLM calls: the summaries are already in `data/scene-summaries.jsonl`.
+- No new LLM calls: the summaries are already in `data/millennium/scene-summaries.jsonl`.
 
 ### Cache cost of change 1
 
@@ -75,8 +75,8 @@ counts the misses exactly before anything runs.
    new index (the old controls ran on the old chunks). Bar: no item gets worse because it lost the passage with its
    answer; check score drops by reading the answers (the judge is lenient and noisy). Turn `scene_context` on by
    default only if it passes, on approval.
-7. **Wrap-up:** scripts to `data/tuning/scripts-2026-10-17-scene-context/`, a row and a section in `IMPROVEMENTS.md`
-   in the same commit as each change, `data/tuning/LOG.md` notes. Deploy only on approval.
+7. **Wrap-up:** scripts to `data/millennium/tuning/scripts-2026-10-17-scene-context/`, a row and a section in `IMPROVEMENTS.md`
+   in the same commit as each change, `data/millennium/tuning/LOG.md` notes. Deploy only on approval.
 
 ## Risks
 

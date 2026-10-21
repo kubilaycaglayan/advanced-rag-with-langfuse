@@ -45,7 +45,7 @@ and deterministically, without the answer LLM, and send only winners to the full
    (0.764 / 0.861), plus a controlled fixed-query replay (as in exp99) to separate real regressions from model noise.
    Bar: no item gets worse because it lost the passage with the answer.
 6. **Wrap-up:** unload Ollama between runs and never overlap runs; copy the scripts to
-   `data/tuning/scripts-2026-10-16-recall/`; add a table row and a section to `IMPROVEMENTS.md` in the same commit
+   `data/millennium/tuning/scripts-2026-10-16-recall/`; add a table row and a section to `IMPROVEMENTS.md` in the same commit
    as the change. Deploy only on approval.
 
 ## Subplans

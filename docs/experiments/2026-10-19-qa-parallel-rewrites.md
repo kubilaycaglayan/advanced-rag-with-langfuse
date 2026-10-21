@@ -123,11 +123,11 @@ Evidence changed on **21/36** items and answers changed on **30/36**; this is no
 
 Local artifacts (git-ignored):
 
-- `data/executions/d39a54ec-f72e-4354-9f4e-0cdf115ae5db/` — baseline `request.json`, `manifest.json`, `results.json`
-- `data/executions/30a9c2f4-c082-46ca-923d-ee7d9b745929/` — parallel `request.json`, `manifest.json`, `results.json`
-- `data/tuning/qa-baseline-clean.log`, `data/tuning/qa-parallel-np3.log`
-- `data/tuning/qa-parallel-config.json` (`{"parallel_transformations": true}`)
-- `data/tuning/qa_compare.py` — comparison script used for the tables above
+- `data/millennium/executions/d39a54ec-f72e-4354-9f4e-0cdf115ae5db/` — baseline `request.json`, `manifest.json`, `results.json`
+- `data/millennium/executions/30a9c2f4-c082-46ca-923d-ee7d9b745929/` — parallel `request.json`, `manifest.json`, `results.json`
+- `data/millennium/tuning/qa-baseline-clean.log`, `data/millennium/tuning/qa-parallel-np3.log`
+- `data/millennium/tuning/qa-parallel-config.json` (`{"parallel_transformations": true}`)
+- `data/millennium/tuning/qa_compare.py` — comparison script used for the tables above
 
 Commands:
 
@@ -143,7 +143,7 @@ docker exec millenium-tuning sh -c 'cd /workspace && python app/experiments.py \
   --dataset QA.csv --variant qa-parallel-np3 \
   --dataset-version "2026-10-19T11:21:42.206000+00:00" \
   --correctness-evaluator answer_correctness_v2 --prompt-label production \
-  --config /data/tuning/qa-parallel-config.json'
+  --config /data/millennium/tuning/qa-parallel-config.json'
 ```
 
 After the run, `OLLAMA_NUM_PARALLEL` was removed and Ollama restarted; `OLLAMA_CONTEXT_LENGTH=8192` remains.

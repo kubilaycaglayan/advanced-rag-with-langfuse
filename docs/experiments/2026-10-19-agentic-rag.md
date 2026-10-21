@@ -3,7 +3,7 @@
 Status: completed experiment; **now the default engine for `/ask`** (send `engine: "fixed"` for the old pipeline).
 A local model drives the pipeline's instruments as tools, answers questions the fixed pipeline gets wrong, and was run
 over all four datasets. Code lives in `app/agent.py`; runners, traces and the dataset results are in
-`data/tuning/agentic/` (untracked).
+`data/millennium/tuning/agentic/` (untracked).
 
 ## Questions
 
@@ -34,7 +34,7 @@ The reference answers are built from the books (neither question is in a dataset
 | Agent models | `qwen3:8b` (default), `qwen3.6:35b`, `gemma4:26b`; `qwen3-thinking:30b-a3b` dropped (no tool calls) |
 | Control | the fixed pipeline with `qwen3.6:35b` as generation model (`baseline-qwen3.6_35b.json`) |
 | Tool protocol | native Ollama `tools`, JSON-text fallback |
-| QA judge | local fact judge over `datasets/answer-facts.json` (see "Judging") |
+| QA judge | local fact judge over `corpora/millennium/answer-facts.json` (see "Judging") |
 
 Model choice came from the local benchmark (`~/llm-comparison-benchmark.md`): qwen3.6:35b was the strongest reasoner
 (correct in 51 s / 3,036 tokens), gemma4:26b the fastest (29 s), qwen3:8b much slower on reasoning (219 s / 7,266
@@ -141,7 +141,7 @@ Residual failures (<0.6):
 
 **Judging.** The repo's `answer_correctness_v2` managed judge (qwen3:8b) was unreliable on these answers: it marked
 facts "missing" although its own explanation said they were present (it wanted verbatim quotes), gave an abstention
-1.0, and gave a correct answer 0.0. `datasets/answer-facts.json` was used with a simpler local judge (present/partial/
+1.0, and gave a correct answer 0.0. `corpora/millennium/answer-facts.json` was used with a simpler local judge (present/partial/
 missing, no quote copying), and out-of-scope items were scored by an abstention rule. These scores are therefore not
 directly comparable to the pipeline's Langfuse scores; they are consistent across the two runs.
 
@@ -217,17 +217,17 @@ of them fact issues; `90239c47` turned out to say the kitchen line, so all five 
 
 ## Reproduce
 
-Inside `millenium-tuning` (host network, `app/` and `data/` mounted, Qdrant on `127.0.0.1:6334`):
+Inside `millenium-tuning` (host network, `app/` and `data/millennium/` mounted, Qdrant on `127.0.0.1:6334`):
 
 ```bash
-PYTHONPATH=/workspace python /data/tuning/agentic/run_agent.py qwen3.6:35b
-AGENT_THINK=1 PYTHONPATH=/workspace python /data/tuning/agentic/run_agent.py qwen3.6:35b
-PYTHONPATH=/workspace python /data/tuning/agentic/repeat_agent.py qwen3.6:35b 4 1   # Q2, four repeats
-PYTHONPATH=/workspace python /data/tuning/agentic/run_baseline.py                      # fixed pipeline
-PYTHONPATH=/workspace python /data/tuning/agentic/run_qa.py --out /data/tuning/agentic/qa-agent-v2.jsonl
-PYTHONPATH=/workspace python /data/tuning/agentic/rescore_qa.py /data/tuning/agentic/qa-agent-v2.jsonl /data/tuning/agentic/qa-agent-v2-rescored.jsonl
-PYTHONPATH=/workspace python /data/tuning/agentic/qa_stats.py
-PYTHONPATH=/workspace python /data/tuning/agentic/run_qa_langfuse.py --limit 3   # Langfuse dataset run + traces
+PYTHONPATH=/workspace python /data/millennium/tuning/agentic/run_agent.py qwen3.6:35b
+AGENT_THINK=1 PYTHONPATH=/workspace python /data/millennium/tuning/agentic/run_agent.py qwen3.6:35b
+PYTHONPATH=/workspace python /data/millennium/tuning/agentic/repeat_agent.py qwen3.6:35b 4 1   # Q2, four repeats
+PYTHONPATH=/workspace python /data/millennium/tuning/agentic/run_baseline.py                      # fixed pipeline
+PYTHONPATH=/workspace python /data/millennium/tuning/agentic/run_qa.py --out /data/millennium/tuning/agentic/qa-agent-v2.jsonl
+PYTHONPATH=/workspace python /data/millennium/tuning/agentic/rescore_qa.py /data/millennium/tuning/agentic/qa-agent-v2.jsonl /data/millennium/tuning/agentic/qa-agent-v2-rescored.jsonl
+PYTHONPATH=/workspace python /data/millennium/tuning/agentic/qa_stats.py
+PYTHONPATH=/workspace python /data/millennium/tuning/agentic/run_qa_langfuse.py --limit 3   # Langfuse dataset run + traces
 PYTHONPATH=/workspace python -m unittest tests.test_agent                             # 24 tests
 ```
 

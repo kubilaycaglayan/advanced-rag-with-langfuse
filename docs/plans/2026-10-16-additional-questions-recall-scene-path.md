@@ -13,7 +13,7 @@ subjects face to face"), and the T-shirt is in ¶18, which never names Blomkvist
 "house". The pipeline matches the whole question against one passage at a time, so the "which moment" part drags
 every stage away from the gold passage.
 
-Measured with `data/tuning/scripts-2026-10-16-recall/diag_tshirt.py` and `diag_tshirt2.py` (run of 2026-10-16,
+Measured with `data/millennium/tuning/scripts-2026-10-16-recall/diag_tshirt.py` and `diag_tshirt2.py` (run of 2026-10-16,
 `7d83909e`; gold passage rank out of 5,594):
 
 | Test | Result |
@@ -74,7 +74,7 @@ Bigger chunks alone won't fix it.
 ## Rules
 
 - The diagnostic scripts find gold passages by question-specific text (for example "ARMAGEDDON"). They are
-  measurement tools only and stay in `data/tuning`; neither they nor any question-specific text go into the pipeline.
+  measurement tools only and stay in `data/millennium/tuning`; neither they nor any question-specific text go into the pipeline.
 - Every change must be general: the question split, summary prompt and settings must work for any question, not just
   these seven.
 

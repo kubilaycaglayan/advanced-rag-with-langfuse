@@ -60,7 +60,7 @@ Plain NER is not enough: it tags "Irene Nesser" as a person and does not say she
 
 ### 2026-10-16
 
-- **Diagnosis** (`data/tuning/LOG.md`, scripts in `data/tuning/scripts-2026-10-16-fake-identity/`): the target abstains;
+- **Diagnosis** (`data/millennium/tuning/LOG.md`, scripts in `data/millennium/tuning/scripts-2026-10-16-fake-identity/`): the target abstains;
   its only confident passage is off point ("individuals whose identity she had stolen", 3.69). The alias passages rank
   36–4,300 in dense search. "as fake as Monica Sholes' identity" is BM25 #2 and the reranker's best (5.32), but the
   keyword path needs best + 4.0. "rent a car in Irene Nesser's name … the fake identity" is BM25 #1 but scores −7.16
@@ -80,7 +80,7 @@ Plain NER is not enough: it tags "Irene Nesser" as a person and does not say she
   user's request after the control run (exp121); retrieval comes first.
 - **Decision (user):** fix retrieval first with this entity-card index; no full-dataset runs until retrieval on the
   targets is clearly better.
-- **Extraction** (`data/tuning/scripts-2026-10-16-entity-cards/extract.py`): non-overlapping 6-passage windows,
+- **Extraction** (`data/millennium/tuning/scripts-2026-10-16-entity-cards/extract.py`): non-overlapping 6-passage windows,
   gemma4:26b, JSON mode, ~10–13 s per window; *Dragon Tattoo* + *Played with Fire* = 611 windows (~2 h), running.
   The prompt was tightened after a trial (skip ordinary objects and unnamed people). Early output already links
   `Wasp → online handle of Salander` ("Salander was known online only as Wasp").
@@ -122,7 +122,7 @@ Plain NER is not enough: it tags "Irene Nesser" as a person and does not say she
   Salander" (a greeting typed as a false identity).
 - **Next:** opt-in pipeline hook reading the prototype cards; run only the 4 affected items end to end.
 - **Pipeline hook (opt-in, uncommitted):** `entity_names` (default false) with cards read from `ENTITY_CARDS`
-  (prototype file `data/entity-cards.prototype.json`). Runs after the keyword path; its passages go in front of the
+  (prototype file `data/millennium/entity-cards.prototype.json`). Runs after the keyword path; its passages go in front of the
   evidence. It adds no LLM request (about 1.1 s of reranking on CPU). Tests: 67 pass.
 - **Judged runs, affected items only.** exp124/exp125: target 0 → 0.5 (answer names Monica Sholes and Irene Nesser;
   the judge wants Wasp and V. Kulla too, which are in the evidence but the answer model leaves out). "What was the
@@ -139,7 +139,7 @@ Plain NER is not enough: it tags "Irene Nesser" as a person and does not say she
 
 ### 2026-10-17
 
-- **Full-dataset check, `entity_names` on** (`data/tuning/scripts-2026-10-16-entity-cards/batch.sh`):
+- **Full-dataset check, `entity_names` on** (`data/millennium/tuning/scripts-2026-10-16-entity-cards/batch.sh`):
   exp129 QA.csv 0.736 / 0.875 vs exp119 0.736 / 0.875 — the path fired on no item; evidence and answers identical on
   35/36 (the other, "What was the nickname of Mikael?", got different query alternatives run to run; path not fired,
   1.0 both). exp130 Additional Questions 0.438 / 0.938 vs exp121 0.375 / 0.938 — fired only on the target
@@ -169,7 +169,7 @@ Plain NER is not enough: it tags "Irene Nesser" as a person and does not say she
 - **2026-10-17, approved, built by `/index` and on by default.** `app/entities.py` runs the same extraction prompt
   (`entity_extraction_system`) and merge as the scripts; `/index` builds the cards when `entity_names` is on and
   `validate_index` refuses to answer without them. The 987 extractions were moved into the new cache
-  (`/data/entities.jsonl`), so building them made no model call; the cards are identical to the prototype's (4,044
+  (`/data/millennium/entities.jsonl`), so building them made no model call; the cards are identical to the prototype's (4,044
   entities, 3,245 edges, 138 joined names). `ENTITY_CARDS` is gone: the pipeline reads the cards of its passage index.
   exp137 (no config): target 0.5 / 1.0, same answer as exp135. All 86 tests pass.
 

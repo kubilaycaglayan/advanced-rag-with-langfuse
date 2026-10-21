@@ -20,7 +20,7 @@ Two causes: the rubric never says that extra claims are fine, and the three-step
 
 1. **Facts in the dataset.** Every item's expected output keeps `answer` and gains `required_facts` (the minimal
    facts that answer the question) and `supporting_details` (elaboration). Source of truth:
-   `datasets/answer-facts.json`, uploaded with `python app/answer_facts.py --apply` (dry run without `--apply`).
+   `corpora/millennium/answer-facts.json`, uploaded with `python app/answer_facts.py --apply` (dry run without `--apply`).
 2. **The judge gives verdicts, code gives the score.** For every fact ID (R1…, D1…) the judge quotes the answer's
    words and returns `present` / `partial` / `missing`; Ollama's JSON-schema `format` makes every ID required.
    `evaluation.fact_score`: required facts carry 90% of the score, details 10% (present 1, partial 0.5, missing 0);
@@ -34,7 +34,7 @@ Two causes: the rubric never says that extra claims are fine, and the three-step
 ## Versions and rollback
 
 - Langfuse versions dataset items. Versions before the facts were added (snapshots also in
-  `data/dataset-snapshots/2026-10-19-before-answer-facts/`):
+  `data/millennium/dataset-snapshots/2026-10-19-before-answer-facts/`):
 
   | Dataset | Version before facts | Items |
   |---|---|---|
@@ -46,7 +46,7 @@ Two causes: the rubric never says that extra claims are fine, and the three-step
   Facts version 1 was uploaded at 2026-10-19T11:21Z. Pass `dataset_version` to run against an earlier version.
 - To go back to the old judge, run with `correctness_evaluator: answer_correctness_v1`. It reads only `answer`, so it
   behaves the same on the new dataset versions.
-- To revise facts, edit `datasets/answer-facts.json`, bump its `version` and run `app/answer_facts.py --apply`. Each
+- To revise facts, edit `corpora/millennium/answer-facts.json`, bump its `version` and run `app/answer_facts.py --apply`. Each
   upload is a new dataset version, and items record `facts_version`.
 
 ### Version 3: additive human-approved answer alternatives (2026-10-21)
@@ -63,7 +63,7 @@ Two causes: the rubric never says that extra claims are fine, and the three-step
 ## Trial (offline re-scoring of saved answers)
 
 The latest saved run of each dataset was re-scored with three prototype prompts, with no new pipeline runs (scripts and
-outputs: `data/tuning/scripts-2026-10-19-answer-facts/`). The shipped version is prototype c.
+outputs: `data/millennium/tuning/scripts-2026-10-19-answer-facts/`). The shipped version is prototype c.
 
 | Dataset | Items | v1 mean | v2 mean | v2 higher by >0.2 | v2 lower by >0.2 |
 |---|---|---|---|---|---|

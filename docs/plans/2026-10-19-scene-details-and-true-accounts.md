@@ -83,7 +83,7 @@ Two general mechanisms, one for each pattern; no question-specific rules.
 1. **Settle the quote question (done, corrected).** The line is speech in `90239c47`; `2e3b810e` is the later memory.
    The expected facts stand and no dataset change is needed. The earlier "fact issue" conclusion came from searching
    the ICU memory only; the correction is recorded above.
-2. **Measure candidate tools offline (done)** on the five items (scripts in `data/tuning/agentic/`, output kept in
+2. **Measure candidate tools offline (done)** on the five items (scripts in `data/millennium/tuning/agentic/`, output kept in
    `measure_scene_tools.out`, `measure_new_tools.out`, `diag_*.out`):
    - `true_account("Gottfried Vanger", "drowned")` derives "Harriet drowned her father", reaches `8516c2bb` (dense #1,
      7.95) and the reveal scene `533dff6b` (6.84); the full scene carries the rape, the oar, Martin as witness.

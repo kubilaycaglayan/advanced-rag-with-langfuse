@@ -55,7 +55,7 @@ Follow the tuning-round rules (general fixes only, no regressions) and the rule 
 - Langfuse checks: run the same questions through `/ask` and `/ask/stream`. Both traces should match: same span tree, same generation output and token usage, and the root `rag ask` output set. The answer text should be identical (temperature 0). Feedback (`/api/feedback`) should still find the root span.
 
 ## C. Reranker and embedding speedups (item 6): explore → experiment → implement
-Benchmark script in the scratchpad (copied to `data/tuning/scripts-2026-10-19-speed/` afterwards), run in `millenium-tuning` while nothing else is running:
+Benchmark script in the scratchpad (copied to `data/millennium/tuning/scripts-2026-10-19-speed/` afterwards), run in `millenium-tuning` while nothing else is running:
 - Workload: for every QA question, the real reranker pairs (about 30 fused + up to 100 wide + 30 named + 30 keyword), built from Qdrant with the question and its stored transformation queries, so no LLM is needed.
 - Variants, each compared with the current fp32 torch run for time and score agreement (max |Δscore|, same top-10 order, same wide/keyword admit decisions):
   1. Score the keyword hits in the same `predict` call as the main pairs (`pipeline.py` l.263 and l.294); also try different `batch_size` values.
@@ -108,7 +108,7 @@ Benchmark script in the scratchpad (copied to `data/tuning/scripts-2026-10-19-sp
   The toggle stays off by default because the zero-regression rule is not met. Full record:
   [2026-10-19-qa-parallel-rewrites.md](../experiments/2026-10-19-qa-parallel-rewrites.md).
 - **Verification**: 97 Python tests, 14 Express tests and 19 UI tests pass. The 3-question scripts
-  and JSON results are under `data/tuning/scripts-2026-10-19-speed/` (git-ignored).
+  and JSON results are under `data/millennium/tuning/scripts-2026-10-19-speed/` (git-ignored).
 
 ## Item 5 (answer only, not part of this work)
 Set `OLLAMA_CONTEXT_LENGTH=8192` on the Ollama service so the judge's calls use the same context size as the pipeline. Right now qwen3:8b reloads between them: 29 reloads of about 1.5 s each during one 8-question run on 2026-10-19.

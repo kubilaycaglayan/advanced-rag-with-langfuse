@@ -4,7 +4,7 @@ One entry per tuning round, newest first. Each round targets one failing questio
 from the reference answer in prompts, queries or code) and checks the full QA.csv dataset (35 items) for regressions.
 Scores are means of the Langfuse judges `answer_correctness_v1` / `citation_support_v1` (from 2026-10-19 new runs
 use `answer_correctness_v2`, see the first row; compare against older rounds with `correctness_evaluator: answer_correctness_v1`). Raw run outputs, per-run
-configs and the analysis scripts live in `data/tuning/` (not tracked; full notes in `data/tuning/LOG.md`).
+configs and the analysis scripts live in `data/millennium/tuning/` (not tracked; full notes in `data/millennium/tuning/LOG.md`).
 
 ## Methodology
 
@@ -119,7 +119,7 @@ load.
 
 **Reranker/embedding.** No change adopted. Recorded QA calls: torch16 104.5 s, torch32 219.8 s, batch 64 102.6 s,
 ONNX 123.0 s, ONNX-O3 97.3 s (7 top-10 changes), int8 90.9 s (168 top-10 changes). Embedding ONNX was slower
-(14.4 s vs 7.2 s). The current torch fp32 path stays. Scripts and JSON results: `data/tuning/scripts-2026-10-19-speed/`.
+(14.4 s vs 7.2 s). The current torch fp32 path stays. Scripts and JSON results: `data/millennium/tuning/scripts-2026-10-19-speed/`.
 
 Verification: 97 Python tests, 14 Express tests and 19 UI tests pass.
 
@@ -188,10 +188,10 @@ story they contradict ("Gottfried died in a banal way …", 8.6 vs 4.3).
 
 **Kept:** the code, off by default (`entity_graph`, `entity_graph_damping`, `entity_graph_pool`,
 `entity_graph_max_hits`, `entity_graph_facts`; `/index` builds the events only when `entity_graph` is on), and the
-built events (`ENTITY_EVENTS_CACHE`, default `/data/entity-events.jsonl`). The anchor fix (a capitalised question word
+built events (`ENTITY_EVENTS_CACHE`, default `/data/millennium/entity-events.jsonl`). The anchor fix (a capitalised question word
 before a name is dropped) gives 17 recorded questions their entity but leaves `entity_names` and `entity_matrix` hits
 identical on all 94 recorded items, so no answer changes. Notes: `docs/plans/2026-10-17-graph.md`, scripts in
-`data/tuning/scripts-2026-10-17-graph/`.
+`data/millennium/tuning/scripts-2026-10-17-graph/`.
 
 ## 2026-10-17 — Chapter tails and scene context: "When Mikael Blomkvist found Lisbeth Salander ... what Salander said to him?"
 
@@ -266,7 +266,7 @@ became a correct answer scored 0.5 for missing context (reproduced by exp152). A
 **Target:** "What is Salander's fake identity?" (Additional Questions, item ba2fffee), scored 0 in exp121: the
 answer named none of Irene Nesser, Monica Sholes, Wasp or V. Kulla.
 
-**Diagnosis** (`data/tuning/scripts-2026-10-16-fake-identity/`, offline): a recall failure. The passages say "she ...
+**Diagnosis** (`data/millennium/tuning/scripts-2026-10-16-fake-identity/`, offline): a recall failure. The passages say "she ...
 under the name of Irene Nesser", "Monica Sholes", "known online only as Wasp", "V. Kulla on the door"; none uses the
 question's words, most say "she", and they are spread over three books. MiniLM ranks them in the hundreds or
 thousands; the cross-encoder scores them below the evidence when they are present (and bge-reranker-v2-m3 does not
@@ -302,7 +302,7 @@ exp137 confirms the target with no config (cards built by `/index`, identical to
 **Target:** "What is \"no compromises\"?" (Additional Questions, item 1e785ac0), scored 0 in exp113: "the term is not
 explicitly defined or directly referenced in the provided evidence".
 
-**Diagnosis** (`data/tuning/scripts-2026-10-16-keyword/`, offline, no answer model): the phrase is Salander's inner
+**Diagnosis** (`data/millennium/tuning/scripts-2026-10-16-keyword/`, offline, no answer model): the phrase is Salander's inner
 line at her trial (*Hornet's Nest* ch. 28 ¶11, ¶22, ¶47). All retrieval is dense; MiniLM ranks those passages
 132–3,715 for the six queries, so none reaches the 30 fused candidates, the question goes down the low-confidence
 path (best fused −6.59) and scene search is skipped. When scored, the passages rank far above the evidence (1.93,
@@ -369,7 +369,7 @@ T-shirt from chapter 2.
 **Diagnosis** ([subplan](docs/plans/2026-10-16-additional-questions-recall-scene-path.md)): the question names the
 moment (their first meeting at her apartment, *Dragon Tattoo* ch. 18) and the detail (the T-shirt); the T-shirt
 passage (¶18) names neither Blomkvist nor the meeting. Measured offline, without the answer model
-(`data/tuning/scripts-2026-10-16-scene-path/`):
+(`data/millennium/tuning/scripts-2026-10-16-scene-path/`):
 - Deeper scene search alone (step 1) does not help: with the whole question the gold scene is not in the summary
   search's top 100, and the scene that holds the current evidence (Martin Vanger's crash, where Salander wipes
   fingerprints with a T-shirt) scores 4.26, above any summary found.
@@ -421,7 +421,7 @@ QA.csv mean latency 18.9 s (exp100 18.1 s).
 earlier qwen3.5 run (exp76, 0.764, 9 items lower) changed `generation_model`, which also writes the HyDE document,
 query alternatives and grammar-corrected question, so it tested retrieval and answers together.
 
-**Setup** (`data/tuning/scripts-2026-10-16-answer-model/`): every arm replays exp100's recorded queries, so retrieval,
+**Setup** (`data/millennium/tuning/scripts-2026-10-16-answer-model/`): every arm replays exp100's recorded queries, so retrieval,
 reranking, scene search and the evidence are the same; only the model behind the answer request changes (same
 `rag-answer` v1 prompt, temperature 0, 8192 context, budgets, reasoning rules).
 1. *Answers, no judging, one model loaded:* the evidence was byte-identical to exp100 on 36/36 items in all six runs,
@@ -472,7 +472,7 @@ answers byte-identical, same scores), so exp94/exp100 is the baseline.
   condition, why not go to police, Henrik hires Blomkvist; who killed Harriet 0.5 → 0; Armageddon shirt 1 → 0;
   what is Armageddon 1 → 0.5), 1 up (affair 0.5 → 1).
 - exp99, controlled: the same alternatives and grammar-corrected query as exp100, replayed from the recorded run
-  (`data/tuning/scripts-2026-10-16-no-hyde/replay_no_hyde.py`), so the only difference is the missing query:
+  (`data/millennium/tuning/scripts-2026-10-16-no-hyde/replay_no_hyde.py`), so the only difference is the missing query:
   0.722 / 0.806, 5 down / 2 up.
 
 **Findings:**
@@ -514,7 +514,7 @@ death). Earlier 1.0 scores were "the evidence does not state ..." answers (judge
 
 **Change:** a second index of LLM summaries over windows of `scene_window` (6) consecutive passages of one EPUB section,
 every `scene_stride` (3) passages (1809 windows; qwen3:8b, one call per window, about 2 h once, cached in
-`/data/scene-summaries.jsonl`). The summaries name who does what. The question is searched against them
+`/data/millennium/scene-summaries.jsonl`). The summaries name who does what. The question is searched against them
 (`scene_search_hits` 10) and the summaries are scored with the cross-encoder. Summaries score systematically higher
 than passages, so the bar compares like with like: the best scene must beat every scene that holds one of the top
 evidence passages by more than `scene_margin` (1.0, calibrated on this dataset, configurable, null disables), and score
@@ -552,7 +552,7 @@ affair?" 0.5 → 1.0, but the target went back to 0 (a Bjurman assault scene now
 and "Why does Salander decide not to go to the police?" went 1.0 → 0.5. Picking a single scene is fragile when scenes
 about the same people score this close. Admitting two scenes, or scoring each scene against the question's rewordings,
 did not fix it. The index keeps the validated summaries (restored; exp91 reproduces exp89 on the changed questions);
-the repaired cache is kept in `data/tuning/` for a later round.
+the repaired cache is kept in `data/millennium/tuning/` for a later round.
 
 **Follow-up, summarising model (adopted, see the next paragraph):** on 60 sample windows (the target's 10 retrieved scenes,
 15 with known name errors, 35 random), same prompt, thinking off:
