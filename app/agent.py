@@ -42,16 +42,20 @@ try:
     from .entities import _cache_path as entity_cache_path, entity_cards_path
     from .evaluation import is_explicit_abstention
     from .observability import observation, update as update_observation
-    from .pipeline import (_embedder, _entity_cards, _keyword_index, _keyword_search, _entity_anchors, _keywords, _moment_scene_hits,
-                           _name_pairs, _passage_position, _reranker, _transform, qdrant_client)
+    from .intermediate_cache import cache_value as _cache_value
+    from .pipeline import (_encode_query, _entity_cards, _keyword_index, _keyword_search, _entity_anchors, _keywords,
+                           _moment_scene_hits, _name_pairs, _passage_position, _query_points_cached,
+                           _reranker, _transform, qdrant_client)
     from .resolved_config import ResolvedPipelineConfig
     from .scenes import scene_collection
 except ImportError:  # running from app/ inside the container
     from entities import _cache_path as entity_cache_path, entity_cards_path
     from evaluation import is_explicit_abstention
     from observability import observation, update as update_observation
-    from pipeline import (_embedder, _entity_cards, _keyword_index, _keyword_search, _entity_anchors, _keywords, _moment_scene_hits,
-                          _name_pairs, _passage_position, _reranker, _transform, qdrant_client)
+    from intermediate_cache import cache_value as _cache_value
+    from pipeline import (_encode_query, _entity_cards, _keyword_index, _keyword_search, _entity_anchors, _keywords,
+                         _moment_scene_hits, _name_pairs, _passage_position, _query_points_cached,
+                         _reranker, _transform, qdrant_client)
     from resolved_config import ResolvedPipelineConfig
     from scenes import scene_collection
 
@@ -136,6 +140,7 @@ class AgentState:
     speech_hint: dict[str, str] | None = None
     trace: list[dict[str, Any]] = field(default_factory=list)
     usage: dict[str, Any] = field(default_factory=dict)
+    read_capture: dict[str, list[str]] | None = field(default=None, repr=False)
 
     def remember(self, rows: list[dict[str, Any]], query: str | None = None) -> None:
         for row in rows:
@@ -143,6 +148,8 @@ class AgentState:
             if short not in self.evidence:
                 self.evidence[short] = row
                 self.order.append(short)
+            if self.read_capture is not None:
+                self.read_capture["remembered"].append(str(row["id"]))
             if query:
                 queries = self.retrieval_queries.setdefault(short, [])
                 if query not in queries:
@@ -154,6 +161,8 @@ class AgentState:
             short = str(row["id"])[:8]
             if short not in self.focus:
                 self.focus.append(short)
+            if self.read_capture is not None:
+                self.read_capture["focused"].append(str(row["id"]))
 
 
 def _book_short(book: str | None) -> str:
@@ -245,10 +254,9 @@ def _scene_payload(state: "AgentState", point: Any, score: float, *, full: bool,
 def _semantic_rows(state: "AgentState", query: str, k: int) -> list[dict[str, Any]]:
     """Dense search plus cross-encoder rerank; rows carry the full passage id."""
     config = state.config
-    vector = _embedder(config.embedding_model.name, config.embedding_model.revision).encode(
-        query, normalize_embeddings=True, show_progress_bar=False).tolist()
-    points = qdrant_client().query_points(collection_name=state.collection, query=vector,
-                                          limit=max(30, k * 5), with_payload=True).points
+    vector = _encode_query(query, config.embedding_model.name, config.embedding_model.revision)
+    points = _query_points_cached(qdrant_client(), state.collection, vector,
+                                  max(30, k * 5), query)
     rows = [dict(point.payload or {}) | {"id": str(point.id)} for point in points]
     if not rows:
         return []
@@ -266,10 +274,9 @@ def _scene_points(state: "AgentState", query: str, k: int) -> tuple[list[tuple[A
     qdrant = qdrant_client()
     if not qdrant.collection_exists(name):
         return [], "the scene index is not built for this collection"
-    vector = _embedder(config.embedding_model.name, config.embedding_model.revision).encode(
-        query, normalize_embeddings=True, show_progress_bar=False).tolist()
-    points = qdrant.query_points(collection_name=name, query=vector,
-                                 limit=max(state.settings.scene_candidate_count, k * 4), with_payload=True).points
+    vector = _encode_query(query, config.embedding_model.name, config.embedding_model.revision)
+    points = _query_points_cached(qdrant, name, vector,
+                                  max(state.settings.scene_candidate_count, k * 4), query)
     if not points:
         return [], ""
     scores = _reranker(config.reranker_model.name, config.reranker_model.revision).predict(
@@ -1733,6 +1740,30 @@ def _run_tool(state: AgentState, name: str, args: dict[str, Any]) -> tuple[dict[
         return _tool_submit_answer(state, args)
     if name not in tools:
         return {"error": f"unknown tool {name!r}", "tools": sorted([*tools, "submit_answer"])}, False
+    if name in {"read_scene", "read_passage", "read_chapter", "entity_card",
+                "find_connections", "find_names"}:
+        def read() -> dict[str, Any]:
+            capture = {"remembered": [], "focused": []}
+            previous_capture = state.read_capture
+            state.read_capture = capture
+            try:
+                payload = tools[name](state, args)
+            finally:
+                state.read_capture = previous_capture
+            return {"payload": payload,
+                    "remembered_ids": list(dict.fromkeys(capture["remembered"])),
+                    "focused_ids": list(dict.fromkeys(capture["focused"]))}
+
+        cached = _cache_value("tool_read", name,
+            {"collection": state.collection, "question": state.question, "arguments": args},
+            input={"tool": name, "arguments": args}, compute=read,
+            trace_output=lambda value: value.get("payload"))
+        by_id, _ = _row_index(state.collection)
+        rows = [by_id[identifier] for identifier in cached["remembered_ids"] if identifier in by_id]
+        state.remember(rows)
+        focused = set(cached["focused_ids"])
+        state.focus_on([row for row in rows if str(row["id"]) in focused])
+        return cached["payload"], False
     return tools[name](state, args), False
 
 

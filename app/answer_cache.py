@@ -18,7 +18,7 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 CACHE_FORMAT = 1
-LAYERS = {"answer"}
+LAYERS = {"answer", "query", "embedding", "search", "rerank", "tool_read"}
 PENDING_DAYS = 30
 PENDING_SECONDS = PENDING_DAYS * 24 * 60 * 60
 ANSWER_FIELDS = {
@@ -41,7 +41,7 @@ def _redis_client():
 
 def normalize_layers(layers: list[str] | None) -> tuple[str, ...]:
     if layers is None:
-        return ("answer",)
+        return tuple(sorted(LAYERS))
     if not isinstance(layers, list) or any(not isinstance(layer, str) for layer in layers):
         raise ValueError("cache_layers must be an array of strings")
     unknown = sorted(set(layers) - LAYERS)

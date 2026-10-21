@@ -93,7 +93,9 @@ def update(observation: Any | None, **fields: Any) -> None:
 
 def record_cache_lookup(layer: str, status: str, duration_seconds: float,
                         source_trace_id: str | None = None, *, input: Any = None,
-                        output: Any = None) -> None:
+                        output: Any = None, compute_seconds: float | None = None,
+                        saved_seconds: float | None = None, operation: str | None = None,
+                        write_status: str | None = None) -> None:
     """Record a cache layer result as a named, searchable Langfuse span."""
     details: dict[str, Any] = {
         "cache_layer": layer,
@@ -102,6 +104,14 @@ def record_cache_lookup(layer: str, status: str, duration_seconds: float,
     }
     if source_trace_id:
         details["cache_source_trace_id"] = source_trace_id
+    if compute_seconds is not None:
+        details["cache_compute_seconds"] = round(max(0.0, compute_seconds), 6)
+    if saved_seconds is not None:
+        details["cache_saved_seconds"] = round(max(0.0, float(saved_seconds)), 6)
+    if operation is not None:
+        details["cache_operation"] = operation
+    if write_status is not None:
+        details["cache_write_status"] = write_status
     with observation(f"cache {status}: {layer}", as_type="span",
                      input=input if input is not None else {"cache_layer": layer},
                      metadata=details) as obs:

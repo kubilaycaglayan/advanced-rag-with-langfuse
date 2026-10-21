@@ -19,7 +19,7 @@ For Docker, check out the submodule, then run `docker compose up -d --build --no
 
 To publish the frontend through a dashboard-managed Cloudflare Tunnel, set `CLOUDFLARE_PRODUCTION_TUNNEL_TOKEN` in the root `.env` and run `docker compose --profile cloudflare up -d --build --no-deps frontend cloudflared` after the API is running. In Cloudflare, configure a published application route for your chosen hostname with service URL `http://127.0.0.1:43179`. The tunnel connector and frontend share the host network; the frontend stays bound to loopback. The tunnel UUID is not needed to run this connector.
 
-Interactive questions and feedback use the Langfuse `interactive-ui` environment. Oracle UI questions pin pipeline `v2.7` and enable `automatic_scene_search`; other API callers continue to use the catalog default unless they send their own pipeline settings. The Python `/ask` endpoint supplies exact trace and pipeline IDs. The frontend server listens on `FRONTEND_PORT` (default `43179`).
+Interactive questions and feedback use the Langfuse `interactive-ui` environment. Oracle UI questions pin pipeline `v2.8` and enable `automatic_scene_search`; other API callers continue to use the catalog default unless they send their own pipeline settings. The Python `/ask` endpoint supplies exact trace and pipeline IDs. The frontend server listens on `FRONTEND_PORT` (default `43179`).
 
 Interactive question traces store the client's IP address as `clientIp` metadata on the root “rag ask” observation. With `TRUST_CLOUDFLARE_PROXY=true`, the frontend uses `CF-Connecting-IP` only when the connection comes from loopback. Other forwarding headers are ignored. Keep the frontend bound to loopback when enabling this setting.
 

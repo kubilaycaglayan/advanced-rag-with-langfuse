@@ -28,6 +28,7 @@ try:
     from .identity import (canonical_json, dataset_snapshot, evaluator_identity,
                            pipeline_identity, question_label, question_session_id, source_manifest)
     from .indexer import build_index, corpus_paths
+    from .intermediate_cache import scope_for as intermediate_cache_scope, use_cache as use_intermediate_cache
     from .evaluator_specs import CORRECTNESS_SPECS, DEFAULT_CORRECTNESS, JUDGE_MODELS, evaluator_manifest
     from .observability import record_cache_lookup, use_client
     from .pipeline import PROMPT_HASHES, run_pipeline
@@ -46,6 +47,7 @@ except ImportError:
     from identity import (canonical_json, dataset_snapshot, evaluator_identity,
                          pipeline_identity, question_label, question_session_id, source_manifest)
     from indexer import build_index, corpus_paths
+    from intermediate_cache import scope_for as intermediate_cache_scope, use_cache as use_intermediate_cache
     from evaluator_specs import CORRECTNESS_SPECS, DEFAULT_CORRECTNESS, JUDGE_MODELS, evaluator_manifest
     from observability import record_cache_lookup, use_client
     from pipeline import PROMPT_HASHES, run_pipeline
@@ -391,7 +393,9 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
                         if cached_output is not None:
                             return _cached_output_with_timing(cached_output, cache_source,
                                                               cache_lookup_seconds)
-                        output = run_resolved_pipeline(str(question), resolved, collection, prompt_bundle)
+                        layer_scope = intermediate_cache_scope(resolved, collection, langfuse_project())
+                        with use_intermediate_cache(cache_mode, cache_layers, layer_scope):
+                            output = run_resolved_pipeline(str(question), resolved, collection, prompt_bundle)
                         output["answer_cache_status"] = cache_status
                         return output
             except Exception as exc:
@@ -611,7 +615,7 @@ def cli() -> int:
     parser.add_argument("--pipeline", default=None)
     parser.add_argument("--cache-mode", choices=("use", "bypass", "refresh"), default="bypass",
                         help="answer-cache mode; experiments bypass by default")
-    parser.add_argument("--cache-layer", action="append", dest="cache_layers", choices=("answer",),
+    parser.add_argument("--cache-layer", action="append", dest="cache_layers", choices=sorted(answer_cache.LAYERS),
                         help="cache layer to use; repeatable, defaults to all supported layers")
     settings_group = parser.add_mutually_exclusive_group()
     settings_group.add_argument("--settings", type=Path, help="JSON settings overrides file")

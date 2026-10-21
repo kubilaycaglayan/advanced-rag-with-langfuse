@@ -34,6 +34,7 @@ try:
     from .frontend_rate_limit import reserve_request
     from .experiments import start_worker, submit, submit_retry
     from .indexer import build_index, index_identity, validate_index
+    from .intermediate_cache import scope_for as intermediate_cache_scope, use_cache as use_intermediate_cache
     from .observability import observation, record_cache_lookup, trace_scope, update as update_observation
     from .prompt_assets import load_prompt_bundle, prompt_manifests
     from .pipeline import run_pipeline
@@ -52,6 +53,7 @@ except ImportError:
     from frontend_rate_limit import reserve_request
     from experiments import start_worker, submit, submit_retry
     from indexer import build_index, index_identity, validate_index
+    from intermediate_cache import scope_for as intermediate_cache_scope, use_cache as use_intermediate_cache
     from observability import observation, record_cache_lookup, trace_scope, update as update_observation
     from prompt_assets import load_prompt_bundle, prompt_manifests
     from pipeline import run_pipeline
@@ -369,8 +371,10 @@ def _run_ask(request: AskRequest, prepared: dict[str, Any], *, on_trace=None, on
                                             "answer_cache_status": "hit",
                                             "answer_cache_source_trace_id": cache_source_trace_id})
             return result
-        result = run_resolved_pipeline(request.question, prepared["resolved"], prepared["collection"],
-                                       prepared["bundle"], on_token=on_token, on_status=on_status)
+        layer_scope = intermediate_cache_scope(prepared["resolved"], prepared["collection"], langfuse_project())
+        with use_intermediate_cache(request.cache_mode, cache_layers, layer_scope):
+            result = run_resolved_pipeline(request.question, prepared["resolved"], prepared["collection"],
+                                           prepared["bundle"], on_token=on_token, on_status=on_status)
         result["prompts"] = prompts
         result["session_id"] = session_id
         result["trace_id"] = trace_id

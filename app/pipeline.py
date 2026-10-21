@@ -7,6 +7,7 @@ import math
 import os
 import re
 import time
+from types import SimpleNamespace
 from collections import Counter, defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from functools import lru_cache
@@ -22,6 +23,7 @@ try:
     from .corpus_profiles import load_profile, profile_prompt
     from .resolved_config import ResolvedPipelineConfig
     from .observability import observation as _observe, update as _update
+    from .intermediate_cache import cache_value as _cache_value
     from .prompt_templates import PROMPT_HASHES, PROMPT_TEMPLATES
     from .entities import entity_cards_path, entity_events_path
     from .scenes import context_collection, scene_collection
@@ -29,6 +31,7 @@ except ImportError:
     from corpus_profiles import load_profile, profile_prompt
     from resolved_config import ResolvedPipelineConfig
     from observability import observation as _observe, update as _update
+    from intermediate_cache import cache_value as _cache_value
     from prompt_templates import PROMPT_HASHES, PROMPT_TEMPLATES
     from entities import entity_cards_path, entity_events_path
     from scenes import context_collection, scene_collection
@@ -44,8 +47,42 @@ def _embedder(name: str, revision: str | None = None) -> SentenceTransformer:
 
 
 @lru_cache(maxsize=4)
-def _reranker(name: str, revision: str | None = None) -> CrossEncoder:
-    return CrossEncoder(name, device="cpu", revision=revision)
+def _reranker(name: str, revision: str | None = None) -> Any:
+    class CachedCrossEncoder:
+        def __init__(self) -> None:
+            self.model = CrossEncoder(name, device="cpu", revision=revision)
+
+        def predict(self, pairs: Any, **kwargs: Any) -> Any:
+            normalized = [[str(query), str(text)] for query, text in pairs]
+            values = _cache_value("rerank", "cross_encoder", {
+                "model": name, "revision": revision, "pairs": normalized, "parameters": kwargs,
+            }, input={"model": name, "revision": revision, "pairs": normalized},
+                compute=lambda: [float(score) for score in self.model.predict(normalized, **kwargs)])
+            import numpy as np
+            return np.asarray(values)
+
+    return CachedCrossEncoder()
+
+
+def _encode_query(text: str, model: str, revision: str | None = None) -> list[float]:
+    return _cache_value("embedding", "query", {"text": text, "model": model, "revision": revision,
+                         "normalize": True}, input={"text": text, "model": model, "revision": revision},
+                        compute=lambda: _embedder(model, revision).encode(
+                            text, normalize_embeddings=True, show_progress_bar=False).tolist())
+
+
+def _query_points_cached(qdrant: QdrantClient, collection: str, vector: list[float], limit: int,
+                         query_text: str) -> list[Any]:
+    def fetch() -> list[dict[str, Any]]:
+        points = qdrant.query_points(collection_name=collection, query=vector, limit=limit,
+                                     with_payload=True).points
+        return [{"id": str(point.id), "payload": dict(point.payload or {}),
+                 "score": float(point.score)} for point in points]
+
+    records = _cache_value("search", "dense", {"collection": collection, "vector": vector, "limit": limit},
+                           input={"collection": collection, "query": query_text, "limit": limit},
+                           compute=fetch)
+    return [SimpleNamespace(id=row["id"], payload=row["payload"], score=row["score"]) for row in records]
 
 
 def _ollama(messages: list[dict[str, str]], model: str, budgets: tuple[int, ...], temperature: float = 0, context_length: int = 8192, *, prompt: Any = None, name: str = "answer generation",
@@ -141,7 +178,10 @@ def _translate(question: str, config: ResolvedPipelineConfig, prompt_bundle: dic
 
     Names are kept as written, except translated forms of the novels' own names, which become the English edition's.
     """
-    with _observe("query translation", input=question) as obs:
+    prompts = {name: {"id": value.get("id"), "version": value.get("version")}
+               for name, value in (prompt_bundle or {}).items()}
+
+    def translate() -> str | None:
         messages = (prompt_bundle["rag-query-translation"]["client"].compile(question=question) if prompt_bundle else [
             {"role": "system", "content": profile_prompt("query_translation_system", PROMPT_TEMPLATES["query_translation_system"])}, {"role": "user", "content": question}])
         reply = _ollama(messages, config.generation_model.name, config.generation.output_budgets, config.generation.temperature, config.generation.context_length,
@@ -151,19 +191,41 @@ def _translate(question: str, config: ResolvedPipelineConfig, prompt_bundle: dic
         english = fields.get("ENGLISH", "")
         translated = (None if fields.get("LANGUAGE", "english").casefold().strip(" .") == "english" or english.casefold() == question.strip().casefold()
                       else english or None)
+        return translated
+
+    with _observe("query translation", input=question) as obs:
+        translated = _cache_value("query", "translation", {
+            "query": question, "prompt_assets": prompts, "model": config.generation_model.name,
+            "model_revision": config.generation_model.revision,
+            "temperature": config.generation.temperature, "context_length": config.generation.context_length,
+            "output_budgets": list(config.generation.output_budgets),
+        }, input={"query": question, "operation": "translation"}, compute=translate)
         _update(obs, output=translated)
     return translated
 
 
 def _transform(question: str, config: ResolvedPipelineConfig, prompt_bundle: dict[str, Any] | None = None) -> tuple[str | None, list[str], str | None]:
     mode = config.retrieval_mode
+    prompts = {name: {"id": value.get("id"), "version": value.get("version")}
+               for name, value in (prompt_bundle or {}).items()}
+
+    def transform_cache_key(operation: str) -> dict[str, Any]:
+        return {"query": question, "prompt_assets": prompts, "model": config.generation_model.name,
+                "model_revision": config.generation_model.revision,
+                "temperature": config.generation.temperature,
+                "context_length": config.generation.context_length,
+                "output_budgets": list(config.generation.output_budgets), "operation": operation}
 
     def hyde() -> str:
         with _observe("HyDE transformation", input=question) as obs:
             messages = (prompt_bundle["rag-hyde"]["client"].compile(question=question) if prompt_bundle else [
                 {"role": "system", "content": profile_prompt("hyde_system", PROMPT_TEMPLATES["hyde_system"])}, {"role": "user", "content": question}])
-            hypothetical = _ollama(messages, config.generation_model.name, config.generation.output_budgets, config.generation.temperature, config.generation.context_length,
-                                   prompt=prompt_bundle["rag-hyde"]["client"] if prompt_bundle else None, name="hypothetical document generation")
+            hypothetical = _cache_value("query", "hyde", transform_cache_key("hyde"),
+                input={"query": question, "operation": "hyde"},
+                compute=lambda: _ollama(messages, config.generation_model.name, config.generation.output_budgets,
+                    config.generation.temperature, config.generation.context_length,
+                    prompt=prompt_bundle["rag-hyde"]["client"] if prompt_bundle else None,
+                    name="hypothetical document generation"))
             _update(obs, output=hypothetical)
         return hypothetical
 
@@ -173,8 +235,12 @@ def _transform(question: str, config: ResolvedPipelineConfig, prompt_bundle: dic
             messages = (prompt_bundle["rag-query-expansion"]["client"].compile(question=question, expansion_count=str(config.expansion_count)) if prompt_bundle else [
                 {"role": "system", "content": profile_prompt("query_expansion_system", PROMPT_TEMPLATES["query_expansion_system"]).replace("{{expansion_count}}", str(config.expansion_count))},
                 {"role": "user", "content": question}])
-            raw = _ollama(messages, config.generation_model.name, config.generation.output_budgets, config.generation.temperature, config.generation.context_length,
-                          prompt=prompt_bundle["rag-query-expansion"]["client"] if prompt_bundle else None, name="literary query generation")
+            raw = _cache_value("query", "expansion", transform_cache_key("expansion"),
+                input={"query": question, "operation": "expansion"},
+                compute=lambda: _ollama(messages, config.generation_model.name, config.generation.output_budgets,
+                    config.generation.temperature, config.generation.context_length,
+                    prompt=prompt_bundle["rag-query-expansion"]["client"] if prompt_bundle else None,
+                    name="literary query generation"))
             _update(obs, output=raw)
         alternatives = list(dict.fromkeys(line.strip().lstrip("-•0123456789. )") for line in raw.splitlines() if line.strip()))
         alternatives = [q for q in alternatives if q and q.casefold() != question.casefold()][:config.expansion_count]
@@ -186,9 +252,12 @@ def _transform(question: str, config: ResolvedPipelineConfig, prompt_bundle: dic
         with _observe("grammar correction", input=question) as obs:
             messages = (prompt_bundle["rag-grammar-correction"]["client"].compile(question=question) if prompt_bundle else [
                 {"role": "system", "content": profile_prompt("grammar_system", PROMPT_TEMPLATES["grammar_system"])}, {"role": "user", "content": question}])
-            corrected = _ollama(messages, config.generation_model.name, config.generation.output_budgets,
-                                config.generation.temperature, config.generation.context_length,
-                                prompt=prompt_bundle["rag-grammar-correction"]["client"] if prompt_bundle else None, name="grammar corrected query generation")
+            corrected = _cache_value("query", "grammar", transform_cache_key("grammar"),
+                input={"query": question, "operation": "grammar"},
+                compute=lambda: _ollama(messages, config.generation_model.name, config.generation.output_budgets,
+                    config.generation.temperature, config.generation.context_length,
+                    prompt=prompt_bundle["rag-grammar-correction"]["client"] if prompt_bundle else None,
+                    name="grammar corrected query generation"))
             _update(obs, output=corrected)
         return corrected
 
@@ -713,12 +782,21 @@ def _entity_graph_facts(question: str, config: ResolvedPipelineConfig, collectio
 
 def _keyword_search(query: str, collection: str, limit: int, k1: float = 1.2, b: float = 0.75) -> list[dict[str, Any]]:
     """The passages that best match the query's words by BM25, best first (exact words, which dense search can miss)."""
-    rows, counts, lengths, frequency = _keyword_index(collection)
-    total, average = len(rows), sum(lengths) / max(len(rows), 1)
-    weights = {word: math.log(1 + (total - frequency[word] + 0.5) / (frequency[word] + 0.5)) for word in set(_keywords(query)) if frequency[word]}
-    scores = [(sum(weight * count[word] * (k1 + 1) / (count[word] + k1 * (1 - b + b * length / average)) for word, weight in weights.items() if word in count), index)
-              for index, (count, length) in enumerate(zip(counts, lengths))]
-    return [dict(rows[index]) | {"keyword_score": score} for score, index in sorted(scores, reverse=True)[:limit] if score > 0]
+    def search() -> list[dict[str, Any]]:
+        rows, counts, lengths, frequency = _keyword_index(collection)
+        total, average = len(rows), sum(lengths) / max(len(rows), 1)
+        weights = {word: math.log(1 + (total - frequency[word] + 0.5) / (frequency[word] + 0.5))
+                   for word in set(_keywords(query)) if frequency[word]}
+        scores = [(sum(weight * count[word] * (k1 + 1) /
+                       (count[word] + k1 * (1 - b + b * length / average))
+                       for word, weight in weights.items() if word in count), index)
+                  for index, (count, length) in enumerate(zip(counts, lengths))]
+        return [dict(rows[index]) | {"keyword_score": score}
+                for score, index in sorted(scores, reverse=True)[:limit] if score > 0]
+
+    return _cache_value("search", "keyword", {"query": query, "collection": collection,
+                         "limit": limit, "k1": k1, "b": b},
+                        input={"query": query, "collection": collection, "limit": limit}, compute=search)
 
 
 def _complete_names(question: str, collection: str, min_count: int = 20, min_share: float = 0.5, min_other_ratio: float = 3.0) -> str:
@@ -727,18 +805,24 @@ def _complete_names(question: str, collection: str, min_count: int = 20, min_sha
     A word is completed only when one two-word name dominates its pairings and the books use the
     other half of that name at least ``min_other_ratio`` times as often as the word itself.
     """
-    pairs, words = _name_pairs(collection)
-    completed = question
-    for word in dict.fromkeys(re.findall(rf"\b{_name_word_pattern()}\b", question)):
-        if word not in pairs:
-            continue
-        full, count, total = pairs[word]
-        other = " ".join(part for part in full.split() if part != word)
-        if (count < min_count or count / total < min_share or other in question
-                or words[other] < min_other_ratio * words[word]):
-            continue
-        completed = re.sub(rf"\b{word}\b", full, completed, count=1)
-    return completed
+    def complete() -> str:
+        pairs, words = _name_pairs(collection)
+        completed = question
+        for word in dict.fromkeys(re.findall(rf"\b{_name_word_pattern()}\b", question)):
+            if word not in pairs:
+                continue
+            full, count, total = pairs[word]
+            other = " ".join(part for part in full.split() if part != word)
+            if (count < min_count or count / total < min_share or other in question
+                    or words[other] < min_other_ratio * words[word]):
+                continue
+            completed = re.sub(rf"\b{word}\b", full, completed, count=1)
+        return completed
+
+    return _cache_value("query", "name_completion", {
+        "query": question, "collection": collection, "min_count": min_count,
+        "min_share": min_share, "min_other_ratio": min_other_ratio,
+    }, input={"query": question, "operation": "name_completion"}, compute=complete)
 
 
 def _scene_hits(question: str, config: ResolvedPipelineConfig, collection: str, qdrant: QdrantClient,
@@ -750,8 +834,8 @@ def _scene_hits(question: str, config: ResolvedPipelineConfig, collection: str, 
     the bar is set by the scenes that hold the current evidence, not by the passages themselves.
     """
     name = scene_collection(collection, config)
-    vector = _embedder(config.embedding_model.name, config.embedding_model.revision).encode(question, normalize_embeddings=True).tolist()
-    found = qdrant.query_points(collection_name=name, query=vector, limit=config.scene_search_hits, with_payload=True).points
+    vector = _encode_query(question, config.embedding_model.name, config.embedding_model.revision)
+    found = _query_points_cached(qdrant, name, vector, config.scene_search_hits, question)
     covering, _ = qdrant.scroll(collection_name=name, limit=1000, with_payload=True, scroll_filter=models.Filter(
         must=[models.FieldCondition(key="members", match=models.MatchAny(any=[row["id"] for row in evidence]))]))
     scenes = list({str(point.id): point for point in [*found, *covering]}.values())
@@ -774,6 +858,7 @@ def _scene_hits(question: str, config: ResolvedPipelineConfig, collection: str, 
 
 
 def _context_hits(question: str, config: ResolvedPipelineConfig, collection: str, qdrant: QdrantClient, vectors: list[list[float]],
+                  queries: list[str],
                   candidates: list[dict[str, Any]], present: set[str]) -> list[dict[str, Any]]:
     """Passages found with their scene's summary in front, which the fused candidates and the usual evidence lack,
     when they rank among the scene_context_rank best of all of them reranked that way and are confident matches.
@@ -783,8 +868,8 @@ def _context_hits(question: str, config: ResolvedPipelineConfig, collection: str
     the fused candidates too, so a scene that matches lifts its passages on one scale.
     """
     name = context_collection(collection, config)
-    found = _rrf([qdrant.query_points(collection_name=name, query=vector, limit=config.candidate_count, with_payload=True).points
-                  for vector in vectors], config.candidate_count, config.rrf_constant)
+    found = _rrf([_query_points_cached(qdrant, name, vector, config.candidate_count, query)
+                  for vector, query in zip(vectors, queries)], config.candidate_count, config.rrf_constant)
     fused = {row["id"] for row in candidates}
     contexts = {str(point.id): (point.payload or {}).get("context")
                 for point in qdrant.retrieve(collection_name=name, ids=list(fused), with_payload=["context"])}
@@ -837,8 +922,8 @@ def _moment_scene_hits(question: str, config: ResolvedPipelineConfig, collection
     if not moment:
         return [], moment
     name = scene_collection(collection, config)
-    vector = _embedder(config.embedding_model.name, config.embedding_model.revision).encode(moment, normalize_embeddings=True).tolist()
-    found = qdrant.query_points(collection_name=name, query=vector, limit=config.scene_search_hits, with_payload=True).points
+    vector = _encode_query(moment, config.embedding_model.name, config.embedding_model.revision)
+    found = _query_points_cached(qdrant, name, vector, config.scene_search_hits, moment)
     if not found:
         return [], moment
     first = {str(point.id): dict(point.payload or {}) for point in qdrant.retrieve(
@@ -932,11 +1017,11 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
             search_started = time.perf_counter()
             with _observe(f"search: {query_name}", as_type="retriever", input=query) as search_obs:
                 with _observe("query embedding", as_type="embedding", input=query, model=config.embedding_model.name) as embedding_obs:
-                    vector = _embedder(config.embedding_model.name, config.embedding_model.revision).encode(query, normalize_embeddings=True).tolist()
+                    vector = _encode_query(query, config.embedding_model.name, config.embedding_model.revision)
                     _update(embedding_obs, output={"dimensions": len(vector)})
                 # The name-completed search is one query that does not compete in fusion, so it looks deeper.
                 limit = max(config.candidate_count, config.wide_candidate_count, config.name_completion_hits if query_name == "name completed question" else 0)
-                points = qdrant.query_points(collection_name=collection, query=vector, limit=limit, with_payload=True).points
+                points = _query_points_cached(qdrant, collection, vector, limit, query)
                 rankings.append(points)
                 vectors.append(vector)
                 _update(search_obs, output={"hits": [{"id": str(point.id), "score": float(point.score), "payload": dict(point.payload or {})} for point in points]})
@@ -1035,7 +1120,7 @@ def run_pipeline(question: str, config: ResolvedPipelineConfig | None = None, *,
         stage = time.perf_counter()
         with _observe("scene context search", input=question) as obs:
             top = sorted(candidates, key=lambda row: row["rerank_score"], reverse=True)[:config.top_k]
-            context_hits = _context_hits(question, config, collection, qdrant, vectors, candidates,
+            context_hits = _context_hits(question, config, collection, qdrant, vectors, queries, candidates,
                                          {row["id"] for row in wide_hits + keyword_hits + top})
             _update(obs, output=[{"id": row["id"], "score": row["rerank_score"], "context": row.get("context")} for row in context_hits])
         timings["scene_context_seconds"] = round(time.perf_counter() - stage, 4)
