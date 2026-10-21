@@ -34,7 +34,7 @@ try:
     from .frontend_rate_limit import reserve_request
     from .experiments import start_worker, submit, submit_retry
     from .indexer import build_index, index_identity, validate_index
-    from .observability import observation, trace_scope, update as update_observation
+    from .observability import observation, record_cache_lookup, trace_scope, update as update_observation
     from .prompt_assets import load_prompt_bundle, prompt_manifests
     from .pipeline import run_pipeline
     from .pipeline_setup import current_pipeline_setup
@@ -52,7 +52,7 @@ except ImportError:
     from frontend_rate_limit import reserve_request
     from experiments import start_worker, submit, submit_retry
     from indexer import build_index, index_identity, validate_index
-    from observability import observation, trace_scope, update as update_observation
+    from observability import observation, record_cache_lookup, trace_scope, update as update_observation
     from prompt_assets import load_prompt_bundle, prompt_manifests
     from pipeline import run_pipeline
     from pipeline_setup import current_pipeline_setup
@@ -343,6 +343,8 @@ def _run_ask(request: AskRequest, prepared: dict[str, Any], *, on_trace=None, on
         if cached_result is not None and trace_id is None:
             cached_result = None
             cache_status = "unavailable"
+        record_cache_lookup("answer", "hit" if cached_result is not None else cache_status,
+                            cache_lookup_seconds, cache_source_trace_id)
         if on_trace:
             on_trace(trace_id)
         if cached_result is not None:

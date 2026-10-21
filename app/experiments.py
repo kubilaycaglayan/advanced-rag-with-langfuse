@@ -29,7 +29,7 @@ try:
                            pipeline_identity, question_label, question_session_id, source_manifest)
     from .indexer import build_index, corpus_paths
     from .evaluator_specs import CORRECTNESS_SPECS, DEFAULT_CORRECTNESS, JUDGE_MODELS, evaluator_manifest
-    from .observability import use_client
+    from .observability import record_cache_lookup, use_client
     from .pipeline import PROMPT_HASHES, run_pipeline
     from .prompt_assets import ManagedJudgePrompt, load_managed_evaluators, load_prompt_bundle, prompt_manifests
     from .resolved_config import ResolvedPipelineConfig, resolve_ollama_model, resolve_pipeline_model_identities
@@ -47,7 +47,7 @@ except ImportError:
                          pipeline_identity, question_label, question_session_id, source_manifest)
     from indexer import build_index, corpus_paths
     from evaluator_specs import CORRECTNESS_SPECS, DEFAULT_CORRECTNESS, JUDGE_MODELS, evaluator_manifest
-    from observability import use_client
+    from observability import record_cache_lookup, use_client
     from pipeline import PROMPT_HASHES, run_pipeline
     from prompt_assets import ManagedJudgePrompt, load_managed_evaluators, load_prompt_bundle, prompt_manifests
     from resolved_config import ResolvedPipelineConfig, resolve_ollama_model, resolve_pipeline_model_identities
@@ -385,6 +385,8 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
                                            for name, asset in managed_evaluators.items()})
                     with propagate_attributes(session_id=session, metadata=trace_metadata,
                                               tags=[f"pipeline:{resolved.pipeline_id}"]):
+                        record_cache_lookup("answer", cache_statuses[item.id],
+                                            cache_lookup_seconds, cache_source)
                         if cached_output is not None:
                             return _cached_output_with_timing(cached_output, cache_source,
                                                               cache_lookup_seconds)

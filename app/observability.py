@@ -89,3 +89,18 @@ def update(observation: Any | None, **fields: Any) -> None:
         observation.update(**fields)
     except Exception:
         logger.debug("Langfuse observation update failed", exc_info=True)
+
+
+def record_cache_lookup(layer: str, status: str, duration_seconds: float,
+                        source_trace_id: str | None = None) -> None:
+    """Record a cache layer result as a named, searchable Langfuse span."""
+    details: dict[str, Any] = {
+        "cache_layer": layer,
+        "cache_status": status,
+        "cache_lookup_seconds": round(max(0.0, duration_seconds), 6),
+    }
+    if source_trace_id:
+        details["cache_source_trace_id"] = source_trace_id
+    with observation(f"cache {status}: {layer}", as_type="span",
+                     input={"cache_layer": layer}, metadata=details) as obs:
+        update(obs, output=details)
