@@ -101,7 +101,7 @@ curl -sS -X POST http://127.0.0.1:8001/ask \
   -d '{"question":"Did Salander and Mikael have affair?"}'
 ```
 
-Interactive requests use the exact-answer cache by default. Cache controls are top-level request fields, separate from pipeline `settings`; use `cache_mode` (`use`, `bypass`, or `refresh`) and optionally `cache_layers` (currently `answer`). A cache hit has a fresh trace linked to the approved source trace. Only answers with correctness above 0.95 or a user thumbs-up are reusable; citation-support scores do not affect that decision. If Redis is unavailable, the request runs without a cache hit.
+Interactive requests use the exact-answer cache by default. Cache controls are top-level request fields, separate from pipeline `settings`; use `cache_mode` (`use`, `bypass`, or `refresh`) and optionally `cache_layers` (currently `answer`). A cache hit has a fresh trace linked to the approved source trace. Only answers with correctness at least 0.90 or a user thumbs-up are reusable; citation-support scores do not affect that decision. If Redis is unavailable, the request runs without a cache hit.
 
 Inspect or clear entries locally. Scoped clearing requires both project and corpus IDs; clearing all entries requires `--all`:
 

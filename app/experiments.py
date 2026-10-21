@@ -461,7 +461,7 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
             cache_write = False
             scope = cache_scopes.get(item_result.item.id)
             if (cache_enabled and scope is not None and isinstance(out, dict)
-                    and correctness_score is not None and correctness_score > 0.95):
+                    and correctness_score is not None and correctness_score >= 0.90):
                 cache_write = answer_cache.store_approved(
                     scope, out, trace_id=item_result.trace_id, approval_source="correctness",
                     correctness_score=correctness_score)

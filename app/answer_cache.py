@@ -136,7 +136,7 @@ def store_approved(scope: dict[str, Any], payload: dict[str, Any], *,
                    trace_id: str | None, approval_source: str,
                    correctness_score: float | None = None) -> bool:
     if approval_source == "correctness":
-        if correctness_score is None or correctness_score <= 0.95:
+        if correctness_score is None or correctness_score < 0.90:
             return False
     elif approval_source != "thumbs_up":
         raise ValueError("approval_source must be correctness or thumbs_up")

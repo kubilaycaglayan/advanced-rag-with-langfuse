@@ -28,7 +28,7 @@ The optional `answer_correctness_codex_v1` evaluator uses `gpt-5.6-luna` through
 
 Langfuse helps explain *why* an answer changed when a prompt or search setting changes. The actual book search runs through Qdrant, and the language model calls run through Ollama.
 
-Interactive questions use an optional persistent exact-answer cache. It only reuses answers for the same question and full pipeline/corpus identity, after the answer scores above 0.95 for correctness or receives a thumbs-up. Citation-support scores do not affect eligibility. Dataset experiments bypass the cache unless the request opts in. Redis runs locally with persistent storage; cache status and source traces appear in Langfuse. See the [cache plan](docs/plans/2026-10-21-agent-v2.8-cache-and-latency.md) for controls and scoped maintenance commands.
+Interactive questions use an optional persistent exact-answer cache. It only reuses answers for the same question and full pipeline/corpus identity, after the answer scores at least 0.90 for correctness or receives a thumbs-up. Citation-support scores do not affect eligibility. Dataset experiments bypass the cache unless the request opts in. Redis runs locally with persistent storage; cache status and source traces appear in Langfuse. See the [cache plan](docs/plans/2026-10-21-agent-v2.8-cache-and-latency.md) for controls and scoped maintenance commands.
 
 ## Explore the project
 

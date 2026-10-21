@@ -73,12 +73,12 @@ class AnswerCache(TestCase):
         self.assertEqual((status, source_trace_id), ("hit", "a" * 32))
         self.assertEqual(payload["answer"], self.payload["answer"])
 
-    def test_correctness_gate_is_strict_and_does_not_require_citation_score(self):
+    def test_correctness_gate_includes_point_nine_and_ignores_citation_score(self):
         self.assertFalse(answer_cache.store_approved(self.scope, self.payload, trace_id="b" * 32,
-                                                     approval_source="correctness", correctness_score=0.95))
+                                                     approval_source="correctness", correctness_score=0.8999))
         self.assertEqual(answer_cache.lookup(self.scope)[:2], (None, "miss"))
         self.assertTrue(answer_cache.store_approved(self.scope, self.payload, trace_id="c" * 32,
-                                                    approval_source="correctness", correctness_score=0.9501))
+                                                    approval_source="correctness", correctness_score=0.90))
         payload, status, source_trace_id = answer_cache.lookup(self.scope)
         self.assertEqual((status, source_trace_id), ("hit", "c" * 32))
         self.assertEqual(payload["answer"], self.payload["answer"])
