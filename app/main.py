@@ -270,6 +270,12 @@ def _run_ask(request: AskRequest, prepared: dict[str, Any], *, on_trace=None, on
     trace_metadata = {"pipeline_id": pipeline_id, "pipeline_version": prepared["resolved"].version,
                       "pipeline_derived": prepared["resolved"].derived,
                       "collection": prepared["collection"], "source": request.source}
+    agent_settings = prepared["resolved"].agent_settings
+    if agent_settings:
+        trace_metadata.update({"agent_provider": agent_settings.provider,
+                               "agent_model": agent_settings.model,
+                               "agent_automatic_scene_search": agent_settings.initial_scene_probe,
+                               "agent_scene_candidate_count": agent_settings.scene_candidate_count})
     trace_metadata.update({f"prompt_{name}": f"{asset['id']}@{asset['version']}:{asset['label']}"
                            for name, asset in prompts.items()})
     root_metadata = {"clientIp": str(request.client_ip)} if request.source == "frontend" and request.client_ip else None

@@ -1,7 +1,7 @@
 # Query pipeline catalog
 
 ```json
-{"default": "v2.2"}
+{"default": "v2.6"}
 ```
 
 ## Version 1 — fixed RAG
@@ -871,5 +871,148 @@ Selectable experiment variant; v2.2 remains the default.
     }
   },
   "notes": "Current draft based on released v2.2: automatically search scene summaries for the original normalized question, rerank 30 candidates, and supply the best scene source passages to the agent. The same 30-candidate pool applies to agent-initiated search_scenes. v2.2 remains the default. Earlier v2.5 draft trials used 100 candidates; their manifests preserve that setting and fingerprint: gift execution 32e6b973-9497-4f4e-a403-6be9292eae76, three-item execution 7ab4c409-ce32-454d-8cf3-8381fd68ab3c, and 15-item execution ec0c242f-2a9a-4024-90ad-cace3b5ab660. The 30-candidate trials were recorded under temporary draft id v2.51: gift execution 1fb043fd-3b33-42b6-8059-c2aa2c06b920 answered correctly in 19.87 seconds; three-item execution 8bf0d63a-5950-41f4-99ee-e705d2dd7d56 scored mean answer_correctness_v2=0.6667 and mean agent latency=34.66 seconds, versus 100-candidate v2.5 at 0.9917 and 32.37 seconds. All three probes selected the same scene. The Zalachenko question regressed to an incorrect abstention after answer synthesis replaced a draft that named Gullberg. These are single-run comparisons and do not establish a latency gain from the smaller pool."
+}
+```
+
+## Version 2.6 — selectable OpenAI agent and automatic scene probe
+
+```json
+{
+  "id": "v2.6",
+  "status": "released",
+  "engine": "agent",
+  "flow": [
+    {
+      "name": "connection pre-check",
+      "when": "always checks the question; gathers facts for a connection cue"
+    },
+    {
+      "name": "true account pre-check",
+      "when": "always checks the question; gathers facts for a death or crime cue"
+    },
+    {
+      "name": "sequence pre-check",
+      "when": "always checks the question; gathers sequence facts for a place event"
+    },
+    {
+      "name": "moment pre-check",
+      "when": "always checks the question; gathers moment facts for a detail cue"
+    },
+    {
+      "name": "minimum tool nudge",
+      "when": "reply has no tool calls and tool count is below minimum"
+    },
+    {
+      "name": "coverage check",
+      "when": "reply has no tool calls and evidence exists"
+    },
+    {
+      "name": "submission verification",
+      "when": "cited or submitted answer has passage ids and fewer than two verifications ran"
+    },
+    {
+      "name": "no tool nudge",
+      "when": "reply has no usable citation ids and fewer than two nudges ran"
+    },
+    {
+      "name": "name check message",
+      "when": "find_names returns a likely spelling not yet resolved"
+    },
+    {
+      "name": "forced answer",
+      "when": "timeout, turn budget, or tool budget is reached"
+    },
+    {
+      "name": "coverage rewrite",
+      "when": "sequence answer lacks confrontation or three sequence stages"
+    },
+    {
+      "name": "abstention synthesis",
+      "when": "answer lacks citations, abstains, or has no passage ids while evidence exists"
+    },
+    {
+      "name": "query-aware evidence reranking",
+      "when": "reranks synthesis evidence using question and retrieval queries attached to evidence"
+    }
+  ],
+  "agent": {
+    "model": "qwen3.6:35b",
+    "tools": [
+      "semantic_search",
+      "keyword_search",
+      "expand_query",
+      "search_scenes",
+      "read_scene",
+      "scene_moment",
+      "true_account",
+      "entity_card",
+      "find_connections",
+      "find_names",
+      "read_passage",
+      "read_chapter",
+      "submit_answer"
+    ],
+    "max_turns": 10,
+    "max_tool_calls": 16,
+    "min_tool_calls": 4,
+    "timeout_seconds": 900.0,
+    "context_length": 16384,
+    "num_predict": 1600,
+    "think": false,
+    "snippet_chars": 300,
+    "instruction_fingerprint": "4f3c86b9ec0ebe2f76328df25168cc4900e9ad6ecb8626c67780df12163042a8",
+    "query_aware_reranking": true,
+    "provider": "ollama",
+    "scene_candidate_count": 20,
+    "initial_scene_probe": false
+  },
+  "settings": {
+    "retrieval_mode": "full",
+    "hyde": true,
+    "expansion_count": 3,
+    "name_completion": true,
+    "scene_search_hits": 10,
+    "scene_window": 6,
+    "scene_stride": 3,
+    "passage_chars": 1200,
+    "min_passage_chars": 400,
+    "passage_overlap": 0,
+    "generation": {
+      "temperature": 0.0,
+      "context_length": 8192,
+      "output_budgets": [
+        4096,
+        8192
+      ]
+    },
+    "parallel_transformations": false,
+    "scene_thinking": false
+  },
+  "prompts": {},
+  "index": {
+    "collection": "millennium_books_a7ebc5a988df037cd2ee",
+    "corpus_checksum": "d5f87c43d9e3b5cc37e6b0ab2131eadc627450d2c2af6d0f508c6ab83275cf9b"
+  },
+  "models": {
+    "embedding_model": {
+      "name": "sentence-transformers/multi-qa-MiniLM-L6-cos-v1",
+      "revision": "b207367332321f8e44f96e224ef15bc607f4dbf0"
+    },
+    "reranker_model": {
+      "name": "cross-encoder/ms-marco-MiniLM-L-6-v2",
+      "revision": "233902d25c440f23af6f7d6e94d2946bac0bee0a"
+    },
+    "generation_model": {
+      "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+      "name": "qwen3:8b",
+      "revision": null
+    },
+    "scene_summary_model": {
+      "digest": null,
+      "name": "gemma4:26b",
+      "revision": null
+    }
+  },
+  "notes": "Behavior matches v2.2 by default: local qwen3.6:35b query agent, automatic_scene_search disabled, 20 scene candidates, and the same flow, tools, retrieval settings, index and configured local answer generation. For a derived run, settings may set agent_provider to openai (GPT-6 Luna) and/or automatic_scene_search to true. Enabling automatic_scene_search uses 30 scene candidates by default, matching the successful v2.5 automatic-probe trials; scene_candidate_count can be set explicitly from 1 to 100. OpenAI query-agent errors fail the run without local fallback; the answer generation model remains local/configured."
 }
 ```

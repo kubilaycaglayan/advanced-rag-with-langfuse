@@ -374,13 +374,13 @@ def _tool_scene_search(state: AgentState, args: dict[str, Any]) -> dict[str, Any
             "note": "pass a scene_id to read_scene for every member passage in reading order"}
 
 
-def _initial_scene_probe(state: AgentState) -> dict[str, Any] | None:
+def _initial_scene_probe(state: AgentState) -> tuple[dict[str, Any] | None, str]:
     """Offer the best scene's source passages before the agent chooses any tools."""
     ranked, error = _scene_points(state, state.question, 1)
     if error or not ranked:
-        return None
+        return None, error or "no scene candidate returned"
     point, score = ranked[0]
-    return _scene_payload(state, point, score, full=True, query=state.question)
+    return _scene_payload(state, point, score, full=True, query=state.question), ""
 
 
 def _initial_scene_message(scene: dict[str, Any]) -> str:
@@ -1947,12 +1947,15 @@ def run_agent(question: str, collection: str, config: ResolvedPipelineConfig | N
                                       {"role": "user", "content": normalized}]
     if settings.initial_scene_probe:
         started_probe = time.perf_counter()
-        with observation("initial scene probe", input=state.question):
-            scene = _initial_scene_probe(state)
+        with observation("initial scene probe", input=state.question) as probe_observation:
+            scene, probe_error = _initial_scene_probe(state)
+            update_observation(probe_observation,
+                               output={"scene": scene, "error": probe_error or None})
         if scene:
             messages.append({"role": "user", "content": _initial_scene_message(scene)})
         state.trace.append({"tool": "initial scene probe", "arguments": {"query": state.question},
-                            "seconds": round(time.perf_counter() - started_probe, 2), "error": None,
+                            "seconds": round(time.perf_counter() - started_probe, 2),
+                            "error": probe_error or None,
                             "result_ids": scene["passage_ids"] if scene else [],
                             "scene_id": scene["scene_id"] if scene else None})
     if precheck:

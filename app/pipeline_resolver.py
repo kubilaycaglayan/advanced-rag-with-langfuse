@@ -28,6 +28,7 @@ _V22_ORIGINAL_INSTRUCTION_FINGERPRINT = "b457df458c964b4d225d82d784b73bae7232c68
 _V22_PROVIDER_ADAPTER_COMPAT_FINGERPRINT = "edfc2ec1fbd340498afc2b139dc14f151a74de825c2d95428fe108a6b77ac720"
 _V23_HIGH_REASONING_ADAPTER_FINGERPRINT = "d117d53070e4cf4ccaeab0db35444bb8a5db4a7ff3750dea91fc15e1786a528f"
 _V25_SCENE_PROBE_FINGERPRINT = "4f3c86b9ec0ebe2f76328df25168cc4900e9ad6ecb8626c67780df12163042a8"
+_V26_PROBE_TRACE_FINGERPRINT = "59696263473e1c7bec631f012986747b8efb222739e51fed2077cbc9f6ace6bb"
 
 
 def _legacy_v2_instructions_unchanged() -> bool:
@@ -104,8 +105,17 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
     if identity:
         raise ValueError(f"identity keys cannot be settings: {', '.join(sorted(identity))}")
     agent_effort = overrides.get("agent_reasoning_effort")
+    agent_provider = overrides.get("agent_provider")
+    scene_candidate_count = overrides.get("scene_candidate_count")
+    if version == "v2.6" and overrides.get("automatic_scene_search") is True and scene_candidate_count is None:
+        # The validated automatic probe trials used 30 candidates; the v2.2-compatible default remains 20.
+        overrides["scene_candidate_count"] = 30
+        scene_candidate_count = 30
     allowed = set(block["settings"]) | (MODEL_KEYS if block["engine"] == "fixed" else set())
-    if block["engine"] == "agent" and block.get("agent", {}).get("provider") == "openai":
+    if version == "v2.6":
+        allowed.update({"agent_provider", "automatic_scene_search", "scene_candidate_count"})
+    if (block["engine"] == "agent" and
+            (block.get("agent", {}).get("provider") == "openai" or agent_provider == "openai")):
         allowed.add("agent_reasoning_effort")
     unknown = set(overrides) - allowed
     if unknown:
@@ -116,7 +126,9 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
     values.update(block["models"])
     if "generation" in overrides and isinstance(overrides["generation"], Mapping):
         overrides["generation"] = {**values["generation"], **overrides["generation"]}
-    config_overrides = {key: value for key, value in overrides.items() if key != "agent_reasoning_effort"}
+    agent_override_keys = {"agent_provider", "automatic_scene_search", "agent_reasoning_effort",
+                           "scene_candidate_count"}
+    config_overrides = {key: value for key, value in overrides.items() if key not in agent_override_keys}
     values.update(config_overrides)
     config = ResolvedPipelineConfig.from_mapping(values, use_environment=False)
     agent_settings = None
@@ -124,6 +136,22 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
         agent_values = {key: value for key, value in block["agent"].items()
                         if key not in {"tools", "instruction_fingerprint"}}
         agent_settings = AgentSettings(**agent_values)
+        if agent_provider is not None:
+            if agent_provider not in ("ollama", "openai"):
+                raise ValueError("agent_provider must be ollama or openai")
+            model = "gpt-6-luna" if agent_provider == "openai" else block["agent"]["model"]
+            agent_settings = AgentSettings(**{**agent_settings.__dict__,
+                                              "provider": agent_provider, "model": model})
+        if "automatic_scene_search" in overrides:
+            if not isinstance(overrides["automatic_scene_search"], bool):
+                raise ValueError("automatic_scene_search must be a boolean")
+            agent_settings = AgentSettings(**{**agent_settings.__dict__,
+                                              "initial_scene_probe": overrides["automatic_scene_search"]})
+        if scene_candidate_count is not None:
+            if type(scene_candidate_count) is not int or not 1 <= scene_candidate_count <= 100:
+                raise ValueError("scene_candidate_count must be an integer from 1 to 100")
+            agent_settings = AgentSettings(**{**agent_settings.__dict__,
+                                              "scene_candidate_count": scene_candidate_count})
         if agent_effort is not None:
             if agent_effort not in {"none", "low", "medium", "high", "xhigh", "max"}:
                 raise ValueError("agent_reasoning_effort must be none, low, medium, high, xhigh, or max")
@@ -141,7 +169,10 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
         compatible_v23_adapter = (version == "v2.3" and expected_instructions == _V22_PROVIDER_ADAPTER_COMPAT_FINGERPRINT
                                   and actual_instructions in {_V23_HIGH_REASONING_ADAPTER_FINGERPRINT,
                                                               _V25_SCENE_PROBE_FINGERPRINT})
-        if expected_instructions != actual_instructions and not (legacy_v2 or legacy_v22 or compatible_v23_adapter):
+        compatible_v26_probe_trace = (version == "v2.6" and expected_instructions == _V25_SCENE_PROBE_FINGERPRINT
+                                      and actual_instructions == _V26_PROBE_TRACE_FINGERPRINT)
+        if expected_instructions != actual_instructions and not (legacy_v2 or legacy_v22 or compatible_v23_adapter
+                                                                  or compatible_v26_probe_trace):
             raise ValueError(f"{version}: agent instructions differ from released version; publish a new version")
     try:
         from .indexer import index_identity
