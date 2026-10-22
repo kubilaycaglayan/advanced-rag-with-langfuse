@@ -27,7 +27,7 @@ from qdrant_client import QdrantClient
 try:
     from . import answer_cache
     from .corpus_config import corpus_config, corpus_data_dir, langfuse_project, langfuse_dataset_name
-    from .corpus_profiles import langfuse_enabled
+    from .corpus_profiles import langfuse_enabled, langfuse_tracing_required
     from .agent import AgentSettings, run_agent
     from .evaluator_specs import CORRECTNESS_SPECS
     from .experiment_store import get_execution, initialize
@@ -46,7 +46,7 @@ try:
 except ImportError:
     import answer_cache
     from corpus_config import corpus_config, corpus_data_dir, langfuse_project, langfuse_dataset_name
-    from corpus_profiles import langfuse_enabled
+    from corpus_profiles import langfuse_enabled, langfuse_tracing_required
     from agent import AgentSettings, run_agent
     from evaluator_specs import CORRECTNESS_SPECS
     from experiment_store import get_execution, initialize
@@ -65,6 +65,22 @@ except ImportError:
 
 app = FastAPI(title=f"{corpus_config().title} RAG Experiment Runner", version="0.2.0")
 logger = logging.getLogger(__name__)
+
+
+def _require_langfuse_project_access() -> None:
+    if not langfuse_tracing_required():
+        return
+    if not langfuse_enabled():
+        raise HTTPException(status_code=503, detail="Langfuse tracing is required for this corpus but is not configured")
+    try:
+        projects = getattr(get_client().api.projects.get(), "data", []) or []
+        matches = [project for project in projects if project.name == langfuse_project()]
+        if len(matches) != 1:
+            raise HTTPException(status_code=503, detail=f"Langfuse credentials must access project {langfuse_project()!r}")
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail="Langfuse project access could not be verified") from exc
 
 
 def _reserve_ask_slot() -> BinaryIO:
@@ -253,6 +269,7 @@ def _prepare_ask(request: AskRequest) -> dict[str, Any]:
             raise HTTPException(status_code=429, detail="Question limit reached. Please try again later.",
                                 headers={"Retry-After": str(retry_after)})
     try:
+        _require_langfuse_project_access()
         if "settings" in request.model_fields_set and not isinstance(request.settings, dict):
             raise ValueError("settings must be an object")
         answer_cache.normalize_layers(request.cache_layers)
@@ -303,7 +320,9 @@ def _answer_cache_identity(question: str, prepared: dict[str, Any]) -> dict[str,
 def _run_ask(request: AskRequest, prepared: dict[str, Any], *, on_trace=None, on_token=None, on_status=None) -> dict[str, Any]:
     """Answer one question inside its Langfuse trace (the same trace whether or not the answer is streamed)."""
     pipeline_id, prompts = prepared["pipeline_id"], prepared["prompts"]
-    session_id = request.session_id or "interactive-" + hashlib.sha256(" ".join(request.question.casefold().split()).encode()).hexdigest()[:24]
+    question_key = hashlib.sha256(" ".join(request.question.casefold().split()).encode()).hexdigest()[:24]
+    session_id = ("question-" + question_key if langfuse_tracing_required()
+                  else request.session_id or "interactive-" + question_key)
     environment = "interactive-ui" if request.source == "frontend" else "default"
     cache_layers = answer_cache.normalize_layers(request.cache_layers)
     cache_enabled = ("answer" in cache_layers and request.cache_mode != "bypass"
@@ -343,6 +362,8 @@ def _run_ask(request: AskRequest, prepared: dict[str, Any], *, on_trace=None, on
             trace_id = get_client().get_current_trace_id() if langfuse_enabled() else None
         except Exception:
             trace_id = None
+        if langfuse_tracing_required() and trace_id is None:
+            raise HTTPException(status_code=503, detail="Langfuse could not start a trace for this question")
         if cached_result is not None and trace_id is None:
             cached_result = None
             cache_status = "unavailable"

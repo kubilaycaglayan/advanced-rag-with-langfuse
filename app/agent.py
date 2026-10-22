@@ -42,6 +42,7 @@ try:
     from .entities import _cache_path as entity_cache_path, entity_cards_path
     from .evaluation import is_explicit_abstention
     from .observability import observation, update as update_observation
+    from .corpus_profiles import agent_synthesis_prompt, profile_tool_specs
     from .intermediate_cache import cache_value as _cache_value
     from .pipeline import (_encode_query, _entity_cards, _entity_graph_events, _keyword_index, _keyword_search, _entity_anchors, _keywords,
                            _moment_scene_hits, _name_pairs, _passage_position, _query_points_cached,
@@ -52,6 +53,7 @@ except ImportError:  # running from app/ inside the container
     from entities import _cache_path as entity_cache_path, entity_cards_path
     from evaluation import is_explicit_abstention
     from observability import observation, update as update_observation
+    from corpus_profiles import agent_synthesis_prompt, profile_tool_specs
     from intermediate_cache import cache_value as _cache_value
     from pipeline import (_encode_query, _entity_cards, _entity_graph_events, _keyword_index, _keyword_search, _entity_anchors, _keywords,
                          _moment_scene_hits, _name_pairs, _passage_position, _query_points_cached,
@@ -1460,7 +1462,7 @@ def _tool_specs(*, include_graph_search: bool = False) -> list[dict[str, Any]]:
 
     query = {"type": "string", "description": "words to search for"}
     count = {"type": "integer", "description": "how many results (default 5, max 10)"}
-    return [
+    return profile_tool_specs([
         spec("semantic_search", "Dense search over the books' passages; returns the best matches after cross-encoder reranking.",
              {"query": query, "k": count}, ["query"]),
         spec("keyword_search", "BM25 search for the exact content words in a query. Best for a quoted phrase, a nickname or a rare term.",
@@ -1506,7 +1508,7 @@ def _tool_specs(*, include_graph_search: bool = False) -> list[dict[str, Any]]:
               "passage_ids": {"type": "array", "items": {"type": "string"},
                               "description": "8-character ids of the passages the answer relies on, most important first"}},
              ["answer"]),
-    ]
+    ])
 
 
 def tool_names(*, include_graph_search: bool = False) -> list[str]:
@@ -2007,7 +2009,7 @@ def _synthesize(state: AgentState) -> tuple[str, list[str]] | None:
               f"{(row.get('text') or '')[:900]}" for row in rows]
     prompt = f"Question: {state.question}\n\nEvidence:\n" + "\n\n".join(blocks)
     try:
-        reply = _tracked_agent_chat(state, [{"role": "system", "content": _SYNTHESIS_SYSTEM},
+        reply = _tracked_agent_chat(state, [{"role": "system", "content": agent_synthesis_prompt(_SYNTHESIS_SYSTEM)},
                                             {"role": "user", "content": prompt}], None, "answer synthesis")
         content = ((reply.get("message") or {}).get("content") or "").strip()
     except Exception:

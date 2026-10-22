@@ -1,4 +1,4 @@
-"""One-time, non-destructive QA.csv import into a hosted Langfuse dataset."""
+"""One-time, non-destructive corpus question-set import into a hosted Langfuse dataset."""
 
 from __future__ import annotations
 
@@ -30,15 +30,17 @@ def read_seed(path: Path) -> tuple[list[dict[str, Any]], str]:
     checksum = hashlib.sha256(raw).hexdigest()
     with path.open("r", encoding="utf-8-sig", newline="") as handle:
         reader = csv.DictReader(handle)
-        if reader.fieldnames != ["Question", "Answer"]:
-            raise ValueError("QA.csv must have exactly the columns Question,Answer in that order")
+        raw_headers = reader.fieldnames or []
+        headers = {str(name or "").strip().casefold(): name for name in raw_headers}
+        if len(raw_headers) != 2 or len(headers) != 2 or set(headers) != {"question", "answer"}:
+            raise ValueError("seed CSV must have exactly the columns question and answer")
         rows = list(reader)
 
     seen: set[str] = set()
     items: list[dict[str, Any]] = []
     for row_number, row in enumerate(rows, start=2):
-        question = (row.get("Question") or "").strip()
-        answer = (row.get("Answer") or "").strip()
+        question = (row.get(headers["question"]) or "").strip()
+        answer = (row.get(headers["answer"]) or "").strip()
         if not question or not answer:
             raise ValueError(f"blank Question or Answer at CSV row {row_number}")
         normalized = normalize_question(question)
@@ -131,7 +133,7 @@ def _seed_dataset(
     if not exists:
         dataset = client.create_dataset(
             name=dataset_name,
-            description="Initial QA.csv seed; maintain question and reference edits in Langfuse.",
+            description=f"Initial {csv_path.stem} seed; maintain question and reference edits in Langfuse.",
             input_schema={"type": "object", "required": ["question"], "properties": {"question": {"type": "string"}}},
             expected_output_schema={"type": "object", "required": ["answer"], "properties": {"answer": {"type": "string"}}},
         )

@@ -43,12 +43,12 @@ services:
       EXPERIMENT_DATA_DIR: /data
       ANSWER_CACHE_REDIS_URL: redis://127.0.0.1:6379/0
       FRONTEND_RATE_LIMIT_ENABLED: "true"
-      CORPUS_ID: millennium
-      CORPUS_ROOT: /corpora/millennium
+      CORPUS_ID: ${CORPUS_ID:-millennium}
+      CORPUS_ROOT: /corpora/${CORPUS_ID:-millennium}
       HF_HOME: /model-cache
     command: ["uvicorn", "main:app", "--app-dir", "app", "--host", "127.0.0.1", "--port", "8001"]
     volumes:
-      - ./corpora/millennium:/corpora/millennium:ro
+      - ./corpora/${CORPUS_ID:-millennium}:/corpora/${CORPUS_ID:-millennium}:ro
       - ./data:/data
       - model_cache:/model-cache
 

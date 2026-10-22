@@ -2,7 +2,9 @@
 
 Ask questions about Stieg Larsson's *Millennium* trilogy and find answers grounded in the books. This project searches passages from locally supplied EPUBs, chooses the most relevant evidence, and uses a local language model to write an answer with citations. You can inspect the cited passages and the steps that produced the answer.
 
-The book files are **not included** in this repository. The app builds its search index from EPUBs you place in the local `corpora/millennium/books/` directory.
+The backend also supports *The Alienist* as an isolated corpus. See [the Alienist backend guide](docs/plans/2026-10-22-thealienist-backend.md) for corpus switching, indexing, Langfuse setup, and the first-question workflow. The Millennium interface remains Millennium-specific; stop it while the backend is switched to Alienist.
+
+The Millennium EPUBs are **not included** in this repository; place them in the local `corpora/millennium/books/` directory. The Alienist EPUB is already present locally under `corpora/thealienist/books/` and remains excluded from Git.
 
 ## How it works
 

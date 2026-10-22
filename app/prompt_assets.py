@@ -17,43 +17,49 @@ from langfuse.api import NotFoundError
 
 try:
     from .corpus_config import langfuse_evaluator_prefix, langfuse_prompt_label
+    from .corpus_profiles import profile_prompt
     from .evaluator_specs import EVALUATOR_SPECS, FACT_SPECS, JUDGE_MODELS
     from .prompt_templates import PROMPT_TEMPLATES
 except ImportError:
     from corpus_config import langfuse_evaluator_prefix, langfuse_prompt_label
+    from corpus_profiles import profile_prompt
     from evaluator_specs import EVALUATOR_SPECS, FACT_SPECS, JUDGE_MODELS
     from prompt_templates import PROMPT_TEMPLATES
 
 
 PROMPT_LABEL = os.getenv("LANGFUSE_PROMPT_LABEL") or langfuse_prompt_label()
 logger = logging.getLogger(__name__)
+def _prompt(name: str) -> str:
+    return profile_prompt(name, PROMPT_TEMPLATES[name])
+
+
 PROMPT_CATALOG: dict[str, dict[str, Any]] = {
     "rag-answer": {"type": "chat", "prompt": [
-        {"role": "system", "content": PROMPT_TEMPLATES["answer_system"]},
+        {"role": "system", "content": _prompt("answer_system")},
         {"role": "user", "content": "Question: {{question}}\n\nEvidence passages:\n{{evidence}}"},
     ]},
     "rag-hyde": {"type": "chat", "prompt": [
-        {"role": "system", "content": PROMPT_TEMPLATES["hyde_system"]},
+        {"role": "system", "content": _prompt("hyde_system")},
         {"role": "user", "content": "{{question}}"},
     ]},
     "rag-grammar-correction": {"type": "chat", "prompt": [
-        {"role": "system", "content": PROMPT_TEMPLATES["grammar_system"]},
+        {"role": "system", "content": _prompt("grammar_system")},
         {"role": "user", "content": "{{question}}"},
     ]},
     "rag-query-expansion": {"type": "chat", "prompt": [
-        {"role": "system", "content": PROMPT_TEMPLATES["query_expansion_system"]},
+        {"role": "system", "content": _prompt("query_expansion_system")},
         {"role": "user", "content": "{{question}}"},
     ]},
     "rag-query-translation": {"type": "chat", "prompt": [
-        {"role": "system", "content": PROMPT_TEMPLATES["query_translation_system"]},
+        {"role": "system", "content": _prompt("query_translation_system")},
         {"role": "user", "content": "{{question}}"},
     ]},
     "rag-scene-moment": {"type": "chat", "prompt": [
-        {"role": "system", "content": PROMPT_TEMPLATES["scene_moment_system"]},
+        {"role": "system", "content": _prompt("scene_moment_system")},
         {"role": "user", "content": "{{question}}"},
     ]},
     "rag-scene-select": {"type": "chat", "prompt": [
-        {"role": "system", "content": PROMPT_TEMPLATES["scene_select_system"]},
+        {"role": "system", "content": _prompt("scene_select_system")},
         {"role": "user", "content": "Moment: {{moment}}\n\nScenes:\n{{scenes}}"},
     ]},
 }
@@ -254,7 +260,7 @@ def reconcile(*, create_missing: bool = False, create_new_versions: bool = False
             except Exception as exc:
                 item = {"name": name, "status": "missing_or_unavailable", "error": f"{type(exc).__name__}: {exc}"}
                 if create_missing and isinstance(exc, NotFoundError):
-                    created = client.create_prompt(name=name, type=spec["type"], prompt=spec["prompt"], labels=[chosen_label], commit_message="Initial Millennium RAG prompt catalog")
+                    created = client.create_prompt(name=name, type=spec["type"], prompt=spec["prompt"], labels=[chosen_label], commit_message="Initial RAG prompt catalog")
                     item = {"name": name, "status": "created", **prompt_version(created, chosen_label)}
                 elif create_missing:
                     raise

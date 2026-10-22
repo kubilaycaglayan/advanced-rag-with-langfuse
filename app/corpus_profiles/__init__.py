@@ -74,6 +74,41 @@ def profile_prompt(name: str, fallback: str) -> str:
     return (load_profile().prompt_overrides or {}).get(name, fallback)
 
 
+def agent_synthesis_prompt(fallback: str) -> str:
+    return profile_prompt("agent_synthesis_system", fallback)
+
+
+def profile_tool_specs(specs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Apply corpus-specific wording to shared tool contracts without changing defaults."""
+    profile = load_profile()
+    descriptions = (profile.prompt_overrides or {}).get("tool_descriptions", {})
+    parameter_descriptions = (profile.prompt_overrides or {}).get("tool_parameter_descriptions", {})
+    if not descriptions and not parameter_descriptions:
+        return specs
+    result = [dict(spec) for spec in specs]
+    for spec in result:
+        name = (spec.get("function") or {}).get("name")
+        description = descriptions.get(name)
+        if description:
+            spec["function"] = {**spec["function"], "description": description}
+        params = parameter_descriptions.get(name, {})
+        if params:
+            function = dict(spec.get("function") or {})
+            schema = dict(function.get("parameters") or {})
+            properties = dict(schema.get("properties") or {})
+            for parameter, detail in params.items():
+                if parameter in properties:
+                    properties[parameter] = {**properties[parameter], "description": detail}
+            schema["properties"] = properties
+            function["parameters"] = schema
+            spec["function"] = function
+    return result
+
+
+def langfuse_tracing_required() -> bool:
+    return bool(corpus_config().langfuse.get("tracing_required", False))
+
+
 def langfuse_enabled() -> bool:
     setting = os.getenv("LANGFUSE_ENABLED")
     legacy_tracing_setting = os.getenv("LANGFUSE_TRACING_ENABLED")

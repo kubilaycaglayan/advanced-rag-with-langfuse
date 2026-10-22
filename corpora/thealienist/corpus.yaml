@@ -1,0 +1,16 @@
+id: thealienist
+title: The Alienist
+language: en
+profile: thealienist
+books: books
+question_sets:
+  set-1:
+    path: set-1.csv
+    langfuse_dataset: set-1
+langfuse:
+  enabled: true
+  tracing_required: true
+  project: thealienist
+  default_dataset: set-1
+  evaluator_prefix: thealienist
+  prompt_label: production
