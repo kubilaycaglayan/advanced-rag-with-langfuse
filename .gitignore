@@ -13,3 +13,4 @@
 **/__pycache__/
 *.py[cod]
 Notes.md
+corpora/thealienist/set-1.csv
