@@ -13,4 +13,7 @@ langfuse:
   project: thealienist
   default_dataset: set-1
   evaluator_prefix: thealienist
+  evaluators:
+    - answer_correctness_v2
+    - citation_support_v1
   prompt_label: production

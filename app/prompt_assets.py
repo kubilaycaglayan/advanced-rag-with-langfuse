@@ -16,19 +16,37 @@ from langfuse import Langfuse
 from langfuse.api import NotFoundError
 
 try:
-    from .corpus_config import langfuse_evaluator_prefix, langfuse_prompt_label
+    from .corpus_config import corpus_config, corpus_id, langfuse_evaluator_prefix, langfuse_prompt_label
     from .corpus_profiles import profile_prompt
-    from .evaluator_specs import EVALUATOR_SPECS, FACT_SPECS, JUDGE_MODELS
+    from .evaluator_specs import (ANSWER_CORRECTNESS_V2, CITATION_SUPPORT_V1,
+                                  EVALUATOR_SPECS, FACT_SPECS, JUDGE_MODELS)
     from .prompt_templates import PROMPT_TEMPLATES
 except ImportError:
-    from corpus_config import langfuse_evaluator_prefix, langfuse_prompt_label
+    from corpus_config import corpus_config, corpus_id, langfuse_evaluator_prefix, langfuse_prompt_label
     from corpus_profiles import profile_prompt
-    from evaluator_specs import EVALUATOR_SPECS, FACT_SPECS, JUDGE_MODELS
+    from evaluator_specs import (ANSWER_CORRECTNESS_V2, CITATION_SUPPORT_V1,
+                                 EVALUATOR_SPECS, FACT_SPECS, JUDGE_MODELS)
     from prompt_templates import PROMPT_TEMPLATES
 
 
 PROMPT_LABEL = os.getenv("LANGFUSE_PROMPT_LABEL") or langfuse_prompt_label()
 logger = logging.getLogger(__name__)
+
+
+def _configured_evaluator_specs() -> tuple[Any, ...]:
+    """Resolve the evaluator catalog selected by this corpus, preserving Millennium defaults."""
+    selected = corpus_config().langfuse.get("evaluators")
+    if not selected:
+        return EVALUATOR_SPECS
+    by_name = {spec.name: spec for spec in EVALUATOR_SPECS}
+    by_name.update({ANSWER_CORRECTNESS_V2.name: ANSWER_CORRECTNESS_V2,
+                    CITATION_SUPPORT_V1.name: CITATION_SUPPORT_V1})
+    unknown = set(selected) - by_name.keys()
+    if unknown:
+        raise ValueError(f"corpus {corpus_id()!r} selects unknown evaluators: {sorted(unknown)}")
+    return tuple(by_name[name] for name in selected)
+
+
 def _prompt(name: str) -> str:
     return profile_prompt(name, PROMPT_TEMPLATES[name])
 
@@ -132,7 +150,7 @@ def _api() -> tuple[str, HTTPBasicAuth]:
 def _evaluator_definitions() -> list[dict[str, Any]]:
     model = os.getenv("EVALUATOR_MODEL", "qwen3:8b")
     result = []
-    for spec in EVALUATOR_SPECS:
+    for spec in _configured_evaluator_specs():
         name = f"{langfuse_evaluator_prefix()}-{spec.name}"
         execution = JUDGE_MODELS.get(spec.name)
         if execution is not None and execution[0] == "codex-cli":
