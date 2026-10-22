@@ -208,9 +208,14 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
                                      and version != "v2.11" and block["status"] != "draft")
         draft_scoped_compatible = (block["status"] != "draft" and not graph_search_enabled
                                    and actual_instructions == _DRAFT_SCOPED_INSTRUCTION_FINGERPRINT)
-        if expected_instructions != actual_instructions and not (legacy_v2 or legacy_v22 or compatible_v23_adapter
-                                                                  or compatible_probe_trace or draft_progress_compatible
-                                                                  or draft_scoped_compatible):
+        # Released instruction fingerprints protect Millennium's compatibility boundary.
+        # Other corpora select their agent instructions through their own profile and record
+        # that profile/source identity separately, so they can reuse the pipeline settings
+        # without inheriting Millennium's literal prompt fingerprint.
+        if (selected_id == "millennium" and expected_instructions != actual_instructions
+                and not (legacy_v2 or legacy_v22 or compatible_v23_adapter
+                         or compatible_probe_trace or draft_progress_compatible
+                         or draft_scoped_compatible)):
             raise ValueError(f"{version}: agent instructions differ from released version; publish a new version")
     try:
         from .indexer import index_identity
