@@ -33,6 +33,7 @@ _V22_PROVIDER_ADAPTER_COMPAT_FINGERPRINT = "edfc2ec1fbd340498afc2b139dc14f151a74
 _V23_HIGH_REASONING_ADAPTER_FINGERPRINT = "d117d53070e4cf4ccaeab0db35444bb8a5db4a7ff3750dea91fc15e1786a528f"
 _V25_SCENE_PROBE_FINGERPRINT = "4f3c86b9ec0ebe2f76328df25168cc4900e9ad6ecb8626c67780df12163042a8"
 _V26_PROBE_TRACE_FINGERPRINT = "59696263473e1c7bec631f012986747b8efb222739e51fed2077cbc9f6ace6bb"
+_DRAFT_SCOPED_INSTRUCTION_FINGERPRINT = "bbcfdbf2305d66a3ecbfac03eab187e5805195f095ecbc60e18c6a68c222549e"
 
 
 def _legacy_v2_instructions_unchanged() -> bool:
@@ -125,10 +126,12 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
         overrides["scene_candidate_count"] = 30
         scene_candidate_count = 30
     allowed = set(block["settings"]) | (MODEL_KEYS if block["engine"] == "fixed" else set())
-    if version in {"v2.6", "v2.7", "v2.8", "v2.9", "v2.10"}:
-        allowed.update({"agent_provider", "automatic_scene_search", "scene_candidate_count"})
-    if version == "v2.11":
-        allowed.add("premise_early_stop")
+    if block["engine"] == "agent":
+        # These are supported AgentSettings overrides for released and draft
+        # agent pipelines. Keep them as derived-run settings rather than
+        # requiring each new version to repeat the same allowlist.
+        allowed.update({"agent_provider", "automatic_scene_search", "scene_candidate_count",
+                        "premise_early_stop"})
     if (block["engine"] == "agent" and
             (block.get("agent", {}).get("provider") == "openai" or agent_provider == "openai")):
         allowed.add("agent_reasoning_effort")
@@ -179,7 +182,8 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
             if agent_effort not in {"none", "low", "medium", "high", "xhigh", "max"}:
                 raise ValueError("agent_reasoning_effort must be none, low, medium, high, xhigh, or max")
             agent_settings = AgentSettings(**{**agent_settings.__dict__, "reasoning_effort": agent_effort})
-        if block["agent"]["tools"] != tool_names():
+        graph_search_enabled = "graph_search" in block["agent"]["tools"]
+        if block["agent"]["tools"] != tool_names(include_graph_search=graph_search_enabled):
             raise ValueError(f"{version}: agent tool catalog differs from released version")
         expected_instructions = block["agent"]["instruction_fingerprint"]
         actual_instructions = instruction_fingerprint()
@@ -202,8 +206,11 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
         draft_progress_compatible = (actual_instructions ==
                                      (draft_block.get("agent") or {}).get("instruction_fingerprint")
                                      and version != "v2.11" and block["status"] != "draft")
+        draft_scoped_compatible = (block["status"] != "draft" and not graph_search_enabled
+                                   and actual_instructions == _DRAFT_SCOPED_INSTRUCTION_FINGERPRINT)
         if expected_instructions != actual_instructions and not (legacy_v2 or legacy_v22 or compatible_v23_adapter
-                                                                  or compatible_probe_trace or draft_progress_compatible):
+                                                                  or compatible_probe_trace or draft_progress_compatible
+                                                                  or draft_scoped_compatible):
             raise ValueError(f"{version}: agent instructions differ from released version; publish a new version")
     try:
         from .indexer import index_identity

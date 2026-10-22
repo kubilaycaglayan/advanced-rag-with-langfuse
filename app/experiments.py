@@ -242,9 +242,17 @@ def _verify_trace_upload(client: Langfuse, trace_id: str | None, *, attempts: in
     last_error = "Langfuse observations API did not return experiment-item-task"
     for attempt in range(attempts):
         try:
-            page = client.api.observations.get_many(trace_id=trace_id, limit=100)
-            if any(observation.name == "experiment-item-task" for observation in page.data):
-                return None
+            cursor = None
+            seen_cursors: set[str] = set()
+            while True:
+                page = client.api.observations.get_many(trace_id=trace_id, limit=100, cursor=cursor)
+                if any(observation.name == "experiment-item-task" for observation in page.data or []):
+                    return None
+                next_cursor = page.meta.cursor if page.meta else None
+                if not next_cursor or next_cursor in seen_cursors:
+                    break
+                seen_cursors.add(next_cursor)
+                cursor = next_cursor
         except Exception as exc:
             last_error = f"Langfuse observations lookup failed: {type(exc).__name__}: {exc}"
         if attempt + 1 < attempts:

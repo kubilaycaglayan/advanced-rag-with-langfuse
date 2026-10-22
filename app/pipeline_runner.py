@@ -6,12 +6,12 @@ from typing import Any, Callable
 
 try:
     from .corpus_profiles import agent_prompt
-    from .agent import run_agent
+    from .agent import draft_system_prompt, run_agent
     from .pipeline import run_pipeline
     from .pipeline_resolver import ResolvedRun
 except ImportError:
     from corpus_profiles import agent_prompt
-    from agent import run_agent
+    from agent import draft_system_prompt, run_agent
     from pipeline import run_pipeline
     from pipeline_resolver import ResolvedRun
 
@@ -29,9 +29,15 @@ def run(question: str, resolved: ResolvedRun, collection: str, prompt_bundle: di
             elif on_status and event.get("type") == "turn":
                 on_status("thinking")
 
+        system_prompt = None
+        if resolved.corpus_id == "millennium" and resolved.version in {"v2.13", "v2.14"}:
+            system_prompt = draft_system_prompt(resolved.version)
+        elif resolved.version in {"v2.7", "v2.8", "v2.9"} or resolved.corpus_id != "millennium":
+            system_prompt = agent_prompt()
         agent = run_agent(question, collection, resolved.config,
                           settings=resolved.agent_settings, on_event=on_event,
-                          system_prompt=agent_prompt() if resolved.version in {"v2.7", "v2.8", "v2.9"} or resolved.corpus_id != "millennium" else None)
+                          system_prompt=system_prompt,
+                          include_graph_search=(resolved.corpus_id == "millennium" and resolved.version == "v2.14"))
         evidence = list(agent.get("evidence") or [])
         citations = [label if str(label).startswith("[") else f"[{label}]" for label in agent.get("citations") or []]
         if on_status:

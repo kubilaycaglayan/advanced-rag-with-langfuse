@@ -43,7 +43,7 @@ try:
     from .evaluation import is_explicit_abstention
     from .observability import observation, update as update_observation
     from .intermediate_cache import cache_value as _cache_value
-    from .pipeline import (_encode_query, _entity_cards, _keyword_index, _keyword_search, _entity_anchors, _keywords,
+    from .pipeline import (_encode_query, _entity_cards, _entity_graph_events, _keyword_index, _keyword_search, _entity_anchors, _keywords,
                            _moment_scene_hits, _name_pairs, _passage_position, _query_points_cached,
                            _reranker, _transform, qdrant_client)
     from .resolved_config import ResolvedPipelineConfig
@@ -53,7 +53,7 @@ except ImportError:  # running from app/ inside the container
     from evaluation import is_explicit_abstention
     from observability import observation, update as update_observation
     from intermediate_cache import cache_value as _cache_value
-    from pipeline import (_encode_query, _entity_cards, _keyword_index, _keyword_search, _entity_anchors, _keywords,
+    from pipeline import (_encode_query, _entity_cards, _entity_graph_events, _keyword_index, _keyword_search, _entity_anchors, _keywords,
                          _moment_scene_hits, _name_pairs, _passage_position, _query_points_cached,
                          _reranker, _transform, qdrant_client)
     from resolved_config import ResolvedPipelineConfig
@@ -92,6 +92,21 @@ When the books first describe a death, a crime or a disappearance one way, look 
 A "what happened at a place" question is a sequence, not one find: cover arrival, discovery, confrontation and outcome. After the first hit, open the scene or search again with the person who was confronted there; do not stop at the first body or clue.
 Questions of the form "how did X know/learn about Y", "how did X and Y meet" or "what connects X and Y" are answered by the event that first brought them together: a document one wrote about the other, a person who introduced them, a meeting. If the passages show X reading or receiving something Y wrote, or someone telling X about Y, that is the answer even if the words "learned" or "knew" never appear. State it plainly instead of saying the books do not say.
 You have a limited number of tool calls (about 16). Do not repeat a search that returned the same passages. Prefer four to eight calls over one long one."""
+
+ENTITY_CARD_DRAFT_PROMPT = """- Use entity_card freely and early whenever a question names a person, alias, nickname, role, relationship, possession, affiliation or other personal fact. Check cards for every named person that may matter, including alternate spellings and one-word names; you do not need to wait for text search to fail.
+- Reason across the entity cards: compare their aliases, facts and links, distinguish facts about each person, and combine complementary clues when they answer different parts of the question. Treat the cards as an extracted map that helps you form and test hypotheses, not as direct proof. Read the linked passages and cite passages that state each answer claim."""
+
+STORY_GRAPH_DRAFT_PROMPT = """- Use graph_search freely for multi-step questions about how people, events, places or clues connect, and when the narrative uses indirect references such as "he", "my father" or "the patient". It is useful after an initial search when the question asks how something happened, who was involved, or how two clues connect. Try a focused graph query if the first results are off-topic.
+- Reason across graph results as linked events: follow their people and source passages to form a possible chain, compare competing event accounts, and put steps in story order. Graph ranking and extracted event lines are navigation clues, not proof; read the linked passages and cite those passages for the answer."""
+
+
+def draft_system_prompt(version: str) -> str:
+    prompts = [SYSTEM_PROMPT]
+    if version in {"v2.13", "v2.14"}:
+        prompts.append(ENTITY_CARD_DRAFT_PROMPT)
+    if version == "v2.14":
+        prompts.append(STORY_GRAPH_DRAFT_PROMPT)
+    return "\n\n".join(prompts)
 
 FORCED_ANSWER_PROMPT = "You have reached the step limit. Using only the passages below, call none of the tools and write the final answer now, citing the passage ids in square brackets. If they do not answer the question, say so."
 
@@ -922,6 +937,38 @@ def _tool_find_names(state: AgentState, args: dict[str, Any]) -> dict[str, Any]:
     return payload
 
 
+def _tool_graph_search(state: AgentState, args: dict[str, Any]) -> dict[str, Any]:
+    query = str(args.get("query") or state.question).strip()
+    limit = args.get("limit", 5)
+    if not query:
+        return {"error": "query must not be blank"}
+    if type(limit) is not int or not 1 <= limit <= 8:
+        return {"error": "limit must be an integer from 1 to 8"}
+    events = _entity_graph_events(query, state.config, state.collection, list(state.evidence.values()))
+    if not events:
+        return {"error": "story graph is unavailable or no named entity could seed it"}
+    # PageRank supplies a compact candidate set; cross-encoder ranking keeps
+    # the graph's loosely connected events focused on the current question.
+    pool = events[:100]
+    reranker = _reranker(state.config.reranker_model.name, state.config.reranker_model.revision)
+    scores = reranker.predict([(query, event.get("fact", "")) for event in pool], show_progress_bar=False)
+    ranked = sorted(enumerate(zip(scores, pool)), key=lambda pair: (-float(pair[1][0]), pair[0]))[:limit]
+    by_id, _ = _row_index(state.collection)
+    results = []
+    remembered = []
+    for _, (score, event) in ranked:
+        members = [str(member) for member in event.get("members", []) if str(member) in by_id][:4]
+        source_rows = [by_id[member] for member in members]
+        remembered.extend(source_rows)
+        results.append({"event": event.get("fact", ""), "people": event.get("people", []),
+                        "query_relevance": round(float(score), 3),
+                        "passages": [{"id": str(row["id"])[:8], "text": str(row.get("text", ""))[:360]}
+                                     for row in source_rows]})
+    state.remember(remembered)
+    return {"query": query, "events": results,
+            "note": "events are graph-ranked hypotheses; verify the linked source passages before relying on them"}
+
+
 def _tool_read_passage(state: AgentState, args: dict[str, Any]) -> dict[str, Any]:
     wanted = str(args.get("id") or "")
     row, error = _resolve_id(state.collection, wanted)
@@ -1405,7 +1452,7 @@ def _sequence_message(check: dict[str, Any]) -> str:
 
 # --- loop ----------------------------------------------------------------------------------------------------------
 
-def _tool_specs() -> list[dict[str, Any]]:
+def _tool_specs(*, include_graph_search: bool = False) -> list[dict[str, Any]]:
     def spec(name: str, description: str, properties: dict[str, Any], required: list[str]) -> dict[str, Any]:
         return {"type": "function", "function": {"name": name, "description": description,
                                                  "parameters": {"type": "object", "properties": properties,
@@ -1439,6 +1486,10 @@ def _tool_specs() -> list[dict[str, Any]]:
         spec("find_connections", "What links two people: facts and edges that name both (how they met, what one did for the other, documents or names between them), with passages that state an edge. Use it for 'how did X know Y' or 'what connects X and Y'.",
              {"person_a": {"type": "string", "description": "first person"}, "person_b": {"type": "string", "description": "second person"}},
              ["person_a", "person_b"]),
+        *([spec("graph_search", "Search the story graph for events linked to the question's people and current evidence. It follows entity, event and passage links, then reranks graph candidates against your query. Use for multi-step connections, indirect references or story sequences; verify its source passages.",
+               {"query": {"type": "string", "description": "focused graph question (default: the user's question)"},
+                "limit": {"type": "integer", "description": "number of events (default 5, max 8)"}}, [])]
+          if include_graph_search else []),
         spec("find_names", "Suggest how the books spell a name, including close misspellings and full names for a first name.",
              {"name": {"type": "string", "description": "name as written in the question"}}, ["name"]),
         spec("read_passage", "Read one passage in full, with the passages before and after it.",
@@ -1458,8 +1509,8 @@ def _tool_specs() -> list[dict[str, Any]]:
     ]
 
 
-def tool_names() -> list[str]:
-    return [spec["function"]["name"] for spec in _tool_specs()]
+def tool_names(*, include_graph_search: bool = False) -> list[str]:
+    return [spec["function"]["name"] for spec in _tool_specs(include_graph_search=include_graph_search)]
 
 
 def instruction_fingerprint() -> str:
@@ -1737,6 +1788,7 @@ def _run_tool(state: AgentState, name: str, args: dict[str, Any]) -> tuple[dict[
         "true_account": _tool_true_account,
         "entity_card": _tool_entity_card,
         "find_connections": _tool_find_connections,
+        "graph_search": _tool_graph_search,
         "find_names": _tool_find_names,
         "read_passage": _tool_read_passage,
         "read_chapter": _tool_read_chapter,
@@ -1745,7 +1797,7 @@ def _run_tool(state: AgentState, name: str, args: dict[str, Any]) -> tuple[dict[
         return _tool_submit_answer(state, args)
     if name not in tools:
         return {"error": f"unknown tool {name!r}", "tools": sorted([*tools, "submit_answer"])}, False
-    if name in {"read_scene", "read_passage", "read_chapter", "entity_card",
+    if name in {"read_scene", "read_passage", "read_chapter", "entity_card", "graph_search",
                 "find_connections", "find_names"}:
         def read() -> dict[str, Any]:
             capture = {"remembered": [], "focused": []}
@@ -2046,7 +2098,7 @@ def _final(state: AgentState, answer: str, ids: list[str], *, stopped: str, raw_
 
 def run_agent(question: str, collection: str, config: ResolvedPipelineConfig | None = None, *,
               settings: AgentSettings | None = None, on_event: Callable[[dict[str, Any]], None] | None = None,
-              system_prompt: str | None = None) -> dict[str, Any]:
+              system_prompt: str | None = None, include_graph_search: bool = False) -> dict[str, Any]:
     """Answer ``question`` with the model choosing among the tools; returns the answer, its evidence and the trace."""
     if not question.strip():
         raise ValueError("question must not be blank")
@@ -2112,7 +2164,7 @@ def run_agent(question: str, collection: str, config: ResolvedPipelineConfig | N
             messages.append({"role": "user", "content": premise_message})
             state.trace.append({"tool": "premise probe", "arguments": {"question": state.question},
                                 "seconds": 0.0, "error": None, "result_ids": state.premise_evidence})
-    tool_specs = _tool_specs()
+    tool_specs = _tool_specs(include_graph_search=include_graph_search)
 
     def emit(event: dict[str, Any]) -> None:
         if on_event:
