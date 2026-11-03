@@ -119,6 +119,9 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
         raise ValueError(f"identity keys cannot be settings: {', '.join(sorted(identity))}")
     agent_effort = overrides.get("agent_reasoning_effort")
     agent_provider = overrides.get("agent_provider")
+    agent_model = overrides.get("agent_model")
+    agent_think = overrides.get("agent_think")
+    agent_context_length = overrides.get("agent_context_length")
     scene_candidate_count = overrides.get("scene_candidate_count")
     premise_early_stop = overrides.get("premise_early_stop")
     if version in {"v2.6", "v2.7", "v2.8", "v2.9", "v2.10"} and overrides.get("automatic_scene_search") is True and scene_candidate_count is None:
@@ -130,8 +133,8 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
         # These are supported AgentSettings overrides for released and draft
         # agent pipelines. Keep them as derived-run settings rather than
         # requiring each new version to repeat the same allowlist.
-        allowed.update({"agent_provider", "automatic_scene_search", "scene_candidate_count",
-                        "premise_early_stop"})
+        allowed.update({"agent_provider", "agent_model", "agent_think", "agent_context_length",
+                        "automatic_scene_search", "scene_candidate_count", "premise_early_stop"})
     if (block["engine"] == "agent" and
             (block.get("agent", {}).get("provider") == "openai" or agent_provider == "openai")):
         allowed.add("agent_reasoning_effort")
@@ -147,8 +150,9 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
     values.update(block["models"])
     if "generation" in overrides and isinstance(overrides["generation"], Mapping):
         overrides["generation"] = {**values["generation"], **overrides["generation"]}
-    agent_override_keys = {"agent_provider", "automatic_scene_search", "agent_reasoning_effort",
-                           "scene_candidate_count", "premise_early_stop"}
+    agent_override_keys = {"agent_provider", "agent_model", "agent_think", "agent_context_length",
+                           "automatic_scene_search", "agent_reasoning_effort", "scene_candidate_count",
+                           "premise_early_stop"}
     config_overrides = {key: value for key, value in overrides.items() if key not in agent_override_keys}
     values.update(config_overrides)
     config = ResolvedPipelineConfig.from_mapping(values, use_environment=False)
@@ -163,6 +167,25 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
             model = "gpt-6-luna" if agent_provider == "openai" else block["agent"]["model"]
             agent_settings = AgentSettings(**{**agent_settings.__dict__,
                                               "provider": agent_provider, "model": model})
+        if agent_model is not None:
+            if not isinstance(agent_model, str) or not agent_model.strip():
+                raise ValueError("agent_model must be a non-empty string")
+            if agent_settings.provider != "ollama":
+                raise ValueError("agent_model can only be set for the ollama provider")
+            agent_settings = AgentSettings(**{**agent_settings.__dict__, "model": agent_model.strip()})
+        if agent_think is not None:
+            if not isinstance(agent_think, bool):
+                raise ValueError("agent_think must be a boolean")
+            if agent_settings.provider != "ollama":
+                raise ValueError("agent_think can only be set for the ollama provider")
+            agent_settings = AgentSettings(**{**agent_settings.__dict__, "think": agent_think})
+        if agent_context_length is not None:
+            if type(agent_context_length) is not int or agent_context_length < 1:
+                raise ValueError("agent_context_length must be a positive integer")
+            if agent_settings.provider != "ollama":
+                raise ValueError("agent_context_length can only be set for the ollama provider")
+            agent_settings = AgentSettings(**{**agent_settings.__dict__,
+                                              "context_length": agent_context_length})
         if "automatic_scene_search" in overrides:
             if not isinstance(overrides["automatic_scene_search"], bool):
                 raise ValueError("automatic_scene_search must be a boolean")

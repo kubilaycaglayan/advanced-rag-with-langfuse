@@ -30,7 +30,7 @@ try:
     from .indexer import build_index, corpus_paths
     from .intermediate_cache import scope_for as intermediate_cache_scope, use_cache as use_intermediate_cache
     from .evaluator_specs import CORRECTNESS_SPECS, DEFAULT_CORRECTNESS, JUDGE_MODELS, evaluator_manifest
-    from .observability import record_cache_lookup, use_client
+    from .observability import pack_scope_attributes, record_cache_lookup, use_client
     from .pipeline import PROMPT_HASHES, run_pipeline
     from .prompt_assets import ManagedJudgePrompt, load_managed_evaluators, load_prompt_bundle, prompt_manifests
     from .resolved_config import ResolvedPipelineConfig, resolve_ollama_model, resolve_pipeline_model_identities
@@ -49,7 +49,7 @@ except ImportError:
     from indexer import build_index, corpus_paths
     from intermediate_cache import scope_for as intermediate_cache_scope, use_cache as use_intermediate_cache
     from evaluator_specs import CORRECTNESS_SPECS, DEFAULT_CORRECTNESS, JUDGE_MODELS, evaluator_manifest
-    from observability import record_cache_lookup, use_client
+    from observability import pack_scope_attributes, record_cache_lookup, use_client
     from pipeline import PROMPT_HASHES, run_pipeline
     from prompt_assets import ManagedJudgePrompt, load_managed_evaluators, load_prompt_bundle, prompt_manifests
     from resolved_config import ResolvedPipelineConfig, resolve_ollama_model, resolve_pipeline_model_identities
@@ -390,6 +390,8 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
                         trace_metadata["agent_provider"] = resolved.agent_settings.provider
                         trace_metadata["agent_model"] = resolved.agent_settings.model
                         trace_metadata["agent_reasoning_effort"] = resolved.agent_settings.reasoning_effort
+                        trace_metadata["agent_think"] = resolved.agent_settings.think
+                        trace_metadata["agent_context_length"] = resolved.agent_settings.context_length
                         trace_metadata["agent_automatic_scene_search"] = resolved.agent_settings.initial_scene_probe
                         trace_metadata["agent_scene_candidate_count"] = resolved.agent_settings.scene_candidate_count
                         trace_metadata["agent_premise_early_stop"] = resolved.agent_settings.premise_early_stop
@@ -397,8 +399,12 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
                                            for name, asset in prompt_versions.items()})
                     trace_metadata.update({f"managed_eval_{name}": f"{asset['id']}@{asset['version']}"
                                            for name, asset in managed_evaluators.items()})
-                    with propagate_attributes(session_id=session, metadata=trace_metadata,
-                                              tags=[f"pipeline:{resolved.pipeline_id}"]):
+                    scope_attributes = pack_scope_attributes({
+                        "session_id": session,
+                        "metadata": trace_metadata,
+                        "tags": [f"pipeline:{resolved.pipeline_id}"],
+                    })
+                    with propagate_attributes(**scope_attributes):
                         record_cache_lookup("answer", cache_statuses[item.id],
                                             cache_lookup_seconds, cache_source,
                                             input={"question": question}, output=cached_output)
@@ -424,6 +430,8 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
             experiment_metadata["agent_provider"] = resolved.agent_settings.provider
             experiment_metadata["agent_model"] = resolved.agent_settings.model
             experiment_metadata["agent_reasoning_effort"] = resolved.agent_settings.reasoning_effort
+            experiment_metadata["agent_think"] = resolved.agent_settings.think
+            experiment_metadata["agent_context_length"] = resolved.agent_settings.context_length
             experiment_metadata["agent_automatic_scene_search"] = resolved.agent_settings.initial_scene_probe
             experiment_metadata["agent_scene_candidate_count"] = resolved.agent_settings.scene_candidate_count
             experiment_metadata["agent_premise_early_stop"] = resolved.agent_settings.premise_early_stop

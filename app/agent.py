@@ -1549,7 +1549,7 @@ def _ollama_chat(messages: list[dict[str, Any]], tools: list[dict[str, Any]] | N
     if tools:
         payload["tools"] = tools
         _compact(messages)
-    response = requests.post(base + "/api/chat", json=payload, timeout=(10, 600))
+    response = requests.post(base + "/api/chat", json=payload, timeout=(10, 900))
     response.raise_for_status()
     return response.json()
 
