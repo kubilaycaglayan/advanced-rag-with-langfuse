@@ -16,3 +16,7 @@ docker compose run --no-deps --rm -T \
 ```
 
 Replace the command after `app` as needed. This runs in a separate container and leaves the live app container untouched. Do not omit the Git mount or safe-directory variables for experiment runs; either omission causes the run to fail before answering a question.
+
+## Pipeline diagrams
+
+Include the represented pipeline version as a visible signature in every diagram that depicts a pipeline. Keep that signature aligned with the pipeline catalog (`pipelines.md`) when updating or recreating the diagram.

@@ -32,113 +32,100 @@
 </head>
 <body>
   <main>
-    <p class="eyebrow">Millennium semantic search · Book-inspired</p>
+    <p class="eyebrow">Millennium semantic search · Pipeline v2.12 · Book-inspired</p>
     <h1>From question to cited answer</h1>
-    <p class="intro">The default full mode expands a search, retrieves and ranks passages, then writes a cited answer from selected evidence.</p>
+    <p class="intro">Five stages show the v2.12 agent, its model roles, grouped query outputs, tools, technologies, evidence ranking, and answer safeguards.</p>
     <div class="diagram-container">
-      <svg viewBox="0 0 1280 592" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="pipeline-book-inspired-title pipeline-book-inspired-desc">
-        <title id="pipeline-book-inspired-title">From question to cited answer</title>
-        <desc id="pipeline-book-inspired-desc">A user query becomes six main searches and sometimes a seventh name search, then moves through dense Qdrant lookup, candidate fusion, cross-encoder reranking, evidence selection, local Ollama generation, and a cited answer.</desc>
-        <defs>
-          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#655d63"/></marker>
-          <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#8c3547"/></marker>
-        </defs>
-        <rect width="1280" height="592" fill="#f3eee4"/>
+      <svg viewBox="0 0 1280 760" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="pipeline-book-inspired-title pipeline-book-inspired-desc" id="pipeline-book-inspired-root">
+<title id="pipeline-book-inspired-title">Pipeline v2.12 · From question to cited answer</title>
+<desc id="pipeline-book-inspired-desc">A five-stage view of the v2.12 agent pipeline, its model roles, grouped query expansion outputs, retrieval and reading tools, evidence reranking, safeguards, and technologies.</desc>
+<defs>
+<style>
+#pipeline-book-inspired-root { color:#231f25; font-family:'Geist',system-ui,sans-serif; }
+#pipeline-book-inspired-root .zone { fill:rgba(35,31,37,.025); stroke:rgba(35,31,37,.18); stroke-width:1; }
+#pipeline-book-inspired-root .model { fill:#f3eee4; stroke:#beb0ad; stroke-width:1.2; }
+#pipeline-book-inspired-root .model-main { fill:#f3eee4; stroke:#beb0ad; stroke-width:1.2; }
+#pipeline-book-inspired-root .chip { fill:#f3eee4; stroke:#beb0ad; stroke-width:1; }
+#pipeline-book-inspired-root .chip-accent { fill:#f3eee4; stroke:#beb0ad; stroke-width:1; }
+#pipeline-book-inspired-root .chip-focal { fill:#f3eee4; stroke:#beb0ad; stroke-width:1; }
+#pipeline-book-inspired-root .zone-label { font:500 9px 'Geist Mono',ui-monospace,monospace; letter-spacing:.1em; fill:#70676d; }
+#pipeline-book-inspired-root .tag { font:500 8px 'Geist Mono',ui-monospace,monospace; letter-spacing:.1em; fill:#70676d; }
+#pipeline-book-inspired-root .name { font:600 12px 'Geist',system-ui,sans-serif; fill:#231f25; }
+#pipeline-book-inspired-root .detail { font:400 9px 'Geist Mono',ui-monospace,monospace; fill:#655d63; }
+#pipeline-book-inspired-root .detail-ink { font:400 9px 'Geist Mono',ui-monospace,monospace; fill:#231f25; }
+#pipeline-book-inspired-root .model-name { font:600 10px 'Geist Mono',ui-monospace,monospace; fill:#231f25; }
+#pipeline-book-inspired-root .link { fill:none; stroke:#655d63; stroke-width:1.4; marker-end:url(#pipeline-book-inspired-arrow); }
+#pipeline-book-inspired-root .link-focal { fill:none; stroke:#8c3547; stroke-width:1.6; marker-end:url(#pipeline-book-inspired-arrow-accent); }
+#pipeline-book-inspired-root .signature { font:600 11px 'Geist Mono',ui-monospace,monospace; letter-spacing:.1em; fill:#f3eee4; }
+</style>
+<marker id="pipeline-book-inspired-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#655d63"/></marker>
+<marker id="pipeline-book-inspired-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#8c3547"/></marker>
+</defs>
+<rect width="1280" height="760" fill="#f3eee4"/>
+<text x="32" y="38" class="zone-label">MILLENNIUM SEMANTIC SEARCH · AGENT FLOW</text>
+<rect x="1112" y="16" width="136" height="32" rx="4" fill="#8c3547"/><text x="1124" y="37" class="signature">PIPELINE V2.12</text>
+<text x="32" y="76" style="font:400 30px 'Instrument Serif',Georgia,serif;fill:#231f25">From question to cited answer</text>
+<text x="32" y="100" class="detail">Five stages · local models · query-aware evidence</text>
+<!-- Model ribbon: each model is tied to its pipeline role -->
+<g aria-label="Models used">
+<rect class="model-main" x="24" y="124" width="236" height="72" rx="5"/><text class="tag" x="40" y="143">AGENT MODEL · OLLAMA / OPENAI</text><text class="model-name" x="40" y="163">qwen3.6:35b</text><text class="detail" x="40" y="181">plans tools · synthesizes answer</text>
+<rect class="model" x="272" y="124" width="236" height="72" rx="5"/><text class="tag" x="288" y="143">QUERY TRANSFORMS · OLLAMA</text><text class="model-name" x="288" y="163">qwen3:8b</text><text class="detail" x="288" y="181">HyDE · alternatives · grammar</text>
+<rect class="model" x="520" y="124" width="236" height="72" rx="5"/><text class="tag" x="536" y="143">EMBEDDING MODEL</text><rect class="chip" x="690" y="131" width="42" height="16" rx="3" style="fill:#e6eef3;stroke:#607d8b"/><text class="tag" x="695" y="143" style="fill:#355568">INDEX</text><text class="model-name" x="536" y="161">multi-qa-MiniLM-L6-cos-v1</text><text class="detail" x="536" y="181">SentenceTransformers</text>
+<rect class="model" x="768" y="124" width="236" height="72" rx="5"/><text class="tag" x="784" y="143">RERANKER MODEL</text><text class="model-name" x="784" y="161">ms-marco-MiniLM-L-6-v2</text><text class="detail" x="784" y="181">CrossEncoder · query-aware</text>
+<rect class="model" x="518" y="48" width="240" height="72" rx="5"/><text class="tag" x="534" y="67">SCENE SUMMARY MODEL</text><rect class="chip" x="690" y="55" width="42" height="16" rx="3" style="fill:#e6eef3;stroke:#607d8b"/><text class="tag" x="695" y="67" style="fill:#355568">INDEX</text><text class="model-name" x="534" y="87">gemma4:26b</text><text class="detail" x="534" y="105">Ollama · scene summaries</text>
+</g>
+<!-- Four stage zones; Expand and Search are subgroups within Agent Tools. -->
+<rect class="zone" x="24" y="216" width="236" height="432" rx="7"/><rect class="zone" x="272" y="216" width="484" height="432" rx="7"/><rect class="zone" x="768" y="216" width="236" height="432" rx="7"/><rect class="zone" x="1016" y="216" width="240" height="432" rx="7"/>
+<text class="zone-label" x="40" y="239">01 · UNDERSTAND</text><text class="zone-label" x="288" y="239">02 · AGENT EXPANSION &amp; RETRIEVAL TOOLS</text><text class="zone-label" x="784" y="239">03 · READ &amp; RERANK</text><text class="zone-label" x="1032" y="239">04 · ANSWER</text><text class="name" x="288" y="278">Expand Tools</text><text class="name" x="536" y="278">Search Tools</text>
+<!-- Main flow, aligned at a shared centerline -->
+<path class="link" d="M260 432 H272"/><path class="link" d="M756 432 H768"/><path class="link-focal" d="M1004 432 H1016"/>
+<!-- Stage 1 -->
+<rect class="chip" x="40" y="260" width="204" height="46" rx="4"/><text class="tag" x="52" y="275">CONNECTION</text><text class="detail" x="52" y="291">Entity card index</text>
+<rect class="chip" x="40" y="312" width="204" height="64" rx="4"/><text class="tag" x="52" y="327">TRUE ACCOUNT CHECKS</text><text class="detail" x="52" y="343">Entity card clues</text><text class="detail" x="52" y="356">Semantic passage search</text><text class="detail" x="52" y="369">Qdrant scene summary index</text>
+<rect class="chip" x="40" y="382" width="204" height="46" rx="4"/><text class="tag" x="52" y="397">PREMISE PROBE</text><text class="detail" x="52" y="413">survival evidence · early stop off</text>
+<rect class="chip" x="40" y="434" width="204" height="54" rx="4"/><text class="tag" x="52" y="449">SEQUENCE AND MOMENT CHECKS</text><text class="detail" x="52" y="465">Scene summaries</text><text class="detail" x="52" y="478">BM25</text>
+<rect class="chip" x="40" y="494" width="204" height="54" rx="4"/><text class="tag" x="52" y="509">INITIAL SCENE PROBE</text><text class="detail" x="52" y="525">SentenceTransformers</text><text class="detail" x="52" y="538">Qdrant scene summary index</text>
+<text class="detail" x="40" y="560">Agent plans next tool calls</text><text class="detail" x="40" y="580">10 turns · up to 16 calls</text><text class="detail" x="40" y="600">minimum 4 tool calls</text>
 
-        <!-- Three stages hold the work between input and output. -->
-        <rect class="zone" x="224" y="72" width="248" height="472" rx="8"/>
-        <rect class="zone" x="500" y="72" width="248" height="472" rx="8"/>
-        <rect class="zone" x="776" y="72" width="248" height="472" rx="8"/>
-        <rect x="240" y="78" width="106" height="16" fill="#f3eee4"/>
-        <text class="zone-label" x="248" y="90">01  QUERY EXPANSION</text>
-        <rect x="516" y="78" width="128" height="16" fill="#f3eee4"/>
-        <text class="zone-label" x="524" y="90">02  RETRIEVAL &amp; FUSION</text>
-        <rect x="792" y="78" width="118" height="16" fill="#f3eee4"/>
-        <text class="zone-label" x="800" y="90">03  RANKING &amp; EVIDENCE</text>
+<!-- Stage 2: sibling output chips, deliberately labeled as outputs rather than concurrent execution -->
+<text class="detail" x="288" y="301">grouped transformation outputs</text>
+<rect class="chip" x="288" y="326" width="92" height="42" rx="5"/><text class="tag" x="300" y="344">HYDE</text><text class="detail" x="300" y="360">passage</text>
+<rect class="chip" x="388" y="326" width="104" height="42" rx="5"/><text class="tag" x="400" y="344">ALTERNATIVES</text><text class="detail" x="400" y="360">3 queries</text>
+<rect class="chip" x="288" y="378" width="204" height="42" rx="5"/><text class="tag" x="300" y="396">GRAMMAR-CORRECTED QUERY</text><text class="detail" x="300" y="412">also returned by the tool</text>
+<text class="detail" x="288" y="449">Search each useful phrasing</text><text class="detail" x="288" y="469">transformations run sequentially</text><text class="detail" x="288" y="489">parallel_transformations: false</text>
 
-        <!-- Main data path. Lines are behind all node masks. -->
-        <path class="link" d="M184 322 H204 Q212 322 212 314 V238 Q212 230 220 230 H252"/>
-        <path class="link" d="M344 324 V368"/>
-        <path class="link" d="M436 432 H478 Q486 432 486 424 V218 Q486 210 494 210 H528"/>
-        <path class="link" d="M620 284 V328"/>
-        <path class="link" d="M712 412 H754 Q762 412 762 404 V218 Q762 210 770 210 H804"/>
-        <path class="link" d="M896 284 V328"/>
-        <path class="link-focal" d="M988 412 H1012 Q1020 412 1020 404 V300 Q1020 292 1028 292 H1052"/>
-        <path class="link" d="M1144 360 V408"/>
+<!-- Stage 3 -->
 
-        <!-- Entry -->
-        <rect class="node-strong" x="32" y="278" width="152" height="88" rx="6"/>
-        <text class="tag" x="48" y="299">ENTRY</text>
-        <text class="name" x="48" y="326">User query</text>
+<rect class="chip" x="536" y="296" width="98" height="32" rx="4"/><text class="detail-ink" x="547" y="316">semantic</text><rect class="chip" x="642" y="296" width="98" height="32" rx="4"/><text class="detail-ink" x="653" y="316">keyword</text>
+<rect class="chip" x="536" y="336" width="98" height="32" rx="4"/><text class="detail-ink" x="547" y="356">scenes</text><rect class="chip" x="642" y="336" width="98" height="32" rx="4"/><text class="detail-ink" x="653" y="356">true account</text>
+<rect class="chip" x="536" y="376" width="98" height="32" rx="4"/><text class="detail-ink" x="547" y="396">names</text><rect class="chip" x="642" y="376" width="98" height="32" rx="4"/><text class="detail-ink" x="653" y="396">connections</text>
+<rect class="chip" x="536" y="416" width="204" height="32" rx="4"/><text class="detail-ink" x="547" y="436">scene moments · entity cards</text>
+<text class="detail" x="536" y="480">Dense search across passages</text><text class="detail" x="536" y="500">and scene-level indexes</text>
 
+<!-- Stage 4 -->
+<text class="name" x="784" y="278">Read and select evidence</text>
+<rect class="chip" x="784" y="296" width="204" height="32" rx="4"/><text class="detail-ink" x="796" y="316">read scene · passage · chapter</text>
+<text class="detail" x="784" y="354">Candidate passages carry their</text><text class="detail" x="784" y="374">retrieval query and provenance.</text>
+<rect class="chip-accent" x="784" y="394" width="204" height="54" rx="4"/><text class="tag" x="796" y="412">QUERY-AWARE RERANK</text><text class="detail-ink" x="796" y="430">question + retrieval query</text>
+<text class="detail" x="784" y="480">Rerank, then select evidence</text><text class="detail" x="784" y="500">for cited synthesis</text>
 
-        <!-- Query expansion -->
-        <rect class="node" x="252" y="136" width="184" height="188" rx="6"/>
-        <text class="tag" x="268" y="156">01 / PREPARE</text>
-        <text class="name" x="268" y="181">Six main searches</text>
-        <text class="detail-ink" x="268" y="207">1 original question</text>
-        <text class="detail-ink" x="268" y="226">1 HyDE passage</text>
-        <text class="detail-ink" x="268" y="245">3 alternative queries</text>
-        <text class="detail-ink" x="268" y="264">1 grammar correction</text>
-        <line x1="268" y1="281" x2="420" y2="281" stroke="#beb0ad" stroke-width="1"/>
-        <text class="detail" x="268" y="299">+ name route if useful</text>
-        <text class="detail" x="268" y="316">qwen3:8b · Ollama</text>
+<!-- Stage 5 -->
+<text class="name" x="1032" y="278">Synthesis safeguards</text>
+<text class="detail" x="1032" y="304">verify submitted passage IDs</text><text class="detail" x="1032" y="324">coverage &amp; progress checks</text><text class="detail" x="1032" y="344">sequence rewrite if incomplete</text><text class="detail" x="1032" y="364">abstain when evidence is weak</text>
+<rect class="chip-focal" x="1032" y="390" width="208" height="58" rx="4"/><text class="tag" x="1044" y="409">FINAL ANSWER</text><text class="detail-ink" x="1044" y="428">answer + passage citations</text><text class="detail" x="1044" y="443">or a supported abstention</text>
+<text class="detail" x="1032" y="480">Qwen agent submits answer;</text><text class="detail" x="1032" y="500">guardrails verify and refine it.</text>
 
-        <rect class="node" x="252" y="368" width="184" height="128" rx="6"/>
-        <text class="tag" x="268" y="389">02 / ENCODE</text>
-        <text class="name" x="268" y="416">Embed each search</text>
-        <text class="detail" x="268" y="442">multi-qa-MiniLM-L6</text>
-        <text class="detail" x="268" y="461">cos-v1 · local model</text>
-        <text class="detail" x="268" y="481">SentenceTransformers</text>
-
-        <!-- Retrieval and fusion -->
-        <rect class="node" x="528" y="136" width="184" height="148" rx="6"/>
-        <text class="tag" x="544" y="156">03 / LOOKUP</text>
-        <text class="name" x="544" y="182">Dense vector search</text>
-        <text class="detail" x="544" y="207">Qdrant · cosine similarity</text>
-        <text class="detail" x="544" y="227">up to 100 hits / search</text>
-
-
-        <rect class="node-strong" x="528" y="328" width="184" height="168" rx="6"/>
-        <text class="tag" x="544" y="348">04 / FUSE</text>
-        <text class="name" x="544" y="376">Fused results</text>
-        <text class="detail" x="544" y="402">RRF: top 30 / search</text>
-        <text class="detail" x="544" y="421">30 fused candidates</text>
-        <text class="detail" x="544" y="440">extra results kept apart</text>
-        <text class="detail" x="544" y="459">name hits join extra set</text>
-
-        <!-- Ranking and evidence -->
-        <rect class="node" x="804" y="136" width="184" height="148" rx="6"/>
-        <text class="tag" x="820" y="156">05 / RANK</text>
-        <text class="name" x="820" y="182">Cross-encoder</text>
-        <text class="detail" x="820" y="207">ms-marco-MiniLM-L-6-v2</text>
-        <text class="detail" x="820" y="227">scores query + passage</text>
-        <text class="detail" x="820" y="254">SentenceTransformers · local</text>
-
-        <rect class="node" x="804" y="328" width="184" height="168" rx="6"/>
-        <text class="tag" x="820" y="348">06 / SELECT</text>
-        <text class="name" x="820" y="376">Selected passages</text>
-        <text class="detail" x="820" y="401">top 10; 15 if weak</text>
-        <text class="detail" x="820" y="421">up to 3 strong wide hits</text>
-        <text class="detail" x="820" y="441">nearby context if needed</text>
-        <text class="detail" x="820" y="461">passages labeled [E1]...</text>
-
-        <!-- Generation and result -->
-        <rect class="node-focal" x="1052" y="224" width="184" height="136" rx="6"/>
-        <text class="tag focal-tag" x="1068" y="244">07 / GENERATE</text>
-        <text class="name" x="1068" y="270">Cited answer</text>
-        <text class="detail-ink" x="1068" y="297">qwen3:8b via Ollama</text>
-        <text class="detail" x="1068" y="317">question + evidence</text>
-        <text class="detail" x="1068" y="338">local by default</text>
-
-        <rect class="node-strong" x="1052" y="408" width="184" height="88" rx="6"/>
-        <text class="tag" x="1068" y="429">OUTPUT</text>
-        <text class="name" x="1068" y="454">Shown to user</text>
-        <text class="detail" x="1068" y="477">answer + cited sources</text>
-
-      </svg>
+<!-- Technology / telemetry rail -->
+<line x1="32" y1="680" x2="1248" y2="680" stroke="#beb0ad" stroke-width="1"/><text class="tag" x="32" y="704">TECH &amp; TRACE</text>
+<rect class="chip" x="144" y="690" width="120" height="32" rx="4"/><text class="detail-ink" x="160" y="710">Ollama · local</text>
+<rect class="chip" x="276" y="690" width="108" height="32" rx="4"/><text class="detail-ink" x="292" y="710">Qdrant</text>
+<rect class="chip" x="396" y="690" width="188" height="32" rx="4"/><text class="detail-ink" x="412" y="710">SentenceTransformers</text>
+<rect class="chip" x="596" y="690" width="130" height="32" rx="4"/><text class="detail-ink" x="612" y="710">CrossEncoder</text>
+<rect class="chip" x="738" y="690" width="130" height="32" rx="4"/><text class="detail-ink" x="754" y="710">Langfuse traces</text>
+<text class="detail" x="900" y="710">Qwen3.6 agent · Qwen3 transforms · v2.12</text>
+</svg>
     </div>
-    <p class="note">The optional seventh search completes a name found in the books. Its matches join the extra results and do not change the six-search fusion. Langfuse supplies versioned prompts and records the stages; it does not perform the book lookup. Model names and endpoints can be configured.</p>
+    <p class="note">The query-output chips are sibling results from expand_query; v2.12 runs those transformations sequentially because parallel_transformations is disabled. Model labels reflect the released v2.12 catalog.</p>
   </main>
 </body>
 </html>
