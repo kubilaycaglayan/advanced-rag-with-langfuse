@@ -148,6 +148,9 @@ class WorkflowChecks(unittest.TestCase):
                      'variables': ['answer', 'required_facts', 'supporting_details'],
                      'modelConfig': {'model':'opencode/deepseek-v4.1-flash-free', 'provider':'opencode'},
                      'outputDefinition': {'dataType':'NUMERIC','minValue':0,'maxValue':1}})
+        codex = next(row for row in rows if row['name'] == 'millennium-answer_correctness_codex_v1')
+        codex.update(status='paused', pausedReason='LLM_CONNECTION_MISSING',
+                     modelConfig={'model':'gpt-5.6-luna', 'provider':'codex-cli'})
         response = SimpleNamespace(raise_for_status=lambda:None, json=lambda:{'data':rows})
         with patch('app.prompt_assets._api', return_value=('http://local', None)), \
              patch('app.prompt_assets.requests.get', return_value=response):
@@ -158,6 +161,7 @@ class WorkflowChecks(unittest.TestCase):
         self.assertEqual(resolved['answer_correctness_v1']['version'], 8)
         self.assertEqual(resolved['answer_correctness_v3']['status'], 'paused')
         self.assertEqual(resolved['answer_correctness_v3']['paused_reason'], 'LLM_CONNECTION_MISSING')
+        self.assertEqual(resolved['answer_correctness_codex_v1']['model_config']['model'], 'gpt-5.6-luna')
 
     def test_v3_catalog_uses_an_active_local_placeholder_for_langfuse(self):
         with patch.dict("os.environ", {"LANGFUSE_EVALUATOR_PROVIDER": "ollama-local", "EVALUATOR_MODEL": "qwen3:8b"}):
@@ -165,6 +169,14 @@ class WorkflowChecks(unittest.TestCase):
         v3 = definitions["millennium-answer_correctness_v3"]
         self.assertEqual(v3["modelConfig"], {"provider": "ollama-local", "model": "qwen3:8b"})
         self.assertIn("opencode/deepseek-v4.1-flash-free", v3["description"])
+
+    def test_codex_catalog_keeps_active_entry_and_describes_actual_executor(self):
+        with patch.dict("os.environ", {"LANGFUSE_EVALUATOR_PROVIDER": "ollama-local", "EVALUATOR_MODEL": "qwen3:8b"}):
+            definitions = {item["name"]: item for item in _evaluator_definitions()}
+        codex = definitions["millennium-answer_correctness_codex_v1"]
+        self.assertEqual(codex["modelConfig"], {"provider": "ollama-local", "model": "qwen3:8b"})
+        self.assertIn("Codex CLI gpt-5.6-luna", codex["description"])
+        self.assertIn("experiment worker", codex["description"])
 
     def test_paused_ollama_evaluator_still_fails_preflight(self):
         rows = [{'id': name, 'name': 'millennium-' + name, 'version': 1,
