@@ -22,7 +22,11 @@
             "paragraph_start": 43,
             "paragraph_end": 44,
             "relevance": "direct",
-            "supports": ["C1", "C3", "C4"],
+            "supports": [
+              "C1",
+              "C3",
+              "C4"
+            ],
             "quote": "Blomkvist and Salander had slept together. It had been at her initiative, and the relationship had lasted for half a year."
           },
           {
@@ -33,7 +37,9 @@
             "paragraph_start": 30,
             "paragraph_end": 32,
             "relevance": "direct",
-            "supports": ["C4"],
+            "supports": [
+              "C4"
+            ],
             "quote": "They had parted two days after Christmas, and he had not seen her for the rest of the week."
           },
           {
@@ -44,7 +50,9 @@
             "paragraph_start": 36,
             "paragraph_end": 39,
             "relevance": "direct",
-            "supports": ["C4"],
+            "supports": [
+              "C4"
+            ],
             "quote": "She remembered still the humiliation she had felt when she saw her walk off down Hornsgatan with Blomkvist the day before New Year’s Eve a year and a half ago."
           },
           {
@@ -55,8 +63,24 @@
             "paragraph_start": 129,
             "paragraph_end": 132,
             "relevance": "direct",
-            "supports": ["C4"],
+            "supports": [
+              "C4"
+            ],
             "quote": "At Hornsgatan she happened to glance towards Kaffebar and saw Blomkvist coming out with Berger in tow."
+          },
+          {
+            "id": "7450b391-945c-6d60-4d24-502be2ee8046",
+            "short_id": "7450b391",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 21 Thursday, July 3– Thursday, July 10",
+            "paragraph_start": 143,
+            "paragraph_end": 147,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2"
+            ],
+            "quote": "I want to have sex with you. And I won’t have any problem working with you, but I will have a hell of a problem with you if you kick me out."
           },
           {
             "id": "bca0a41d-ef35-4fbb-b286-c30740bff40c",
@@ -66,7 +90,10 @@
             "paragraph_start": 128,
             "paragraph_end": 130,
             "relevance": "direct",
-            "supports": ["C1", "C2"],
+            "supports": [
+              "C1",
+              "C2"
+            ],
             "quote": "Now I’m going in to take a shower, and then I think I’ll get into your bed naked."
           },
           {
@@ -77,7 +104,10 @@
             "paragraph_start": 123,
             "paragraph_end": 127,
             "relevance": "direct",
-            "supports": ["C1", "C2"],
+            "supports": [
+              "C1",
+              "C2"
+            ],
             "quote": "“I do like having sex with you,” she said."
           },
           {
@@ -88,7 +118,9 @@
             "paragraph_start": 131,
             "paragraph_end": 134,
             "relevance": "direct",
-            "supports": ["C1"],
+            "supports": [
+              "C1"
+            ],
             "quote": "They got up at 10:00, took a shower together, and ate breakfast out in the garden."
           },
           {
@@ -99,7 +131,9 @@
             "paragraph_start": 120,
             "paragraph_end": 121,
             "relevance": "direct",
-            "supports": ["C1"],
+            "supports": [
+              "C1"
+            ],
             "quote": "Then she took him up to the loft and managed to get his clothes off and distract him even further."
           },
           {
@@ -110,7 +144,9 @@
             "paragraph_start": 122,
             "paragraph_end": 123,
             "relevance": "direct",
-            "supports": ["C1"],
+            "supports": [
+              "C1"
+            ],
             "quote": "They ate dinner rather late and only then did Salander take the initiative and force him up to the sleeping loft, where she saw to it that he devoted all his attention to her."
           },
           {
@@ -121,7 +157,9 @@
             "paragraph_start": 64,
             "paragraph_end": 65,
             "relevance": "direct",
-            "supports": ["C1"],
+            "supports": [
+              "C1"
+            ],
             "quote": "they lit a fire in the woodstove, put on an Elvis CD, and devoted themselves to some plain old sex"
           },
           {
@@ -132,7 +170,9 @@
             "paragraph_start": 255,
             "paragraph_end": 257,
             "relevance": "direct",
-            "supports": ["C1"],
+            "supports": [
+              "C1"
+            ],
             "quote": "And sex with Blomkvist, out of shape as he was, was just fine. More than just fine, actually."
           },
           {
@@ -143,7 +183,10 @@
             "paragraph_start": 61,
             "paragraph_end": 63,
             "relevance": "support",
-            "supports": ["C1", "C4"],
+            "supports": [
+              "C1",
+              "C4"
+            ],
             "quote": "He kissed his daughter goodbye after the lunch and met Salander at Slussen. They went out to Sandhamn."
           },
           {
@@ -154,11 +197,446 @@
             "paragraph_start": 71,
             "paragraph_end": 73,
             "relevance": "support",
-            "supports": ["C1", "C4"],
+            "supports": [
+              "C1",
+              "C4"
+            ],
             "quote": "What she had realised was that love was that moment when your heart was about to burst."
           }
         ],
         "notes": "C2 is supported by the Hedeby chapter setting, not by a sentence that repeats 'Hedeby' in these passages. C4 is split across the parting/time passages and the Hornsgatan sighting. Direct labels are the headline set; support labels are reported separately."
+      },
+      "f59e5c80-b58e-5639-add4-ac587c7a368a": {
+        "question": "Who tried to shoot Mikael?",
+        "claims": {
+          "C1": "Martin Vanger shot at Mikael with a rifle on Hedeby Island.",
+          "C2": "Hitman Miro Nikolich tried to shoot him with a sub-machine gun."
+        },
+        "passages": [
+          {
+            "id": "cde80f37-f7bf-812b-9f95-de6fa967197a",
+            "short_id": "cde80f37",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 24 Monday, July 11",
+            "paragraph_start": 198,
+            "paragraph_end": 198,
+            "relevance": "direct",
+            "supports": [
+              "C2"
+            ],
+            "quote": "Then Nikolich took a step back and yanked the gun towards him."
+          },
+          {
+            "id": "0164abfc-16eb-4fb2-e22a-008762ccf1fe",
+            "short_id": "0164abfc",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 24 Monday, July 11",
+            "paragraph_start": 195,
+            "paragraph_end": 197,
+            "relevance": "direct",
+            "supports": [
+              "C2"
+            ],
+            "quote": "For a microsecond the muzzle passed in front of his face."
+          },
+          {
+            "id": "ed2be4d3-cc06-9b5e-812d-197b314298a9",
+            "short_id": "ed2be4d3",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 24 Monday, July 11",
+            "paragraph_start": 208,
+            "paragraph_end": 208,
+            "relevance": "direct",
+            "supports": [
+              "C2"
+            ],
+            "quote": "Miro Nikolich tried to keep shooting."
+          },
+          {
+            "id": "13f84c84-4648-f186-b24d-150fb930ec14",
+            "short_id": "13f84c84",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 24 Friday, July 11– Saturday, July 12",
+            "paragraph_start": 125,
+            "paragraph_end": 126,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "Salander had not forgotten that Martin Vanger had a rifle somewhere"
+          },
+          {
+            "id": "19136dca-9ed0-ced3-423b-aefacd110aad",
+            "short_id": "19136dca",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 23 Friday, July 11",
+            "paragraph_start": 166,
+            "paragraph_end": 167,
+            "relevance": "support",
+            "supports": [
+              "C1"
+            ],
+            "quote": "an open box of ammunition for a moose rifle"
+          },
+          {
+            "id": "3894dce4-8bf3-2388-6486-4ea007ecb9fb",
+            "short_id": "3894dce4",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 22 Thursday, July 10",
+            "paragraph_start": 132,
+            "paragraph_end": 133,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "two meant that somebody was trying to kill him"
+          },
+          {
+            "id": "0dd034c6-2e43-1d28-387e-3fd31b3ff05a",
+            "short_id": "0dd034c6",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 22 Thursday, July 10",
+            "paragraph_start": 136,
+            "paragraph_end": 136,
+            "relevance": "support",
+            "supports": [
+              "C1"
+            ],
+            "quote": "a third shot was fired"
+          },
+          {
+            "id": "01b9d791-f492-726e-c50f-27a18cd37e0c",
+            "short_id": "01b9d791",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 22 Thursday, July 10",
+            "paragraph_start": 134,
+            "paragraph_end": 135,
+            "relevance": "support",
+            "supports": [
+              "C1"
+            ],
+            "quote": "Rifle, maybe a moose rifle."
+          },
+          {
+            "id": "e9830852-8018-3301-9291-53a994f6d80f",
+            "short_id": "e9830852",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 23 Friday, July 11",
+            "paragraph_start": 89,
+            "paragraph_end": 92,
+            "relevance": "support",
+            "supports": [
+              "C1"
+            ],
+            "quote": "someone had shot at him out near the Fortress"
+          },
+          {
+            "id": "39f1e307-cf32-5210-0ee4-c321605537e7",
+            "short_id": "39f1e307",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 24 Monday, July 11",
+            "paragraph_start": 175,
+            "paragraph_end": 182,
+            "relevance": "support",
+            "supports": [
+              "C2"
+            ],
+            "quote": "Then he saw the sub-machine gun."
+          },
+          {
+            "id": "51eaaabd-4fa6-7da5-b5c4-b14bbe360681",
+            "short_id": "51eaaabd",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 24 Monday, July 11",
+            "paragraph_start": 209,
+            "paragraph_end": 212,
+            "relevance": "support",
+            "supports": [
+              "C2"
+            ],
+            "quote": "the man with the sub-machine gun"
+          }
+        ],
+        "notes": "C1 is a multi-passage inference: 13f84c84 (Martin had a rifle), 3894dce4 (shots were fired at Mikael), and 19136dca (ammunition) together establish it; 13f84c84 and 3894dce4 are marked direct, the rest support. C2 has direct Nikolich passages."
+      },
+      "fb5b6f9d-2a37-5f3b-9f40-e8dd97ca7952": {
+        "question": "What Salander used when she was digging herself up?",
+        "claims": {
+          "C1": "She used her hands and arms to create an air pocket and room to move.",
+          "C2": "She used an enamel cigarette case as an improvised scoop to dig through the dirt."
+        },
+        "passages": [
+          {
+            "id": "a6ade4a6-440d-d59f-e21b-687845cb9f40",
+            "short_id": "a6ade4a6",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 65,
+            "paragraph_end": 65,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "She scratched sandy earth from her face and pressed handful after handful into the cavity beneath her."
+          },
+          {
+            "id": "eac9e570-9f89-27c9-b938-ccc28c17ef54",
+            "short_id": "eac9e570",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 63,
+            "paragraph_end": 64,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "Salander began to scratch. She pressed down on her elbow and managed to make a little room to manoeuvre."
+          },
+          {
+            "id": "d8e9f6b4-9f7d-aef4-b2d0-94fb08b07e9f",
+            "short_id": "d8e9f6b4",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 68,
+            "paragraph_end": 70,
+            "relevance": "direct",
+            "supports": [
+              "C2"
+            ],
+            "quote": "She opened it and used it as a scoop."
+          },
+          {
+            "id": "a24f9ac7-071b-1647-51cb-3de55c8e909c",
+            "short_id": "a24f9ac7",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 1 Friday, April 8",
+            "paragraph_start": 167,
+            "paragraph_end": 168,
+            "relevance": "direct",
+            "supports": [
+              "C2"
+            ],
+            "quote": "They found a damaged cigarette case that seemed to have been used as a scoop."
+          },
+          {
+            "id": "4ff07220-9b6f-b861-398b-e9e6c95fa78c",
+            "short_id": "4ff07220",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 1 Friday, April 8",
+            "paragraph_start": 169,
+            "paragraph_end": 173,
+            "relevance": "support",
+            "supports": [
+              "C2"
+            ],
+            "quote": "I’m beginning to expect that we’ll find her fingerprints on the cigarette case."
+          }
+        ],
+        "notes": "C1 is supported by the hands/arms passages. C2 is supported by the digging passage and the later evidence that the damaged case was used as a scoop."
+      },
+      "c51aa2b1-bc66-5f9b-a323-23138d35675f": {
+        "question": "Who gave the cigarette case to Salander?",
+        "claims": {
+          "C1": "Miriam 'Mimmi' Wu gave her the cigarette case.",
+          "C2": "It was a delayed birthday present.",
+          "C3": "Mimmi bought it at a flea market."
+        },
+        "passages": [
+          {
+            "id": "fd94d7c5-6320-5f9b-a4c1-d22723ee274b",
+            "short_id": "fd94d7c5",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 37,
+            "paragraph_end": 44,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2"
+            ],
+            "quote": "She drew out a beautiful cigarette case with a lid of blue and black enamel"
+          },
+          {
+            "id": "3a5ef833-bdc4-4e15-b80c-c016d848874d",
+            "short_id": "3a5ef833",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 45,
+            "paragraph_end": 49,
+            "relevance": "direct",
+            "supports": [
+              "C3"
+            ],
+            "quote": "I just found it at the flea market."
+          },
+          {
+            "id": "24f8221c-ed7f-b500-9163-30af0efb984d",
+            "short_id": "24f8221c",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 134,
+            "paragraph_end": 136,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "opened the cigarette case Miriam Wu had given her."
+          },
+          {
+            "id": "6becf2df-dbb1-57f8-a0e3-8b3f8560a180",
+            "short_id": "6becf2df",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 26,
+            "paragraph_end": 27,
+            "relevance": "support",
+            "supports": [
+              "C1"
+            ],
+            "quote": "She shut down the computer and sat on her window seat and opened her cigarette case."
+          },
+          {
+            "id": "3cd979d9-64a0-2968-5968-4836b3d4390e",
+            "short_id": "3cd979d9",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 111,
+            "paragraph_end": 114,
+            "relevance": "support",
+            "supports": [
+              "C1"
+            ],
+            "quote": "She opened Mimmi’s cigarette case"
+          }
+        ],
+        "notes": "The gift scene is fd94d7c5; the flea-market origin is the following Mimmi dialogue in 3a5ef833. 24f8221c explicitly calls it the case Miriam Wu gave her."
+      },
+      "09543843-b857-5bcd-ac6c-428ac4eb6501": {
+        "question": "What is the importance of the ciggarrete case?",
+        "claims": {
+          "C1": "Salander used the cigarette case to dig herself out of her grave at Gosseberga.",
+          "C2": "Police recovered it as forensic evidence that she had been buried alive.",
+          "C3": "It refuted Zalachenko's lies."
+        },
+        "passages": [
+          {
+            "id": "d8e9f6b4-9f7d-aef4-b2d0-94fb08b07e9f",
+            "short_id": "d8e9f6b4",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 68,
+            "paragraph_end": 70,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "She opened it and used it as a scoop."
+          },
+          {
+            "id": "a24f9ac7-071b-1647-51cb-3de55c8e909c",
+            "short_id": "a24f9ac7",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 1 Friday, April 8",
+            "paragraph_start": 167,
+            "paragraph_end": 168,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2"
+            ],
+            "quote": "They found a damaged cigarette case that seemed to have been used as a scoop."
+          },
+          {
+            "id": "4ff07220-9b6f-b861-398b-e9e6c95fa78c",
+            "short_id": "4ff07220",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 1 Friday, April 8",
+            "paragraph_start": 169,
+            "paragraph_end": 173,
+            "relevance": "direct",
+            "supports": [
+              "C2"
+            ],
+            "quote": "I’m beginning to expect that we’ll find her fingerprints on the cigarette case."
+          },
+          {
+            "id": "a6ade4a6-440d-d59f-e21b-687845cb9f40",
+            "short_id": "a6ade4a6",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 65,
+            "paragraph_end": 65,
+            "relevance": "support",
+            "supports": [
+              "C1"
+            ],
+            "quote": "She scratched sandy earth from her face and pressed handful after handful into the cavity beneath her."
+          },
+          {
+            "id": "eac9e570-9f89-27c9-b938-ccc28c17ef54",
+            "short_id": "eac9e570",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 63,
+            "paragraph_end": 64,
+            "relevance": "support",
+            "supports": [
+              "C1"
+            ],
+            "quote": "Salander began to scratch. She pressed down on her elbow and managed to make a little room to manoeuvre."
+          },
+          {
+            "id": "0e74ba25-0ac5-59d7-2572-dcf496ef82fc",
+            "short_id": "0e74ba25",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 3 Friday, April 8–Saturday, April 9",
+            "paragraph_start": 47,
+            "paragraph_end": 50,
+            "relevance": "support",
+            "supports": [
+              "C3"
+            ],
+            "quote": "He says he had a cold and was asleep most of the day."
+          },
+          {
+            "id": "9333117e-2ad3-0540-44b0-f75e1295b3d4",
+            "short_id": "9333117e",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 25 Wednesday, July 13–Thursday, July 14",
+            "paragraph_start": 173,
+            "paragraph_end": 173,
+            "relevance": "support",
+            "supports": [
+              "C2",
+              "C3"
+            ],
+            "quote": "had in turn attempted to kill Salander and bury her in a trench in woods nearby"
+          }
+        ],
+        "notes": "C3 is inferential: the case and blood evidence contradict Zalachenko's account; no sentence says 'refuted his lies'. C1/C2 are direct."
+      },
+      "276fb010-6f69-5aef-9593-de095b841537": {
+        "question": "What is armageddon?",
+        "claims": {
+          "C1": "In the books, Armageddon appears in the slogan on Salander's T-shirt.",
+          "C2": "Generally, Armageddon is the prophesied final battle at the end of time."
+        },
+        "passages": [
+          {
+            "id": "a1dd6e66-c4e8-af8a-be1a-6d5b0af6f0e6",
+            "short_id": "a1dd6e66",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 18 Wednesday, June 18",
+            "paragraph_start": 18,
+            "paragraph_end": 20,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "a T-shirt with the slogan ARMAGEDDON WAS YESTERDAY—TODAY WE HAVE A SERIOUS PROBLEM"
+          }
+        ],
+        "notes": "C2 is general knowledge and is not stated anywhere in the corpus. Do not invent a support passage for it; evaluate the book-specific claim only."
       }
     }
   }
