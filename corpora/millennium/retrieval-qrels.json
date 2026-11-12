@@ -1,0 +1,165 @@
+{
+  "version": 1,
+  "description": "Per-question passage relevance labels for retrieval metrics. Relevance is judged without using the pipeline's answer.",
+  "corpus": "millennium",
+  "index_collection": "millennium_books_a7ebc5a988df037cd2ee",
+  "datasets": {
+    "QA.csv": {
+      "785e319a-89a1-5950-96cf-f99a23162a87": {
+        "question": "Did Salander and Mikael have affair?",
+        "claims": {
+          "C1": "They had a sexual/romantic affair.",
+          "C2": "It began at Hedeby during the Harriet Vanger investigation.",
+          "C3": "It lasted about six months.",
+          "C4": "It ended around New Year when Salander saw Blomkvist with Erika Berger and cut contact."
+        },
+        "passages": [
+          {
+            "id": "6bd63a3f-5dac-ca44-4100-2aa1e71aa254",
+            "short_id": "6bd63a3f",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 43,
+            "paragraph_end": 44,
+            "relevance": "direct",
+            "supports": ["C1", "C3", "C4"],
+            "quote": "Blomkvist and Salander had slept together. It had been at her initiative, and the relationship had lasted for half a year."
+          },
+          {
+            "id": "d23eef57-5326-f639-97a2-6e7eb961844e",
+            "short_id": "d23eef57",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 30,
+            "paragraph_end": 32,
+            "relevance": "direct",
+            "supports": ["C4"],
+            "quote": "They had parted two days after Christmas, and he had not seen her for the rest of the week."
+          },
+          {
+            "id": "f0c59a3c-b648-85ff-0ce0-5f0272b1ad88",
+            "short_id": "f0c59a3c",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 19 Friday, June 3–Saturday, June 4",
+            "paragraph_start": 36,
+            "paragraph_end": 39,
+            "relevance": "direct",
+            "supports": ["C4"],
+            "quote": "She remembered still the humiliation she had felt when she saw her walk off down Hornsgatan with Blomkvist the day before New Year’s Eve a year and a half ago."
+          },
+          {
+            "id": "10df0bc4-170e-0192-27d2-11435f322590",
+            "short_id": "10df0bc4",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "EPILOGUE: FINAL AUDIT Thursday, November 27– Tuesday, December 30",
+            "paragraph_start": 129,
+            "paragraph_end": 132,
+            "relevance": "direct",
+            "supports": ["C4"],
+            "quote": "At Hornsgatan she happened to glance towards Kaffebar and saw Blomkvist coming out with Berger in tow."
+          },
+          {
+            "id": "bca0a41d-ef35-4fbb-b286-c30740bff40c",
+            "short_id": "bca0a41d",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 27 Saturday, July 26– Monday, July 28",
+            "paragraph_start": 128,
+            "paragraph_end": 130,
+            "relevance": "direct",
+            "supports": ["C1", "C2"],
+            "quote": "Now I’m going in to take a shower, and then I think I’ll get into your bed naked."
+          },
+          {
+            "id": "900f9848-fa26-48fe-9f70-a9c0c84972c7",
+            "short_id": "900f9848",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 27 Saturday, July 26– Monday, July 28",
+            "paragraph_start": 123,
+            "paragraph_end": 127,
+            "relevance": "direct",
+            "supports": ["C1", "C2"],
+            "quote": "“I do like having sex with you,” she said."
+          },
+          {
+            "id": "9c1bd544-2b91-cc79-5c70-f3618c73f02e",
+            "short_id": "9c1bd544",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 27 Saturday, July 26– Monday, July 28",
+            "paragraph_start": 131,
+            "paragraph_end": 134,
+            "relevance": "direct",
+            "supports": ["C1"],
+            "quote": "They got up at 10:00, took a shower together, and ate breakfast out in the garden."
+          },
+          {
+            "id": "3c213e5f-0349-1c24-106a-6e05f2b1bcf6",
+            "short_id": "3c213e5f",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 28 Tuesday, July 29– Friday, October 24",
+            "paragraph_start": 120,
+            "paragraph_end": 121,
+            "relevance": "direct",
+            "supports": ["C1"],
+            "quote": "Then she took him up to the loft and managed to get his clothes off and distract him even further."
+          },
+          {
+            "id": "24737723-199a-5a7d-d3de-94c45aaf422e",
+            "short_id": "24737723",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 28 Tuesday, July 29– Friday, October 24",
+            "paragraph_start": 122,
+            "paragraph_end": 123,
+            "relevance": "direct",
+            "supports": ["C1"],
+            "quote": "They ate dinner rather late and only then did Salander take the initiative and force him up to the sleeping loft, where she saw to it that he devoted all his attention to her."
+          },
+          {
+            "id": "7a6f14bf-3750-2673-1289-13288f781aee",
+            "short_id": "7a6f14bf",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "EPILOGUE: FINAL AUDIT Thursday, November 27– Tuesday, December 30",
+            "paragraph_start": 64,
+            "paragraph_end": 65,
+            "relevance": "direct",
+            "supports": ["C1"],
+            "quote": "they lit a fire in the woodstove, put on an Elvis CD, and devoted themselves to some plain old sex"
+          },
+          {
+            "id": "15ae6509-fd66-61c2-2224-4145fb38e9ce",
+            "short_id": "15ae6509",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 19 Friday, June 3–Saturday, June 4",
+            "paragraph_start": 255,
+            "paragraph_end": 257,
+            "relevance": "direct",
+            "supports": ["C1"],
+            "quote": "And sex with Blomkvist, out of shape as he was, was just fine. More than just fine, actually."
+          },
+          {
+            "id": "6dbdec49-f9cd-e292-482c-1c4c29adda09",
+            "short_id": "6dbdec49",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "EPILOGUE: FINAL AUDIT Thursday, November 27– Tuesday, December 30",
+            "paragraph_start": 61,
+            "paragraph_end": 63,
+            "relevance": "support",
+            "supports": ["C1", "C4"],
+            "quote": "He kissed his daughter goodbye after the lunch and met Salander at Slussen. They went out to Sandhamn."
+          },
+          {
+            "id": "5125a1d2-d4b7-cb2f-36de-6c3aac6cb2d8",
+            "short_id": "5125a1d2",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "EPILOGUE: FINAL AUDIT Thursday, November 27– Tuesday, December 30",
+            "paragraph_start": 71,
+            "paragraph_end": 73,
+            "relevance": "support",
+            "supports": ["C1", "C4"],
+            "quote": "What she had realised was that love was that moment when your heart was about to burst."
+          }
+        ],
+        "notes": "C2 is supported by the Hedeby chapter setting, not by a sentence that repeats 'Hedeby' in these passages. C4 is split across the parting/time passages and the Hornsgatan sighting. Direct labels are the headline set; support labels are reported separately."
+      }
+    }
+  }
+}
