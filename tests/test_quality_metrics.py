@@ -3,7 +3,7 @@ import json
 import unittest
 from types import SimpleNamespace
 
-from app.quality_metrics import SearchCall, _context_text, _precision_at, extract_trace
+from app.quality_metrics import SearchCall, _context_text, _precision_at, extract_trace, faithfulness_context
 
 
 class QualityMetricChecks(unittest.TestCase):
@@ -41,6 +41,20 @@ class QualityMetricChecks(unittest.TestCase):
         ]
         _, _, texts, _, _ = extract_trace(observations)
         self.assertEqual(texts["11111111"], "the full passage text")
+
+    def test_faithfulness_uses_recorded_model_input_not_trace_evidence(self):
+        root = SimpleNamespace(name="agent run", output={"stopped": "submit"})
+        generation = SimpleNamespace(name="query agent model: tool selection and answer", start_time=1,
+                                     input=json.dumps([{"role": "tool", "content": "actual snippet"}]))
+        extra = SimpleNamespace(name="tool: read_passage", output={"passage": {"text": "unseen text"}})
+        self.assertEqual(faithfulness_context([root, generation, extra]), ("actual snippet", None))
+
+    def test_faithfulness_rejects_oversize_and_rewritten_context(self):
+        root = SimpleNamespace(name="agent run", output={"stopped": "submit"})
+        generation = SimpleNamespace(name="query agent model: tool selection and answer", start_time=1,
+                                     input=[{"role": "tool", "content": "x" * 12001}])
+        self.assertIsNone(faithfulness_context([root, generation])[0])
+        self.assertIsNone(faithfulness_context([root, generation, SimpleNamespace(name="coverage rewrite")])[0])
 
     def test_context_text_marks_each_passage_with_its_id(self):
         text = _context_text({"a", "b"}, {"a": "first", "b": "second"})

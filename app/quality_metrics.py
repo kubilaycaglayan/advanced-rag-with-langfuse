@@ -152,8 +152,14 @@ def _precision_at(call: SearchCall, relevant: set[str], k: int) -> float | None:
     return round(sum(1 for short in call.hit_ids[:k] if short in relevant) / k, 4)
 
 
+def _hit_at(call: SearchCall, relevant: set[str], k: int) -> float | None:
+    if len(call.hit_ids) < k:
+        return None
+    return float(any(short in relevant for short in call.hit_ids[:k]))
+
+
 def _context_text(union_ids: set[str], texts: dict[str, str], locations: dict[str, dict[str, Any]] | None = None,
-                  limit: int = 16000) -> str:
+                  limit: int | None = None) -> str:
     lines = []
     for short in sorted(union_ids):
         text = texts.get(short)
@@ -164,6 +170,33 @@ def _context_text(union_ids: set[str], texts: dict[str, str], locations: dict[st
                 f"¶{location.get('paragraph')}" if location.get("paragraph") is not None else None) if part)
             lines.append(f"[{short}] {label}\n{text}" if label else f"[{short}] {text}")
     return "\n\n".join(lines)[:limit]
+
+
+def faithfulness_context(observations: list[Any]) -> tuple[str | None, str | None]:
+    """Use the recorded final agent-model input, never reconstructed evidence."""
+    roots = [o for o in observations if o.name == "agent run"]
+    if len(roots) != 1:
+        return None, "Missing or ambiguous agent run"
+    result = _loads(roots[0].output)
+    if not isinstance(result, dict) or result.get("stopped") not in ("submit", "content"):
+        return None, "Final answer used an unsupported synthesis or stopping path"
+    if any(o.name in ("coverage rewrite", "abstention synthesis") for o in observations):
+        return None, "Final answer may have been rewritten after the agent response"
+    generations = [o for o in observations if o.name == "query agent model: tool selection and answer"]
+    if not generations or any(getattr(o, "start_time", None) is None for o in generations):
+        return None, "Missing agent model inputs or their ordering"
+    generation = max(generations, key=lambda o: o.start_time)
+    messages = _loads(getattr(generation, "input", None))
+    if not isinstance(messages, list) or not all(isinstance(m, dict) for m in messages):
+        return None, "Final agent model input is missing or malformed"
+    tool_messages = [m.get("content") for m in messages if m.get("role") == "tool"]
+    if not tool_messages or not all(isinstance(content, str) for content in tool_messages):
+        return None, "Tool responses are missing or malformed"
+    context = "\n\n".join(tool_messages)
+    # Conservative character budget leaves room for question, answer, schema and prompt.
+    if len(context) > 12000:
+        return None, "Agent context exceeds the judge's conservative input budget"
+    return context, None
 
 
 def _ollama_json(messages: list[dict[str, str]], schema: dict[str, Any], model: str) -> tuple[dict[str, Any], str]:
@@ -229,14 +262,17 @@ def score_trace(trace_id: str, qrels_path: Path, dataset: str, item_id: str,
     try:
         observations = fetch_observations(client, trace_id)
         calls, union_ids, texts, answer, locations = extract_trace(observations)
-        question = qrels["datasets"][dataset][item_id]["question"]
+        item = qrels["datasets"][dataset][item_id]
+        question = item["question"]
+        single = item.get("single_evidence", False)
+        broad = item.get("question_type") == "broad"
         per_call = []
         for call in calls:
             result = {"tool": call.tool, "observation_id": call.observation_id,
                       "query": call.query, "returned": len(call.hit_ids),
                       "precision": {}}
             for k in ks:
-                value = _precision_at(call, direct, k)
+                value = None if broad else (_hit_at(call, direct, k) if single else _precision_at(call, direct, k))
                 if value is not None:
                     result["precision"][k] = value
             per_call.append(result)
@@ -244,16 +280,20 @@ def score_trace(trace_id: str, qrels_path: Path, dataset: str, item_id: str,
         metrics: dict[str, float | None] = {}
         for k in ks:
             values = [row["precision"][k] for row in per_call if k in row["precision"]]
-            metrics[f"qm_precision_retrieval_at_{k}"] = round(statistics.mean(values), 4) if values else None
+            if not broad:
+                name = "hit" if single else "precision"
+                metrics[f"qm_{name}_retrieval_at_{k}"] = round(statistics.mean(values), 4) if values else None
 
         direct_in_union = direct & union_ids
-        metrics["qm_precision_retrieval_set"] = (round(len(direct_in_union) / len(union_ids), 4)
+        if not single and not broad:
+            metrics["qm_precision_retrieval_set"] = (round(len(direct_in_union) / len(union_ids), 4)
                                                 if union_ids else None)
-        metrics["qm_recall_retrieval_context"] = (round(len(direct_in_union) / len(direct), 4)
+            metrics["qm_recall_retrieval_context"] = (round(len(direct_in_union) / len(direct), 4)
                                                  if direct else None)
 
-        context = _context_text(union_ids, texts, locations)
-        faithfulness = judge_faithfulness(question, answer, context, model) if answer else {"score": None}
+        context, context_error = faithfulness_context(observations)
+        faithfulness = (judge_faithfulness(question, answer, context, model)
+                        if answer and context is not None else {"score": None, "reason": context_error or "Missing answer"})
         relevancy = judge_relevancy(question, answer, model) if answer else {"score": None}
         metrics["qm_faithfulness_generation"] = faithfulness.get("score")
         metrics["qm_relevancy_generation"] = relevancy.get("score")
@@ -264,7 +304,7 @@ def score_trace(trace_id: str, qrels_path: Path, dataset: str, item_id: str,
                   "direct_gold_count": len(direct), "direct_gold_found": sorted(direct_in_union),
                   "metrics": metrics, "faithfulness": faithfulness, "relevancy": relevancy,
                   "qrels_version": qrels.get("version"), "index_collection": qrels.get("index_collection"),
-                  "judge_model": model}
+                  "judge_model": model, "faithfulness_context_method": "agent_model_input_v1"}
         if not write:
             return output
 
@@ -276,10 +316,10 @@ def score_trace(trace_id: str, qrels_path: Path, dataset: str, item_id: str,
                           "judge_model": model}) as root:
             for call in calls:
                 for k in ks:
-                    value = _precision_at(call, direct, k)
+                    value = None if broad else (_hit_at(call, direct, k) if single else _precision_at(call, direct, k))
                     if value is None:
                         continue
-                    _write_score(client, f"qm_precision_retrieval_at_{k}", value, trace_id=trace_id,
+                    _write_score(client, f"qm_{'hit' if single else 'precision'}_retrieval_at_{k}", value, trace_id=trace_id,
                                  observation_id=call.observation_id,
                                  comment=f"{call.tool} top {k}",
                                  metadata={"tool": call.tool, "query": call.query, "k": k,
