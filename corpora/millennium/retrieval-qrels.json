@@ -636,7 +636,269 @@
             "quote": "a T-shirt with the slogan ARMAGEDDON WAS YESTERDAY—TODAY WE HAVE A SERIOUS PROBLEM"
           }
         ],
-        "notes": "C2 is general knowledge and is not stated anywhere in the corpus. Do not invent a support passage for it; evaluate the book-specific claim only."
+        "notes": "C2 is general knowledge and is not stated anywhere in the corpus. Do not invent a support passage for it; evaluate the book-specific claim only.",
+        "single_evidence": true,
+        "question_type": "single_evidence"
+      },
+      "9cec0dd1-4ede-5f14-8162-8de3c76938a8": {
+        "question": "when was she wearing the armageddon shirt?",
+        "claims": {
+          "C1": "She wore the Armageddon T-shirt.",
+          "C2": "It was when Mikael first came to her Lundagatan apartment.",
+          "C3": "He came to recruit her as a research assistant.",
+          "C4": "This is in The Girl with the Dragon Tattoo."
+        },
+        "passages": [
+          {
+            "id": "a1dd6e66-c4e8-af8a-be1a-6d5b0af6f0e6",
+            "short_id": "a1dd6e66",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 18 Wednesday, June 18",
+            "paragraph_start": 18,
+            "paragraph_end": 20,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2",
+              "C4"
+            ],
+            "quote": "a T-shirt with the slogan ARMAGEDDON WAS YESTERDAY—TODAY WE HAVE A SERIOUS PROBLEM"
+          },
+          {
+            "id": "141c0304-8ea9-872f-ad44-6a90abb35b73",
+            "short_id": "141c0304",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 18 Wednesday, June 18",
+            "paragraph_start": 68,
+            "paragraph_end": 71,
+            "relevance": "support",
+            "supports": [
+              "C2",
+              "C3"
+            ],
+            "quote": "I want you to help me to identify a murderer."
+          },
+          {
+            "id": "b40dede4-c77b-cdc3-64ad-c1b7c9f64865",
+            "short_id": "b40dede4",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 18 Wednesday, June 18",
+            "paragraph_start": 61,
+            "paragraph_end": 63,
+            "relevance": "support",
+            "supports": [
+              "C2",
+              "C3"
+            ],
+            "quote": "I’ve reached a point where I need a skilled researcher."
+          },
+          {
+            "id": "b0ff2be1-8ebc-9caa-35bc-491b55a2a052",
+            "short_id": "b0ff2be1",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 18 Wednesday, June 18",
+            "paragraph_start": 43,
+            "paragraph_end": 48,
+            "relevance": "support",
+            "supports": [
+              "C2"
+            ],
+            "quote": "The self-confidence that he had shown when he first walked into her apartment was now gone."
+          },
+          {
+            "id": "a82ca314-97bb-93cb-0b42-f35ccff434a0",
+            "short_id": "a82ca314",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 18 Wednesday, June 18",
+            "paragraph_start": 34,
+            "paragraph_end": 38,
+            "relevance": "support",
+            "supports": [
+              "C2"
+            ],
+            "quote": "if he were an assailant who had forced his way into her apartment"
+          },
+          {
+            "id": "44c0a508-e727-7d6d-ab24-a3180b8b56a4",
+            "short_id": "44c0a508",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 18 Wednesday, June 18",
+            "paragraph_start": 51,
+            "paragraph_end": 56,
+            "relevance": "support",
+            "supports": [
+              "C3"
+            ],
+            "quote": "The job I was offered, and which inexplicably I agreed to do, is without doubt the most bizarre assignment I’ve ever undertaken."
+          },
+          {
+            "id": "06f3a192-4172-46f8-a9cf-8ce1fb51992c",
+            "short_id": "06f3a192",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 18 Wednesday, June 18",
+            "paragraph_start": 171,
+            "paragraph_end": 175,
+            "relevance": "support",
+            "supports": [
+              "C3"
+            ],
+            "quote": "I’m here to ask you to help me do some research."
+          },
+          {
+            "id": "490fee5f-7565-88f2-c27f-b67067fefea7",
+            "short_id": "490fee5f",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 18 Wednesday, June 18",
+            "paragraph_start": 91,
+            "paragraph_end": 91,
+            "relevance": "support",
+            "supports": [
+              "C3"
+            ],
+            "quote": "he had been there to hire a research assistant"
+          }
+        ],
+        "notes": "Single-evidence question: only a1dd6e66 is the direct evidence for the shirt/when. The recruitment passages 141c0304 and b40dede4 explain the context but are support, not additional evidence.",
+        "single_evidence": true,
+        "question_type": "single_evidence"
+      },
+      "5491526c-fa73-57bc-98c7-9bfc36fbf9a7": {
+        "question": "Does Mikael have savior complex?",
+        "claims": {
+          "C1": "He shows strong savior/protector tendencies, repeatedly helping abused women or victims of injustice.",
+          "C2": "Examples include Harriet, Lisbeth, and trafficking victims.",
+          "C3": "It is not a clinical diagnosis."
+        },
+        "passages": [
+          {
+            "id": "489ccec5-ec97-a886-eef4-f4c490e95d37",
+            "short_id": "489ccec5",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 1 Friday, April 8",
+            "paragraph_start": 69,
+            "paragraph_end": 71,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2"
+            ],
+            "quote": "He had found Lisbeth Salander just after midnight. She was very badly wounded."
+          },
+          {
+            "id": "72de9565-afdd-0680-5d40-b4dc040e7c4a",
+            "short_id": "72de9565",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 10,
+            "paragraph_end": 13,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2"
+            ],
+            "quote": "Lisbeth is going to need somebody she can trust."
+          },
+          {
+            "id": "3d50e1c5-af32-0f23-7744-4cd227777efb",
+            "short_id": "3d50e1c5",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 5 Sunday, April 10",
+            "paragraph_start": 37,
+            "paragraph_end": 38,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2"
+            ],
+            "quote": "If I take on her defence, it could turn out to be a disaster."
+          },
+          {
+            "id": "0fe4d720-5cd8-5b9d-6947-eef025416e07",
+            "short_id": "0fe4d720",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 97,
+            "paragraph_end": 99,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2"
+            ],
+            "quote": "Blomkvist said. “Tell us about it.”"
+          },
+          {
+            "id": "f50ac860-dc65-9a35-3ad9-02e5afb6a249",
+            "short_id": "f50ac860",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 89,
+            "paragraph_end": 91,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2"
+            ],
+            "quote": "“Trafficking,” Svensson said."
+          },
+          {
+            "id": "141c0304-8ea9-872f-ad44-6a90abb35b73",
+            "short_id": "141c0304",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 18 Wednesday, June 18",
+            "paragraph_start": 68,
+            "paragraph_end": 71,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2"
+            ],
+            "quote": "I want you to help me to identify a murderer."
+          },
+          {
+            "id": "a8b1fbf5-7b61-4108-aebb-37d2b079bd77",
+            "short_id": "a8b1fbf5",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 159,
+            "paragraph_end": 164,
+            "relevance": "support",
+            "supports": [
+              "C1",
+              "C2"
+            ],
+            "quote": "since she was twelve years old she’s been a threat to national security"
+          },
+          {
+            "id": "6e236653-65f6-b349-52fb-07c3ab024944",
+            "short_id": "6e236653",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 5 Thursday, December 26",
+            "paragraph_start": 48,
+            "paragraph_end": 50,
+            "relevance": "support",
+            "supports": [
+              "C2"
+            ],
+            "quote": "Harriet disappeared against her will."
+          },
+          {
+            "id": "22e41073-5d17-43c7-f172-1021d99b63c4",
+            "short_id": "22e41073",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 11 Friday, May 13–Saturday, May 14",
+            "paragraph_start": 245,
+            "paragraph_end": 248,
+            "relevance": "support",
+            "supports": [
+              "C1"
+            ],
+            "quote": "I’m here in a completely private capacity."
+          }
+        ],
+        "notes": "C1 is an interpretive pattern, not a diagnosis. C3 has no corpus passage; it is a framing caveat. Examples are labelled direct when they show the protective act, support when they only establish the case.",
+        "single_evidence": false,
+        "question_type": "broad",
+        "retrieval_metrics": "answer_level_only"
       }
     }
   }

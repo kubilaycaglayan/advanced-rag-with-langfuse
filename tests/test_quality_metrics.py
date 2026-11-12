@@ -24,7 +24,7 @@ class QualityMetricChecks(unittest.TestCase):
             SimpleNamespace(id="root", name="experiment-item-task", output=json.dumps({
                 "answer": "Yes.", "evidence": [{"id": "55555555", "text": "five"}]})),
         ]
-        calls, union_ids, texts, answer = extract_trace(observations)
+        calls, union_ids, texts, answer, locations = extract_trace(observations)
         self.assertEqual(answer, "Yes.")
         self.assertEqual([call.hit_ids for call in calls], [["11111111", "22222222"]])
         self.assertEqual(union_ids, {"11111111", "22222222", "33333333", "44444444", "55555555"})
@@ -39,7 +39,7 @@ class QualityMetricChecks(unittest.TestCase):
                 "passage": {"id": "11111111", "text": "the full passage text"},
                 "neighbours": []})),
         ]
-        _, _, texts, _ = extract_trace(observations)
+        _, _, texts, _, _ = extract_trace(observations)
         self.assertEqual(texts["11111111"], "the full passage text")
 
     def test_context_text_marks_each_passage_with_its_id(self):

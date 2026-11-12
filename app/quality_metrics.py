@@ -77,11 +77,12 @@ def fetch_observations(client: Langfuse, trace_id: str) -> list[Any]:
     return list(page.data)
 
 
-def extract_trace(observations: list[Any]) -> tuple[list[SearchCall], set[str], dict[str, str], str]:
-    """Collect search calls, the union of passage IDs, passage texts and the final answer."""
+def extract_trace(observations: list[Any]) -> tuple[list[SearchCall], set[str], dict[str, str], str, dict[str, dict[str, Any]]]:
+    """Collect search calls, the union of passage IDs, passage texts, locations and the final answer."""
     calls: list[SearchCall] = []
     union_ids: set[str] = set()
     texts: dict[str, str] = {}
+    locations: dict[str, dict[str, Any]] = {}
     answer = ""
 
     def add_row(row: Any) -> None:
@@ -94,6 +95,8 @@ def extract_trace(observations: list[Any]) -> tuple[list[SearchCall], set[str], 
                 # Search hits carry short snippets; a later read_passage has the full text.
                 if len(row["text"]) > len(texts.get(short, "")):
                     texts[short] = row["text"]
+            if any(row.get(key) is not None for key in ("book", "chapter", "paragraph")):
+                locations.setdefault(short, {key: row.get(key) for key in ("book", "chapter", "paragraph")})
 
     def add_ids(values: Any) -> None:
         if isinstance(values, list):
@@ -140,7 +143,7 @@ def extract_trace(observations: list[Any]) -> tuple[list[SearchCall], set[str], 
                 add_row(row)
         if observation.name == "tool: submit_answer" and isinstance(data.get("answer"), str) and not answer:
             answer = data["answer"]
-    return calls, union_ids, texts, answer
+    return calls, union_ids, texts, answer, locations
 
 
 def _precision_at(call: SearchCall, relevant: set[str], k: int) -> float | None:
@@ -149,12 +152,17 @@ def _precision_at(call: SearchCall, relevant: set[str], k: int) -> float | None:
     return round(sum(1 for short in call.hit_ids[:k] if short in relevant) / k, 4)
 
 
-def _context_text(union_ids: set[str], texts: dict[str, str], limit: int = 16000) -> str:
+def _context_text(union_ids: set[str], texts: dict[str, str], locations: dict[str, dict[str, Any]] | None = None,
+                  limit: int = 16000) -> str:
     lines = []
     for short in sorted(union_ids):
         text = texts.get(short)
         if text:
-            lines.append(f"[{short}] {text}")
+            location = (locations or {}).get(short) or {}
+            label = " | ".join(str(part) for part in (
+                location.get("book"), location.get("chapter"),
+                f"¶{location.get('paragraph')}" if location.get("paragraph") is not None else None) if part)
+            lines.append(f"[{short}] {label}\n{text}" if label else f"[{short}] {text}")
     return "\n\n".join(lines)[:limit]
 
 
@@ -220,7 +228,7 @@ def score_trace(trace_id: str, qrels_path: Path, dataset: str, item_id: str,
     client = Langfuse()
     try:
         observations = fetch_observations(client, trace_id)
-        calls, union_ids, texts, answer = extract_trace(observations)
+        calls, union_ids, texts, answer, locations = extract_trace(observations)
         question = qrels["datasets"][dataset][item_id]["question"]
         per_call = []
         for call in calls:
@@ -244,7 +252,7 @@ def score_trace(trace_id: str, qrels_path: Path, dataset: str, item_id: str,
         metrics["qm_recall_retrieval_context"] = (round(len(direct_in_union) / len(direct), 4)
                                                  if direct else None)
 
-        context = _context_text(union_ids, texts)
+        context = _context_text(union_ids, texts, locations)
         faithfulness = judge_faithfulness(question, answer, context, model) if answer else {"score": None}
         relevancy = judge_relevancy(question, answer, model) if answer else {"score": None}
         metrics["qm_faithfulness_generation"] = faithfulness.get("score")
