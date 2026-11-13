@@ -15,6 +15,8 @@ import argparse
 import json
 import os
 import statistics
+import time
+from contextlib import nullcontext
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -254,92 +256,153 @@ def judge_relevancy(question: str, answer: str, model: str) -> dict[str, Any]:
     return {"score": round(float(score), 4), "explanation": data.get("explanation", "")}
 
 
-def _write_score(client: Langfuse, name: str, value: float, *, trace_id: str,
-                 observation_id: str | None = None, comment: str = "",
-                 metadata: dict[str, Any] | None = None) -> None:
-    client.create_score(name=name, value=float(value), trace_id=trace_id,
-                        observation_id=observation_id, data_type="NUMERIC",
-                        comment=comment, metadata=metadata or {})
-
-
 def score_trace(trace_id: str, qrels_path: Path, dataset: str, item_id: str,
                 ks: tuple[int, ...], model: str, *, write: bool) -> dict[str, Any]:
     qrels, passages = load_qrels(qrels_path, dataset, item_id)
     direct = {row["short_id"] for row in passages if row["relevance"] == "direct"}
+    item = qrels["datasets"][dataset][item_id]
+    question = item["question"]
+    single = item.get("single_evidence", False)
+    broad = item.get("question_type") == "broad"
+    metadata = {"dataset": dataset, "item_id": item_id, "qrels_version": qrels.get("version"),
+                "index_collection": qrels.get("index_collection"), "judge_model": model}
     client = Langfuse()
+    def scope(name: str, **kwargs: Any):
+        return (client.start_as_current_observation(name=name, as_type="span", **kwargs)
+                if write else nullcontext(None))
+
+    def score(observation: Any, name: str, value: float | None, duration: float,
+              *, extra: dict[str, Any] | None = None, comment: str = "") -> None:
+        if observation is not None and value is not None:
+            observation.score(name=name, value=float(value), data_type="NUMERIC", comment=comment,
+                              metadata={**metadata, "relevance": "direct", "duration_seconds": duration,
+                                        **(extra or {})})
+
     try:
+        total_start = time.perf_counter()
+        fetch_start = time.perf_counter()
         observations = fetch_observations(client, trace_id)
-        calls, union_ids, texts, answer, locations = extract_trace(observations)
-        item = qrels["datasets"][dataset][item_id]
-        question = item["question"]
-        single = item.get("single_evidence", False)
-        broad = item.get("question_type") == "broad"
-        per_call = []
-        for call in calls:
-            result = {"tool": call.tool, "observation_id": call.observation_id,
-                      "query": call.query, "returned": len(call.hit_ids),
-                      "precision": {}}
-            for k in ks:
-                value = None if broad else (_hit_at(call, direct, k) if single else _precision_at(call, direct, k))
-                if value is not None:
-                    result["precision"][k] = value
-            per_call.append(result)
+        fetch_seconds = time.perf_counter() - fetch_start
+        roots = [o for o in observations if getattr(o, "parent_observation_id", None) is None
+                 and getattr(o, "id", None)]
+        source_root = next((o for o in roots if o.name == "experiment-item-run"),
+                           roots[0] if len(roots) == 1 else None)
+        if source_root is None:
+            agents = [o for o in observations if o.name == "agent run" and getattr(o, "id", None)]
+            source_root = agents[0] if len(agents) == 1 else None
+        if write and source_root is None:
+            raise ValueError("Cannot attach quality evaluation: source trace has no unambiguous parent observation")
+        trace_context = {"trace_id": trace_id}
+        if source_root is not None:
+            trace_context["parent_span_id"] = source_root.id
+        with scope("quality evaluation", trace_context=trace_context,
+                   input={"question": question, "dataset": dataset, "item_id": item_id},
+                   metadata=metadata) as parent:
+            with scope("extract evaluation source", input={"source_trace_id": trace_id}) as source_span:
+                source_start = time.perf_counter()
+                calls, union_ids, texts, answer, locations = extract_trace(observations)
+                source_seconds = fetch_seconds + time.perf_counter() - source_start
+                if source_span is not None:
+                    source_span.update(output={"observation_count": len(observations), "answer_present": bool(answer),
+                                               "fetch_duration_seconds": fetch_seconds,
+                                               "duration_seconds": source_seconds})
 
-        metrics: dict[str, float | None] = {}
-        for k in ks:
-            values = [row["precision"][k] for row in per_call if k in row["precision"]]
-            if not broad:
-                name = "hit" if single else "precision"
-                metrics[f"qm_{name}_retrieval_at_{k}"] = round(statistics.mean(values), 4) if values else None
-
-        direct_in_union = direct & union_ids
-        if not single and not broad:
-            metrics["qm_precision_retrieval_set"] = (round(len(direct_in_union) / len(union_ids), 4)
-                                                if union_ids else None)
-            metrics["qm_recall_retrieval_context"] = (round(len(direct_in_union) / len(direct), 4)
-                                                 if direct else None)
-
-        context, context_error = faithfulness_context(observations)
-        faithfulness = (judge_faithfulness(question, answer, context, model)
-                        if answer and context is not None else {"score": None, "reason": context_error or "Missing answer"})
-        relevancy = judge_relevancy(question, answer, model) if answer else {"score": None}
-        metrics["qm_faithfulness_generation"] = faithfulness.get("score")
-        metrics["qm_relevancy_generation"] = relevancy.get("score")
-
-        output = {"trace_id": trace_id, "dataset": dataset, "item_id": item_id,
-                  "question": question, "answer": answer, "search_calls": per_call,
-                  "union_passage_count": len(union_ids), "union_text_count": len(texts),
-                  "direct_gold_count": len(direct), "direct_gold_found": sorted(direct_in_union),
-                  "metrics": metrics, "faithfulness": faithfulness, "relevancy": relevancy,
-                  "qrels_version": qrels.get("version"), "index_collection": qrels.get("index_collection"),
-                  "judge_model": model, "faithfulness_context_method": "agent_model_input_v1"}
-        if not write:
-            return output
-
-        with client.start_as_current_observation(
-                trace_context={"trace_id": trace_id}, name="retrieval metrics",
-                as_type="span", input={"question": question, "item_id": item_id},
-                metadata={"qrels_version": qrels.get("version"),
-                          "index_collection": qrels.get("index_collection"),
-                          "judge_model": model}) as root:
-            for call in calls:
+            metrics: dict[str, float | None] = {}
+            per_call = []
+            with scope("retrieval evaluation", metadata=metadata) as retrieval_span:
+                retrieval_start = time.perf_counter()
+                for call in calls:
+                    with scope("retrieval search call evaluation", input={"tool": call.tool, "query": call.query},
+                               metadata={"source_observation_id": call.observation_id}) as call_span:
+                        call_start = time.perf_counter()
+                        result = {"tool": call.tool, "observation_id": call.observation_id,
+                                  "query": call.query, "returned": len(call.hit_ids), "precision": {}}
+                        for k in ks:
+                            value = None if broad else (_hit_at(call, direct, k) if single else _precision_at(call, direct, k))
+                            if value is not None:
+                                result["precision"][k] = value
+                        call_seconds = time.perf_counter() - call_start
+                        for k, value in result["precision"].items():
+                            score(call_span, f"qm_{'hit' if single else 'precision'}_retrieval_at_{k}", value,
+                                  call_seconds, extra={"tool": call.tool, "query": call.query, "k": k,
+                                                       "returned": len(call.hit_ids),
+                                                       "source_observation_id": call.observation_id},
+                                  comment=f"{call.tool} top {k}")
+                        result["duration_seconds"] = call_seconds
+                        if call_span is not None:
+                            call_span.update(output=result)
+                        per_call.append(result)
                 for k in ks:
-                    value = None if broad else (_hit_at(call, direct, k) if single else _precision_at(call, direct, k))
-                    if value is None:
-                        continue
-                    _write_score(client, f"qm_{'hit' if single else 'precision'}_retrieval_at_{k}", value, trace_id=trace_id,
-                                 observation_id=call.observation_id,
-                                 comment=f"{call.tool} top {k}",
-                                 metadata={"tool": call.tool, "query": call.query, "k": k,
-                                           "returned": len(call.hit_ids), "relevance": "direct"})
-            for name, value in metrics.items():
-                if value is not None:
-                    _write_score(client, name, value, trace_id=trace_id,
-                                 comment=f"{dataset}/{item_id[:8]} direct-only {name}",
-                                 metadata={"item_id": item_id, "qrels_version": qrels.get("version"),
-                                           "index_collection": qrels.get("index_collection"),
-                                           "relevance": "direct"})
-            root.update(output=output)
+                    values = [row["precision"][k] for row in per_call if k in row["precision"]]
+                    if not broad:
+                        name = "hit" if single else "precision"
+                        metrics[f"qm_{name}_retrieval_at_{k}"] = round(statistics.mean(values), 4) if values else None
+                direct_in_union = direct & union_ids
+                if not single and not broad:
+                    metrics["qm_precision_retrieval_set"] = (round(len(direct_in_union) / len(union_ids), 4)
+                                                             if union_ids else None)
+                    metrics["qm_recall_retrieval_context"] = (round(len(direct_in_union) / len(direct), 4)
+                                                              if direct else None)
+                retrieval_seconds = time.perf_counter() - retrieval_start
+                for name, value in metrics.items():
+                    score(retrieval_span, name, value, retrieval_seconds,
+                          comment=f"{dataset}/{item_id[:8]} direct-only {name}")
+                if retrieval_span is not None:
+                    retrieval_span.update(output={"metrics": metrics.copy(), "duration_seconds": retrieval_seconds,
+                                                  "status": "skipped" if broad else "completed",
+                                                  "reason": "Broad question" if broad else None})
+
+            errors = []
+            with scope("faithfulness evaluation", input={"question": question, "answer": answer},
+                       metadata=metadata) as faith_span:
+                faith_start = time.perf_counter()
+                context, context_error = faithfulness_context(observations)
+                try:
+                    faithfulness = (judge_faithfulness(question, answer, context, model)
+                                    if answer and context is not None else
+                                    {"score": None, "reason": context_error or "Missing answer"})
+                except Exception as exc:
+                    faithfulness = {"score": None, "reason": f"{type(exc).__name__}: {exc}"}
+                    errors.append("faithfulness")
+                faith_seconds = time.perf_counter() - faith_start
+                metrics["qm_faithfulness_generation"] = faithfulness.get("score")
+                score(faith_span, "qm_faithfulness_generation", faithfulness.get("score"), faith_seconds,
+                      comment=f"{dataset}/{item_id[:8]} direct-only qm_faithfulness_generation")
+                if faith_span is not None:
+                    faith_span.update(output={**faithfulness, "duration_seconds": faith_seconds},
+                                      level="ERROR" if "faithfulness" in errors else "DEFAULT",
+                                      status_message=faithfulness.get("reason"))
+
+            with scope("relevancy evaluation", input={"question": question, "answer": answer},
+                       metadata=metadata) as rel_span:
+                rel_start = time.perf_counter()
+                try:
+                    relevancy = judge_relevancy(question, answer, model) if answer else {"score": None, "reason": "Missing answer"}
+                except Exception as exc:
+                    relevancy = {"score": None, "reason": f"{type(exc).__name__}: {exc}"}
+                    errors.append("relevancy")
+                rel_seconds = time.perf_counter() - rel_start
+                metrics["qm_relevancy_generation"] = relevancy.get("score")
+                score(rel_span, "qm_relevancy_generation", relevancy.get("score"), rel_seconds,
+                      comment=f"{dataset}/{item_id[:8]} direct-only qm_relevancy_generation")
+                if rel_span is not None:
+                    rel_span.update(output={**relevancy, "duration_seconds": rel_seconds},
+                                    level="ERROR" if "relevancy" in errors else "DEFAULT",
+                                    status_message=relevancy.get("reason"))
+
+            output = {"trace_id": trace_id, "dataset": dataset, "item_id": item_id,
+                      "question": question, "answer": answer, "search_calls": per_call,
+                      "union_passage_count": len(union_ids), "union_text_count": len(texts),
+                      "direct_gold_count": len(direct), "direct_gold_found": sorted(direct_in_union),
+                      "metrics": metrics, "faithfulness": faithfulness, "relevancy": relevancy,
+                      "qrels_version": qrels.get("version"), "index_collection": qrels.get("index_collection"),
+                      "judge_model": model, "faithfulness_context_method": "agent_model_input_v1",
+                      "durations_seconds": {"source": source_seconds, "retrieval": retrieval_seconds,
+                                            "faithfulness": faith_seconds, "relevancy": rel_seconds,
+                                            "total": time.perf_counter() - total_start}, "errors": errors}
+            if parent is not None:
+                parent.update(output=output, level="WARNING" if errors else "DEFAULT",
+                              status_message=f"Failed evaluators: {', '.join(errors)}" if errors else None)
         client.flush()
         return output
     finally:
@@ -360,7 +423,7 @@ def main() -> int:
     result = score_trace(args.trace_id, args.qrels, args.dataset, args.item_id, ks,
                          args.model, write=args.write)
     print(json.dumps(result, indent=2, ensure_ascii=False))
-    return 0
+    return 1 if result["errors"] else 0
 
 
 if __name__ == "__main__":

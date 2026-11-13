@@ -1,10 +1,13 @@
 """Unit checks for the qm_ quality-metric extraction and precision scoring."""
 import json
+import tempfile
 import unittest
+from contextlib import contextmanager
+from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
-from app.quality_metrics import SearchCall, _context_text, _precision_at, _ollama_json, extract_trace, faithfulness_context
+from app.quality_metrics import SearchCall, _context_text, _precision_at, _ollama_json, extract_trace, faithfulness_context, score_trace
 
 
 class QualityMetricChecks(unittest.TestCase):
@@ -68,6 +71,70 @@ class QualityMetricChecks(unittest.TestCase):
     def test_context_text_marks_each_passage_with_its_id(self):
         text = _context_text({"a", "b"}, {"a": "first", "b": "second"})
         self.assertEqual(text, "[a] first\n\n[b] second")
+
+    def test_scores_are_attached_to_timed_child_observations(self):
+        client = MagicMock()
+        stack = []
+        spans = {}
+
+        @contextmanager
+        def start(*, name, **kwargs):
+            span = MagicMock()
+            spans[name] = (span, stack[-1] if stack else None)
+            stack.append(name)
+            try:
+                yield span
+            finally:
+                stack.pop()
+
+        client.start_as_current_observation.side_effect = start
+        observations = [
+            SimpleNamespace(id="root", name="experiment-item-run", parent_observation_id=None, output={}),
+            SimpleNamespace(id="search", name="tool: semantic_search", parent_observation_id="root",
+                            output={"hits": [{"id": "12345678"}]}),
+            SimpleNamespace(name="agent run", output={"stopped": "submit", "answer": "answer"}),
+            SimpleNamespace(name="query agent model: tool selection and answer", start_time=1,
+                            input=[{"role": "tool", "content": "evidence"}], output={}),
+        ]
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "qrels.json"
+            path.write_text(json.dumps({"version": 4, "index_collection": "idx", "datasets": {
+                "set": {"item": {"question": "question", "passages": [
+                    {"short_id": "12345678", "relevance": "direct"}]}}}}))
+            with patch("app.quality_metrics.Langfuse", return_value=client), \
+                 patch("app.quality_metrics.fetch_observations", return_value=observations), \
+                 patch("app.quality_metrics.judge_faithfulness", return_value={"score": 1.0}), \
+                 patch("app.quality_metrics.judge_relevancy", return_value={"score": 0.8}):
+                result = score_trace("trace", path, "set", "item", (1,), "judge", write=True)
+        self.assertEqual(spans["retrieval evaluation"][1], "quality evaluation")
+        self.assertEqual(spans["retrieval search call evaluation"][1], "retrieval evaluation")
+        self.assertEqual(client.start_as_current_observation.call_args_list[0].kwargs["trace_context"],
+                         {"trace_id": "trace", "parent_span_id": "root"})
+        for name in ("faithfulness evaluation", "relevancy evaluation"):
+            self.assertEqual(spans[name][1], "quality evaluation")
+            kwargs = spans[name][0].score.call_args.kwargs
+            self.assertGreaterEqual(kwargs["metadata"]["duration_seconds"], 0)
+        self.assertEqual(result["metrics"]["qm_relevancy_generation"], 0.8)
+        self.assertGreaterEqual(result["durations_seconds"]["total"], 0)
+
+    def test_failed_judge_does_not_prevent_other_metrics(self):
+        observations = [
+            SimpleNamespace(name="agent run", output={"stopped": "submit", "answer": "answer"}),
+            SimpleNamespace(name="query agent model: tool selection and answer", start_time=1,
+                            input=[{"role": "tool", "content": "evidence"}], output={}),
+        ]
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "qrels.json"
+            path.write_text(json.dumps({"datasets": {"set": {"item": {
+                "question": "question", "passages": []}}}}))
+            with patch("app.quality_metrics.Langfuse"), \
+                 patch("app.quality_metrics.fetch_observations", return_value=observations), \
+                 patch("app.quality_metrics.judge_faithfulness", side_effect=RuntimeError("judge unavailable")), \
+                 patch("app.quality_metrics.judge_relevancy", return_value={"score": 0.8}):
+                result = score_trace("trace", path, "set", "item", (1,), "judge", write=False)
+        self.assertEqual(result["errors"], ["faithfulness"])
+        self.assertIn("judge unavailable", result["faithfulness"]["reason"])
+        self.assertEqual(result["metrics"]["qm_relevancy_generation"], 0.8)
 
 
 if __name__ == "__main__":
