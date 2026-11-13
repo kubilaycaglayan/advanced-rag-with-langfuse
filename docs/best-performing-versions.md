@@ -8,6 +8,7 @@ Ranked by mean answer correctness score for each regular Millennium dataset. Cit
 - Excluded single-item runs.
 - Coverage is completed result items over the pinned snapshot size. Dataset snapshots can differ in size across runs.
 - `Qwen` is mean `answer_correctness_v2` (`qwen3:8b`); `Codex` is mean `answer_correctness_codex_v1` (`gpt-5.6-luna`). `Faith` and `Rel` cover 36 items; `P5` 28; `P10` 5; `SetP` and `CtxR` 30; `H5` and `H10` 2. Retrieval skips the broad item and three items without direct gold passages. Names containing `openai` or `gpt-6-luna` identify the answer pipeline's query agent, not the evaluator.
+- On 2026-11-13, retrieval, faithfulness, and answer-relevancy metrics were added for the top-ranked run in `set3`, `right-set-3`, and `Additional Questions`. These scores use qrels v4 and `qwen3.6:35b` for faithfulness/relevancy. P@K is averaged only over item traces with a search call returning at least K hits; set precision and context recall omit undefined items. Faithfulness is omitted when trace guards reject the stored context/path; it is not scored as zero. `Rel` measures topical responsiveness, not factual correctness.
 
 ## QA.csv
 
@@ -168,14 +169,14 @@ Ranked by mean answer correctness score for each regular Millennium dataset. Cit
       <td>v2.12</td>
       <td>0.7675</td>
       <td>—</td>
+      <td>0.056</td>
+      <td>0.100</td>
       <td>—</td>
       <td>—</td>
+      <td>0.024</td>
+      <td>0.654</td>
       <td>—</td>
-      <td>—</td>
-      <td>—</td>
-      <td>—</td>
-      <td>—</td>
-      <td>—</td>
+      <td>0.967</td>
       <td>15/15</td>
       <td>`8451bbff73197241`</td>
       <td>`77f54b4d`</td>
@@ -255,6 +256,8 @@ Ranked by mean answer correctness score for each regular Millennium dataset. Cit
   </tbody>
 </table>
 
+2026-11-13 evaluator coverage for this winner: P@5 12/15, P@10 2/15, SetP 13/15, CtxR 13/15, Faith 0/15 (all traces failed faithfulness context/path guards), Rel 15/15.
+
 ## right-set-3
 
 <table>
@@ -291,14 +294,14 @@ Ranked by mean answer correctness score for each regular Millennium dataset. Cit
       <td>v2.13</td>
       <td>0.9135</td>
       <td>—</td>
+      <td>0.085</td>
+      <td>0.084</td>
       <td>—</td>
       <td>—</td>
-      <td>—</td>
-      <td>—</td>
-      <td>—</td>
-      <td>—</td>
-      <td>—</td>
-      <td>—</td>
+      <td>0.024</td>
+      <td>0.478</td>
+      <td>0.892</td>
+      <td>0.982</td>
       <td>28/28</td>
       <td>`99b35b171b966af9`</td>
       <td>`3d8897b7`</td>
@@ -378,6 +381,8 @@ Ranked by mean answer correctness score for each regular Millennium dataset. Cit
   </tbody>
 </table>
 
+2026-11-13 evaluator coverage for this winner: P@5 18/28, P@10 4/28, SetP 24/28, CtxR 23/28, Faith 4/28, Rel 28/28. Faithfulness was unavailable on 24 traces because of context/path guards.
+
 ## Additional Questions
 
 <table>
@@ -414,14 +419,14 @@ Ranked by mean answer correctness score for each regular Millennium dataset. Cit
       <td>v2.12</td>
       <td>0.9875</td>
       <td>—</td>
+      <td>0.080</td>
+      <td>0.025</td>
       <td>—</td>
       <td>—</td>
-      <td>—</td>
-      <td>—</td>
-      <td>—</td>
-      <td>—</td>
-      <td>—</td>
-      <td>—</td>
+      <td>0.041</td>
+      <td>0.688</td>
+      <td>0.679</td>
+      <td>0.944</td>
       <td>8/8</td>
       <td>`b2e7fb1676745447`</td>
       <td>`090606b4`</td>
@@ -501,7 +506,9 @@ Ranked by mean answer correctness score for each regular Millennium dataset. Cit
   </tbody>
 </table>
 
-The Additional Questions runs used pinned snapshots of eight items. Some QA.csv runs have a `partial` overall execution status because a non-correctness evaluator failed; correctness scores were available for all 36 items and were included here.
+The Additional Questions winner used a pinned 8-item snapshot. Current qrels contain 9 items; the ninth item has no trace in this run. Some QA.csv runs have a `partial` overall execution status because a non-correctness evaluator failed; correctness scores were available for all 36 items and were included here.
+
+2026-11-13 evaluator coverage for this winner: P@5 4/8, P@10 2/8, SetP 8/8, CtxR 8/8, Faith 4/8, Rel 8/8. Faithfulness was unavailable on four traces because of context/path guards.
 
 ## Metric abbreviations
 
