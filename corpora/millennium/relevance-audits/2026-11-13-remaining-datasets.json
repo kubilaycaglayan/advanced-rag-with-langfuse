@@ -1,0 +1,890 @@
+{
+  "created_at": "2026-11-13T13:47:14.443041+00:00",
+  "datasets": {
+    "Additional Questions": {
+      "item_count": 9,
+      "items": [
+        {
+          "id": "8acd68c6-d285-42c3-b33b-ac2fb9833565",
+          "question": "How did Mikael found who was in the photo that Harriet was afraid of?",
+          "expected_output": {
+            "answer": "Mikael uncovered the identity of the person Harriet was staring at through a step-by-step investigation involving photographic analysis:\nNoticing Harriet's Stare: While riding a bus along Järnvägsgatan in Hedestad, Mikael realized something no one else had spotted in a 1966 Children's Day parade photograph\n. While everyone else in the crowd was smiling and watching the parade float, Harriet was turned at a 30° angle to her right, staring off into the distance with a look of sheer terror [406–407].\nSpotting the Camera in the Crowd: Mikael examined the original uncropped negatives at the Hedestad Courier archives\n. Right behind Harriet, he spotted a woman holding a Kodak Instamatic camera pointing in the exact direction of Harriet's line of sight [434–435]. Zooming in on another crowd shot, he saw the woman's husband getting into a car bearing a sticker for \"Norsjö Carpentry Shop\" and a license plate indicating Västerbotten county [436–437].\nTracking Down the Honeymoon Photo: Mikael traveled to Norsjö in northern Sweden and located the woman, Mildred Berggren, who had been on her honeymoon in Hedestad in 1966\n. She still had her original negatives stored in a shoebox and lent them to him\n.\nRevealing the Figure: When Mikael scanned Mildred's negative, it captured the location Harriet was staring at across the street: a man standing near a building corner wearing a dark padded jacket with a distinct patch on the shoulder [491–492].\nIdentifying Martin Vanger: Later, while searching through Henrik Vanger's personal family photo albums, Mikael found a 1966 photograph from a family trip\n. Standing on the far right was Harriet's 19-year-old brother, Martin Vanger, wearing that exact same dark padded jacket with the shoulder patch\n.\nThis confirmed that Harriet had unexpectedly spotted her abusive brother in town that day, prompting her frantic, unsuccessful attempt to seek help from Henrik Vanger before fleeing\n"
+          }
+        },
+        {
+          "id": "923590b4-884d-4c40-b39e-05a8569025ef",
+          "question": "Who is Salander's mother?",
+          "expected_output": {
+            "answer": "Agneta Sofia Salander is Salander's mother.",
+            "facts_version": 3,
+            "required_facts": [
+              "Her mother is Agneta Sofia Salander"
+            ],
+            "supporting_details": []
+          }
+        },
+        {
+          "id": "1e785ac0-34a9-4b22-95c1-dd83cfff1764",
+          "question": "What is \"no compromises\"?",
+          "expected_output": {
+            "answer": "In the *Millennium* trilogy, **\"No compromises\"** refers to Lisbeth Salander's defining personal philosophy and her refusal to yield to abusers, systemic corruption, or institutional pressure[1].\n\nThroughout the books, it manifests in three main ways:\n\n* **Personal Philosophy:** As Mikael Blomkvist observes in *The Girl with the Dragon Tattoo*, Lisbeth operates under a strict, unyielding code: she refuses to negotiate with abusers or accept half-measures when seeking justice[1].\n* **Courtroom Stance (** **The Girl Who Kicked the Hornet's Nest** **):** During her trial, Prosecutor Richard Ekström looks into Lisbeth's eyes and realizes her posture is **\"No compromises\"**[2]. Rather than accepting a plea deal, reduced charges, or psychiatric commitment, Lisbeth and her lawyer Annika Giannini demand full acquittal, immediate release, and the complete revocation of her legal incompetence[3].\n* **The Single Exception (\"A little compromise\"):** The only time Lisbeth yields occurs when Judge Iversen agrees to revoke her guardianship on the condition that she fulfills her duty as a free citizen to testify about the Zalachenko affair[4][5]. Lisbeth reflects *\"OK. A little compromise\"* and agrees, acknowledging that holding full civil rights also entails equal civic responsibilities",
+            "citations": [
+              "[E1]"
+            ],
+            "facts_version": 3,
+            "required_facts": [
+              "It is Salander's personal stance of refusing to compromise or give in"
+            ],
+            "supporting_details": [
+              "It is how Ekström/the court read her at her trial, where she rejects any deal",
+              "Her one 'little compromise': agreeing to testify when her guardianship is revoked"
+            ],
+            "accepted_answer_variants": [
+              "In *The Girl Who Kicked the Hornet's Nest*, the phrase \"**No compromises**\" appears twice during Lisbeth Salander's trial to describe her unyielding, defiant demeanor:\n\n1.  **Prosecutor Ekström's Observation:** When Prosecutor Ekström looks at Salander, he sees \"curiosity and vengeance\" in her eyes and notes \"**No compromises**,\" realizing that she will not be easily intimidated or convicted despite the serious charges against her [E1].\n2.  **Salander's Stance toward the Judge:** Later, when Salander turns to face Judge Iversen, the text again states \"**No compromises**,\" highlighting her refusal to back down or show weakness as the judge acknowledges the collapse of the prosecutor's case and the validity of her autobiography [E2].\n\nIn both instances, the phrase signifies Salander's absolute refusal to negotiate, submit, or yield in the face of legal persecution."
+            ]
+          }
+        },
+        {
+          "id": "36c50723-3b65-49f6-9d9b-70574cc9471c",
+          "question": "What happened to Salander in the abandoned factory?",
+          "expected_output": {
+            "answer": "In *The Girl Who Kicked the Hornet's Nest*, Lisbeth Salander's confrontation at the abandoned factory (an old brickworks in Norrtälje) serves as the dramatic climax to her personal struggle against her past.\n\n### 1. The Discovery\nSalander travels to the dilapidated brickworks outside Skederid to investigate why her late father, Alexander Zalachenko, had purchased and secretly renovated a section of the property. Inside the factory, she uncovers a hidden room previously used for sex trafficking, complete with women's belongings and a decomposing body dumped in a flooded brick furnace pit.\n\n### 2. Confrontation with Ronald Niedermann\nWhile exploring the upper floor, Salander runs into her giant, blonde half-brother, **Ronald Niedermann**, who has been using the abandoned building as a hideout to evade a nationwide police manhunt. Because Niedermann suffers from congenital analgesia (rendering him completely immune to physical pain), Salander realizes that ordinary weapons or blunt force will not stop him. \n\n### 3. Nailing Niedermann to the Floor\nLuring Niedermann into an upper workshop area filled with carpentry tools, Lisbeth hides beneath a wooden workbench cabinet. As Niedermann approaches, she grabs a heavy-duty pneumatic nail gun and fires multiple **7-inch (18 cm) nails straight through his boots into the new wooden floorboards**, firmly pinning both of his feet to the ground.\n\n### 4. The Masterful Double Tip-Off\nRather than executing Niedermann herself, Salander leaves him trapped and sets up a double ambush:\n* **The Biker Gang:** She calls Sonny Nieminen of **Svavelsjö MC** (who held a bitter vendetta against Niedermann) and gives them his exact location.\n* **The Police:** Minutes later, she sends an anonymous text message to the Norrtälje police reporting that cop-killer Niedermann is at the brickworks about to be murdered by Svavelsjö MC.\n\n### 5. The Aftermath\nSalander calmly walks across the road to a gas station cafe, buying a sandwich and watching the events unfold through binoculars:\n* The Svavelsjö MC bikers arrive first and brutally attack and kill the immobilized Niedermann.\n* Heavy police tactical units arrive immediately afterward, surrounding the site, engaging in a shootout, and arresting the entire biker gang.\n\nWith both Niedermann and the biker gang eliminated or in custody, Salander gets into her car and drives away—finally free.",
+            "facts_version": 3,
+            "required_facts": [
+              "She confronted Ronald Niedermann at the abandoned brickworks",
+              "She nailed his feet to the floor with a nail gun"
+            ],
+            "supporting_details": [
+              "She tipped off Svavelsjö MC and the police",
+              "The bikers killed Niedermann and the police arrested the bikers",
+              "She found evidence of trafficking/a body there"
+            ]
+          }
+        },
+        {
+          "id": "e43e2f16-b8e6-4735-8179-9ebd7cfbd42f",
+          "question": "What did Salander said when she saw Mikael in the kitchen, when she was severely wounded?",
+          "expected_output": {
+            "answer": "When Mikael Blomkvist found Lisbeth Salander severely wounded on the kitchen bench at the Gosseberga farmhouse, he reached out to carefully loosen the gun from her hand. Her fist tightened around the grip, she opened her eyes, stared at him, and muttered in a low voice[1][2]:\n\n&gt; **\"Kalle Fucking Blomkvist.\"**\n\nShe then closed her eyes and let go of the gun as he called for emergency services",
+            "facts_version": 3,
+            "required_facts": [
+              "She said 'Kalle Fucking Blomkvist'"
+            ],
+            "supporting_details": [
+              "She then let go of the gun"
+            ]
+          }
+        },
+        {
+          "id": "45d561b9-ca5e-4c5d-83cb-04b610da13dc",
+          "question": "When Mikael Blomkvist found Lisbeth Salander severely wounded on the kitchen bench at the Gosseberga farmhouse, he reached out to carefully loosen the gun from her hand. And then what Salander said to him?",
+          "expected_output": {
+            "answer": "When Mikael Blomkvist found Lisbeth Salander severely wounded on the kitchen bench at the Gosseberga farmhouse, he reached out to carefully loosen the gun from her hand. Her fist tightened around the grip, she opened her eyes, stared at him, and muttered in a low voice:\n\n> **\"Kalle Fucking Blomkvist.\"**\n\nShe then closed her eyes and let go of the gun as he called for emergency services.",
+            "facts_version": 3,
+            "required_facts": [
+              "She said 'Kalle Fucking Blomkvist'"
+            ],
+            "supporting_details": [
+              "She then let go of the gun"
+            ]
+          }
+        },
+        {
+          "id": "dece0abd-3214-459e-ae0a-ff5c4c75f38a",
+          "question": "What t-shirt was Salander wearing when they first met with Mikael in her house?",
+          "expected_output": {
+            "answer": "When Mikael Blomkvist first showed up uninvited at Lisbeth Salander's apartment on Lundagatan in The Girl with the Dragon Tattoo, she initially answered the door wrapped in a sheet\n. After going to take a shower, she came out wearing jeans and a T-shirt with the slogan:\n\"ARMAGEDDON WAS YESTERDAY—TODAY WE HAVE A SERIOUS PROBLEM\"\n.\n(For context, earlier in the book when she met Dirch Frode at Milton Security, she wore a T-shirt reading \"I AM ALSO AN ALIEN\"\n, but for her first meeting with Mikael at her home, it was the \"Armageddon\" shirt\n",
+            "facts_version": 3,
+            "required_facts": [
+              "The T-shirt said 'Armageddon was yesterday - today we have a serious problem'"
+            ],
+            "supporting_details": [
+              "She first opened the door wrapped in a sheet"
+            ]
+          }
+        },
+        {
+          "id": "74355fed-d6cb-401c-9a41-ee80faaf18cd",
+          "question": "How did Mikhail first know about Salander?",
+          "expected_output": {
+            "answer": "Mikael Blomkvist first learned about Lisbeth Salander through a background check that was conducted on him without his knowledge\n:\nThe Background Check: Before Henrik Vanger offered Blomkvist the assignment on Hedeby Island, Vanger's lawyer, Dirch Frode, hired Milton Security to perform an exhaustive investigation into Mikael's life and finances [512, 518–520]. Lisbeth Salander was the researcher who compiled the detailed 80-plus page report on him\n.\nDirch Frode's Slip: Months later, while Blomkvist was stuck investigating Harriet Vanger's 40-year-old disappearance, he told Frode he needed an expert researcher to dig through old archives [558–559]. Frode accidentally let it slip that they had previously hired a brilliant researcher to check into Mikael's own background [559–560].\nReading Her Report: Mikael demanded to see his own file\n. Upon reading it, he was astonished by its precision—and realized the researcher had to be a world-class hacker because the report quoted an unpublished draft statement that existed only on his personal laptop [562–565].\nFirst Meeting: Impressed by her work, Mikael obtained her name and address from Frode and Dragan Armansky, went straight to her apartment on Lundagatan, and recruited her to work with him on the Vanger case [566–571].",
+            "facts_version": 3,
+            "required_facts": [
+              "He learned of her through the background check on him that she had researched/written (commissioned by Frode via Milton Security)"
+            ],
+            "supporting_details": [
+              "Frode let it slip when Mikael asked for a researcher",
+              "Mikael read her report and realised she must have hacked his computer",
+              "He then went to her Lundagatan apartment to recruit her"
+            ]
+          }
+        },
+        {
+          "id": "ba2fffee-c82e-4029-9b0c-1c7a52bed602",
+          "question": "What is Salander's fake identity?",
+          "expected_output": {
+            "answer": "Across Stieg Larsson's *Millennium* trilogy, Lisbeth Salander uses several fake identities, aliases, and hacker handles to protect her privacy, travel undetected, and manage her wealth:\n\n* **Irene Nesser:** Her primary fake identity, using a real Norwegian passport supplied by her hacker friend Plague[1][2]. Salander uses this alias to travel internationally, rent cars, and purchase and furnish her secret luxury apartment on Fiskargatan[3].\n* **Monica Sholes:** A British alias she uses alongside a dramatic physical transformation—wearing a blonde page-boy wig, designer clothing, and latex breast implants—when she travels to Zurich to secretly drain Hans-Erik Wennerström's offshore bank accounts[6].\n* **Wasp / Wasp Enterprises:** **Wasp** is her world-famous hacker handle within the elite international network known as the *Hacker Republic*[9][10]. She also registers her offshore holding company in Gibraltar under the name **Wasp Enterprises** to manage her fortune[11].\n* **V. Kulla:** The false name displayed on the doorplate of her secret luxury apartment at Fiskargatan 9, a tongue-in-cheek reference to *Villa Villekulla* (the home of Pippi Longstocking)[14].",
+            "facts_version": 3,
+            "required_facts": [
+              "Irene Nesser is her fake identity (Norwegian passport)"
+            ],
+            "supporting_details": [
+              "Monica Sholes, used in Zurich to drain Wennerström's accounts",
+              "Her hacker handle is Wasp / her company Wasp Enterprises",
+              "V. Kulla on her Fiskargatan doorplate"
+            ]
+          }
+        }
+      ]
+    },
+    "set3": {
+      "item_count": 15,
+      "items": [
+        {
+          "id": "cf527045-31e2-56b5-a91d-1fb1f13fdd71",
+          "question": "How Gottfried really died?",
+          "expected_output": {
+            "answer": "Officially Gottfried Vanger drowned while drunk in 1965, but in reality his daughter Harriet killed him. On August 7, 1965, at his cabin, he raped her and tried to strangle her; she fled to the jetty, shoved him into the water and held him under with an oar until he stopped struggling. Martin saw it, and from then on she was at his mercy.",
+            "facts_version": 3,
+            "required_facts": [
+              "His daughter Harriet killed him by drowning him"
+            ],
+            "supporting_details": [
+              "Officially it was a drunken accident",
+              "He had raped her and tried to strangle her",
+              "She pushed him into the water and held him under with an oar",
+              "Martin saw it"
+            ]
+          }
+        },
+        {
+          "id": "db4076fd-3812-5196-ac8d-5d436388f286",
+          "question": "How Gottfried died?",
+          "expected_output": {
+            "answer": "He drowned in 1965 near his cabin on Hedeby Island; it was believed to be a drunken accident, but Harriet later reveals that she drowned him, shoving him off the jetty and holding him under with an oar after he raped her and tried to strangle her.",
+            "facts_version": 3,
+            "required_facts": [
+              "Gottfried drowned",
+              "Harriet drowned him (it was not just an accident)"
+            ],
+            "supporting_details": [
+              "It happened in 1965 near his cabin",
+              "It was believed to be a drunken accident",
+              "He had raped her and tried to strangle her"
+            ]
+          }
+        },
+        {
+          "id": "2df113f1-9330-53e8-b7dd-ddb4583a75c0",
+          "question": "What Bjurman did to Salander?",
+          "expected_output": {
+            "answer": "As her new guardian, lawyer Nils Bjurman took control of her money and made her beg for her own funds. He forced her to perform oral sex in his office, and at a second meeting in his apartment he brutally raped and tortured her. She secretly filmed that rape, then used the video to blackmail him and tattooed 'I AM A SADISTIC PIG, A PERVERT, AND A RAPIST' on his stomach. Later (The Girl Who Played with Fire) he sought out Zalachenko to have her dealt with.",
+            "facts_version": 3,
+            "required_facts": [
+              "As her guardian he controlled her money",
+              "He sexually abused and raped her"
+            ],
+            "supporting_details": [
+              "She filmed the rape and blackmailed him",
+              "She tattooed a message on his stomach",
+              "He later sought Zalachenko's help against her"
+            ]
+          }
+        },
+        {
+          "id": "ce841aab-a26b-512b-8fa9-ba28cf3b0f20",
+          "question": "Who are the top 10 most important characters?",
+          "expected_output": {
+            "answer": "A reasonable list of the central characters: Lisbeth Salander, Mikael Blomkvist, Erika Berger, Alexander Zalachenko, Ronald Niedermann, Henrik Vanger, Harriet Vanger, Martin Vanger, Nils Bjurman and Dragan Armansky (others often counted: Holger Palmgren, Jan Bublanski, Peter Teleborian, Annika Giannini). Any list of genuinely central characters is acceptable; minor characters are not.",
+            "facts_version": 3,
+            "required_facts": [
+              "Lists about ten characters who are genuinely central to the story (e.g. Salander, Blomkvist, Berger, Zalachenko, Niedermann, the Vangers, Bjurman, Armansky)"
+            ],
+            "supporting_details": []
+          }
+        },
+        {
+          "id": "3fc5cd25-8333-56d6-8c81-136571fc84fe",
+          "question": "What present Salander bought for Mikael?",
+          "expected_output": {
+            "answer": "A 1950s embossed metal advertising sign showing Elvis Presley with a guitar and the words 'HEARTBREAK HOTEL', as a Christmas present for his Sandhamn cabin (bought for 700 kronor after haggling). She never gave it: she saw him with Erika Berger and threw it into a dumpster.",
+            "facts_version": 3,
+            "required_facts": [
+              "She bought a metal Elvis Presley sign ('Heartbreak Hotel')"
+            ],
+            "supporting_details": [
+              "It was a Christmas present",
+              "She threw it away after seeing Mikael with Erika Berger, so never gave it"
+            ]
+          }
+        },
+        {
+          "id": "6420cd1b-9adb-54ba-92ce-1c8a9d00435b",
+          "question": "Who killed Dag?",
+          "expected_output": {
+            "answer": "Ronald Niedermann killed Dag Svensson (and Mia Johansson), acting on behalf of Alexander Zalachenko.",
+            "facts_version": 3,
+            "required_facts": [
+              "Ronald Niedermann killed Dag Svensson"
+            ],
+            "supporting_details": [
+              "He also killed Mia Johansson",
+              "He acted for Zalachenko"
+            ]
+          }
+        },
+        {
+          "id": "569eb7d3-b4c5-5f6e-8adb-96ca33f1ed63",
+          "question": "How Mikael understood that the numbers in Harriet's diary aren't phone numbers but biblical references?",
+          "expected_output": {
+            "answer": "His daughter Pernilla, visiting him in Hedeby, saw the numbers on his wall and, as she boarded her train, told him to continue his Bible studies because she had seen 'the quotes' on his wall. He then took Harriet's Bible from Gottfried's cabin and found that the numbers were chapters and verses in Leviticus.",
+            "facts_version": 3,
+            "required_facts": [
+              "His daughter Pernilla saw the numbers and referred to them as Bible quotes",
+              "He checked a Bible and found they were chapter-and-verse references (in Leviticus)"
+            ],
+            "supporting_details": [
+              "She said it as she boarded her train",
+              "He used Harriet's Bible from Gottfried's cabin"
+            ]
+          }
+        },
+        {
+          "id": "7e3cbf3d-3e08-52f2-a0c9-7ad276b0d9ae",
+          "question": "Who helped  Mikael solved the phone numbers mystery in Harriet's diary?",
+          "expected_output": {
+            "answer": "His daughter Pernilla, who recognised the numbers on his wall as Bible quotes; they were chapter-and-verse references to Leviticus.",
+            "facts_version": 3,
+            "required_facts": [
+              "His daughter Pernilla helped him"
+            ],
+            "supporting_details": [
+              "She recognised the numbers as Bible references (Leviticus)"
+            ]
+          }
+        },
+        {
+          "id": "63be7c48-978b-5327-b7b3-7961e60dfc22",
+          "question": "Why Mikael agreed to work for Henrik?",
+          "expected_output": {
+            "answer": "Henrik Vanger offered him 200,000 kronor a month (2.4 million kronor for the year), with a bonus if he solved Harriet's disappearance, and, above all, promised to give him information that would expose Hans-Erik Wennerström. The Wennerström material was the real reason he took the job.",
+            "facts_version": 3,
+            "required_facts": [
+              "Henrik promised him information that would expose Wennerström"
+            ],
+            "supporting_details": [
+              "He was also offered a large salary (200,000 kronor a month) and a bonus"
+            ]
+          }
+        },
+        {
+          "id": "15f283dc-73bd-559d-befe-a6b8b0ab485e",
+          "question": "What's in Salander's backpack found by Mikael?",
+          "expected_output": {
+            "answer": "After the attack on Lundagatan, Mikael found her shoulder bag and key ring. It held a wallet with ID, about 600 kronor, 200 US dollars and a travel card; Marlboro Lights, three Bic lighters, throat lozenges, tissues, a toothbrush and toothpaste, tampons, unopened condoms bought at Gatwick, a notebook, five pens, a can of Mace, a makeup bag, an FM radio and Saturday's Aftonbladet; and a hammer in an outside pocket. Her six keys had blood and skin on them from the attacker.",
+            "facts_version": 3,
+            "required_facts": [
+              "Lists a substantial part of the bag's contents (e.g. wallet, money, cigarettes, lighters, Mace, a hammer)"
+            ],
+            "supporting_details": [
+              "Most of the remaining items (toothbrush, tampons, condoms, notebook, pens, radio, Aftonbladet, makeup bag)",
+              "Her keys with blood/skin from the attacker"
+            ]
+          }
+        },
+        {
+          "id": "f469f451-9d95-5486-ae57-887054e9f03b",
+          "question": "Who drives Saab?",
+          "expected_output": {
+            "answer": "Monica Figuerola drives a new Saab 9-5; Viktor Göransson, Svavelsjö MC's treasurer, drove a Saab, which Ronald Niedermann took after killing him and hid at the old brickworks. (Östergården, whose Saab appears in the Dragon Tattoo traffic notes, is a farm, not a person.)",
+            "facts_version": 3,
+            "required_facts": [
+              "Names at least one Saab driver: Monica Figuerola, or Viktor Göransson (whose Saab Niedermann took)"
+            ],
+            "supporting_details": [
+              "Both of them",
+              "Figuerola's is a Saab 9-5"
+            ]
+          }
+        },
+        {
+          "id": "f929c2a2-5d3b-57f1-a68a-710959e9049b",
+          "question": "Are there any police officers with nicknames?",
+          "expected_output": {
+            "answer": "Yes. Criminal Inspector Jan Bublanski is known to his colleagues as 'Officer Bubble' (Bubble).",
+            "facts_version": 3,
+            "required_facts": [
+              "Yes: Jan Bublanski is called 'Officer Bubble' / Bubble"
+            ],
+            "supporting_details": []
+          }
+        },
+        {
+          "id": "ed7d4adb-8663-5e81-916a-132374be26e5",
+          "question": "What are  the nicknames used in the book?",
+          "expected_output": {
+            "answer": "Kalle Blomkvist (Mikael Blomkvist), Wasp (Lisbeth Salander's hacker handle), Officer Bubble (Jan Bublanski), Zala (Alexander Zalachenko), Mimmi (Miriam Wu), and hacker handles such as Plague and Trinity.",
+            "facts_version": 3,
+            "required_facts": [
+              "Lists several of the book's nicknames, such as Kalle Blomkvist, Wasp, Bubble, Zala, Mimmi, Plague"
+            ],
+            "supporting_details": [
+              "Each nickname is attributed to the right person"
+            ]
+          }
+        },
+        {
+          "id": "229240f9-8db4-5030-a013-f045efbe5d41",
+          "question": "How Salander survived with a bullet in the head?",
+          "expected_output": {
+            "answer": "Zalachenko shot her at Gosseberga and Niedermann buried her, but the small-calibre bullet stopped about four centimetres into her brain without damaging vital areas. She dug herself out with Mimmi's cigarette case, Mikael found her and called emergency services, she was flown to Sahlgrenska hospital, and Dr. Anders Jonasson removed the bullet with forceps.",
+            "facts_version": 3,
+            "required_facts": [
+              "The bullet did not damage vital areas of her brain",
+              "She was found and taken to hospital where surgeons removed the bullet"
+            ],
+            "supporting_details": [
+              "Zalachenko shot her and Niedermann buried her at Gosseberga",
+              "She dug herself out with a cigarette case",
+              "Mikael found her and called for help",
+              "Sahlgrenska hospital; Dr Anders Jonasson operated"
+            ]
+          }
+        },
+        {
+          "id": "47774e8e-840f-5f02-bd06-14de38f2f8cb",
+          "question": "Who is Lisbeth Salander?",
+          "expected_output": {
+            "answer": "The trilogy's protagonist: a tiny, tattooed, socially withdrawn researcher and hacker (handle Wasp) working for Milton Security, with a photographic memory. Declared legally incompetent and institutionalised as a child, she is the daughter of Alexander Zalachenko and Agneta Salander and the twin of Camilla Salander.",
+            "facts_version": 3,
+            "required_facts": [
+              "She is the trilogy's protagonist, a researcher and hacker (working for Milton Security)"
+            ],
+            "supporting_details": [
+              "Small, tattooed, socially withdrawn",
+              "Hacker handle Wasp",
+              "Photographic memory",
+              "Declared legally incompetent / institutionalised as a child",
+              "Daughter of Zalachenko and Agneta; twin of Camilla"
+            ]
+          }
+        }
+      ]
+    },
+    "right-set-3": {
+      "item_count": 28,
+      "items": [
+        {
+          "id": "c8687e69-1da6-5f24-8ce6-92835741c8a4",
+          "question": "Where was Gottfried's cabin located?",
+          "expected_output": {
+            "answer": "On a point on the north side of Hedeby Island, about one and a half miles from the village, reached by a narrow, partly overgrown path along the bay: a rustic, isolated cabin of dark-stained timber with a tile roof and green window frames.",
+            "facts_version": 3,
+            "required_facts": [
+              "On (a point on the north side of) Hedeby Island, away from the village"
+            ],
+            "supporting_details": [
+              "About 1.5 miles from the village",
+              "Reached by a narrow path along the bay",
+              "Rustic, isolated timber cabin"
+            ]
+          }
+        },
+        {
+          "id": "0c118dcd-56c5-5a41-970f-1138fddfdd55",
+          "question": "Did ARmansky and Salander had an affair?",
+          "expected_output": {
+            "answer": "No. Dragan Armansky was attracted to and fascinated by Salander, and protective of her, but he never acted on it; their relationship stayed that of employer and employee, and friends.",
+            "facts_version": 3,
+            "required_facts": [
+              "No, they did not have an affair"
+            ],
+            "supporting_details": [
+              "Armansky was attracted to her but never acted on it",
+              "He was protective; employer-employee and friends"
+            ]
+          }
+        },
+        {
+          "id": "d56c8075-e9d0-549c-801c-64233d45b3ed",
+          "question": "Why Harriet went to Australia?",
+          "expected_output": {
+            "answer": "To escape her brother Martin, who had been raping her (after she drowned their father Gottfried, Martin had her at his mercy). Her cousin Anita smuggled her off Hedeby Island in the boot of her car; she lived under Anita Vanger's identity, married Spencer Cochran, and ran a sheep farm in Australia.",
+            "facts_version": 3,
+            "required_facts": [
+              "To escape her brother Martin, who was abusing her"
+            ],
+            "supporting_details": [
+              "After she drowned Gottfried, Martin had her at his mercy",
+              "Anita smuggled her off the island",
+              "She lived as Anita, married Spencer Cochran and ran a sheep farm"
+            ],
+            "accepted_answer_variants": [
+              "Harriet Vanger went to Australia to escape her family and start a new life after faking her death on Hedeby Island. She fled with the help of her friend Anita Vanger, who provided her with money and her passport so Harriet could assume Anita's identity. After hiding in Italy, she met an American hitchhiker named Spencer Cochran; they fell in love, married, and moved to Australia, where she lived as \"Anita\" Cochran for decades before revealing the truth."
+            ]
+          }
+        },
+        {
+          "id": "4c4bec14-ae13-5bc8-a59d-974165fe1bd3",
+          "question": "What is the relationship between Berger and Mikael?",
+          "expected_output": {
+            "answer": "Erika Berger and Mikael Blomkvist are old friends and longtime on-and-off lovers who sleep together occasionally, with her husband Greger Beckman's knowledge, and they co-founded Millennium magazine, where she is editor-in-chief and he is publisher. Their affair broke up Mikael's marriage.",
+            "facts_version": 3,
+            "required_facts": [
+              "They are longtime friends and on-and-off lovers",
+              "They co-founded/run Millennium together"
+            ],
+            "supporting_details": [
+              "Her husband Greger Beckman knows about it",
+              "She is editor-in-chief, he is publisher",
+              "The affair broke up Mikael's marriage"
+            ],
+            "accepted_answer_variants": [
+              "Erika Berger is Mikael Blomkvist's editor-in-chief and former lover. They met in their second year at journalism school when they were both in their twenties [E1]. Their relationship began immediately after meeting, with them realizing within a week that they would end up together despite having other partners at the time [E1].\n\nAlthough they have been involved with each other for approximately twenty years, they maintain an unconventional arrangement where they do not live together or consider themselves a traditional couple [E2]. Berger is married to Greger Beckman, who accepts their sexual relationship because Berger has always been open about her feelings for Mikael [E3]. Blomkvist's previous marriage to Monica collapsed because he could not stay away from Erika Berger [E4]. They describe their connection as \"addictive as heroin\" and function well together professionally and personally, though they have both left broken promises and unhappy lovers behind in their past attempts at conventional relationships [E2], [E4]."
+            ]
+          }
+        },
+        {
+          "id": "b2919027-a60a-5b43-935e-221b4d99df2a",
+          "question": "What Paolo Roberto was thinking when he was in a fight with Niederman?",
+          "expected_output": {
+            "answer": "That Niedermann was not a real boxer (he moved like one but could not box), yet he did not seem to feel pain and was enormously strong, so the punches that should have stopped him had no effect; Paolo Roberto realised he was losing a fight for the first time in his life. Niedermann suffers from congenital analgesia.",
+            "facts_version": 3,
+            "required_facts": [
+              "Niedermann did not seem to feel pain, so his punches had no effect",
+              "Niedermann was not a real boxer"
+            ],
+            "supporting_details": [
+              "Niedermann was enormously strong",
+              "Paolo realised he was losing",
+              "Niedermann has congenital analgesia"
+            ],
+            "accepted_answer_variants": [
+              "During his fight with Niedermann (whom he later identifies as Ronald Niedermann), Paolo Roberto was thinking several distinct thoughts:\n\n1.  **He realized it was a matter of life or death:** Early in the fight, he understood that this was not a normal boxing match but a struggle for survival where \"it was a matter of winning or disappearing for good\" [E1].\n2.  **He analyzed his opponent's boxing ability:** He observed that while Niedermann moved like a boxer and assumed defensive positions, he \"can’t box for shit\" and was only pretending to have skill [E2]. He also noted that the giant was slow and telegraphed his punches [E3].\n3.  **He recalled a past knockout by Sebastián Luján:** As he fought, he relived the night in Mariehamn when he had been knocked out by the Argentine boxer Sebastián Luján [E4]. He thought about why he lost that fight, concluding that Luján had simply been \"hungrier\" and more determined to win, whereas Paolo Roberto had not been \"dying to box\" [E5].\n4.  **He felt the dread of potential defeat:** At one point, he experienced the classic boxer's fear of losing—the moment when strength drains and adrenaline becomes a burden—realizing he was \"about to lose\" [E6].\n\nThese thoughts drove him to decide to stop retreating and attack with full force, using his brain as much as his fists [E7]."
+            ]
+          }
+        },
+        {
+          "id": "58f31047-d68c-5735-9bdc-26c7320f23a9",
+          "question": "How name Zala and Salander related?",
+          "expected_output": {
+            "answer": "Zala is Alexander Zalachenko, a Soviet GRU defector protected by a group inside Säpo, and he is Lisbeth Salander's father. Her mother Agneta Sjölander changed her name to Salander, a name echoing his.",
+            "facts_version": 3,
+            "required_facts": [
+              "Zala (Alexander Zalachenko) is Salander's father",
+              "Her mother Agneta Sjölander changed her name to Salander, linking the names Salander and Zala (Zalachenko)."
+            ],
+            "supporting_details": [
+              "Soviet GRU defector protected by Säpo"
+            ]
+          }
+        },
+        {
+          "id": "e66c3106-c81b-56b2-8732-7c2a52ce2843",
+          "question": "What happened to the cat in Hedeby cabin?",
+          "expected_output": {
+            "answer": "The reddish-brown cat that used to visit Mikael's cottage was killed as a warning: its half-charred corpse was left on the porch with the legs and head cut off, the body flayed and the guts removed, and its head was placed on the saddle of Salander's motorcycle. The police later found blood and a bolt cutter in the crypt where it had been killed.",
+            "facts_version": 3,
+            "required_facts": [
+              "The cat was killed and its mutilated body left at Mikael's cottage as a warning"
+            ],
+            "supporting_details": [
+              "It was half-burned, with legs and head cut off",
+              "Its head was placed on Salander's motorcycle",
+              "Police found traces in the crypt where it was killed"
+            ],
+            "accepted_answer_variants": [
+              "A reddish-brown cat named Tjorven arrived at the Hedeby cabin (Gottfried's guest house) where Mikael Blomkvist was staying. Blomkvist fed it milk and food, and the cat began arriving every few days to spend the night with him [E1]. The cat did not belong to anyone in particular but made the rounds of a few houses in the area [E1]."
+            ]
+          }
+        },
+        {
+          "id": "84c345fd-c701-580e-88d7-4ea0bbf4b1d9",
+          "question": "Who was Andersson?",
+          "expected_output": {
+            "answer": "Curt Andersson, a detective on Bublanski's team in The Girl Who Played with Fire: thirty-eight, laconic, solidly built and hot-tempered, recently transferred from gang crime in Huddinge, with a reputation for methods not quite by the book; he was cleared after killing a knife-wielding hooligan during an arrest in 1999.",
+            "facts_version": 3,
+            "required_facts": [
+              "Curt Andersson is a police detective on Bublanski's team"
+            ],
+            "supporting_details": [
+              "Laconic, solidly built, hot-tempered",
+              "Transferred from gang crime in Huddinge",
+              "Cleared after killing a knife-wielding hooligan in 1999"
+            ]
+          }
+        },
+        {
+          "id": "c46ccf1a-a344-5c12-a4c3-d0c240a6a5fc",
+          "question": "What is Millennium?",
+          "expected_output": {
+            "answer": "A monthly Stockholm magazine of investigative, critical journalism, especially about business and corporations, founded by Mikael Blomkvist and Erika Berger (who put up the initial money); Berger is editor-in-chief and Blomkvist the publisher.",
+            "facts_version": 3,
+            "required_facts": [
+              "Millennium is a (monthly, Stockholm) magazine of investigative/critical journalism"
+            ],
+            "supporting_details": [
+              "Founded by Mikael Blomkvist and Erika Berger",
+              "Berger is editor-in-chief; Blomkvist the publisher",
+              "Focuses on business and corporations"
+            ]
+          }
+        },
+        {
+          "id": "d26a8ea4-4665-5502-aa3b-7959c8a3e874",
+          "question": "What tattoos Salander had?",
+          "expected_output": {
+            "answer": "A wasp on her neck (about an inch long, later removed), a dragon on her left shoulder blade, a loop around one biceps and around one ankle, a Chinese symbol on her hip and a rose on her calf; she also tattooed Bjurman's stomach.",
+            "facts_version": 3,
+            "required_facts": [
+              "A dragon on her shoulder blade",
+              "A wasp on her neck"
+            ],
+            "supporting_details": [
+              "Loops/bands around a biceps and an ankle",
+              "A Chinese symbol on her hip",
+              "A rose on her calf",
+              "She tattooed Bjurman's stomach"
+            ]
+          }
+        },
+        {
+          "id": "9fd61c41-644e-5e6d-ba59-04d60bef23f7",
+          "question": "What computer equipments Salander is using? List all.",
+          "expected_output": {
+            "answer": "An Apple iBook 600, destroyed when a car reversed over her rucksack; then the new Apple PowerBook G4/1.0 GHz with a 17-inch screen (960 MB RAM, 60 GB disk); an older desktop Mac G3 and a five-year-old Toshiba PC laptop at home; and a Palm PDA (a Palm Tungsten) she carries with her.",
+            "facts_version": 3,
+            "required_facts": [
+              "Apple PowerBook G4 (17-inch)",
+              "Apple iBook (destroyed)",
+              "Palm PDA (Tungsten)"
+            ],
+            "supporting_details": [
+              "Desktop Mac G3",
+              "Old Toshiba laptop",
+              "PowerBook specs (1.0 GHz, 960 MB RAM, 60 GB disk)"
+            ]
+          }
+        },
+        {
+          "id": "69df13bf-aadd-56b3-80d4-97522a6854ce",
+          "question": "What happened to Richard Forbes?",
+          "expected_output": {
+            "answer": "On Grenada, during Hurricane Mathilda, Richard Forbes tried to kill his wealthy wife Geraldine on the beach with an iron pipe to inherit her fortune; Salander stopped him by cracking a chair leg over the back of his head. Geraldine survived, and Forbes was later found dead, badly knocked about by the storm, in a parking lot at the airport.",
+            "facts_version": 3,
+            "required_facts": [
+              "Forbes tried to murder his wife Geraldine during a hurricane on Grenada",
+              "Salander stopped him",
+              "Forbes died (found dead after the storm)"
+            ],
+            "supporting_details": [
+              "He used an iron pipe to inherit her fortune",
+              "Salander hit him with a chair leg",
+              "Geraldine survived"
+            ],
+            "accepted_answer_variants": [
+              "Richard Forbes was killed by the tornado named Matilda. After attempting to murder his wife Geraldine on the beach, he was left behind during the storm and was later found badly injured before dying [E1][E2][E3][E4][E5][E6][E7][E8][E9][E10]."
+            ]
+          }
+        },
+        {
+          "id": "87382e52-ad6e-5336-9aa1-1b0d29cfc8ed",
+          "question": "what is the sumary of the first book?",
+          "expected_output": {
+            "answer": "The Girl with the Dragon Tattoo: journalist Mikael Blomkvist, convicted of libelling financier Hans-Erik Wennerström, is hired by industrialist Henrik Vanger to solve the 1966 disappearance of his grandniece Harriet on Hedeby Island. With researcher and hacker Lisbeth Salander he discovers that Harriet's father Gottfried and brother Martin were serial killers of women; Martin dies after trying to kill Mikael, Harriet is found alive in Australia, and Salander's hacking lets Millennium expose Wennerström while she secretly takes his fortune.",
+            "facts_version": 3,
+            "required_facts": [
+              "Blomkvist, convicted of libelling Wennerström, is hired by Henrik Vanger to investigate Harriet's disappearance",
+              "With Salander he finds that Gottfried and Martin Vanger were serial killers and that Harriet is alive (in Australia)",
+              "Wennerström is exposed using Salander's hacking"
+            ],
+            "supporting_details": [
+              "Martin dies after trying to kill Mikael",
+              "Salander secretly takes Wennerström's fortune",
+              "Hedeby Island, 1966"
+            ]
+          }
+        },
+        {
+          "id": "8db24d50-f1d6-55b9-bee7-a3c7f99aa3a0",
+          "question": "what is the summary of the story?",
+          "expected_output": {
+            "answer": "The Millennium trilogy follows journalist Mikael Blomkvist and hacker Lisbeth Salander. In the first book they solve Harriet Vanger's disappearance and expose Wennerström. In the second, Salander is accused of murdering Dag Svensson, Mia Johansson and Bjurman; the trail leads to her father Zalachenko and her half-brother Niedermann, and she is shot and buried alive at Gosseberga but survives. In the third, while she recovers and faces trial, Blomkvist and Millennium expose 'the Section', the secret Säpo group that protected Zalachenko and had her declared incompetent; she is acquitted, Teleborian is arrested, and she finally confronts Niedermann.",
+            "facts_version": 3,
+            "required_facts": [
+              "Book 1: Blomkvist and Salander solve Harriet Vanger's disappearance / expose Wennerström",
+              "Book 2: Salander is accused of murders and the trail leads to Zalachenko and Niedermann",
+              "Book 3: Salander's trial and the exposure of the Section; she is acquitted"
+            ],
+            "supporting_details": [
+              "She is shot and buried alive at Gosseberga but survives",
+              "Teleborian is arrested",
+              "She confronts Niedermann"
+            ]
+          }
+        },
+        {
+          "id": "604151de-dce5-51ff-ae30-0b4fdc89adeb",
+          "question": "Why Salander didn't talk with shrinks?",
+          "expected_output": {
+            "answer": "Because, in her experience, psychiatrists such as Teleborian never listened to what she said; refusing to talk to them was a rational, principled decision dating from her time in the children's psychiatric clinic.",
+            "facts_version": 3,
+            "required_facts": [
+              "Psychiatrists (like Teleborian) never listened to her, so she refused to talk to them"
+            ],
+            "supporting_details": [
+              "It was a principled decision",
+              "It dates from her time in the children's psychiatric clinic"
+            ]
+          }
+        },
+        {
+          "id": "00e4a32f-7c35-513f-a71e-dda8ebe41233",
+          "question": "Does Salander have a good memory?",
+          "expected_output": {
+            "answer": "Yes, she has a photographic memory, which she has known about since before puberty; she memorises texts such as Dimensions in Mathematics and documents she reads.",
+            "facts_version": 3,
+            "required_facts": [
+              "Yes, she has a photographic memory"
+            ],
+            "supporting_details": [
+              "She has known since before puberty",
+              "She memorises texts such as Dimensions in Mathematics"
+            ]
+          }
+        },
+        {
+          "id": "7bc41830-1eea-5f09-9aba-2846b7ebd465",
+          "question": "What special abilities does Salander have?",
+          "expected_output": {
+            "answer": "A photographic memory, exceptional intelligence and talent for mathematics and puzzles, world-class hacking skills (as Wasp), and an extraordinary gift for research and investigation; she is also a tough fighter who uses whatever is at hand as a weapon.",
+            "facts_version": 3,
+            "required_facts": [
+              "Photographic memory",
+              "World-class hacking skills"
+            ],
+            "supporting_details": [
+              "Exceptional intelligence/talent for mathematics",
+              "Gift for research",
+              "Tough fighter"
+            ],
+            "accepted_answer_variants": [
+              "Based on the provided passages, Lisbeth Salander possesses several special abilities:\n\n1.  **Phenomenal computer skills:** She is described as having \"phenomenal computer skills\" and being a \"wizard at computers,\" with Armansky noting she delivers \"quite incredible reports\" during personal investigations [E1][E2].\n2.  **Photographic memory:** Blomkvist notes that she has a \"photographic memory\" which, combined with her computer skills, amazed him repeatedly [E3].\n3.  **Puzzle-solving aptitude:** She has an innate ability to solve puzzles and riddles quickly; for example, she understood how a Rubik’s Cube worked in barely forty minutes after receiving it at age nine [E4].\n4.  **Physical resilience and fighting determination:** Although physically weaker than many opponents, she possesses the tenacity to keep attacking stronger adversaries despite being shoved or slapped, often seeking revenge [E5][E6]."
+            ]
+          }
+        },
+        {
+          "id": "a385d39a-767a-514a-a858-573e337356ad",
+          "question": "How Mikale knows that Salander is a hacker?",
+          "expected_output": {
+            "answer": "When he read her background report on him, Mikael saw that she had quoted from a text that existed only on his own computer, so he realised she had been inside his computer; he confronted her at her apartment with 'You're a hacker.'",
+            "facts_version": 3,
+            "required_facts": [
+              "Her report on him quoted material that existed only on his own computer, so he realised she had hacked it"
+            ],
+            "supporting_details": [
+              "He confronted her at her apartment ('You're a hacker')"
+            ]
+          }
+        },
+        {
+          "id": "566f5c84-953b-5b8b-b042-ce7b1519dc35",
+          "question": "Is Salander a hacker?",
+          "expected_output": {
+            "answer": "Yes, a world-class hacker known online as Wasp, a member of the Hacker Republic.",
+            "facts_version": 3,
+            "required_facts": [
+              "Yes, she is a (world-class) hacker"
+            ],
+            "supporting_details": [
+              "Known online as Wasp",
+              "Member of the Hacker Republic"
+            ]
+          }
+        },
+        {
+          "id": "df0f4533-c695-59f0-8764-fca22d15cacc",
+          "question": "How did Salander learn hacking skills?",
+          "expected_output": {
+            "answer": "The books do not describe formal training: she is self-taught, relying on her exceptional intelligence and photographic memory, and works alongside other hackers such as Plague in the Hacker Republic.",
+            "facts_version": 3,
+            "required_facts": [
+              "She is self-taught / the books describe no formal training"
+            ],
+            "supporting_details": [
+              "Her intelligence and photographic memory",
+              "She works with other hackers such as Plague"
+            ]
+          }
+        },
+        {
+          "id": "16018f6b-e1ee-59c2-b564-fe3e07567c19",
+          "question": "What is the name of the girl with the dragon tattoo?",
+          "expected_output": {
+            "answer": "Lisbeth Salander; the dragon is tattooed on her left shoulder blade.",
+            "facts_version": 3,
+            "required_facts": [
+              "She is Lisbeth Salander"
+            ],
+            "supporting_details": [
+              "The dragon is on her left shoulder blade"
+            ]
+          }
+        },
+        {
+          "id": "a328f662-d3a1-53af-a4a1-326ffe49e972",
+          "question": "Who is Lisbeth Salander's father?",
+          "expected_output": {
+            "answer": "Alexander Zalachenko ('Zala'), a former Soviet GRU agent who defected to Sweden and was protected by a secret group within Säpo; he brutally beat her mother Agneta, and Salander firebombed him as a child ('All The Evil').",
+            "facts_version": 3,
+            "required_facts": [
+              "Her father is Alexander Zalachenko"
+            ],
+            "supporting_details": [
+              "A Soviet GRU defector protected by a secret group in Säpo",
+              "He beat her mother",
+              "She firebombed him as a child"
+            ]
+          }
+        },
+        {
+          "id": "10722a9f-1262-53ae-8f73-11ff27be91d2",
+          "question": "What happened to Teleborian in the end of the court?",
+          "expected_output": {
+            "answer": "His testimony was discredited at Salander's trial, and he was arrested by police as he left the courtroom for possessing child pornography (thousands of images found on his computer).",
+            "facts_version": 3,
+            "required_facts": [
+              "Teleborian was arrested (as he left court) for possessing child pornography"
+            ],
+            "supporting_details": [
+              "His testimony was discredited at the trial"
+            ]
+          }
+        },
+        {
+          "id": "74117b4c-998b-580d-8b3c-8be9f9558f89",
+          "question": "Who is Plague?",
+          "expected_output": {
+            "answer": "A hacker in the Hacker Republic and Salander's friend and collaborator: brilliant online but in real life a severely overweight, socially awkward thirty-year-old on disability benefits in Sundbyberg.",
+            "facts_version": 3,
+            "required_facts": [
+              "Plague is a hacker and Salander's friend/collaborator (Hacker Republic)"
+            ],
+            "supporting_details": [
+              "Severely overweight and socially awkward in real life",
+              "Lives in Sundbyberg on disability benefits"
+            ]
+          }
+        },
+        {
+          "id": "9f4dbacc-0496-5467-9277-baed795e4995",
+          "question": "How was Salander's attitude during the court?",
+          "expected_output": {
+            "answer": "Calm, impassive and uncooperative with the prosecution: she barely spoke and let her written autobiography and Annika Giannini speak for her, unyielding ('No compromises').",
+            "facts_version": 3,
+            "required_facts": [
+              "She was calm/impassive and did not cooperate with the prosecution (barely spoke)"
+            ],
+            "supporting_details": [
+              "She let her written autobiography and Annika Giannini speak for her",
+              "Unyielding: 'No compromises'"
+            ]
+          }
+        },
+        {
+          "id": "548b78a7-b772-527c-9f67-b76bfd7439bf",
+          "question": "Who is Bubble?",
+          "expected_output": {
+            "answer": "Criminal Inspector Jan Bublanski, called 'Officer Bubble' by his colleagues, who leads the police investigation into the Enskede murders.",
+            "facts_version": 3,
+            "required_facts": [
+              "Bubble is Criminal Inspector Jan Bublanski"
+            ],
+            "supporting_details": [
+              "He leads the Enskede murder investigation"
+            ]
+          }
+        },
+        {
+          "id": "5d14b8f3-5885-5fb0-9fde-992ccdefb860",
+          "question": "What is Lisbeth Salander known for?",
+          "expected_output": {
+            "answer": "Her brilliance as a researcher and hacker, her photographic memory and unconventional, tattooed appearance; she was declared legally incompetent after years in psychiatric care, and the media branded her a psychopath and murderer while she was a suspect in the Enskede murders.",
+            "facts_version": 3,
+            "required_facts": [
+              "She is known as a brilliant researcher and hacker"
+            ],
+            "supporting_details": [
+              "Photographic memory",
+              "Unconventional, tattooed appearance",
+              "Declared legally incompetent",
+              "Branded a psychopath/murderer by the media during the Enskede murders"
+            ]
+          }
+        },
+        {
+          "id": "f1256259-2eb3-5e89-9b74-eca672a8a0f5",
+          "question": "Who is Mikael Blomkvist?",
+          "expected_output": {
+            "answer": "An investigative financial journalist and the publisher and co-owner of Millennium magazine, nicknamed 'Kalle Blomkvist'; born in 1960 in Borlänge, sister Annika Giannini is a lawyer; he is the trilogy's co-protagonist with Lisbeth Salander.",
+            "facts_version": 3,
+            "required_facts": [
+              "He is an investigative (financial) journalist",
+              "He is the publisher/co-owner of Millennium magazine"
+            ],
+            "supporting_details": [
+              "Nicknamed Kalle Blomkvist",
+              "His sister Annika Giannini is a lawyer",
+              "He is co-protagonist with Salander"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "index_collection": "millennium_books_a7ebc5a988df037cd2ee",
+  "index_passage_count": 5522,
+  "index_point_ids_sha256": "4dee07fe1a99e55ca561305a51010d8d656dc4c9026268b0aea084ed09b68188",
+  "archives": [
+    {
+      "path": "corpora/millennium/books/The Girl Who Kicked the Hornet's Nest -- Stieg Larsson -- Millennium Trilogy #3, 2010 -- Random House, Inc_ -- a9a1c0e6f4b8fd47fa0771ff9463bc34 -- Anna’s Archive.epub",
+      "sha256": "f1110c1d66aadf25607d395564515f285c473204c2595248c42819ddd7d9b968"
+    },
+    {
+      "path": "corpora/millennium/books/The Girl Who Played with Fire _ A Lisbeth Salander Novel -- Larsson, Stieg -- Millennium trilogy, bk_ 2, New York, 2009 -- Alfred A_ Knopf -- isbn13 9780307272300 -- 078fc916144df1e3707c069bbf984d06 -- Anna’s Archive.epub",
+      "sha256": "1b736491ddd876a2111b8518f84ae28ed56d57cc50da6482be755e3cb826abe1"
+    },
+    {
+      "path": "corpora/millennium/books/The Girl with the Dragon Tattoo -- Larsson, Stieg -- Millennium book, 1st Vintage Crime_Black Lizard mass-market -- Random House, Incorporated -- isbn13 9780307455352 -- f10e68d0e06407c85b6ba58f6f49d618 -- Anna’s Archive.epub",
+      "sha256": "9e95a66dd59ab9cd6679cd910e243fb8fb121b3878a9259c66de295d37ff76a6"
+    }
+  ],
+  "labeling_method": "Manual passage review from the exact indexed text. Lexical candidate ranking was used to locate passages; final labels were assigned from passage content, not from pipeline answers.",
+  "issues": [
+    "Additional Questions has 9 Langfuse items; local docs list 8.",
+    "Two Additional Questions items ask the same Gosseberga kitchen quotation.",
+    "The set3 top-ten-characters and open nickname-list prompts are subjective/open-ended.",
+    "right-set-3 asks how Salander learned hacking, but the corpus does not explicitly establish a self-taught origin.",
+    "right-set-3 Armansky affair question has no direct statement ruling out an affair.",
+    "set3 Who drives Saab? is ambiguous because multiple characters drive Saab cars.",
+    "The set3 top-ten-characters question has no objective canonical ranking.",
+    "The set3 request for all nicknames is open-ended; the labels represent only a sample."
+  ],
+  "qrels_item_counts": {
+    "Additional Questions": 9,
+    "set3": 15,
+    "right-set-3": 28
+  },
+  "qrels_passage_counts": {
+    "Additional Questions": 25,
+    "set3": 41,
+    "right-set-3": 64
+  },
+  "unlabelled_items": [
+    {
+      "dataset": "right-set-3",
+      "id": "df0f4533-c695-59f0-8764-fca22d15cacc",
+      "reason": "No passage explicitly establishes that Salander was self-taught or explains how she learned hacking; left unlabelled rather than infer from silence."
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "description": "Per-question passage relevance labels for retrieval metrics. Relevance is judged without using the pipeline's answer.",
   "corpus": "millennium",
   "index_collection": "millennium_books_a7ebc5a988df037cd2ee",
@@ -5811,6 +5811,2338 @@
           }
         }
       }
+    },
+    "Additional Questions": {
+      "8acd68c6-d285-42c3-b33b-ac2fb9833565": {
+        "question": "How did Mikael found who was in the photo that Harriet was afraid of?",
+        "claims": {
+          "C1": "Mikael traced Harriet’s line of sight in the parade photographs and identified her brother Martin as the man she feared.",
+          "C2": "He used other crowd photographs and the Norsjö camera negatives to locate and compare the man’s jacket."
+        },
+        "passages": [
+          {
+            "id": "037d5904-4d37-ad04-eb0a-89b2b8db54aa",
+            "short_id": "037d5904",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 23 Friday, July 11",
+            "paragraph_start": 136,
+            "paragraph_end": 138,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "On the left of the photograph stood a young, slightly stout young man with light, longish hair. He had on a dark padded jacket with a red patch at the shoulder. The image was very clear. Blomkvist recognised him at once—and the jacket—but, just to make sure, he removed the photograph and went down to ask Anna if she recognised the man.\n“Yes, of course, that’s Martin.”\nSalander ploughed through year after year of press cuttings, moving in chronological order. She began in 1949 and worked her way forward. The archive was huge. The company was mentioned in the media nearly every day during the relevant time period—not only in the local press but also in the national media. There were financial analyses, trade union negotiations, the threat of strikes, factory openings and factory closings, annual reports, changes in managers, new products that were launched . . . There was a flood of news. Click. Click. Click . Her brain was working at high speed as she focused and absorbed the information from the yellowing pages."
+          },
+          {
+            "id": "11de96eb-db0c-ab28-f19d-93dac77ff95e",
+            "short_id": "11de96eb",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 24 Friday, July 11– Saturday, July 12",
+            "paragraph_start": 50,
+            "paragraph_end": 51,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "The ceremony was held on the terrace of the hotel, clearly right before people were thinking of heading back to the slopes. About twenty people were in the picture.\nOn the far right, just behind Henrik Vanger, stood a man with long blond hair. He was wearing a dark padded jacket with a distinctive patch at the shoulder. Since the publication was in black-and-white, the colour wasn’t identifiable, but Salander was willing to bet her life that the shoulder patch was red."
+          },
+          {
+            "id": "e5dcc94e-f7fb-cead-dfaf-be50b5f35b3b",
+            "short_id": "e5dcc94e",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 17 Wednesday, June 11– Saturday, June 14",
+            "paragraph_start": 35,
+            "paragraph_end": 37,
+            "relevance": "support",
+            "supports": [
+              "C2"
+            ],
+            "quote": "Blomkvist poured himself a cup of coffee from Vanger’s thermos.\n“I think I’ve found some new material.”\nHe took his iBook out of his shoulder bag and scrolled through the series of images showing how Harriet had reacted on Järnvägsgatan. He explained how he had found the other spectators with the camera and their car with the Norsjö Carpentry Shop sign. When he was finished Vanger wanted to see all the pictures again. When he looked up from the computer his face was grey. Blomkvist was suddenly alarmed and put a hand on Vanger’s shoulder. Vanger waved him away and sat in silence for a while."
+          },
+          {
+            "id": "b21c4624-0d7b-3e39-3b79-e93383e8ed61",
+            "short_id": "b21c4624",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 16 Sunday, June 1– Tuesday, June 10",
+            "paragraph_start": 13,
+            "paragraph_end": 15,
+            "relevance": "support",
+            "supports": [
+              "C2"
+            ],
+            "quote": "All except one.\nHarriet Vanger was looking off to the side. Her three friends and everyone else in her vicinity were looking at the clowns. Harriet’s face was turned almost 30° to 35° to her right. Her gaze seemed fixed on something across the street, but beyond the left-hand edge of the photograph.\nMikael took the magnifying glass and tried to make out the details. The photograph was taken from too great a distance for him to be entirely sure, but unlike all those around her, Harriet’s face lacked excitement. Her mouth was a thin line. Her eyes were wide open. Her hands hung limply at her sides. She looked frightened. Frightened or furious."
+          }
+        ]
+      },
+      "923590b4-884d-4c40-b39e-05a8569025ef": {
+        "question": "Who is Salander's mother?",
+        "claims": {
+          "C1": "Her mother is Agneta Sofia Salander"
+        },
+        "passages": [
+          {
+            "id": "f88d3979-2e24-f7c1-8714-c3966a643ed8",
+            "short_id": "f88d3979",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 15 Thursday, May 19–Sunday, May 22",
+            "paragraph_start": 8,
+            "paragraph_end": 10,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "Kalle Fucking Blomkvist was complicating life for her.\nAt 2:00 in the morning she opened the word-processing programme on her Palm. She clicked on New Document, took out the stylus, and began to tap on the letters on the digital keypad.\nMy name is Lisbeth Salander. I was born on April 30, 1978. My mother was Agneta Sofia Salander. She was twenty-two when I was born. My father was a psychopath, killer, and batterer whose name was Alexander Zalachenko. He previously worked in western Europe for the Soviet military intelligence service GRU."
+          },
+          {
+            "id": "ce288e84-2530-f39d-3a76-70eb94319fa1",
+            "short_id": "ce288e84",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 2,
+            "paragraph_end": 3,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "The last fourteen years of Agneta Sofia Salander’s life had been punctuated by small cerebral haemorrhages which left her unable to take care of herself. Sometimes she had not even been able to recognize her daughter.\nThinking about her mother always pitched Salander into a mood of helplessness and darkness black as night. As a teenager she had cherished the fantasy that her mother would get well and that they would be able to form some sort of relationship. That was her heart thinking. Her head knew that it would never happen."
+          }
+        ]
+      },
+      "1e785ac0-34a9-4b22-95c1-dd83cfff1764": {
+        "question": "What is \"no compromises\"?",
+        "claims": {
+          "C1": "It is Salander's personal stance of refusing to compromise or give in",
+          "C2": "It is how Ekström/the court read her at her trial, where she rejects any deal",
+          "C3": "Her one 'little compromise': agreeing to testify when her guardianship is revoked"
+        },
+        "passages": [
+          {
+            "id": "9d4cb47f-2275-f829-a819-f3a448258046",
+            "short_id": "9d4cb47f",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 28 Friday, July 15–Saturday, July 16",
+            "paragraph_start": 47,
+            "paragraph_end": 51,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "Judge Iversen sighed. Palmgren looked bewildered.\n“I agree with my client,” Giannini said. “It is the government and the authorities who have committed crimes against Lisbeth Salander, not the other way around. At the very least she deserves to be able to walk out that door with an acquittal and the chance to put this whole story behind her.”\nNo compromises .\nJudge Iversen glanced at his watch.\n“It is 3:00. That means that you’re going to force me to keep your client in custody.”"
+          },
+          {
+            "id": "6da6bcd9-06a1-079d-2970-93d8f29d9764",
+            "short_id": "6da6bcd9",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 28 Friday, July 15–Saturday, July 16",
+            "paragraph_start": 11,
+            "paragraph_end": 13,
+            "relevance": "support",
+            "supports": [
+              "C2"
+            ],
+            "quote": "Ekström met Salander’s gaze. She was sitting there patiently, and in her eyes he read both curiosity and vengeance.\nNo compromises .\nHe could still get her convicted of aggravated assault in Stallarholmen. And he could probably get her convicted for the aggravated assault and attempted murder of her father in Gosseberga. That would mean changing his strategy immediately; he would drop everything that had anything to do with Teleborian. All claims that she was a psychopath had to go, but that meant that her story would be strengthened all the way back to 1991. The whole declaration of incompetence was bogus, and with that . . ."
+          },
+          {
+            "id": "47d1cab7-9333-cae4-3b71-c08980c179ee",
+            "short_id": "47d1cab7",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 28 Friday, July 15–Saturday, July 16",
+            "paragraph_start": 66,
+            "paragraph_end": 67,
+            "relevance": "support",
+            "supports": [
+              "C3"
+            ],
+            "quote": "At 6:00 that evening Judge Iversen decided to release Salander and to revoke her declaration of incompetence.\nBut the decision was made on one condition: Judge Iversen demanded that Salander submit to an interview in which she would formally testify to her knowledge of the Zalachenko affair. At first she refused. This refusal brought about a moment’s wrangling until Judge Iversen raised his voice. He leaned forward and fixed his gaze on Salander."
+          },
+          {
+            "id": "23daf4ff-0292-f42b-b2fe-4c07cdd7ddfa",
+            "short_id": "23daf4ff",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 28 Friday, July 15–Saturday, July 16",
+            "paragraph_start": 71,
+            "paragraph_end": 75,
+            "relevance": "support",
+            "supports": [
+              "C3"
+            ],
+            "quote": "Salander’s expression darkened even more.\n“So, what is your decision?” Judge Iversen said.\nAfter thinking it over for a minute, Salander gave a curt nod.\nOK. A little compromise .\nDuring her summary of the Zalachenko affair that evening, Giannini launched a savage attack on Prosecutor Ekström. Eventually Ekström admitted that the course of events had proceeded more or less as Giannini had described. He had been helped during the preliminary investigation by Superintendent Nyström, and he had received his information from Dr. Teleborian. In Ekström’s case there was no conspiracy. He had gone along with the Section in good faith in his capacity as leader of the preliminary investigation. When the whole extent of the conspiracy finally dawned on him, he decided to withdraw all charges against Salander, and that decision meant that a raft of bureaucratic formalities could be set aside. Judge Iversen looked relieved."
+          }
+        ]
+      },
+      "36c50723-3b65-49f6-9d9b-70574cc9471c": {
+        "question": "What happened to Salander in the abandoned factory?",
+        "claims": {
+          "C1": "She confronted Ronald Niedermann at the abandoned brickworks",
+          "C2": "She nailed his feet to the floor with a nail gun",
+          "C3": "She tipped off Svavelsjö MC and the police",
+          "C4": "The bikers killed Niedermann and the police arrested the bikers",
+          "C5": "She found evidence of trafficking/a body there"
+        },
+        "passages": [
+          {
+            "id": "2aa1cad0-c52f-a707-db26-d975dc9d40d6",
+            "short_id": "2aa1cad0",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "EPILOGUE: INVENTORY OF ESTATE Friday, December 2–Sunday, December 18",
+            "paragraph_start": 235,
+            "paragraph_end": 241,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "“All right, so what do you want?”\n“You want a tip about Niedermann?”\n“Do I?”\n“Don’t give me shit. Want to know where he is or not?”\n“I’m listening.”\nSalander gave him directions to the brickworks outside Norrtälje. She said that he would be there long enough for Nieminen to find him if he hurried.\nShe closed her mobile, started the car, and drove up to the gas station across the road. She parked so that she had a clear view of the brickworks."
+          },
+          {
+            "id": "7cc65e5e-5711-ac4a-b4d6-61f0652e9893",
+            "short_id": "7cc65e5e",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "EPILOGUE: INVENTORY OF ESTATE Friday, December 2–Sunday, December 18",
+            "paragraph_start": 189,
+            "paragraph_end": 192,
+            "relevance": "support",
+            "supports": [
+              "C2"
+            ],
+            "quote": "She was underneath the cabinet.\nHe stood as if paralysed for the seconds it took her to put the mouth of the nail gun against his boot and fire another five seven-inch nails straight through his foot.\nHe tried to move.\nIt took him precious seconds to realize that his feet were nailed solidly to the newly laid plank floor. Salander’s hand moved the nail gun back to his left foot. It sounded like an automatic weapon getting shots off in bursts. She managed to shoot in another four nails as reinforcement before he was able to react."
+          },
+          {
+            "id": "0b2e2b06-31bc-3153-bc98-aaf375c33269",
+            "short_id": "0b2e2b06",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "EPILOGUE: INVENTORY OF ESTATE Friday, December 2–Sunday, December 18",
+            "paragraph_start": 244,
+            "paragraph_end": 246,
+            "relevance": "support",
+            "supports": [
+              "C3"
+            ],
+            "quote": "When Nieminen and his pals had found the open door at the end of the building, she opened her mobile again. She composed a message and sent it to the police station in Norrtälje.\nCOP KILLER R. NIEDERMANN IN OLD BRICKWORKS BY THE GAS STATION OUTSIDE SKEDERID. ABOUT TO BE MURDERED BY S. NIEMINEN AND MEMBERS OF SVAVELSJÖ MC. WOMEN DEAD IN PIT ON GROUND FLOOR.\nShe could not see any movement from the factory."
+          },
+          {
+            "id": "f42fabcb-34ca-ea89-6bd2-c8c8a71ecf02",
+            "short_id": "f42fabcb",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "EPILOGUE: INVENTORY OF ESTATE Friday, December 2–Sunday, December 18",
+            "paragraph_start": 258,
+            "paragraph_end": 264,
+            "relevance": "support",
+            "supports": [
+              "C4"
+            ],
+            "quote": "“Hello,” Blomkvist said.\nShe did not answer.\n“Did you hear the evening news?”\nShe shook her head.\n“I thought you might like to know that Ronald Niedermann is dead. He was murdered today in Norrtälje by a gang from Svavelsjö MC.”\n“Really?” Salander said.\n“I talked to the duty officer in Norrtälje. It seems to have been some sort of internal dispute. Apparently Niedermann had been tortured and slit open with a knife. They found a bag at the factory with several hundred thousand kronor.”"
+          }
+        ]
+      },
+      "e43e2f16-b8e6-4735-8179-9ebd7cfbd42f": {
+        "question": "What did Salander said when she saw Mikael in the kitchen, when she was severely wounded?",
+        "claims": {
+          "C1": "She said 'Kalle Fucking Blomkvist'",
+          "C2": "She then let go of the gun"
+        },
+        "passages": [
+          {
+            "id": "90239c47-44bb-0d35-4b88-712961a503ec",
+            "short_id": "90239c47",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 188,
+            "paragraph_end": 191,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "For a moment he stood as if petrified, staring at her mangled body. He noticed that she was holding a pistol in her hand, which hung loosely off the edge of the bench. He went to her side and sank to his knees. He thought about how he had found Svensson and Johansson and thought that she was dead too. Then he saw a slight movement in her chest and heard a feeble, wheezing breath.\nHe reached out his hand and carefully loosened the gun from her grip. Suddenly her fist tightened around its butt. She opened her eyes to two narrow slits and stared at him for many long seconds. Her eyes were unfocused. Then he heard her mutter in such a low voice that he could only with difficulty catch the words.\nKalle Fucking Blomkvist .\nShe closed her eyes and let go of the gun. He put it on the floor, took out his mobile, and dialled the number for emergency services."
+          }
+        ]
+      },
+      "45d561b9-ca5e-4c5d-83cb-04b610da13dc": {
+        "question": "When Mikael Blomkvist found Lisbeth Salander severely wounded on the kitchen bench at the Gosseberga farmhouse, he reached out to carefully loosen the gun from her hand. And then what Salander said to him?",
+        "claims": {
+          "C1": "She said 'Kalle Fucking Blomkvist'",
+          "C2": "She then let go of the gun"
+        },
+        "passages": [
+          {
+            "id": "90239c47-44bb-0d35-4b88-712961a503ec",
+            "short_id": "90239c47",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 188,
+            "paragraph_end": 191,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "For a moment he stood as if petrified, staring at her mangled body. He noticed that she was holding a pistol in her hand, which hung loosely off the edge of the bench. He went to her side and sank to his knees. He thought about how he had found Svensson and Johansson and thought that she was dead too. Then he saw a slight movement in her chest and heard a feeble, wheezing breath.\nHe reached out his hand and carefully loosened the gun from her grip. Suddenly her fist tightened around its butt. She opened her eyes to two narrow slits and stared at him for many long seconds. Her eyes were unfocused. Then he heard her mutter in such a low voice that he could only with difficulty catch the words.\nKalle Fucking Blomkvist .\nShe closed her eyes and let go of the gun. He put it on the floor, took out his mobile, and dialled the number for emergency services."
+          }
+        ]
+      },
+      "dece0abd-3214-459e-ae0a-ff5c4c75f38a": {
+        "question": "What t-shirt was Salander wearing when they first met with Mikael in her house?",
+        "claims": {
+          "C1": "The T-shirt said 'Armageddon was yesterday - today we have a serious problem'",
+          "C2": "She first opened the door wrapped in a sheet"
+        },
+        "passages": [
+          {
+            "id": "a1dd6e66-c4e8-af8a-be1a-6d5b0af6f0e6",
+            "short_id": "a1dd6e66",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 18 Wednesday, June 18",
+            "paragraph_start": 18,
+            "paragraph_end": 20,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "“I don’t want to make trouble,” he said. “But I’m quite anxious to talk to you. After you’re awake, that is. The coffee will be ready by the time you put on some clothes. First, a shower. Vamoose!”\nPassively she obeyed. Lisbeth Salander is never passive , she thought.\nShe leaned against the bathroom door and struggled to collect her thoughts. She was more shaken than she would have thought possible. Gradually she realised that a shower was not only good advice but a necessity after the tumult of the night. When she was done, she slipped into her bedroom and put on jeans, and a T-shirt with the slogan ARMAGEDDON WAS YESTERDAY—TODAY WE HAVE A SERIOUS PROBLEM ."
+          },
+          {
+            "id": "bca0a41d-ef35-4fbb-b286-c30740bff40c",
+            "short_id": "bca0a41d",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 27 Saturday, July 26– Monday, July 28",
+            "paragraph_start": 128,
+            "paragraph_end": 130,
+            "relevance": "support",
+            "supports": [
+              "C2"
+            ],
+            "quote": "“Well, at least you don’t compromise.”\n“No,” she said, giving him her crooked non-smile. “But at least you’re not like them.” She got up. “Now I’m going in to take a shower, and then I think I’ll get into your bed naked. If you think you’re too old, you’ll have to go and sleep on the camp bed.”\nWhatever hang-ups Salander had, modesty certainly was not one of them. He managed to lose every argument with her. After a while he washed up the coffee things and went into the bedroom."
+          }
+        ]
+      },
+      "74355fed-d6cb-401c-9a41-ee80faaf18cd": {
+        "question": "How did Mikhail first know about Salander?",
+        "claims": {
+          "C1": "He learned of her through the background check on him that she had researched/written (commissioned by Frode via Milton Security)",
+          "C2": "Frode let it slip when Mikael asked for a researcher",
+          "C3": "Mikael read her report and realised she must have hacked his computer",
+          "C4": "He then went to her Lundagatan apartment to recruit her"
+        },
+        "passages": [
+          {
+            "id": "b43a0824-062a-2659-e1ad-eaa45790cc55",
+            "short_id": "b43a0824",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 17 Wednesday, June 11– Saturday, June 14",
+            "paragraph_start": 160,
+            "paragraph_end": 164,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "“I understand … Actually I believe I know of an expert researcher,” said Frode, and before he could stop himself, he added, “She was the one who did the background investigation on you.”\n“Who did what ?” Blomkvist said.\n“I was thinking out loud,” Frode said. “It’s nothing.” I’m getting old, he thought.\n“You had someone do an investigation on me?”\n“It’s nothing dramatic, Mikael. We wanted to hire you, and we just did a check on what sort of person you were.”"
+          },
+          {
+            "id": "08ddd00f-d56b-ac47-12d8-50e0376483fc",
+            "short_id": "08ddd00f",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 27 Saturday, July 26– Monday, July 28",
+            "paragraph_start": 94,
+            "paragraph_end": 97,
+            "relevance": "support",
+            "supports": [
+              "C3"
+            ],
+            "quote": "“Hmm.”\n“The fact is, I’ve never worked with such a brilliant researcher. OK, I know you’re a hacker and hang out in suspect circles in which you can set up an illegal wiretap in London in twenty-four hours, but you get results.”\nShe looked at him for the first time since she had sat at the table. He knew so many of her secrets.\n“That’s just how it is. I know computers. I’ve never had a problem with reading a text and absorbing what it said.”"
+          },
+          {
+            "id": "a5571633-3824-bbe8-dce1-634ac85c9965",
+            "short_id": "a5571633",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 18 Wednesday, June 18",
+            "paragraph_start": 146,
+            "paragraph_end": 150,
+            "relevance": "support",
+            "supports": [
+              "C2"
+            ],
+            "quote": "“You said that you knew what I did.”\n“You’ve been inside my computer. You’re a hacker.”\n“How do you know that?” Salander was absolutely positive that she had left no traces and that her trespassing could not be discovered by anyone unless a top security consultant sat down and scanned the hard drive at the same time as she was accessing the computer.\n“You made a mistake.”\nShe had quoted from a text that was only on his computer."
+          }
+        ]
+      },
+      "ba2fffee-c82e-4029-9b0c-1c7a52bed602": {
+        "question": "What is Salander's fake identity?",
+        "claims": {
+          "C1": "Irene Nesser is her fake identity (Norwegian passport)",
+          "C2": "Monica Sholes, used in Zurich to drain Wennerström's accounts",
+          "C3": "Her hacker handle is Wasp / her company Wasp Enterprises",
+          "C4": "V. Kulla on her Fiskargatan doorplate"
+        },
+        "passages": [
+          {
+            "id": "8fc05e4e-2b14-e81d-13eb-c1a691277cf3",
+            "short_id": "8fc05e4e",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 29 Saturday, November 1–Tuesday, November 25",
+            "paragraph_start": 51,
+            "paragraph_end": 51,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "She landed in Zürich at 7:30 in the evening and took a taxi to the Matterhorn Hotel. She had booked a room under the name of Irene Nesser, and she identified herself using a Norwegian passport in that name. Irene Nesser had shoulder-length blonde hair. Salander had bought a wig in Stockholm and used 10,000 kronor of what she had borrowed from Blomkvist to buy two passports through one of the contacts in Plague’s international network."
+          },
+          {
+            "id": "3a61fe33-2b0c-fe06-7ee1-bc3892dd02ea",
+            "short_id": "3a61fe33",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "EPILOGUE: FINAL AUDIT Thursday, November 27– Tuesday, December 30",
+            "paragraph_start": 56,
+            "paragraph_end": 56,
+            "relevance": "support",
+            "supports": [
+              "C2"
+            ],
+            "quote": "Europol had launched a search for the woman who had used a stolen British passport in the name of Monica Sholes and who was said to have lived a life of luxury at one of Zürich’s most expensive hotels. A relatively clear picture, considering that it came from a surveillance camera, showed a short woman with a blonde page-boy, wide lips, and prominent breasts wearing fashionable designer clothes and gold jewellery."
+          },
+          {
+            "id": "9b0775b6-077f-cc62-c36f-2fdef0334a78",
+            "short_id": "9b0775b6",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 13 Tuesday, May 17",
+            "paragraph_start": 139,
+            "paragraph_end": 143,
+            "relevance": "support",
+            "supports": [
+              "C3"
+            ],
+            "quote": "<Hi gang.> Wasp wrote.\n<Wasp. That really U?> SixOfOne wrote. <Look who’s back.>\n<Where you been keeping yourself?> Trinity wrote.\n<Plague said you were in some trouble.> Dakota wrote.\nSalander was not sure, but she suspected that Dakota was a woman. The other citizens online, including the one who called himself SisterJen, were guys. Hacker Republic had a total (the last time she was connected) of sixty-two citizens, of whom four were female."
+          },
+          {
+            "id": "58e7c1a8-53fd-dde6-ac1e-1ae38e45fc32",
+            "short_id": "58e7c1a8",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 2,
+            "paragraph_end": 3,
+            "relevance": "support",
+            "supports": [
+              "C4"
+            ],
+            "quote": "He walked up floor by floor, reading the nameplates on the doors. None of them rang a bell. Then he got to the top floor and read V. KULLA .\nBlomkvist slapped his forehead. He had to smile. The choice of name may not have been intended to make fun of him personally; it was more likely some private ironic reflection of Salander’s—but where else should Kalle Blomkvist, nicknamed for an Astrid Lindgren character, look for her than at Pippi Longstocking’s Villa Villekulla?"
+          }
+        ]
+      }
+    },
+    "set3": {
+      "cf527045-31e2-56b5-a91d-1fb1f13fdd71": {
+        "question": "How Gottfried really died?",
+        "claims": {
+          "C1": "His daughter Harriet killed him by drowning him",
+          "C2": "Officially it was a drunken accident",
+          "C3": "He had raped her and tried to strangle her",
+          "C4": "She pushed him into the water and held him under with an oar",
+          "C5": "Martin saw it"
+        },
+        "passages": [
+          {
+            "id": "1fbdbe74-1ebf-49d5-d796-1fa8a745eb8b",
+            "short_id": "1fbdbe74",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 26 Tuesday, July 15– Thursday, July 17",
+            "paragraph_start": 120,
+            "paragraph_end": 122,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C3"
+            ],
+            "quote": "“But he was so drunk that somehow I managed to get away. I jumped down from the loft and fled. I was naked and I ran without thinking, and ended up on the jetty by the water. He came staggering after me.”\nBlomkvist suddenly wished that she would not tell him anything more.\n“I was strong enough to shove an old drunk into the water. I used an oar to hold him under until he wasn’t struggling any more. It didn’t take long.”"
+          },
+          {
+            "id": "6ac70f83-8cad-05cf-12fd-1e8cb8253aeb",
+            "short_id": "6ac70f83",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 25 Saturday, July 12– Monday, July 14",
+            "paragraph_start": 120,
+            "paragraph_end": 122,
+            "relevance": "support",
+            "supports": [
+              "C2"
+            ],
+            "quote": "Blomkvist frowned. “Not really. Think of the chronology. We don’t know when Gottfried first raped his son, but he took Martin with him when he murdered Lea Persson in Uddevalla in 1962. He drowned in 1965. Before that, he and Martin tried to talk to Harriet. Where does that lead us?”\n“Martin wasn’t the only one that Gottfried assaulted. He also assaulted Harriet.”\n“Gottfried was the teacher. Martin was the pupil. Harriet was what? Their plaything?”"
+          },
+          {
+            "id": "46b3427b-2557-d898-41d8-9fb25c5de130",
+            "short_id": "46b3427b",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 25 Saturday, July 12– Monday, July 14",
+            "paragraph_start": 128,
+            "paragraph_end": 130,
+            "relevance": "support",
+            "supports": [
+              "C3"
+            ],
+            "quote": "“It must have been at Gottfried’s cabin. I’m almost positive that these pictures were taken there—it should be possible to check. The cabin is in a perfect location, isolated and far from the village. Then Gottfried got drunk one last time and died in a most banal way.”\n“So Harriet’s father had attempted to have sex with her, but my guess is that he didn’t initiate her into the killing.”\nBlomkvist realised that this was a weak point. Harriet had made note of the names of Gottfried’s victims, pairing them up with Bible quotes, but her interest in the Bible did not emerge until the last year, and by then Gottfried was already dead. He paused, trying to come up with a logical explanation."
+          }
+        ]
+      },
+      "db4076fd-3812-5196-ac8d-5d436388f286": {
+        "question": "How Gottfried died?",
+        "claims": {
+          "C1": "Gottfried drowned",
+          "C2": "Harriet drowned him (it was not just an accident)",
+          "C3": "It happened in 1965 near his cabin",
+          "C4": "It was believed to be a drunken accident",
+          "C5": "He had raped her and tried to strangle her"
+        },
+        "passages": [
+          {
+            "id": "6ac70f83-8cad-05cf-12fd-1e8cb8253aeb",
+            "short_id": "6ac70f83",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 25 Saturday, July 12– Monday, July 14",
+            "paragraph_start": 120,
+            "paragraph_end": 122,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2",
+              "C3"
+            ],
+            "quote": "Blomkvist frowned. “Not really. Think of the chronology. We don’t know when Gottfried first raped his son, but he took Martin with him when he murdered Lea Persson in Uddevalla in 1962. He drowned in 1965. Before that, he and Martin tried to talk to Harriet. Where does that lead us?”\n“Martin wasn’t the only one that Gottfried assaulted. He also assaulted Harriet.”\n“Gottfried was the teacher. Martin was the pupil. Harriet was what? Their plaything?”"
+          },
+          {
+            "id": "1fbdbe74-1ebf-49d5-d796-1fa8a745eb8b",
+            "short_id": "1fbdbe74",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 26 Tuesday, July 15– Thursday, July 17",
+            "paragraph_start": 120,
+            "paragraph_end": 122,
+            "relevance": "support",
+            "supports": [
+              "C2",
+              "C4"
+            ],
+            "quote": "“But he was so drunk that somehow I managed to get away. I jumped down from the loft and fled. I was naked and I ran without thinking, and ended up on the jetty by the water. He came staggering after me.”\nBlomkvist suddenly wished that she would not tell him anything more.\n“I was strong enough to shove an old drunk into the water. I used an oar to hold him under until he wasn’t struggling any more. It didn’t take long.”"
+          }
+        ]
+      },
+      "2df113f1-9330-53e8-b7dd-ddb4583a75c0": {
+        "question": "What Bjurman did to Salander?",
+        "claims": {
+          "C1": "As her guardian he controlled her money",
+          "C2": "He sexually abused and raped her",
+          "C3": "She filmed the rape and blackmailed him",
+          "C4": "She tattooed a message on his stomach",
+          "C5": "He later sought Zalachenko's help against her"
+        },
+        "passages": [
+          {
+            "id": "1557e3e5-8501-bd7b-4a6c-8b80153cf22d",
+            "short_id": "1557e3e5",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 17 Wednesday, June 1",
+            "paragraph_start": 157,
+            "paragraph_end": 157,
+            "relevance": "support",
+            "supports": [
+              "C2"
+            ],
+            "quote": "She scrolled back and read through a section where she told how Advokat Bjurman had violently and sadistically raped her. That was the part she had spent the most time on, and one of the few she had rewritten several times before she was satisfied. The section took up nineteen lines in her account. She reported in a matter-of-fact manner how he had hit her, thrown her onto her stomach on the bed, taped her mouth, and handcuffed her. She then related how he had repeatedly committed acts of sexual violence against her, including anal penetration. She went on to report how at one point during the rape he had wound a piece of clothing—her own T-shirt—around her neck and strangled her for such a long time that she temporarily lost consciousness. Then there were several lines where she identified the implements he had used during the rape, which included a short whip, an anal plug, a rough dildo, and clamps, which he attached to her nipples."
+          },
+          {
+            "id": "cde6edb5-d7a2-f73d-1371-c0b77048625b",
+            "short_id": "cde6edb5",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 25 Wednesday, July 13–Thursday, July 14",
+            "paragraph_start": 107,
+            "paragraph_end": 111,
+            "relevance": "support",
+            "supports": [
+              "C2"
+            ],
+            "quote": "“In other words, you are alleging that your guardian forced himself on you. Can you tell the court when these assaults are supposed to have taken place?”\n“They took place on Tuesday, February 18, 2003, and again on Friday, March 7, of the same year.”\n“You have refused to answer every question asked by the police in their attempts to interview you. Why?”\n“I had nothing to say to them.”\n“I have read the so-called autobiography that your lawyer delivered without warning a few days ago. I must say it is a strange document, and we’ll come back to it in more detail later. But in it you claim that Advokat Bjurman allegedly forced you to perform oral sex on the first occasion, and on the second subjected you to an entire night of repeated rape and severe torture.”"
+          },
+          {
+            "id": "59eed232-0220-6a9a-3a2f-2590b03678d9",
+            "short_id": "59eed232",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 2 Friday, April 8",
+            "paragraph_start": 40,
+            "paragraph_end": 46,
+            "relevance": "support",
+            "supports": [
+              "C3"
+            ],
+            "quote": "Blomkvist shrugged and said nothing.\n“You don’t know about the tattoo Bjurman had on his abdomen?”\n“What tattoo?” Blomkvist was taken aback.\n“An amateurish tattoo across his belly with a message that said: ‘I am a sadistic pig, a pervert, and a rapist.’ We’ve been wondering what that was about.”\nBlomkvist burst out laughing.\n“What’s so funny?”\n“I’ve always wondered what she did to get her revenge. But listen, I don’t want to discuss this for the same reason I’ve already given. She’s the real victim here. She’s the one who has to decide what she is willing to tell you. Sorry.”"
+          },
+          {
+            "id": "1557e3e5-8501-bd7b-4a6c-8b80153cf22d",
+            "short_id": "1557e3e5",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 17 Wednesday, June 1",
+            "paragraph_start": 157,
+            "paragraph_end": 157,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "She scrolled back and read through a section where she told how Advokat Bjurman had violently and sadistically raped her. That was the part she had spent the most time on, and one of the few she had rewritten several times before she was satisfied. The section took up nineteen lines in her account. She reported in a matter-of-fact manner how he had hit her, thrown her onto her stomach on the bed, taped her mouth, and handcuffed her. She then related how he had repeatedly committed acts of sexual violence against her, including anal penetration. She went on to report how at one point during the rape he had wound a piece of clothing—her own T-shirt—around her neck and strangled her for such a long time that she temporarily lost consciousness. Then there were several lines where she identified the implements he had used during the rape, which included a short whip, an anal plug, a rough dildo, and clamps, which he attached to her nipples."
+          }
+        ]
+      },
+      "ce841aab-a26b-512b-8fa9-ba28cf3b0f20": {
+        "question": "Who are the top 10 most important characters?",
+        "claims": {
+          "C1": "A representative selection of central characters includes Salander, Blomkvist, Berger, Zalachenko, Niedermann, and the Vangers."
+        },
+        "passages": [
+          {
+            "id": "5b65654f-6c9f-a1d7-d797-ca4ef848adeb",
+            "short_id": "5b65654f",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 109,
+            "paragraph_end": 109,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "“It’ll be a long list,” Salander said. “Mikael Blomkvist and Erika Berger, the editor in chief, the managing editor, and half a dozen others at Millennium alone. And then you have Dragan Armansky and some of his staff at Milton Security. And Detective Inspector Bublanski and everyone involved in the investigation. How many people would you have to kill to cover this up? No, they’re going to get to you.”"
+          },
+          {
+            "id": "9b9ed313-57da-1faa-27a4-4e3662c53ed1",
+            "short_id": "9b9ed313",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 2 Friday, December 20",
+            "paragraph_start": 17,
+            "paragraph_end": 17,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "However, it was not Lisbeth Salander’s astonishing lack of emotional involvement that most upset him. Milton’s image was one of conservative stability. Salander fitted into this picture about as well as a buffalo at a boat show. Armansky’s star researcher was a pale, anorexic young woman who had hair as short as a fuse, and a pierced nose and eyebrows. She had a wasp tattoo about an inch long on her neck, a tattooed loop around the biceps of her left arm and another around her left ankle. On those occasions when she had been wearing a tank top, Armansky also saw that she had a dragon tattoo on her left shoulder blade. She was a natural redhead, but she dyed her hair raven black. She looked as though she had just emerged from a week-long orgy with a gang of hard rockers."
+          },
+          {
+            "id": "8e48bafd-cceb-baca-9e0f-481d03c5199b",
+            "short_id": "8e48bafd",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 96,
+            "paragraph_end": 101,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "Her birth certificate. Father unknown .\n“Zalachenko is Lisbeth’s father,” Blomkvist repeated aloud.\n“On only one occasion in all the years I’ve known her did she tell me what happened. Here’s how I understood it—Zalachenko came here in the mid-seventies. He met Lisbeth’s mother in 1977, they had a relationship, and the result was two children.”\n“Two?”\n“Lisbeth and her twin sister Camilla.”\n“Good God—there are two of her?”"
+          }
+        ],
+        "question_type": "broad",
+        "label_note": "Subjective request; listed passages provide examples, not an exhaustive objective top ten."
+      },
+      "3fc5cd25-8333-56d6-8c81-136571fc84fe": {
+        "question": "What present Salander bought for Mikael?",
+        "claims": {
+          "C1": "She bought a metal Elvis Presley sign ('Heartbreak Hotel')",
+          "C2": "It was a Christmas present",
+          "C3": "She threw it away after seeing Mikael with Erika Berger, so never gave it"
+        },
+        "passages": [
+          {
+            "id": "df2d822c-286e-9a46-0633-d21684e72c47",
+            "short_id": "df2d822c",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "EPILOGUE: FINAL AUDIT Thursday, November 27– Tuesday, December 30",
+            "paragraph_start": 126,
+            "paragraph_end": 128,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2"
+            ],
+            "quote": "That’s when she made up her mind. It took her several hours to mobilise the necessary courage, but she had to see him and tell him how she felt.\nAnything else would be unbearable.\nShe needed some excuse to knock on his door. She had not given him any Christmas present, but she knew what she was going to buy. In a junk shop she had seen a number of metal advertising signs from the fifties, with embossed images. One of the signs showed Elvis Presley with a guitar on his hip and a cartoon balloon with the words HEARTBREAK HOTEL . She had no sense for interior design, but even she could tell that the sign would be perfect for the cabin in Sandhamn. It cost 780 kronor, and on principle she haggled and got the price knocked down to 700. She had it wrapped, put it under her arm, and headed over to his place on Bellmansgatan."
+          },
+          {
+            "id": "10df0bc4-170e-0192-27d2-11435f322590",
+            "short_id": "10df0bc4",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "EPILOGUE: FINAL AUDIT Thursday, November 27– Tuesday, December 30",
+            "paragraph_start": 129,
+            "paragraph_end": 132,
+            "relevance": "support",
+            "supports": [
+              "C3"
+            ],
+            "quote": "At Hornsgatan she happened to glance towards Kaffebar and saw Blomkvist coming out with Berger in tow. He said something, and she laughed, putting her arm around his waist and kissing his cheek. They turned down Brännkyrkagatan in the direction of Bellmansgatan. Their body language left no room for misinterpretations—it was obvious what they had in mind.\nThe pain was so immediate and so fierce that Lisbeth stopped in mid-stride, incapable of movement. Part of her wanted to rush after them. She wanted to take the metal sign and use the sharp edge to cleave Berger’s head in two. She did nothing as thoughts swirled through her mind. Analysis of consequences . Finally she calmed down.\n“What a pathetic fool you are, Salander,” she said out loud.\nShe turned on her heel and went home to her newly spotless apartment. As she passed Zinkensdamm, it started to snow. She tossed Elvis into a dumpster."
+          }
+        ]
+      },
+      "6420cd1b-9adb-54ba-92ce-1c8a9d00435b": {
+        "question": "Who killed Dag?",
+        "claims": {
+          "C1": "Ronald Niedermann killed Dag Svensson",
+          "C2": "He also killed Mia Johansson",
+          "C3": "He acted for Zalachenko"
+        },
+        "passages": [
+          {
+            "id": "c309662f-eca4-4d53-fb33-495cb0ef5384",
+            "short_id": "c309662f",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 172,
+            "paragraph_end": 174,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2"
+            ],
+            "quote": "“Get up.”\nHe put the muzzle of the gun against Niedermann’s neck, led him to the sign, and forced him into the ditch. He told Niedermann to sit with his back against the pole. Niedermann hesitated.\n“This is all quite simple,” Blomkvist said. “You killed Dag Svensson and Mia Johansson. They were my friends. I’m not going to let you loose on the road, so either you sit here while I tie you or I’ll shoot you in the kneecap. Your choice.”"
+          },
+          {
+            "id": "90b3202f-5bdd-cb24-e749-980f3c5fe57e",
+            "short_id": "90b3202f",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 7 Monday, April 11–Tuesday, April 12",
+            "paragraph_start": 273,
+            "paragraph_end": 274,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "Wadensjöö felt panic rise in his chest.\nCortez wrote feverishly, trying to get down every word that was said from the podium at the police press office at Kungsholmen. Prosecutor Ekström had begun. He explained that it had been decided that the investigation into the police killing in Gosseberga—for which Ronald Niedermann was being sought—would be placed under the jurisdiction of a prosecutor in Göteborg. The rest of the investigation concerning Niedermann would be handled by Ekström himself. Niedermann was a suspect in the murders of Dag Svensson and Mia Johansson. No mention was made of Advokat Bjurman. Ekström also had to investigate and bring charges against Lisbeth Salander, who was under suspicion for a long list of crimes."
+          },
+          {
+            "id": "73207651-318e-96bf-eea7-4dd07d177f3f",
+            "short_id": "73207651",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 98,
+            "paragraph_end": 99,
+            "relevance": "support",
+            "supports": [
+              "C3"
+            ],
+            "quote": "“But the likelihood of someone else having murdered all three of them is negligible. Even if someone killed Dag and Mia because of their story, there wouldn’t be the slightest reason for whoever it was to kill Salander’s guardian as well.”\n“I know, and I’ve worried myself sick over it. But I can imagine one scenario, at least, where an outside person might murder Dag and Mia as well as Lisbeth’s guardian.”"
+          }
+        ]
+      },
+      "569eb7d3-b4c5-5f6e-8adb-96ca33f1ed63": {
+        "question": "How Mikael understood that the numbers in Harriet's diary aren't phone numbers but biblical references?",
+        "claims": {
+          "C1": "His daughter Pernilla saw the numbers and referred to them as Bible quotes",
+          "C2": "He checked a Bible and found they were chapter-and-verse references (in Leviticus)",
+          "C3": "She said it as she boarded her train",
+          "C4": "He used Harriet's Bible from Gottfried's cabin"
+        },
+        "passages": [
+          {
+            "id": "bc3dc196-05ac-ed98-615f-403eb492f212",
+            "short_id": "bc3dc196",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 17 Wednesday, June 11– Saturday, June 14",
+            "paragraph_start": 86,
+            "paragraph_end": 89,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C3"
+            ],
+            "quote": "“Why do you say that?”\n“I saw the quotes you had on the wall,” she said. “But why so gloomy and neurotic? Kisses. See you later.”\nShe waved and was gone. He stood on the platform, baffled, watching the train pull away. Not until it vanished around the bend did the meaning sink in.\nMikael hurried out of the station. It would be almost an hour before the next bus left. He was too much on edge to wait that long. He ran to the taxi stand and found Hussein with the Norrland accent."
+          },
+          {
+            "id": "3168fdf0-8f28-80fa-2d39-f8589762e75a",
+            "short_id": "3168fdf0",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 17 Wednesday, June 11– Saturday, June 14",
+            "paragraph_start": 93,
+            "paragraph_end": 96,
+            "relevance": "support",
+            "supports": [
+              "C2",
+              "C4"
+            ],
+            "quote": "She had not written down telephone numbers. The figures indicated the chapter and verse in Leviticus, the third book of the Pentateuch.\nHe went out and sat on the porch. Each verse had been underlined in Harriet’s Bible. He lit a cigarette and listened to the singing of birds nearby.\nHe had the numbers. But he didn’t have the names. Magda, Sara, Mari, R.J., and R.L.\nAll of a sudden an abyss opened as Mikael’s brain made an intuitive leap. He remembered the fire victim in Hedestad that Inspector Morell had told him about. The Rebecka case, which occurred in the late forties. The girl was raped and then killed by having her head placed on smouldering coals. “And he shall cut it into pieces, with its head and its fat, and the priest shall lay them in order upon the wood that is on the fire upon the altar.” Rebecka. R.J. What was her last name?"
+          },
+          {
+            "id": "e91b57dc-9610-d06e-2656-7b6efc75611a",
+            "short_id": "e91b57dc",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 19 Thursday, June 19– Sunday, June 29",
+            "paragraph_start": 170,
+            "paragraph_end": 171,
+            "relevance": "support",
+            "supports": [
+              "C4"
+            ],
+            "quote": "Salander was no Bible reader—she did not even own one—but that evening she went over to Högalid Church and with some difficulty she managed to borrow a Bible. She sat on a park bench outside the church and read Leviticus. When she reached Chapter 12 , verse 8, her eyebrows went up. Chapter 12 dealt with the purification of women after childbirth.\nLea could very well have been included in Harriet’s date book as: Lea—31208."
+          }
+        ]
+      },
+      "7e3cbf3d-3e08-52f2-a0c9-7ad276b0d9ae": {
+        "question": "Who helped  Mikael solved the phone numbers mystery in Harriet's diary?",
+        "claims": {
+          "C1": "His daughter Pernilla helped him",
+          "C2": "She recognised the numbers as Bible references (Leviticus)"
+        },
+        "passages": [
+          {
+            "id": "bc3dc196-05ac-ed98-615f-403eb492f212",
+            "short_id": "bc3dc196",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 17 Wednesday, June 11– Saturday, June 14",
+            "paragraph_start": 86,
+            "paragraph_end": 89,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "“Why do you say that?”\n“I saw the quotes you had on the wall,” she said. “But why so gloomy and neurotic? Kisses. See you later.”\nShe waved and was gone. He stood on the platform, baffled, watching the train pull away. Not until it vanished around the bend did the meaning sink in.\nMikael hurried out of the station. It would be almost an hour before the next bus left. He was too much on edge to wait that long. He ran to the taxi stand and found Hussein with the Norrland accent."
+          },
+          {
+            "id": "3168fdf0-8f28-80fa-2d39-f8589762e75a",
+            "short_id": "3168fdf0",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 17 Wednesday, June 11– Saturday, June 14",
+            "paragraph_start": 93,
+            "paragraph_end": 96,
+            "relevance": "support",
+            "supports": [
+              "C2"
+            ],
+            "quote": "She had not written down telephone numbers. The figures indicated the chapter and verse in Leviticus, the third book of the Pentateuch.\nHe went out and sat on the porch. Each verse had been underlined in Harriet’s Bible. He lit a cigarette and listened to the singing of birds nearby.\nHe had the numbers. But he didn’t have the names. Magda, Sara, Mari, R.J., and R.L.\nAll of a sudden an abyss opened as Mikael’s brain made an intuitive leap. He remembered the fire victim in Hedestad that Inspector Morell had told him about. The Rebecka case, which occurred in the late forties. The girl was raped and then killed by having her head placed on smouldering coals. “And he shall cut it into pieces, with its head and its fat, and the priest shall lay them in order upon the wood that is on the fire upon the altar.” Rebecka. R.J. What was her last name?"
+          }
+        ]
+      },
+      "63be7c48-978b-5327-b7b3-7961e60dfc22": {
+        "question": "Why Mikael agreed to work for Henrik?",
+        "claims": {
+          "C1": "Henrik promised him information that would expose Wennerström",
+          "C2": "He was also offered a large salary (200,000 kronor a month) and a bonus"
+        },
+        "passages": [
+          {
+            "id": "4d64f811-3f04-c612-6896-5735dd5db8f5",
+            "short_id": "4d64f811",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 6 Thursday, December 26",
+            "paragraph_start": 99,
+            "paragraph_end": 102,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2"
+            ],
+            "quote": "“You’re asking me to set aside my life and career to devote myself for a whole year to something that’s a complete waste of time.”\nVanger smiled. “As to your career, we might agree that for the moment it’s somewhat on hold.”\nBlomkvist had no answer to that.\n“I want to buy a year of your life. Give you a job. The salary is better than any offer you’ll ever get in your life. I will pay you 200,000 kronor a month—that’s 2.4 million kronor if you accept and stay the whole year.”"
+          },
+          {
+            "id": "c3dafc44-04b7-7a8e-9049-f38486788732",
+            "short_id": "c3dafc44",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 8 Friday, January 3– Sunday, January 5",
+            "paragraph_start": 68,
+            "paragraph_end": 71,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2"
+            ],
+            "quote": "Vanger looked over towards the bridge. He was a gaunt man, and Blomkvist thought that he looked at that moment like a melancholy scarecrow.\n“As far as Millennium is concerned, we ought to have a discussion about what kind of crisis it’s in and whether I can help in some way.”\n“The best assistance you can offer is to give me Wennerström’s head on a platter right here and now.”\n“Oh no, I’m not thinking of doing that.” The old man gave Blomkvist a hard look. “The only reason you took this job was because I promised to expose Wennerström. If I give you the information now, you could stop work on the job whenever you felt like it. I’ll give you the information a year from now.”"
+          }
+        ]
+      },
+      "15f283dc-73bd-559d-befe-a6b8b0ab485e": {
+        "question": "What's in Salander's backpack found by Mikael?",
+        "claims": {
+          "C1": "Lists a substantial part of the bag's contents (e.g. wallet, money, cigarettes, lighters, Mace, a hammer)",
+          "C2": "Most of the remaining items (toothbrush, tampons, condoms, notebook, pens, radio, Aftonbladet, makeup bag)",
+          "C3": "Her keys with blood/skin from the attacker"
+        },
+        "passages": [
+          {
+            "id": "910a9f44-c857-5cc3-906c-6895da8c4b32",
+            "short_id": "910a9f44",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 19,
+            "paragraph_end": 21,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2"
+            ],
+            "quote": "Mikael\nAs anticipated he never heard a word from her.\nWhen he had got home the morning after the attack on Lundagatan, he opened the shoulder bag and spread the contents on the kitchen table. There was a wallet with an ID card, about 600 kronor, 200 American dollars, and a monthly travel card. There was a pack of Marlboro Lights, three Bic lighters, a box of throat lozenges, a packet of tissues, a toothbrush, toothpaste, three tampons in a side pocket, an unopened pack of condoms with a price sticker that showed they were bought at Gatwick Airport in London, a bound notebook with stiff black A4 dividers, five ballpoint pens, a can of Mace, a small bag with makeup, an FM radio with an earphone but no batteries, and Saturday’s Aftonbladet ."
+          },
+          {
+            "id": "19129480-6864-c4df-3d12-f93ccee05ea3",
+            "short_id": "19129480",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 22,
+            "paragraph_end": 23,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C3"
+            ],
+            "quote": "The most intriguing item was a hammer, easily accessible in an outside pocket. However, the attack had come so suddenly that she had not been able to make use of it or the Mace. She had evidently used her keys as brass knuckles—there were still traces of blood and skin on them.\nOf the six keys on the ring, three of them were typical apartment keys—front door, apartment door, and the key to a padlock. But none of them fit the door of the building on Lundagatan."
+          }
+        ]
+      },
+      "f469f451-9d95-5486-ae57-887054e9f03b": {
+        "question": "Who drives Saab?",
+        "claims": {
+          "C1": "Names at least one Saab driver: Monica Figuerola, or Viktor Göransson (whose Saab Niedermann took)",
+          "C2": "Both of them",
+          "C3": "Figuerola's is a Saab 9-5"
+        },
+        "passages": [
+          {
+            "id": "701eaf89-8aab-66ed-e386-0dea711b567a",
+            "short_id": "701eaf89",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 4 Saturday, April 9–Sunday, April 10",
+            "paragraph_start": 87,
+            "paragraph_end": 93,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "He found a dark blue 1991 Renault.\n“What kind of car does Göransson have?” Nieminen said.\n“He drove a Saab.”\nNieminen nodded. He fished some keys out of his jacket pocket and opened a door at the far end of the barn. One quick look around told him that they were too late. The heavy weapons cabinet stood wide open.\nNieminen grimaced. “About 800,000 kronor,” he said.\n“What?”\n“Svavelsjö MC had about 800,000 kronor stashed in this cabinet. It was our treasury.”"
+          },
+          {
+            "id": "bf0d089f-58f1-7037-3eb5-b65b0cc22845",
+            "short_id": "bf0d089f",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 17 Wednesday, June 1",
+            "paragraph_start": 15,
+            "paragraph_end": 18,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C3"
+            ],
+            "quote": "“I’ve been handcuffed by the police once already this year. And that was enough. Where are we going?”\nShe had parked around the corner, down on Pryssgränd. When they were settled in her new Saab 9–5, she flipped open her mobile and pressed a speed-dial number.\n“We’ll be there in fifteen minutes.”\nShe told Blomkvist to fasten his seat belt and drove over Slussen to Östermalm and parked on a side street off Artillerigatan. She sat still for a moment and looked at him."
+          },
+          {
+            "id": "8d965396-1189-c313-01e3-e573f4c8d138",
+            "short_id": "8d965396",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 11 Friday, May 13–Saturday, May 14",
+            "paragraph_start": 162,
+            "paragraph_end": 165,
+            "relevance": "support",
+            "supports": [
+              "C2"
+            ],
+            "quote": "“That helps a bit, at least. How’s it going with the case of Svavelsjö MC’s treasurer?”\n“Viktor Göransson—and his girlfriend, Lena Nygren. We have forensic evidence that ties Niedermann to the scene. Fingerprints and DNA from Göransson’s body. Niedermann must have bloodied his knuckles pretty badly during the beating.”\n“Anything new on Svavelsjö MC?”\n“Nieminen has taken over as club president while Lundin remains in custody, awaiting trial for the kidnapping of Miriam Wu. There’s a whisper that Nieminen has offered a big reward to anyone who can provide information on Niedermann’s whereabouts.”"
+          }
+        ],
+        "label_note": "Ambiguous: the book names more than one Saab driver."
+      },
+      "f929c2a2-5d3b-57f1-a68a-710959e9049b": {
+        "question": "Are there any police officers with nicknames?",
+        "claims": {
+          "C1": "Yes: Jan Bublanski is called 'Officer Bubble' / Bubble"
+        },
+        "passages": [
+          {
+            "id": "0db99171-3664-6bc8-c6f4-2ba044320c96",
+            "short_id": "0db99171",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 204,
+            "paragraph_end": 210,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "“I don’t work for Expressen.”\n“You know what I mean.”\n“Bublanski—I don’t believe Lisbeth is guilty.”\n“And now you’re doing your own private investigation? Is that why they call you Kalle Blomkvist?”\nBlomkvist smiled. “They tell me you’re called Officer Bubble.”\nBublanski gave him a stiff smile. “Why do you think Salander is innocent?”\n“I don’t know a thing about her guardian, but she had no reason whatsoever to murder Dag and Mia. Especially not Mia. Lisbeth loathes men who hate women, and Mia was in the process of putting the screws to a whole bunch of prostitutes’ clients. What Mia was doing was completely in line with what Lisbeth herself would have done. She is a very moral creature.”"
+          }
+        ]
+      },
+      "ed7d4adb-8663-5e81-916a-132374be26e5": {
+        "question": "What are  the nicknames used in the book?",
+        "claims": {
+          "C1": "Lists several of the book's nicknames, such as Kalle Blomkvist, Wasp, Bubble, Zala, Mimmi, Plague",
+          "C2": "Each nickname is attributed to the right person"
+        },
+        "passages": [
+          {
+            "id": "f88d3979-2e24-f7c1-8714-c3966a643ed8",
+            "short_id": "f88d3979",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 15 Thursday, May 19–Sunday, May 22",
+            "paragraph_start": 8,
+            "paragraph_end": 10,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2"
+            ],
+            "quote": "Kalle Fucking Blomkvist was complicating life for her.\nAt 2:00 in the morning she opened the word-processing programme on her Palm. She clicked on New Document, took out the stylus, and began to tap on the letters on the digital keypad.\nMy name is Lisbeth Salander. I was born on April 30, 1978. My mother was Agneta Sofia Salander. She was twenty-two when I was born. My father was a psychopath, killer, and batterer whose name was Alexander Zalachenko. He previously worked in western Europe for the Soviet military intelligence service GRU."
+          },
+          {
+            "id": "9b0775b6-077f-cc62-c36f-2fdef0334a78",
+            "short_id": "9b0775b6",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 13 Tuesday, May 17",
+            "paragraph_start": 139,
+            "paragraph_end": 143,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2"
+            ],
+            "quote": "<Hi gang.> Wasp wrote.\n<Wasp. That really U?> SixOfOne wrote. <Look who’s back.>\n<Where you been keeping yourself?> Trinity wrote.\n<Plague said you were in some trouble.> Dakota wrote.\nSalander was not sure, but she suspected that Dakota was a woman. The other citizens online, including the one who called himself SisterJen, were guys. Hacker Republic had a total (the last time she was connected) of sixty-two citizens, of whom four were female."
+          },
+          {
+            "id": "0db99171-3664-6bc8-c6f4-2ba044320c96",
+            "short_id": "0db99171",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 204,
+            "paragraph_end": 210,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2"
+            ],
+            "quote": "“I don’t work for Expressen.”\n“You know what I mean.”\n“Bublanski—I don’t believe Lisbeth is guilty.”\n“And now you’re doing your own private investigation? Is that why they call you Kalle Blomkvist?”\nBlomkvist smiled. “They tell me you’re called Officer Bubble.”\nBublanski gave him a stiff smile. “Why do you think Salander is innocent?”\n“I don’t know a thing about her guardian, but she had no reason whatsoever to murder Dag and Mia. Especially not Mia. Lisbeth loathes men who hate women, and Mia was in the process of putting the screws to a whole bunch of prostitutes’ clients. What Mia was doing was completely in line with what Lisbeth herself would have done. She is a very moral creature.”"
+          },
+          {
+            "id": "f39e432a-0dcc-c920-e8dd-5933f8978a8c",
+            "short_id": "f39e432a",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 111,
+            "paragraph_end": 112,
+            "relevance": "support",
+            "supports": [
+              "C1",
+              "C2"
+            ],
+            "quote": "Svensson was the next problem. When Bjurman was found dead, Svensson would inevitably call the police and tell them about his call to the lawyer to ask about Zala. Zala would then become the object of police interest.\nThe blond giant considered himself smart, but he had an enormous respect for Zala’s almost uncanny strategic gifts. They had been working together for nearly twelve years. It had been a successful decade, and he looked up to Zala with reverence. He could listen for hours as Zala explained human nature and its weaknesses and how one could profit from them."
+          }
+        ],
+        "question_type": "broad",
+        "label_note": "Open-ended nickname list; labels cover several well-known examples, not every nickname in the trilogy."
+      },
+      "229240f9-8db4-5030-a013-f045efbe5d41": {
+        "question": "How Salander survived with a bullet in the head?",
+        "claims": {
+          "C1": "The bullet did not damage vital areas of her brain",
+          "C2": "She was found and taken to hospital where surgeons removed the bullet",
+          "C3": "Zalachenko shot her and Niedermann buried her at Gosseberga",
+          "C4": "She dug herself out with a cigarette case",
+          "C5": "Mikael found her and called for help",
+          "C6": "Sahlgrenska hospital; Dr Anders Jonasson operated"
+        },
+        "passages": [
+          {
+            "id": "7e1d3176-6bb7-4ba5-9fd6-866e2753058f",
+            "short_id": "7e1d3176",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 1 Friday, April 8",
+            "paragraph_start": 52,
+            "paragraph_end": 57,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C4"
+            ],
+            "quote": "“I was hoping you would tell me.”\n“Let’s hear your diagnosis.”\n“Well, first of all, it seems to be a small-calibre bullet. It entered at the temple, and then stopped about four centimetres into the brain. It’s resting against the lateral ventricle. There’s bleeding there.”\n“How will you proceed?”\n“To use your terminology, get some forceps and extract the bullet by the same route it went in.”\n“Excellent idea. I would use the thinnest forceps you have.”"
+          },
+          {
+            "id": "489ccec5-ec97-a886-eef4-f4c490e95d37",
+            "short_id": "489ccec5",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 1 Friday, April 8",
+            "paragraph_start": 69,
+            "paragraph_end": 71,
+            "relevance": "support",
+            "supports": [
+              "C2",
+              "C3",
+              "C5"
+            ],
+            "quote": "Blomkvist shut his eyes again, wondering what else could go wrong that night.\nHe had found Lisbeth Salander just after midnight. She was very badly wounded. He had sent for the police and the Rescue Service.\nThe only thing that had gone right was that he had persuaded them to send a helicopter to take the girl to Sahlgrenska hospital. He had given them a clear description of her injuries and the bullet wound in her head, and some bright spark at the Rescue Service got the message."
+          },
+          {
+            "id": "f4805e22-5087-6b07-67cd-582f8fc4992e",
+            "short_id": "f4805e22",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 9 Wednesday, May 4",
+            "paragraph_start": 130,
+            "paragraph_end": 130,
+            "relevance": "support",
+            "supports": [
+              "C2",
+              "C5"
+            ],
+            "quote": "His visits to her were outside his schedule, since Dr. Endrin was assigned to her case. But Jonasson was head of the trauma unit, and he was proud of what had been achieved that night when Salander was brought into the ER. He had made the right decision, electing to remove the bullet. As far as he could see, she had no complications in the form of memory lapses, diminished bodily function, or other handicaps from the injury. If she continued to heal at the same pace, she would leave the hospital with a scar on her scalp, but with no other visible damage. Scars on her soul were another matter."
+          },
+          {
+            "id": "90239c47-44bb-0d35-4b88-712961a503ec",
+            "short_id": "90239c47",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 188,
+            "paragraph_end": 191,
+            "relevance": "support",
+            "supports": [
+              "C6"
+            ],
+            "quote": "For a moment he stood as if petrified, staring at her mangled body. He noticed that she was holding a pistol in her hand, which hung loosely off the edge of the bench. He went to her side and sank to his knees. He thought about how he had found Svensson and Johansson and thought that she was dead too. Then he saw a slight movement in her chest and heard a feeble, wheezing breath.\nHe reached out his hand and carefully loosened the gun from her grip. Suddenly her fist tightened around its butt. She opened her eyes to two narrow slits and stared at him for many long seconds. Her eyes were unfocused. Then he heard her mutter in such a low voice that he could only with difficulty catch the words.\nKalle Fucking Blomkvist .\nShe closed her eyes and let go of the gun. He put it on the floor, took out his mobile, and dialled the number for emergency services."
+          }
+        ]
+      },
+      "47774e8e-840f-5f02-bd06-14de38f2f8cb": {
+        "question": "Who is Lisbeth Salander?",
+        "claims": {
+          "C1": "She is the trilogy's protagonist, a researcher and hacker (working for Milton Security)",
+          "C2": "Small, tattooed, socially withdrawn",
+          "C3": "Hacker handle Wasp",
+          "C4": "Photographic memory",
+          "C5": "Declared legally incompetent / institutionalised as a child",
+          "C6": "Daughter of Zalachenko and Agneta; twin of Camilla"
+        },
+        "passages": [
+          {
+            "id": "9b9ed313-57da-1faa-27a4-4e3662c53ed1",
+            "short_id": "9b9ed313",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 2 Friday, December 20",
+            "paragraph_start": 17,
+            "paragraph_end": 17,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2"
+            ],
+            "quote": "However, it was not Lisbeth Salander’s astonishing lack of emotional involvement that most upset him. Milton’s image was one of conservative stability. Salander fitted into this picture about as well as a buffalo at a boat show. Armansky’s star researcher was a pale, anorexic young woman who had hair as short as a fuse, and a pierced nose and eyebrows. She had a wasp tattoo about an inch long on her neck, a tattooed loop around the biceps of her left arm and another around her left ankle. On those occasions when she had been wearing a tank top, Armansky also saw that she had a dragon tattoo on her left shoulder blade. She was a natural redhead, but she dyed her hair raven black. She looked as though she had just emerged from a week-long orgy with a gang of hard rockers."
+          },
+          {
+            "id": "8e48bafd-cceb-baca-9e0f-481d03c5199b",
+            "short_id": "8e48bafd",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 96,
+            "paragraph_end": 101,
+            "relevance": "support",
+            "supports": [
+              "C5"
+            ],
+            "quote": "Her birth certificate. Father unknown .\n“Zalachenko is Lisbeth’s father,” Blomkvist repeated aloud.\n“On only one occasion in all the years I’ve known her did she tell me what happened. Here’s how I understood it—Zalachenko came here in the mid-seventies. He met Lisbeth’s mother in 1977, they had a relationship, and the result was two children.”\n“Two?”\n“Lisbeth and her twin sister Camilla.”\n“Good God—there are two of her?”"
+          },
+          {
+            "id": "d17ecef7-74a9-97f6-59a2-a5b07e67b1fb",
+            "short_id": "d17ecef7",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 6,
+            "paragraph_end": 7,
+            "relevance": "support",
+            "supports": [
+              "C3"
+            ],
+            "quote": "It was well known that Salander was not a popular person at Milton Security. Most of the staff who had ever had anything to do with her thought she was a pain. But no-one had any idea how profoundly Hedström loathed her.\nLife had been unfair to Hedström. He was good-looking, he was young, and he was clever too. But he was forever denied the possibility of becoming what he had always wanted to be—a policeman. His Achilles heel was a microscopic hole in his pericardium that caused a heart murmur and meant that the wall of one chamber was compromised. He had had an operation and the problem was fixed, but having a heart condition meant that he was once and for all deprived of a place on the police force. He was relegated to second-class."
+          }
+        ]
+      }
+    },
+    "right-set-3": {
+      "c8687e69-1da6-5f24-8ce6-92835741c8a4": {
+        "question": "Where was Gottfried's cabin located?",
+        "claims": {
+          "C1": "On (a point on the north side of) Hedeby Island, away from the village",
+          "C2": "About 1.5 miles from the village",
+          "C3": "Reached by a narrow path along the bay",
+          "C4": "Rustic, isolated timber cabin"
+        },
+        "passages": [
+          {
+            "id": "9f700ec9-020b-af77-c063-9715b4e60df8",
+            "short_id": "9f700ec9",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 15 Friday, May 16–Saturday, May 31",
+            "paragraph_start": 161,
+            "paragraph_end": 161,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2"
+            ],
+            "quote": "Blomkvist made coffee and sandwiches. He filled a bottle with water before he set off, stuffing his picnic lunch in a rucksack he slung over one shoulder. He followed a narrow, partially overgrown path that ran along the bay on the north side of Hedeby Island. Gottfried’s cabin was on a point about one and a half miles from the village, and it took him only half an hour to cover the distance at a leisurely pace."
+          },
+          {
+            "id": "30c28974-4c4f-87f8-2578-3c4acd9339f9",
+            "short_id": "30c28974",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 15 Friday, May 16–Saturday, May 31",
+            "paragraph_start": 162,
+            "paragraph_end": 163,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C3"
+            ],
+            "quote": "Martin Vanger had been right. When Blomkvist came around the bend of the narrow path, a shaded area by the water opened up. There was a marvellous view of the inlet to the Hede River, Hedestad marina to the left, and the industrial harbour to the right.\nHe was surprised that no-one had wanted to move into Gottfried’s cabin. It was a rustic structure made of horizontal dark-stained timber with a tile roof and green frames, and with a small porch at the front door. The maintenance of the cabin had been neglected. The paint around the doors and windows was flaking off, and what should have been a lawn was scrub a yard high. Clearing it would take one whole day’s hard work with scythe and saw."
+          },
+          {
+            "id": "762cc8db-09e9-71ad-85b9-a15118620409",
+            "short_id": "762cc8db",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 15 Friday, May 16–Saturday, May 31",
+            "paragraph_start": 172,
+            "paragraph_end": 172,
+            "relevance": "support",
+            "supports": [
+              "C3"
+            ],
+            "quote": "Gottfried’s cabin was much more modest than he had expected. Here was the place to which Harriet and Martin’s father had retreated when his marriage to Isabella was going to the dogs in the late fifties. He had made this cabin his home and here he got drunk. And down there, near the wharf, he had drowned. Life at the cabin had probably been pleasant in the summer, but when the temperature dropped to freezing it must have been raw and wretched. According to what Vanger told him, Gottfried continued to work in the Vanger Corporation—interrupted by periods when he was on wild binges—until 1964. The fact that he was able to live in the cabin more or less permanently and still appear for work shaven, washed, and in a jacket and tie spoke of a surviving personal discipline."
+          }
+        ]
+      },
+      "0c118dcd-56c5-5a41-970f-1138fddfdd55": {
+        "question": "Did ARmansky and Salander had an affair?",
+        "claims": {
+          "C1": "No, they did not have an affair",
+          "C2": "Armansky was attracted to her but never acted on it",
+          "C3": "He was protective; employer-employee and friends"
+        },
+        "passages": [
+          {
+            "id": "5ce868a0-363d-950e-c8e2-48d2ba83feb6",
+            "short_id": "5ce868a0",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 237,
+            "paragraph_end": 245,
+            "relevance": "support",
+            "supports": [
+              "C2"
+            ],
+            "quote": "“She never had visitors when she was working here? Would there be a record of that?”\n“No. She worked from home mainly and came in only to present her reports. With a few exceptions, she never even met the clients. Possibly …” Armansky was struck by a thought.\n“What?”\n“There is just possibly one other person she may have got in touch with, a journalist she knew a couple of years ago. He was looking for her when she was out of the country.”\n“A journalist?”\n“His name is Mikael Blomkvist. Do you remember the Wennerström affair?”\nBublanski came slowly back into Armansky’s office.\n“It was Blomkvist who discovered the couple in Enskede. You’ve just established a link between Salander and the murder victims.”\nArmansky again felt the solid pain of the lump in his stomach."
+          },
+          {
+            "id": "1b3782fa-97a6-6ca3-77c0-3f3fbc5f2960",
+            "short_id": "1b3782fa",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 170,
+            "paragraph_end": 178,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "Armansky went to his desk and read out the number, which Bublanski wrote down.\n“She works for you?”\n“She has her own business. I gave her freelance assignments now and then from 1998 until about a year and a half ago.”\n“What sort of jobs did she do?”\n“Research.”\nBublanski looked up from his notebook.\n“Research?” he said.\n“Personal investigations, to be more precise.”\n“Just a moment… are we talking about the same girl? The Lisbeth Salander we’re looking for didn’t finish school and was officially declared incompetent to manage her affairs.”"
+          }
+        ],
+        "label_note": "Negative answer is not stated directly; selected passages establish their employer/employee context and personal regard."
+      },
+      "d56c8075-e9d0-549c-801c-64233d45b3ed": {
+        "question": "Why Harriet went to Australia?",
+        "claims": {
+          "C1": "To escape her brother Martin, who was abusing her",
+          "C2": "After she drowned Gottfried, Martin had her at his mercy",
+          "C3": "Anita smuggled her off the island",
+          "C4": "She lived as Anita, married Spencer Cochran and ran a sheep farm"
+        },
+        "passages": [
+          {
+            "id": "831e5df8-a977-1156-23c2-bf9ddea869e3",
+            "short_id": "831e5df8",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 26 Tuesday, July 15– Thursday, July 17",
+            "paragraph_start": 74,
+            "paragraph_end": 75,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2"
+            ],
+            "quote": "“But how did you come to be a sheep farmer in Australia? I already know that Anita smuggled you off Hedeby Island, presumably in the boot of her car when the bridge re-opened the day after the accident.”\n“Actually, I lay on the floor of the back seat with a blanket over me. But no-one was looking. I went to Anita when she arrived on the island and told her that I had to escape. You guessed right that I confided in her. She helped me, and she’s been a loyal friend all these years.”"
+          },
+          {
+            "id": "215e8dd1-47b2-c830-0dfd-96934cdf2a1c",
+            "short_id": "215e8dd1",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 26 Tuesday, July 15– Thursday, July 17",
+            "paragraph_start": 78,
+            "paragraph_end": 79,
+            "relevance": "support",
+            "supports": [
+              "C3"
+            ],
+            "quote": "“But your passport—surely someone should have discovered that there were two Anita Vangers?”\n“No, why should they? A Swedish girl named Anita Vanger who’s married to Spencer Cochran. Whether she lives in London or Australia makes no difference. The one in London has been Spencer Cochran’s estranged wife. The one in Australia was his very much present wife. They don’t match up computer files between Canberra and London. Besides, I soon got an Australian passport under my married name. The arrangement functioned perfectly. The only thing that could have upset the story was if Anita herself wanted to get married. My marriage had to be registered in the Swedish national registration files.”"
+          },
+          {
+            "id": "214d23e5-fabb-1e30-1760-27a3ee3fd422",
+            "short_id": "214d23e5",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 27 Saturday, July 26– Monday, July 28",
+            "paragraph_start": 11,
+            "paragraph_end": 14,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "“Bitch,” she said.\n“Who?”\n“Harriet Fucking Vanger. If she had done something in 1966, Martin Vanger couldn’t have kept killing and raping for thirty-seven years.”\n“Harriet knew about her father murdering women, but she had no idea that Martin had anything to do with it. She fled from a brother who raped her and then threatened to reveal that she had drowned her father if she didn’t do what he said.”"
+          }
+        ]
+      },
+      "4c4bec14-ae13-5bc8-a59d-974165fe1bd3": {
+        "question": "What is the relationship between Berger and Mikael?",
+        "claims": {
+          "C1": "They are longtime friends and on-and-off lovers",
+          "C2": "They co-founded/run Millennium together",
+          "C3": "Her husband Greger Beckman knows about it",
+          "C4": "She is editor-in-chief, he is publisher",
+          "C5": "The affair broke up Mikael's marriage"
+        },
+        "passages": [
+          {
+            "id": "5636c68a-622c-4f89-3a10-0d3a374716b7",
+            "short_id": "5636c68a",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 2 Friday, December 20",
+            "paragraph_start": 151,
+            "paragraph_end": 156,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2"
+            ],
+            "quote": "“In what way?”\n“Erika Berger, editor in chief of Millennium : upper-class girl, Swedish mother, Belgian father resident in Sweden. Berger and Blomkvist met in journalism school and have had an on-and-off relationship ever since.”\n“That may not be so unusual,” Frode said.\n“No, possibly not. But Berger happens to be married to the artist Greger Beckman, a minor celebrity who has done a lot of terrible things in public venues.”\n“So she’s unfaithful.”\n“Beckman knows about their relationship. It’s a situation apparently accepted by all parties concerned. Sometimes she sleeps at Blomkvist’s and sometimes at home. I don’t know exactly how it works, but it was probably a contributing factor to the breakup of Blomkvist’s marriage to Abrahamsson.”"
+          },
+          {
+            "id": "75fe73ba-d7be-3bc9-26aa-28e5169856c5",
+            "short_id": "75fe73ba",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 3 Friday, December 20– Saturday, December 21",
+            "paragraph_start": 42,
+            "paragraph_end": 42,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "Inevitably it did not work in the long run. That kind of relationship was almost bound to cause pain. They had both left broken promises and unhappy lovers behind—his own marriage had collapsed because he could not stay away from Erika Berger. He had never lied about his feelings for her to his wife, Monica, but she had thought it would end when they married and their daughter was born. And Berger had almost simultaneously married Greger Beckman. Blomkvist too had thought it would end, and for the first years of his marriage he and Berger had only seen each other professionally. Then they started Millennium and within a few weeks all their good intentions had dissolved, and one late evening they had furious sex on her desk. That led to a troublesome period in which Blomkvist wanted very much to live with his family and see his daughter grow up, but at the same time he was helplessly drawn to Berger. Just as Salander had guessed, it was his continual infidelity that drove his wife to leave."
+          },
+          {
+            "id": "ad498efc-6463-a3e3-8f06-547c1594b264",
+            "short_id": "ad498efc",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 3 Friday, December 20– Saturday, December 21",
+            "paragraph_start": 55,
+            "paragraph_end": 56,
+            "relevance": "support",
+            "supports": [
+              "C2",
+              "C3"
+            ],
+            "quote": "Millennium was their mutual creation, but it would never have become reality without her talent for digging up financing. It was the working-class guy and the upper-class girl in a beautiful union. Erika came from old money. She had put up the initial seed money and then talked both her father and various acquaintances into investing considerable sums in the project.\nMikael had often wondered why Erika had set her sights on Millennium . True, she was a part owner—the majority partner, in fact—and editor in chief of her own magazine, which gave her prestige and the control over publicity that she could hardly have obtained in any other job. Unlike Mikael, she had concentrated on television after journalism school. She was tough, looked fantastic on camera, and could hold her own with the competition. She also had good contacts in the bureaucracy. If she had stuck to it, she would undoubtedly have had a managerial job at one of the TV channels at a considerably higher salary than she paid herself now."
+          }
+        ]
+      },
+      "b2919027-a60a-5b43-935e-221b4d99df2a": {
+        "question": "What Paolo Roberto was thinking when he was in a fight with Niederman?",
+        "claims": {
+          "C1": "Niedermann did not seem to feel pain, so his punches had no effect",
+          "C2": "Niedermann was not a real boxer",
+          "C3": "Niedermann was enormously strong",
+          "C4": "Paolo realised he was losing",
+          "C5": "Niedermann has congenital analgesia"
+        },
+        "passages": [
+          {
+            "id": "c8cd2f93-1df4-3f69-731b-2457c9fb1038",
+            "short_id": "c8cd2f93",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 141,
+            "paragraph_end": 143,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C4"
+            ],
+            "quote": "For the first time in his life he had been beaten in a fight. And the one who had dished out the punishment was Paolo Roberto … the boxer. It felt like an absurd dream, the kind he might have on a restless night. He could not understand where the boxer had come from. Out of the blue he was just there, standing inside the warehouse.\nIt made no sense.\nHe had not even felt the punches. That did not surprise him. But he had felt the kick in the balls. And that terrific thump on the head had made him black out. Gingerly he explored the back of his neck and touched an enormous lump. He pressed with his fingers but he sensed no pain. And yet he felt groggy. He had lost a tooth on the left side of his upper jaw. His mouth was full of the taste of blood. He held his nose between his thumb and forefinger and bent it experimentally upwards. He heard a snapping sound inside his head and could tell that his nose was broken."
+          },
+          {
+            "id": "fb59bd30-5959-4825-0ba9-b7dd7ddd4bee",
+            "short_id": "fb59bd30",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 51,
+            "paragraph_end": 54,
+            "relevance": "support",
+            "supports": [
+              "C2",
+              "C3"
+            ],
+            "quote": "“So he could box, but not really. Is that it?” Eriksson said.\n“Exactly. But the reason for him stopping was medical.”\n“How do you mean?”\n“He was apparently invulnerable. It didn’t matter how many punches he took, he just shook them off and kept fighting. It turned out that he suffers from a very rare condition called congenital analgesia. I looked it up. It’s an inherited genetic defect that means the transmitter substance in his nerve synapses doesn’t function properly. Or in lay terms, he can’t feel pain.”"
+          }
+        ]
+      },
+      "58f31047-d68c-5735-9bdc-26c7320f23a9": {
+        "question": "How name Zala and Salander related?",
+        "claims": {
+          "C1": "Zala (Alexander Zalachenko) is Salander's father",
+          "C2": "Her mother Agneta Sjölander changed her name to Salander, linking the names Salander and Zala (Zalachenko).",
+          "C3": "Soviet GRU defector protected by Säpo"
+        },
+        "passages": [
+          {
+            "id": "42132db1-d63a-3c78-5f0b-741484548a3a",
+            "short_id": "42132db1",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 157,
+            "paragraph_end": 158,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C3"
+            ],
+            "quote": "Blomkvist told her about the DVD Salander had left in her desk.\n“Zalachenko is her father. Bjurman worked formally for Säpo in the mid-seventies and was one of those who made Zalachenko officially welcome when he defected. Later Bjurman became a lawyer with his own practice and a full-time crook, doing jobs for an elite group within the Security Police. I would think there’s an inner circle that meets now and then in the men’s sauna to control the world and keep the secret about Zalachenko. I’m guessing that the rest of Säpo has never even heard of the bastard. Lisbeth threatened to crack the secret wide open. So they locked her up in a children’s psychiatric unit.”"
+          },
+          {
+            "id": "d64e5eb2-acd0-04ea-6ad7-2d1c2b0d713f",
+            "short_id": "d64e5eb2",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 102,
+            "paragraph_end": 102,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2"
+            ],
+            "quote": "“They’re very different. But that’s another story. Lisbeth’s mother’s name was in fact Agneta Sofia Sjölander. She was seventeen when she met Zalachenko. I don’t know anything else about how they met, but I gather she was quite a dependent young girl and easy prey for an older, more experienced man. She was impressed by him and probably head over heels in love with him. Zalachenko turned out to be anything but nice. I assume he was just after a willing woman and not much else. Naturally she fantasized about a secure future with him, but he wasn’t the least bit interested in marriage. They never did marry, but in 1979 she changed her name from Sjölander to Salander. That was, I suppose, her way of showing that they belonged together.”"
+          }
+        ]
+      },
+      "e66c3106-c81b-56b2-8732-7c2a52ce2843": {
+        "question": "What happened to the cat in Hedeby cabin?",
+        "claims": {
+          "C1": "The cat was killed and its mutilated body left at Mikael's cottage as a warning",
+          "C2": "It was half-burned, with legs and head cut off",
+          "C3": "Its head was placed on Salander's motorcycle",
+          "C4": "Police found traces in the crypt where it was killed"
+        },
+        "passages": [
+          {
+            "id": "4639f07d-1b94-836f-18a2-fa0ec000bc69",
+            "short_id": "4639f07d",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 23 Friday, July 11",
+            "paragraph_start": 65,
+            "paragraph_end": 68,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C3"
+            ],
+            "quote": "“Now we know,” Blomkvist said as they were re-crossing the bridge. “We’re hunting for the complete lunatic.”\n“What do you mean?”\nBlomkvist paused in the middle of the bridge and leaned on the rail.\n“If this was some run-of-the-mill crackpot who was trying to frighten us, he would have taken the cat down to the garage or even out into the woods. But he went to the crypt. There’s something compulsive about that. Just think of the risk. It’s summer and people are out and about at night, going for walks. The road through the cemetery is a main road between the north and south of Hedeby. Even if he shut the door behind him, the cat must have raised Cain, and there must have been a burning smell.”"
+          },
+          {
+            "id": "e30d1bde-9977-c62c-dc11-0619414130d2",
+            "short_id": "e30d1bde",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 21 Thursday, July 3– Thursday, July 10",
+            "paragraph_start": 157,
+            "paragraph_end": 160,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2"
+            ],
+            "quote": "He heard her go out of the front door. He shut his eyes. Then he heard the front door open again and seconds later she was back in the doorway. This time she was not smiling.\n“You’d better come and look at this,” she said in a strange voice.\nBlomkvist was on his feet at once and pulled on his jeans.\nDuring the night someone had been to the cottage with an unwelcome present. On the porch lay the half-charred corpse of a cat. The cat’s legs and head had been cut off, then the body had been flayed and the guts and stomach removed, flung next to the corpse, which seemed to have been roasted over a fire. The cat’s head was intact, on the saddle of Salander’s motorcycle. He recognised the reddish-brown fur."
+          },
+          {
+            "id": "177b07a1-192d-4026-f62a-686c7147a7c9",
+            "short_id": "177b07a1",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 15 Friday, May 16–Saturday, May 31",
+            "paragraph_start": 6,
+            "paragraph_end": 9,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "He was told of his release only one day before. Sarowsky summoned him to his office and they shared a toast with aquavit.\nBlomkvist went straight back to the cabin in Hedeby. When he walked up the front steps he heard a meow and found himself escorted by the reddish-brown cat.\n“OK, you can come in,” he said. “But I have no milk yet.”\nHe unpacked his bags. It was as if he had been on holiday, and he realised that he actually missed the company of Sarowsky and his fellow prisoners. Absurd as it seemed, he had enjoyed his time at Rullåker, but his release had come so unexpectedly that he had had no time to let anyone know."
+          }
+        ]
+      },
+      "84c345fd-c701-580e-88d7-4ea0bbf4b1d9": {
+        "question": "Who was Andersson?",
+        "claims": {
+          "C1": "Curt Andersson is a police detective on Bublanski's team",
+          "C2": "Laconic, solidly built, hot-tempered",
+          "C3": "Transferred from gang crime in Huddinge",
+          "C4": "Cleared after killing a knife-wielding hooligan in 1999"
+        },
+        "passages": [
+          {
+            "id": "aaa7fb85-3cca-4cb5-59fc-fc10782eda79",
+            "short_id": "aaa7fb85",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 27,
+            "paragraph_end": 27,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2"
+            ],
+            "quote": "Bublanski hardly knew Curt Andersson. He was a laconic and solidly built officer with such a short stubble of blond hair that at a distance he looked completely bald. Andersson was thirty-eight and had only recently come to the division from Huddinge, where he had spent years dealing with gang crime. He had a reputation for being hot-tempered and tough, which was perhaps a euphemism for the fact that he employed methods that were not quite by the book. Ten years back he had been accused of brutality, but an enquiry cleared him on all counts."
+          },
+          {
+            "id": "769883d9-c715-dffe-0a2b-8ea652cebdf1",
+            "short_id": "769883d9",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 6 Monday, April 11",
+            "paragraph_start": 185,
+            "paragraph_end": 189,
+            "relevance": "support",
+            "supports": [
+              "C3"
+            ],
+            "quote": "“He’s older and has an exceptional record, but he also has a reputation for being crusty and obstinate. He’s quite conservative.”\n“And the woman . . . who’s she?”\n“Sonja Modig. Married, thirty-nine, two kids. Has advanced rather quickly in her career. I talked to Teleborian, who described her as emotional. She asks questions non-stop.”\n“Next.”\n“Andersson is a tough customer. He’s thirty-eight and comes from the gangs unit in Söder. He landed in the spotlight when he shot dead some hooligan a couple of years ago. Acquitted of all charges, according to the report. He was the one Bublanski sent to arrest Björck.”"
+          }
+        ]
+      },
+      "c46ccf1a-a344-5c12-a4c3-d0c240a6a5fc": {
+        "question": "What is Millennium?",
+        "claims": {
+          "C1": "Millennium is a (monthly, Stockholm) magazine of investigative/critical journalism",
+          "C2": "Founded by Mikael Blomkvist and Erika Berger",
+          "C3": "Berger is editor-in-chief; Blomkvist the publisher",
+          "C4": "Focuses on business and corporations"
+        },
+        "passages": [
+          {
+            "id": "ad498efc-6463-a3e3-8f06-547c1594b264",
+            "short_id": "ad498efc",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 3 Friday, December 20– Saturday, December 21",
+            "paragraph_start": 55,
+            "paragraph_end": 56,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2",
+              "C3"
+            ],
+            "quote": "Millennium was their mutual creation, but it would never have become reality without her talent for digging up financing. It was the working-class guy and the upper-class girl in a beautiful union. Erika came from old money. She had put up the initial seed money and then talked both her father and various acquaintances into investing considerable sums in the project.\nMikael had often wondered why Erika had set her sights on Millennium . True, she was a part owner—the majority partner, in fact—and editor in chief of her own magazine, which gave her prestige and the control over publicity that she could hardly have obtained in any other job. Unlike Mikael, she had concentrated on television after journalism school. She was tough, looked fantastic on camera, and could hold her own with the competition. She also had good contacts in the bureaucracy. If she had stuck to it, she would undoubtedly have had a managerial job at one of the TV channels at a considerably higher salary than she paid herself now."
+          },
+          {
+            "id": "99757e96-c1ad-0db1-906a-e90c0162240c",
+            "short_id": "99757e96",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 46,
+            "paragraph_end": 48,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C4"
+            ],
+            "quote": "Millennium’s editor in chief, Erika Berger, is deeply shaken by the murder of freelance journalist and colleague Dag Svensson. She hopes that the murders will soon be solved.\nIt was Millennium’s publisher, Mikael Blomkvist, who discovered Dag Svensson and his girlfriend murdered last Wednesday night.\n“Dag Svensson was a fantastically gifted journalist and a person I liked a lot. He had proposed several ideas for articles. Among other things, he was working on a major investigation into illegal computer hacking,” Mikael Blomkvist tells Aftonbladet ."
+          }
+        ]
+      },
+      "d26a8ea4-4665-5502-aa3b-7959c8a3e874": {
+        "question": "What tattoos Salander had?",
+        "claims": {
+          "C1": "A dragon on her shoulder blade",
+          "C2": "A wasp on her neck",
+          "C3": "Loops/bands around a biceps and an ankle",
+          "C4": "A Chinese symbol on her hip",
+          "C5": "A rose on her calf",
+          "C6": "She tattooed Bjurman's stomach"
+        },
+        "passages": [
+          {
+            "id": "8b84f5ed-902f-ec45-8f68-bc4f0b71b4a4",
+            "short_id": "8b84f5ed",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 23 Friday, July 11",
+            "paragraph_start": 1,
+            "paragraph_end": 3,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2",
+              "C3",
+              "C4",
+              "C5",
+              "C6"
+            ],
+            "quote": "CHAPTER 23 Friday, July 11\nHe awoke at 6:00 with the sun shining through a gap in the curtains right in his face. He had a vague headache, and it hurt when he touched the bandage. Salander was asleep on her stomach with one arm flung over him. He looked down at the dragon on her shoulder blade.\nHe counted her tattoos. As well as a wasp on her neck, she had a loop around one ankle, another loop around the biceps of her left arm, a Chinese symbol on her hip, and a rose on one calf."
+          },
+          {
+            "id": "34a820e5-5090-c84b-7a0f-cf3a29e11356",
+            "short_id": "34a820e5",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 9 Wednesday, May 4",
+            "paragraph_start": 128,
+            "paragraph_end": 129,
+            "relevance": "support",
+            "supports": [
+              "C6"
+            ],
+            "quote": "The police had locked her in her hospital room, and a prosecutor intended to charge her with attempted murder and aggravated assault. He was amazed that such a small, thin girl had the physical strength for this sort of violent criminality, especially when the violence was directed at full-grown men.\nHe had asked about her dragon tattoo in the hope of finding a personal topic he could discuss with her. He was not particularly interested in why she had decorated herself in such a way, but he supposed that since she had chosen such a striking tattoo, it must have a special meaning for her. He thought simply that it might be a way to start a conversation."
+          }
+        ]
+      },
+      "9fd61c41-644e-5e6d-ba59-04d60bef23f7": {
+        "question": "What computer equipments Salander is using? List all.",
+        "claims": {
+          "C1": "Apple PowerBook G4 (17-inch)",
+          "C2": "Apple iBook (destroyed)",
+          "C3": "Palm PDA (Tungsten)",
+          "C4": "Desktop Mac G3",
+          "C5": "Old Toshiba laptop",
+          "C6": "PowerBook specs (1.0 GHz, 960 MB RAM, 60 GB disk)"
+        },
+        "passages": [
+          {
+            "id": "d80f6f63-2723-75ef-0827-51c6d25497bd",
+            "short_id": "d80f6f63",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 11 Saturday, February 1– Tuesday, February 18",
+            "paragraph_start": 106,
+            "paragraph_end": 106,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2",
+              "C3"
+            ],
+            "quote": "The rucksack contained her white Apple iBook 600 with a 25-gig hard drive and 420 megs of RAM, manufactured in January 2002 and equipped with a 14-inch screen. At the time she bought it, it was Apple’s state-of-the-art laptop. Salander’s computers were upgraded with the very latest and sometimes most expensive configurations—computer equipment was the only extravagant entry on her list of expenses."
+          },
+          {
+            "id": "2afcfe11-856f-a344-b4b2-9b921922194f",
+            "short_id": "2afcfe11",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 11 Saturday, February 1– Tuesday, February 18",
+            "paragraph_start": 109,
+            "paragraph_end": 110,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C4",
+              "C5",
+              "C6"
+            ],
+            "quote": "The loss of her computer was depressing but not disastrous. Salander had had an excellent relationship with it during the year she had owned it. She had backed up all her documents, and she had an older desktop Mac G3 at home, as well as a five-year-old Toshiba PC laptop that she could use. But she needed a fast, modern machine.\nUnsurprisingly she set her sights on the best available alternative: the new Apple PowerBook G4/1.0 GHz in an aluminium case with a Power-PC 7451 processor with an AltiVec Velocity Engine, 960 MB RAM and a 60 GB hard drive. It had BlueTooth and built-in CD and DVD burners."
+          },
+          {
+            "id": "0950e144-fea8-2406-cb07-677417027158",
+            "short_id": "0950e144",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 11 Saturday, February 1– Tuesday, February 18",
+            "paragraph_start": 111,
+            "paragraph_end": 112,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C4",
+              "C5",
+              "C6"
+            ],
+            "quote": "Best of all, it had the first 17-inch screen in the laptop world with NVIDIA graphics and a resolution of 1440 × 900 pixels, which shook the PC advocates and outranked everything else on the market.\nIn terms of hardware, it was the Rolls-Royce of portable computers, but what really triggered Salander’s need to have it was the simple feature that the keyboard was equipped with backlighting, so that she could see the letters even if it was pitch dark. So simple. Why had no-one thought of that before?"
+          }
+        ]
+      },
+      "69df13bf-aadd-56b3-80d4-97522a6854ce": {
+        "question": "What happened to Richard Forbes?",
+        "claims": {
+          "C1": "Forbes tried to murder his wife Geraldine during a hurricane on Grenada",
+          "C2": "Salander stopped him",
+          "C3": "Forbes died (found dead after the storm)",
+          "C4": "He used an iron pipe to inherit her fortune",
+          "C5": "Salander hit him with a chair leg",
+          "C6": "Geraldine survived"
+        },
+        "passages": [
+          {
+            "id": "8b90a233-7fa2-e07c-a5e5-96bdc4dfe75d",
+            "short_id": "8b90a233",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 81,
+            "paragraph_end": 81,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2"
+            ],
+            "quote": "She was almost bowled over by the furious gusts, but she clenched her teeth and worked her way forward, step by step, into the storm. She had almost reached the couple when one more flash of lightning lit up the beach and she saw Geraldine Forbes sink to her knees by the water’s edge. Forbes stood over her, his arm raised to strike with what looked like an iron pipe in his hand. She saw his arm move in an arc towards his wife’s head. Geraldine stopped struggling."
+          },
+          {
+            "id": "66260da5-8e45-3fd2-ec17-94b167ed5e57",
+            "short_id": "66260da5",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 82,
+            "paragraph_end": 84,
+            "relevance": "support",
+            "supports": [
+              "C2",
+              "C3",
+              "C4"
+            ],
+            "quote": "Forbes never saw Salander coming.\nShe cracked the chair leg over the back of his head and he fell forward on his face.\nSalander bent and took hold of Geraldine Forbes. As the rain whipped across them, she turned the body over. Her hands were suddenly bloody. Geraldine Forbes had a wound on her scalp. She was as heavy as lead, and Salander looked around desperately, wondering how she was going to pull her up to the hotel wall. Then Bland appeared at her side. He shouted something that Salander could not make out in the storm."
+          }
+        ]
+      },
+      "87382e52-ad6e-5336-9aa1-1b0d29cfc8ed": {
+        "question": "what is the sumary of the first book?",
+        "claims": {
+          "C1": "Blomkvist, convicted of libelling Wennerström, is hired by Henrik Vanger to investigate Harriet's disappearance",
+          "C2": "With Salander he finds that Gottfried and Martin Vanger were serial killers and that Harriet is alive (in Australia)",
+          "C3": "Wennerström is exposed using Salander's hacking",
+          "C4": "Martin dies after trying to kill Mikael",
+          "C5": "Salander secretly takes Wennerström's fortune",
+          "C6": "Hedeby Island, 1966"
+        },
+        "passages": [
+          {
+            "id": "46b8b531-008f-65b4-d8a0-107059592ecf",
+            "short_id": "46b8b531",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 14 Saturday, March 8– Monday, March 17",
+            "paragraph_start": 169,
+            "paragraph_end": 170,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C3"
+            ],
+            "quote": "The lawyer Frode from Hedestad had hired her to do an investigation of Mikael Blomkvist, the journalist who was given a prison sentence for libelling financier Hans-Erik Wennerström. A few months later Henrik Vanger, also from Hedestad, joins Blomkvist’s magazine’s board of directors and claims that there is a conspiracy to crush the magazine. All this on the same day that the former goes to prison. Most fascinating of all: a two-year-old background article—“With two empty hands”—about Hans-Erik Wennerström, which she found in the online edition of Monopoly Financial Magazine . It seemed that he began his career in the very same Vanger Corporation in the late sixties.\nYou didn’t have to be a rocket scientist to see that these events were somehow related. There had to be a skeleton in one of their cupboards, and Salander loved hunting skeletons. Besides, she had nothing else on at the moment."
+          },
+          {
+            "id": "214d23e5-fabb-1e30-1760-27a3ee3fd422",
+            "short_id": "214d23e5",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 27 Saturday, July 26– Monday, July 28",
+            "paragraph_start": 11,
+            "paragraph_end": 14,
+            "relevance": "support",
+            "supports": [
+              "C2"
+            ],
+            "quote": "“Bitch,” she said.\n“Who?”\n“Harriet Fucking Vanger. If she had done something in 1966, Martin Vanger couldn’t have kept killing and raping for thirty-seven years.”\n“Harriet knew about her father murdering women, but she had no idea that Martin had anything to do with it. She fled from a brother who raped her and then threatened to reveal that she had drowned her father if she didn’t do what he said.”"
+          },
+          {
+            "id": "5d2ed9a9-f608-e537-c1a9-9a066dd2491f",
+            "short_id": "5d2ed9a9",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "Notes",
+            "paragraph_start": 6,
+            "paragraph_end": 6,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "Colonel Stig Wennerström of the Swedish air force was convicted of treason in 1964. During the fifties he was suspected of leaking air defence plans to the Soviets, and in 1963 he was informed upon by his maid, who had been recruited by Säpo. He was initially sentenced to life imprisonment, but his sentence was commuted to twenty years in 1973, of which he served only ten. He died in 2006. He is not to be confused with Hans-Erik Wennerström, the crooked financier who appears in The Girl with the Dragon Tattoo and The Girl Who Played with Fire ."
+          }
+        ],
+        "question_type": "broad"
+      },
+      "8db24d50-f1d6-55b9-bee7-a3c7f99aa3a0": {
+        "question": "what is the summary of the story?",
+        "claims": {
+          "C1": "Book 1: Blomkvist and Salander solve Harriet Vanger's disappearance / expose Wennerström",
+          "C2": "Book 2: Salander is accused of murders and the trail leads to Zalachenko and Niedermann",
+          "C3": "Book 3: Salander's trial and the exposure of the Section; she is acquitted",
+          "C4": "She is shot and buried alive at Gosseberga but survives",
+          "C5": "Teleborian is arrested",
+          "C6": "She confronts Niedermann"
+        },
+        "passages": [
+          {
+            "id": "46b8b531-008f-65b4-d8a0-107059592ecf",
+            "short_id": "46b8b531",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 14 Saturday, March 8– Monday, March 17",
+            "paragraph_start": 169,
+            "paragraph_end": 170,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "The lawyer Frode from Hedestad had hired her to do an investigation of Mikael Blomkvist, the journalist who was given a prison sentence for libelling financier Hans-Erik Wennerström. A few months later Henrik Vanger, also from Hedestad, joins Blomkvist’s magazine’s board of directors and claims that there is a conspiracy to crush the magazine. All this on the same day that the former goes to prison. Most fascinating of all: a two-year-old background article—“With two empty hands”—about Hans-Erik Wennerström, which she found in the online edition of Monopoly Financial Magazine . It seemed that he began his career in the very same Vanger Corporation in the late sixties.\nYou didn’t have to be a rocket scientist to see that these events were somehow related. There had to be a skeleton in one of their cupboards, and Salander loved hunting skeletons. Besides, she had nothing else on at the moment."
+          },
+          {
+            "id": "514aec22-5bcc-b0c5-a8a5-8284da6209ae",
+            "short_id": "514aec22",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "EPILOGUE: INVENTORY OF ESTATE Friday, December 2–Sunday, December 18",
+            "paragraph_start": 207,
+            "paragraph_end": 211,
+            "relevance": "support",
+            "supports": [
+              "C2",
+              "C4"
+            ],
+            "quote": "Her finger rested heavily on the trigger.\nHe had murdered the journalist Dag Svensson and his partner, Mia Johansson.\nWith Zalachenko he had also murdered her and buried her in Gosseberga. And now he had resurfaced to murder her again.\nYou could get pretty angry with less provocation.\nShe saw no reason to let him live any longer. He hated her with a passion that she could not even fathom. What would happen if she turned him over to the police? A trial? A life sentence? When would he be granted parole? How soon would he escape? And now that her father was finally gone . . . How many years would she have to look over her shoulder, waiting for the day when her brother would suddenly turn up again? She felt the heft of the nail gun. She could end this thing once and for all."
+          },
+          {
+            "id": "b5b058bf-5ce3-952e-66d2-f9fa376dfd93",
+            "short_id": "b5b058bf",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 19 Friday, June 3–Saturday, June 4",
+            "paragraph_start": 57,
+            "paragraph_end": 58,
+            "relevance": "support",
+            "supports": [
+              "C3",
+              "C5"
+            ],
+            "quote": "“Good. That leaves the Zalachenko book, which right now is a nightmare. I’m calling it The Section . The first half is basically what’s in the magazine. It begins with the murders of Dag and Mia, and then follows the hunt for Salander first, then Zalachenko, and then Niedermann. The second half will be everything we know about the Section.”\n“Mikael, even if the printer breaks every record for us, we’re going to have to send them the files by the end of this month—at the latest,” Eriksson said. “Christer will need a couple of days for the layout, the typesetter, say, a week. So we have about two weeks left for the text. I don’t know how we’re going to make it.”"
+          },
+          {
+            "id": "93ec354d-2b66-e5ec-e989-e2c562096dad",
+            "short_id": "93ec354d",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 27 Friday, July 15",
+            "paragraph_start": 454,
+            "paragraph_end": 459,
+            "relevance": "support",
+            "supports": [
+              "C5"
+            ],
+            "quote": "“And what is your business here?” Judge Iversen said.\n“We are here to arrest Peter Teleborian with your permission, and without wishing to disturb the court’s proceedings.”\nJudge Iversen looked at Advokat Giannini.\n“I’m not quite finished with him . . . but the court may have heard enough of Dr. Teleborian.”\n“You have my permission,” Judge Iversen said to the police officers.\nCollsjö walked across to Teleborian. “Peter Teleborian, you are under arrest for violation of the law on child pornography.”"
+          }
+        ],
+        "question_type": "broad"
+      },
+      "604151de-dce5-51ff-ae30-0b4fdc89adeb": {
+        "question": "Why Salander didn't talk with shrinks?",
+        "claims": {
+          "C1": "Psychiatrists (like Teleborian) never listened to her, so she refused to talk to them",
+          "C2": "It was a principled decision",
+          "C3": "It dates from her time in the children's psychiatric clinic"
+        },
+        "passages": [
+          {
+            "id": "245dbd2c-8c43-1122-f650-006549793957",
+            "short_id": "245dbd2c",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 45,
+            "paragraph_end": 48,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2"
+            ],
+            "quote": "Why won’t you talk to the doctors?\nBecause they don’t listen to what I say .\nShe was aware that all such comments were entered into her record, documenting that her silence was a completely rational decision.\nDuring her last year at St. Stefan’s, Salander was placed in the isolation cell less often. When it did happen it was always because she had irritated Dr. Teleborian in some way, which she seemed to do as soon as he laid eyes on her. He tried over and over again to break through her obstinate silence and force her to acknowledge his existence."
+          },
+          {
+            "id": "52fbae39-7343-0322-0220-ecc1cb98f48a",
+            "short_id": "52fbae39",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 5 Sunday, April 10",
+            "paragraph_start": 141,
+            "paragraph_end": 141,
+            "relevance": "support",
+            "supports": [
+              "C3"
+            ],
+            "quote": "Teleborian was assistant head physician at St. Stefan’s psychiatric clinic for children in Uppsala. All that was needed was a legal psychiatric report, which Björck and Teleborian drafted together, and then a brief and, as it turned out, uncontested decision in a district court. It was a question only of how the case was presented. The constitution had nothing to do with it. It was, after all, a matter of national security."
+          }
+        ]
+      },
+      "00e4a32f-7c35-513f-a71e-dda8ebe41233": {
+        "question": "Does Salander have a good memory?",
+        "claims": {
+          "C1": "Yes, she has a photographic memory",
+          "C2": "She has known since before puberty",
+          "C3": "She memorises texts such as Dimensions in Mathematics"
+        },
+        "passages": [
+          {
+            "id": "3dd6368b-0eda-a328-acf0-57d5b18a11a5",
+            "short_id": "3dd6368b",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 23 Friday, July 11",
+            "paragraph_start": 32,
+            "paragraph_end": 36,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "“And the next verse?”\nAbruptly she stood up.\n“Lisbeth, you have a photographic memory,” Mikael exclaimed in surprise. “That’s why you can read a page of the investigation in ten seconds.”\nHer reaction was almost explosive. She fixed her eyes on Blomkvist with such fury that he was astounded. Then her expression changed to despair, and she turned on her heel and ran for the gate.\n“Lisbeth,” he shouted after her."
+          },
+          {
+            "id": "006896c0-0ed4-274d-26d8-17988ad69204",
+            "short_id": "006896c0",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 126,
+            "paragraph_end": 128,
+            "relevance": "support",
+            "supports": [
+              "C2",
+              "C3"
+            ],
+            "quote": "“He’s a fine man who beats his wife,” Salander said.\nElla gave Salander a sharp look and went to the other end of the bar to serve some local customers.\nSalander stayed for ten minutes with her nose in Dimensions . She had known that she had a photographic memory since before she reached puberty, and because of it she was very different from her classmates. She had never revealed this to anyone—except to Blomkvist in a moment of weakness. She already knew the text of Dimensions in Mathematics by heart and was dragging the book around mainly because it represented a physical link to Fermat, as if the book had become some kind of talisman."
+          }
+        ]
+      },
+      "7bc41830-1eea-5f09-9aba-2846b7ebd465": {
+        "question": "What special abilities does Salander have?",
+        "claims": {
+          "C1": "Photographic memory",
+          "C2": "World-class hacking skills",
+          "C3": "Exceptional intelligence/talent for mathematics",
+          "C4": "Gift for research",
+          "C5": "Tough fighter"
+        },
+        "passages": [
+          {
+            "id": "92e09de9-dc00-ee30-69ed-2784341c342d",
+            "short_id": "92e09de9",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 218,
+            "paragraph_end": 221,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2"
+            ],
+            "quote": "“No.”\n“She has a photographic memory.”\n“I know. I realized that when I was working with her.”\n“She loves puzzles. One time when she came over for Christmas dinner I enticed her into solving some problems from a Mensa intelligence test. It was the kind where they show you five similar symbols and you have to decide what the sixth one will look like. I’d tried myself and got about half of them right. And I plodded away at it for two evenings. She took one look at the paper and answered every question correctly.”"
+          },
+          {
+            "id": "949ae132-57a6-cb36-3d66-a9b8ab60fea3",
+            "short_id": "949ae132",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 21 Thursday, July 3– Thursday, July 10",
+            "paragraph_start": 129,
+            "paragraph_end": 133,
+            "relevance": "support",
+            "supports": [
+              "C2"
+            ],
+            "quote": "Consequently she was mildly irritated with him.\nWhen they had a snack just before she went to bed, he had suddenly asked her if she was a good hacker.\nTo her own surprise she replied, “I’m probably the best in Sweden. There may be two or three others at about my level.”\nShe did not doubt the accuracy of her reply. Plague had once been better than she was, but she had passed him long ago.\nOn the other hand, it felt funny to say the words. She had never done it before. She had never had an outsider to have this sort of conversation with, and she enjoyed the fact that he seemed impressed by her talents. Then he had ruined the feeling by asking another question: how had she taught herself hacking?"
+          },
+          {
+            "id": "46374c72-6363-f3e6-a55b-75c475b29c25",
+            "short_id": "46374c72",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 89,
+            "paragraph_end": 89,
+            "relevance": "support",
+            "supports": [
+              "C3"
+            ],
+            "quote": "All her life Salander had loved puzzles and riddles. When she was nine her mother gave her a Rubik’s Cube. It had put her abilities to the test for barely forty frustrating minutes before she understood how it worked. After that she never had any difficulty solving the puzzle. She had never missed the daily newspapers’ intelligence tests; five strangely shaped figures and the puzzle was how the sixth one should look. To her, the answer was always obvious."
+          }
+        ],
+        "question_type": "broad"
+      },
+      "a385d39a-767a-514a-a858-573e337356ad": {
+        "question": "How Mikale knows that Salander is a hacker?",
+        "claims": {
+          "C1": "Her report on him quoted material that existed only on his own computer, so he realised she had hacked it",
+          "C2": "He confronted her at her apartment ('You're a hacker')"
+        },
+        "passages": [
+          {
+            "id": "a5571633-3824-bbe8-dce1-634ac85c9965",
+            "short_id": "a5571633",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 18 Wednesday, June 18",
+            "paragraph_start": 146,
+            "paragraph_end": 150,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2"
+            ],
+            "quote": "“You said that you knew what I did.”\n“You’ve been inside my computer. You’re a hacker.”\n“How do you know that?” Salander was absolutely positive that she had left no traces and that her trespassing could not be discovered by anyone unless a top security consultant sat down and scanned the hard drive at the same time as she was accessing the computer.\n“You made a mistake.”\nShe had quoted from a text that was only on his computer."
+          },
+          {
+            "id": "b43a0824-062a-2659-e1ad-eaa45790cc55",
+            "short_id": "b43a0824",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 17 Wednesday, June 11– Saturday, June 14",
+            "paragraph_start": 160,
+            "paragraph_end": 164,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "“I understand … Actually I believe I know of an expert researcher,” said Frode, and before he could stop himself, he added, “She was the one who did the background investigation on you.”\n“Who did what ?” Blomkvist said.\n“I was thinking out loud,” Frode said. “It’s nothing.” I’m getting old, he thought.\n“You had someone do an investigation on me?”\n“It’s nothing dramatic, Mikael. We wanted to hire you, and we just did a check on what sort of person you were.”"
+          }
+        ]
+      },
+      "566f5c84-953b-5b8b-b042-ce7b1519dc35": {
+        "question": "Is Salander a hacker?",
+        "claims": {
+          "C1": "Yes, she is a (world-class) hacker",
+          "C2": "Known online as Wasp",
+          "C3": "Member of the Hacker Republic"
+        },
+        "passages": [
+          {
+            "id": "949ae132-57a6-cb36-3d66-a9b8ab60fea3",
+            "short_id": "949ae132",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 21 Thursday, July 3– Thursday, July 10",
+            "paragraph_start": 129,
+            "paragraph_end": 133,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "Consequently she was mildly irritated with him.\nWhen they had a snack just before she went to bed, he had suddenly asked her if she was a good hacker.\nTo her own surprise she replied, “I’m probably the best in Sweden. There may be two or three others at about my level.”\nShe did not doubt the accuracy of her reply. Plague had once been better than she was, but she had passed him long ago.\nOn the other hand, it felt funny to say the words. She had never done it before. She had never had an outsider to have this sort of conversation with, and she enjoyed the fact that he seemed impressed by her talents. Then he had ruined the feeling by asking another question: how had she taught herself hacking?"
+          },
+          {
+            "id": "9b0775b6-077f-cc62-c36f-2fdef0334a78",
+            "short_id": "9b0775b6",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 13 Tuesday, May 17",
+            "paragraph_start": 139,
+            "paragraph_end": 143,
+            "relevance": "support",
+            "supports": [
+              "C2",
+              "C3"
+            ],
+            "quote": "<Hi gang.> Wasp wrote.\n<Wasp. That really U?> SixOfOne wrote. <Look who’s back.>\n<Where you been keeping yourself?> Trinity wrote.\n<Plague said you were in some trouble.> Dakota wrote.\nSalander was not sure, but she suspected that Dakota was a woman. The other citizens online, including the one who called himself SisterJen, were guys. Hacker Republic had a total (the last time she was connected) of sixty-two citizens, of whom four were female."
+          }
+        ]
+      },
+      "df0f4533-c695-59f0-8764-fca22d15cacc": {
+        "question": "How did Salander learn hacking skills?",
+        "claims": {
+          "C1": "She is self-taught / the books describe no formal training",
+          "C2": "Her intelligence and photographic memory",
+          "C3": "She works with other hackers such as Plague"
+        },
+        "passages": [],
+        "label_note": "No passage explicitly establishes that Salander was self-taught or explains how she learned hacking; left unlabelled rather than infer from silence."
+      },
+      "16018f6b-e1ee-59c2-b564-fe3e07567c19": {
+        "question": "What is the name of the girl with the dragon tattoo?",
+        "claims": {
+          "C1": "She is Lisbeth Salander",
+          "C2": "The dragon is on her left shoulder blade"
+        },
+        "passages": [
+          {
+            "id": "9b9ed313-57da-1faa-27a4-4e3662c53ed1",
+            "short_id": "9b9ed313",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 2 Friday, December 20",
+            "paragraph_start": 17,
+            "paragraph_end": 17,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2"
+            ],
+            "quote": "However, it was not Lisbeth Salander’s astonishing lack of emotional involvement that most upset him. Milton’s image was one of conservative stability. Salander fitted into this picture about as well as a buffalo at a boat show. Armansky’s star researcher was a pale, anorexic young woman who had hair as short as a fuse, and a pierced nose and eyebrows. She had a wasp tattoo about an inch long on her neck, a tattooed loop around the biceps of her left arm and another around her left ankle. On those occasions when she had been wearing a tank top, Armansky also saw that she had a dragon tattoo on her left shoulder blade. She was a natural redhead, but she dyed her hair raven black. She looked as though she had just emerged from a week-long orgy with a gang of hard rockers."
+          }
+        ]
+      },
+      "a328f662-d3a1-53af-a4a1-326ffe49e972": {
+        "question": "Who is Lisbeth Salander's father?",
+        "claims": {
+          "C1": "Her father is Alexander Zalachenko",
+          "C2": "A Soviet GRU defector protected by a secret group in Säpo",
+          "C3": "He beat her mother",
+          "C4": "She firebombed him as a child"
+        },
+        "passages": [
+          {
+            "id": "42132db1-d63a-3c78-5f0b-741484548a3a",
+            "short_id": "42132db1",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 157,
+            "paragraph_end": 158,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "Blomkvist told her about the DVD Salander had left in her desk.\n“Zalachenko is her father. Bjurman worked formally for Säpo in the mid-seventies and was one of those who made Zalachenko officially welcome when he defected. Later Bjurman became a lawyer with his own practice and a full-time crook, doing jobs for an elite group within the Security Police. I would think there’s an inner circle that meets now and then in the men’s sauna to control the world and keep the secret about Zalachenko. I’m guessing that the rest of Säpo has never even heard of the bastard. Lisbeth threatened to crack the secret wide open. So they locked her up in a children’s psychiatric unit.”"
+          },
+          {
+            "id": "8e48bafd-cceb-baca-9e0f-481d03c5199b",
+            "short_id": "8e48bafd",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 96,
+            "paragraph_end": 101,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "Her birth certificate. Father unknown .\n“Zalachenko is Lisbeth’s father,” Blomkvist repeated aloud.\n“On only one occasion in all the years I’ve known her did she tell me what happened. Here’s how I understood it—Zalachenko came here in the mid-seventies. He met Lisbeth’s mother in 1977, they had a relationship, and the result was two children.”\n“Two?”\n“Lisbeth and her twin sister Camilla.”\n“Good God—there are two of her?”"
+          },
+          {
+            "id": "6054ffc4-50ea-4ebc-ff26-719601405f43",
+            "short_id": "6054ffc4",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 5 Sunday, April 10",
+            "paragraph_start": 119,
+            "paragraph_end": 119,
+            "relevance": "support",
+            "supports": [
+              "C2",
+              "C3"
+            ],
+            "quote": "Then Gullberg’s expression darkened. The secret was known also to a thirteenth person. Björck had been accompanied at Zalachenko’s original reception by a lawyer, Nils Erik Bjurman. To include Bjurman in the special Section would be out of the question. Bjurman was not a real security policeman—he was really no more than a trainee at SIS—and he did not have the requisite experience or skills. Gullberg considered various alternatives and then chose to steer Bjurman carefully out of the picture. He used the threat of imprisonment for life, for treason, if Bjurman were to breathe so much as one syllable about Zalachenko, and at the same time he offered inducements, promises of future assignments, and finally he used flattery to bolster Bjurman’s feeling of importance. He arranged for Bjurman to be hired by a well-regarded law firm, which then provided him with a steady stream of assignments to keep him busy. The only problem was that Bjurman was such a mediocre lawyer that he was hardly capable of exploiting his opportunities. He left the firm after ten years and opened his own practice, which eventually became a law office at Odenplan."
+          }
+        ]
+      },
+      "10722a9f-1262-53ae-8f73-11ff27be91d2": {
+        "question": "What happened to Teleborian in the end of the court?",
+        "claims": {
+          "C1": "Teleborian was arrested (as he left court) for possessing child pornography",
+          "C2": "His testimony was discredited at the trial"
+        },
+        "passages": [
+          {
+            "id": "93ec354d-2b66-e5ec-e989-e2c562096dad",
+            "short_id": "93ec354d",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 27 Friday, July 15",
+            "paragraph_start": 454,
+            "paragraph_end": 459,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2"
+            ],
+            "quote": "“And what is your business here?” Judge Iversen said.\n“We are here to arrest Peter Teleborian with your permission, and without wishing to disturb the court’s proceedings.”\nJudge Iversen looked at Advokat Giannini.\n“I’m not quite finished with him . . . but the court may have heard enough of Dr. Teleborian.”\n“You have my permission,” Judge Iversen said to the police officers.\nCollsjö walked across to Teleborian. “Peter Teleborian, you are under arrest for violation of the law on child pornography.”"
+          },
+          {
+            "id": "2f0f62a1-ded6-45e2-50e2-5d35ecd087f7",
+            "short_id": "2f0f62a1",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 27 Friday, July 15",
+            "paragraph_start": 460,
+            "paragraph_end": 464,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "Teleborian sat still, hardly breathing. Giannini saw that all the light in his eyes seemed to have been extinguished.\n“Specifically, for possession of approximately nine thousand pornographic photographs of children found on your computer.”\nShe bent down to pick up his laptop, which he had brought with him.\n“This is confiscated as evidence,” she said.\nAs he was being led from the courtroom, Salander’s blazing eyes bored into Teleborian’s back."
+          }
+        ]
+      },
+      "74117b4c-998b-580d-8b3c-8be9f9558f89": {
+        "question": "Who is Plague?",
+        "claims": {
+          "C1": "Plague is a hacker and Salander's friend/collaborator (Hacker Republic)",
+          "C2": "Severely overweight and socially awkward in real life",
+          "C3": "Lives in Sundbyberg on disability benefits"
+        },
+        "passages": [
+          {
+            "id": "39822807-f478-d4cf-bb94-0684cd014df9",
+            "short_id": "39822807",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 13 Tuesday, May 17",
+            "paragraph_start": 181,
+            "paragraph_end": 182,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2",
+              "C3"
+            ],
+            "quote": "On the Net, Plague was an intelligent and socially gifted citizen. In real life he was a severely overweight and socially challenged thirty-year-old living on disability benefits in Sundbyberg. He bathed too seldom and his apartment smelled like a monkey house. Salander visited him only once in a blue moon. She was content to confine her dealings with him to the Net.\nAs the chat continued, Wasp downloaded mail that had been sent to her private mailbox at Hacker Republic. One was from another member, Poison, and contained an improved version of her programme Asphyxia 1.3, which was available in the Republic’s archive for its citizens. Asphyxia was a programme that could control other people’s computers via the Internet. Poison said that he had used it successfully, and that his updated version included the latest versions of Unix, Apple, and Windows. She emailed him a brief reply and thanked him for the upgrade."
+          }
+        ]
+      },
+      "9f4dbacc-0496-5467-9277-baed795e4995": {
+        "question": "How was Salander's attitude during the court?",
+        "claims": {
+          "C1": "She was calm/impassive and did not cooperate with the prosecution (barely spoke)",
+          "C2": "She let her written autobiography and Annika Giannini speak for her",
+          "C3": "Unyielding: 'No compromises'"
+        },
+        "passages": [
+          {
+            "id": "bf804f66-90f8-cd93-5b7f-ad7b734cb973",
+            "short_id": "bf804f66",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 28 Friday, July 15–Saturday, July 16",
+            "paragraph_start": 22,
+            "paragraph_end": 25,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C3"
+            ],
+            "quote": "Lisbeth Salander turned towards Judge Iversen.\nNo compromises .\nJudge Iversen looked at Salander’s autobiography. He then looked over at Prosecutor Ekström.\n“I too believe we would be wise to investigate exactly what has happened that brings us to this sorry pass. I fear that you are probably not the right person to conduct that investigation. In all my years as a jurist and judge, I have never been party to anything even approaching the legal dilemma in this case. I confess that I am at a loss for words. I have never even heard of a case in which the prosecutor’s chief witness is arrested during a court in session, or of a convincing argument turning out to be an utter fabrication. I honestly do not see what is left of the prosecutor’s case.”"
+          },
+          {
+            "id": "19241931-af22-113b-f295-73bc5871af3c",
+            "short_id": "19241931",
+            "book": "The Girl Who Kicked the Hornet's Nest",
+            "chapter": "CHAPTER 6 Monday, April 11",
+            "paragraph_start": 320,
+            "paragraph_end": 321,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2"
+            ],
+            "quote": "Annika Giannini. Blomkvist’s sister . He had mentioned her in an email. Salander had not thought about the fact that she would need a lawyer.\n“I’m sorry, but I have to insist that you answer the question. A yes or no will be fine. If you say yes, the prosecutor here in Göteborg will contact Advokat Giannini. If you say no, the court will appoint a defence lawyer on your behalf. Which do you prefer?”"
+          }
+        ]
+      },
+      "548b78a7-b772-527c-9f67-b76bfd7439bf": {
+        "question": "Who is Bubble?",
+        "claims": {
+          "C1": "Bubble is Criminal Inspector Jan Bublanski",
+          "C2": "He leads the Enskede murder investigation"
+        },
+        "passages": [
+          {
+            "id": "0db99171-3664-6bc8-c6f4-2ba044320c96",
+            "short_id": "0db99171",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 204,
+            "paragraph_end": 210,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2"
+            ],
+            "quote": "“I don’t work for Expressen.”\n“You know what I mean.”\n“Bublanski—I don’t believe Lisbeth is guilty.”\n“And now you’re doing your own private investigation? Is that why they call you Kalle Blomkvist?”\nBlomkvist smiled. “They tell me you’re called Officer Bubble.”\nBublanski gave him a stiff smile. “Why do you think Salander is innocent?”\n“I don’t know a thing about her guardian, but she had no reason whatsoever to murder Dag and Mia. Especially not Mia. Lisbeth loathes men who hate women, and Mia was in the process of putting the screws to a whole bunch of prostitutes’ clients. What Mia was doing was completely in line with what Lisbeth herself would have done. She is a very moral creature.”"
+          },
+          {
+            "id": "86ececbd-5d54-79ab-beff-7c45e28bfaa4",
+            "short_id": "86ececbd",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 1,
+            "paragraph_end": 1,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2"
+            ],
+            "quote": "The three parallel investigations into the murders in Enskede churned on. Officer Bubble’s investigation enjoyed the advantages of authority. On the surface, the solution seemed to lie within reach; they had a suspect and a murder weapon that was linked to the suspect. They had an ironclad connection to one victim and a possible connection via Blomkvist to the other two victims. For Bublanski it was now basically a matter of finding Salander and putting her in a cell in Kronoberg prison."
+          }
+        ]
+      },
+      "5d14b8f3-5885-5fb0-9fde-992ccdefb860": {
+        "question": "What is Lisbeth Salander known for?",
+        "claims": {
+          "C1": "She is known as a brilliant researcher and hacker",
+          "C2": "Photographic memory",
+          "C3": "Unconventional, tattooed appearance",
+          "C4": "Declared legally incompetent",
+          "C5": "Branded a psychopath/murderer by the media during the Enskede murders"
+        },
+        "passages": [
+          {
+            "id": "9b9ed313-57da-1faa-27a4-4e3662c53ed1",
+            "short_id": "9b9ed313",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 2 Friday, December 20",
+            "paragraph_start": 17,
+            "paragraph_end": 17,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2",
+              "C3"
+            ],
+            "quote": "However, it was not Lisbeth Salander’s astonishing lack of emotional involvement that most upset him. Milton’s image was one of conservative stability. Salander fitted into this picture about as well as a buffalo at a boat show. Armansky’s star researcher was a pale, anorexic young woman who had hair as short as a fuse, and a pierced nose and eyebrows. She had a wasp tattoo about an inch long on her neck, a tattooed loop around the biceps of her left arm and another around her left ankle. On those occasions when she had been wearing a tank top, Armansky also saw that she had a dragon tattoo on her left shoulder blade. She was a natural redhead, but she dyed her hair raven black. She looked as though she had just emerged from a week-long orgy with a gang of hard rockers."
+          },
+          {
+            "id": "3dd6368b-0eda-a328-acf0-57d5b18a11a5",
+            "short_id": "3dd6368b",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 23 Friday, July 11",
+            "paragraph_start": 32,
+            "paragraph_end": 36,
+            "relevance": "support",
+            "supports": [
+              "C2"
+            ],
+            "quote": "“And the next verse?”\nAbruptly she stood up.\n“Lisbeth, you have a photographic memory,” Mikael exclaimed in surprise. “That’s why you can read a page of the investigation in ten seconds.”\nHer reaction was almost explosive. She fixed her eyes on Blomkvist with such fury that he was astounded. Then her expression changed to despair, and she turned on her heel and ran for the gate.\n“Lisbeth,” he shouted after her."
+          },
+          {
+            "id": "2b5c01b9-317a-0944-9130-c7e2e94d54fa",
+            "short_id": "2b5c01b9",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 173,
+            "paragraph_end": 175,
+            "relevance": "support",
+            "supports": [
+              "C4"
+            ],
+            "quote": "“I don’t understand what’s wrong with you and Armansky,” he said.\n“What the hell does that mean?”\n“Lisbeth Salander has been in and out of psychiatric units since she was a teenager. A psychiatric assessment and a judgment in the district court determined that she was and still is unable to look after her own affairs. She was declared incompetent. She has a documented violent tendency and has been in trouble with the authorities all her life. And now she is a prime suspect in a murder investigation. And you and Armansky talk about her as though she were some sort of princess.”"
+          }
+        ],
+        "question_type": "broad"
+      },
+      "f1256259-2eb3-5e89-9b74-eca672a8a0f5": {
+        "question": "Who is Mikael Blomkvist?",
+        "claims": {
+          "C1": "He is an investigative (financial) journalist",
+          "C2": "He is the publisher/co-owner of Millennium magazine",
+          "C3": "Nicknamed Kalle Blomkvist",
+          "C4": "His sister Annika Giannini is a lawyer",
+          "C5": "He is co-protagonist with Salander"
+        },
+        "passages": [
+          {
+            "id": "8440b42b-88d8-cb61-afbf-fed17ea21179",
+            "short_id": "8440b42b",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 2 Friday, December 20",
+            "paragraph_start": 96,
+            "paragraph_end": 99,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2",
+              "C3"
+            ],
+            "quote": "“But he does have some secrets?” Frode said.\n“Everyone has secrets,” she replied neutrally. “It’s just a matter of finding out what they are.”\n“Let’s hear.”\n“Mikael Blomkvist was born on January 18, 1960, which makes him forty-two years old. He was born in Borlänge but has never lived there. His parents, Kurt and Anita Blomkvist, were around thirty-five when the child was born. Both have since died. His father was a machinery installer and moved around a good deal. His mother, as far as I could see, was never anything but a housewife. The family moved house to Stockholm when Mikael started school. He has a sister three years younger named Annika who is a lawyer. He also has some cousins, both male and female. Were you planning to serve coffee?”"
+          },
+          {
+            "id": "a9854435-f790-f759-1595-812b83227073",
+            "short_id": "a9854435",
+            "book": "The Girl Who Played with Fire",
+            "chapter": null,
+            "paragraph_start": 121,
+            "paragraph_end": 128,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2"
+            ],
+            "quote": "“You look familiar. Have we met before?”\n“I think not,” Blomkvist said.\n“I’m sure I’ve seen you somewhere.”\n“Maybe in the newspapers.”\n“What did you say your name was?”\n“Mikael Blomkvist. I’m a journalist, I work at Millennium magazine.”\nBjörck looked confused. Then the penny dropped. Kalle Blomkvist. The Wennerström affair . But still he did not understand the implications.\n“Millennium? I didn’t know you did market research.”"
+          },
+          {
+            "id": "ad498efc-6463-a3e3-8f06-547c1594b264",
+            "short_id": "ad498efc",
+            "book": "The Girl with the Dragon Tattoo",
+            "chapter": "CHAPTER 3 Friday, December 20– Saturday, December 21",
+            "paragraph_start": 55,
+            "paragraph_end": 56,
+            "relevance": "support",
+            "supports": [
+              "C2"
+            ],
+            "quote": "Millennium was their mutual creation, but it would never have become reality without her talent for digging up financing. It was the working-class guy and the upper-class girl in a beautiful union. Erika came from old money. She had put up the initial seed money and then talked both her father and various acquaintances into investing considerable sums in the project.\nMikael had often wondered why Erika had set her sights on Millennium . True, she was a part owner—the majority partner, in fact—and editor in chief of her own magazine, which gave her prestige and the control over publicity that she could hardly have obtained in any other job. Unlike Mikael, she had concentrated on television after journalism school. She was tough, looked fantastic on camera, and could hold her own with the competition. She also had good contacts in the bureaucracy. If she had stuck to it, she would undoubtedly have had a managerial job at one of the TV channels at a considerably higher salary than she paid herself now."
+          }
+        ]
+      }
     }
   },
   "review_history": [
@@ -5827,6 +8159,14 @@
       "created_at": "2026-11-13T12:31:25.820397+00:00",
       "reference_revision": "2026-11-13-source-reference-corrections",
       "note": "Resolved four reference discrepancies in dataset answers/facts; passage labels and user question types unchanged."
+    },
+    {
+      "version": 4,
+      "created_at": "2026-11-13T13:47:14.436807+00:00",
+      "added_items": 52,
+      "preserved_items": 36,
+      "audit_file": "relevance-audits/2026-11-13-remaining-datasets.json",
+      "note": "Added passage labels for Additional Questions, set3, and right-set-3. Labels use the pinned Millennium index and book passages; ambiguous, broad, and unsupported items are called out in item notes and audit."
     }
   ]
 }
