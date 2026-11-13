@@ -2,7 +2,7 @@
 
 ```json
 {
-  "default": "v2.12"
+  "default": "v2.15"
 }
 ```
 
@@ -2238,12 +2238,12 @@ The v2.6 agent flow and shared settings, resolved against the active corpus prof
 ```
 
 
-## Version 2.15 — current agent and evaluation tracing draft
+## Version 2.15 — current agent and evaluation tracing
 
 ```json
 {
   "id": "v2.15",
-  "status": "draft",
+  "status": "released",
   "engine": "agent",
   "flow": [
     {
@@ -2391,6 +2391,6 @@ The v2.6 agent flow and shared settings, resolved against the active corpus prof
       "revision": null
     }
   },
-  "notes": "Draft based on v2.12 settings and active Millennium agent instructions. Evaluates the current agent implementation alongside updated experiment metadata and quality-evaluation tracing. The tracing and evaluators are application features, not changes to the query flow."
+  "notes": "Released based on v2.12 settings and active Millennium agent instructions. Evaluates the current agent implementation alongside updated experiment metadata and quality-evaluation tracing. The tracing and evaluators are application features, not changes to the query flow."
 }
 ```

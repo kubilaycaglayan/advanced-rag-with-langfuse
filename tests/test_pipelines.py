@@ -23,9 +23,9 @@ from app.experiment_store import enqueue, initialize
 class PipelineVersions(TestCase):
     def test_catalog_and_reference_versions(self):
         catalog = load_catalog()
-        self.assertEqual(catalog.default, "v2.9")
-        self.assertEqual(set(catalog.versions), {"v1", "v2", "v2.2", "v2.3", "v2.4", "v2.5", "v2.6", "v2.7", "v2.8", "v2.9"})
-        self.assertEqual(set(catalog.releases), {"v1", "v2", "v2.2", "v2.3", "v2.6", "v2.7", "v2.8", "v2.9"})
+        self.assertEqual(catalog.default, "v2.15")
+        self.assertEqual(set(catalog.versions), {"v1", "v2", "v2.2", "v2.3", "v2.4", "v2.5", "v2.6", "v2.7", "v2.8", "v2.9", "v2.10", "v2.11", "v2.12", "v2.13", "v2.14", "v2.15"})
+        self.assertEqual(set(catalog.releases), {"v1", "v2", "v2.2", "v2.3", "v2.6", "v2.7", "v2.8", "v2.9", "v2.10", "v2.11", "v2.12", "v2.15"})
         self.assertEqual(catalog.versions["v2"]["agent"]["tools"], tool_names())
         self.assertEqual(catalog.versions["v2.7"]["agent"]["instruction_fingerprint"],
                          catalog.versions["v2.6"]["agent"]["instruction_fingerprint"])
@@ -43,10 +43,10 @@ class PipelineVersions(TestCase):
 
     def test_default_and_derived_resolve(self):
         base = resolve()
-        self.assertEqual(base.version, "v2.9")
+        self.assertEqual(base.version, "v2.15")
         self.assertEqual(base.engine, "agent")
         self.assertFalse(base.derived)
-        self.assertTrue(base.pipeline_id.startswith("pipeline-v2.9-"))
+        self.assertTrue(base.pipeline_id.startswith("pipeline-v2.15-"))
         derived = resolve("v1", {"passage_chars": 600})
         self.assertTrue(derived.derived)
         self.assertTrue(derived.pipeline_id.startswith("derived-v1-"))
@@ -67,7 +67,7 @@ class PipelineVersions(TestCase):
 
     def test_legacy_engine_alias(self):
         self.assertEqual(resolve(engine="fixed").version, "v1")
-        self.assertEqual(resolve(engine="agent").version, "v2.9")
+        self.assertEqual(resolve(engine="agent").version, "v2.15")
 
     def test_agent_declared_steps_have_instrumentation(self):
         source = Path(__file__).resolve().parents[1] / "app" / "agent.py"
