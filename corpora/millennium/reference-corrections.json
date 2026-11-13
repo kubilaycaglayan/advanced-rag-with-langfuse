@@ -1,0 +1,74 @@
+{
+  "revision": "2026-11-13-source-reference-corrections",
+  "description": "Current dataset references and facts corrected against indexed EPUB evidence. Historical snapshots and previous dataset versions are retained. Match derived dataset copies by question as well as source item ID.",
+  "items": {
+    "02ad392b-b200-58ce-a96d-f7cd57a5a252": {
+      "question": "What academic mathematics book does Lisbeth Salander carry around and memorize?",
+      "answer": "\"Dimensions in Mathematics\" by Dr. L. C. Parnault (Harvard University Press, 1999).",
+      "required_facts": [
+        "The book is Dimensions in Mathematics"
+      ],
+      "supporting_details": [
+        "By Dr. L. C. Parnault",
+        "Published by Harvard University Press in 1999"
+      ],
+      "evidence": [
+        "e6a89583",
+        "006896c0"
+      ]
+    },
+    "e23fcfc0-fc13-5abc-b7d3-9d91ae09cc49": {
+      "question": "What is the name of the secret rogue unit within Säpo responsible for protecting Zalachenko and persecuting Lisbeth?",
+      "answer": "The Section (Sektionen), also called the Section for Special Analysis. It is distinct from Edklinth's Constitutional Protection Unit, which investigates the conspiracy.",
+      "required_facts": [
+        "The rogue unit is called the Section (Sektionen), also known as the Section for Special Analysis"
+      ],
+      "supporting_details": [
+        "The Section secretly managed the Zalachenko affair",
+        "It is distinct from Edklinth's Constitutional Protection Unit, which investigates the conspiracy"
+      ],
+      "evidence": [
+        "ca11f447",
+        "d846c790",
+        "39ff3e50",
+        "a192b68d"
+      ]
+    },
+    "ad6aba37-9261-56da-bf3b-713f0cf07851": {
+      "question": "Who shoots and kills Alexander Zalachenko in Sahlgrenska Hospital?",
+      "answer": "Evert Gullberg, the retired former head of the Section for Special Analysis, shoots and kills Zalachenko. Gullberg then shoots himself in an attempted suicide but initially survives. He dies three months later; the novel says cancer, rather than the bullet, finally determines his death.",
+      "required_facts": [
+        "Evert Gullberg shoots and kills Zalachenko"
+      ],
+      "supporting_details": [
+        "Gullberg was a retired former head of the Section for Special Analysis",
+        "Gullberg then shoots himself in an attempted suicide but initially survives",
+        "He dies three months later; the novel attributes his eventual death to cancer rather than the bullet"
+      ],
+      "evidence": [
+        "15676af4",
+        "6ed3b0e5",
+        "d846c790",
+        "af7f641d"
+      ]
+    },
+    "8becb9a1-f9bc-5dae-8068-628617294f1e": {
+      "question": "Why did Amazon women allegedly cut off one of their breasts, and where did they live?",
+      "answer": "The novel recounts a legend that Amazons removed the right breast to facilitate drawing a bow, but explicitly doubts that this was historically practised. Its geographic traditions include the Amazons of Libya (north Africa west of Egypt) and women warriors of Anatolia; it also recounts ancient Greek Amazon legends.",
+      "required_facts": [
+        "According to the legend, the right breast was removed to facilitate drawing a bow",
+        "The source describes Amazon traditions in Libya (north Africa west of Egypt) and women warriors in Anatolia"
+      ],
+      "supporting_details": [
+        "The novel explicitly doubts whether breast amputation was actually practised",
+        "It also recounts ancient Greek Amazon legends"
+      ],
+      "evidence": [
+        "6a4845d1",
+        "12088d8a",
+        "5dfb455c",
+        "916b2283"
+      ]
+    }
+  }
+}

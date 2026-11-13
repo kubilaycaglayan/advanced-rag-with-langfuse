@@ -33,11 +33,12 @@
       },
       "8becb9a1-f9bc-5dae-8068-628617294f1e": {
         "required_facts": [
-          "They allegedly cut off a breast so it would not interfere with drawing a bow (or throwing a spear)",
-          "They lived in Asia Minor (Thermodon River) or Scythia"
+          "According to the legend, the right breast was removed to facilitate drawing a bow",
+          "The source describes Amazon traditions in Libya (north Africa west of Egypt) and women warriors in Anatolia"
         ],
         "supporting_details": [
-          "It was the right breast"
+          "The novel explicitly doubts whether breast amputation was actually practised",
+          "It also recounts ancient Greek Amazon legends"
         ],
         "accepted_answer_variants": [
           "Based on the passages in *The Girl Who Kicked the Hornet's Nest*:\n\nAllegedly, Amazon women cut off their right breast (either in early childhood or with a red-hot iron) to facilitate drawing a bow and using weapons more effectively [E1]. Regarding where they lived, the books mention several locations associated with Amazon legends:\n*   Ancient Greece, where the Greeks coined the term \"Amazon\" and featured them in literature like Homer's *Iliad* [E2] [E1].\n*   Libya (which at the time referred to all of North Africa west of Egypt), described by the historian Diodorus as having an Amazon reign ruled by Queen Myrina [E3].\n*   Anatolia, where women took up arms after a genocide of their men and copied Greek armor [E4].\n\nThe text notes that while there are many legends from Greece, South America, Africa, and elsewhere, only the Fon women's army in Dahomey (West Africa) is historically documented as a real example of female warriors [E5]."
@@ -48,7 +49,8 @@
           "The book is Dimensions in Mathematics"
         ],
         "supporting_details": [
-          "By L.C. Young"
+          "By Dr. L. C. Parnault",
+          "Published by Harvard University Press in 1999"
         ]
       },
       "8e6b2339-a71e-56d2-9d02-1e079e40f3e4": {
@@ -61,11 +63,12 @@
       },
       "ad6aba37-9261-56da-bf3b-713f0cf07851": {
         "required_facts": [
-          "Evert Gullberg shoots Zalachenko"
+          "Evert Gullberg shoots and kills Zalachenko"
         ],
         "supporting_details": [
-          "Gullberg was a retired former head of the Section",
-          "Gullberg then shoots himself"
+          "Gullberg was a retired former head of the Section for Special Analysis",
+          "Gullberg then shoots himself in an attempted suicide but initially survives",
+          "He dies three months later; the novel attributes his eventual death to cancer rather than the bullet"
         ]
       },
       "2b47ac9a-3e55-56e4-b0d2-58dbd9bbf6ee": {
@@ -79,10 +82,11 @@
       },
       "e23fcfc0-fc13-5abc-b7d3-9d91ae09cc49": {
         "required_facts": [
-          "The unit is called the Section (Sektionen)"
+          "The rogue unit is called the Section (Sektionen), also known as the Section for Special Analysis"
         ],
         "supporting_details": [
-          "Also known as the Section for Special Analysis / part of Constitutional Protection"
+          "The Section secretly managed the Zalachenko affair",
+          "It is distinct from Edklinth's Constitutional Protection Unit, which investigates the conspiracy"
         ]
       },
       "ef0f75d1-1894-5c3e-810d-7fe27a5e4845": {

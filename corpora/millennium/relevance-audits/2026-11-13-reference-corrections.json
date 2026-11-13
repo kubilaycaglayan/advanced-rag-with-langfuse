@@ -1,0 +1,603 @@
+{
+  "revision": "2026-11-13-source-reference-corrections",
+  "created_at": "2026-11-13T12:31:56.958656+00:00",
+  "status": "verified",
+  "scanned_datasets": {
+    "low-score-three-high-reasoning-v2.3-luna-2026-10-21": 3,
+    "low-score-under-0.7-v2.3-luna-2026-10-21": 15,
+    "right-set-3": 28,
+    "set3": 15,
+    "Additional Questions": 9,
+    "QA.csv": 36
+  },
+  "changes": [
+    {
+      "dataset": "low-score-three-high-reasoning-v2.3-luna-2026-10-21",
+      "item_id": "7a4951d4-2f80-46f5-84c3-f9cfcaefe19f",
+      "before": {
+        "id": "7a4951d4-2f80-46f5-84c3-f9cfcaefe19f",
+        "input": {
+          "question": "Who shoots and kills Alexander Zalachenko in Sahlgrenska Hospital?"
+        },
+        "expected_output": {
+          "answer": "Evert Gullberg, the retired former head of The Section, who then commits suicide.",
+          "facts_version": 3,
+          "required_facts": [
+            "Evert Gullberg shoots Zalachenko"
+          ],
+          "supporting_details": [
+            "Gullberg was a retired former head of the Section",
+            "Gullberg then shoots himself"
+          ]
+        },
+        "metadata": {
+          "source_row": 30,
+          "seed_row_key": "a1e538287eeb34ceccf92a4ad46048d0fa091e325f7e94141fdc8af33f5cc539",
+          "source_dataset": "QA.csv",
+          "source_item_id": "ad6aba37-9261-56da-bf3b-713f0cf07851",
+          "seed_occurrence": 1,
+          "source_checksum": "af25aeb4b0411822decab5362dced6b147379d5427e07c67143ef678f26e8844",
+          "selection_reason": "lowest-scoring question in latest 2026-10-21 v2.3 baseline run",
+          "baseline_trace_id": "37cf7f26cff7c4fb8fbeeb98d4667ea7",
+          "baseline_answer_correctness_v2": 0
+        },
+        "source_trace_id": null,
+        "source_observation_id": null,
+        "status": "ACTIVE"
+      },
+      "expected_output_after": {
+        "answer": "Evert Gullberg, the retired former head of the Section for Special Analysis, shoots and kills Zalachenko. Gullberg then shoots himself in an attempted suicide but initially survives. He dies three months later; the novel says cancer, rather than the bullet, finally determines his death.",
+        "facts_version": 3,
+        "required_facts": [
+          "Evert Gullberg shoots and kills Zalachenko"
+        ],
+        "supporting_details": [
+          "Gullberg was a retired former head of the Section for Special Analysis",
+          "Gullberg then shoots himself in an attempted suicide but initially survives",
+          "He dies three months later; the novel attributes his eventual death to cancer rather than the bullet"
+        ]
+      },
+      "evidence_short_ids": [
+        "15676af4",
+        "6ed3b0e5",
+        "d846c790",
+        "af7f641d"
+      ],
+      "response": {
+        "id": "7a4951d4-2f80-46f5-84c3-f9cfcaefe19f",
+        "status": "ACTIVE",
+        "input": {
+          "question": "Who shoots and kills Alexander Zalachenko in Sahlgrenska Hospital?"
+        },
+        "expected_output": {
+          "answer": "Evert Gullberg, the retired former head of the Section for Special Analysis, shoots and kills Zalachenko. Gullberg then shoots himself in an attempted suicide but initially survives. He dies three months later; the novel says cancer, rather than the bullet, finally determines his death.",
+          "facts_version": 3,
+          "required_facts": [
+            "Evert Gullberg shoots and kills Zalachenko"
+          ],
+          "supporting_details": [
+            "Gullberg was a retired former head of the Section for Special Analysis",
+            "Gullberg then shoots himself in an attempted suicide but initially survives",
+            "He dies three months later; the novel attributes his eventual death to cancer rather than the bullet"
+          ]
+        },
+        "metadata": {
+          "source_row": 30,
+          "seed_row_key": "a1e538287eeb34ceccf92a4ad46048d0fa091e325f7e94141fdc8af33f5cc539",
+          "source_dataset": "QA.csv",
+          "source_item_id": "ad6aba37-9261-56da-bf3b-713f0cf07851",
+          "seed_occurrence": 1,
+          "source_checksum": "af25aeb4b0411822decab5362dced6b147379d5427e07c67143ef678f26e8844",
+          "selection_reason": "lowest-scoring question in latest 2026-10-21 v2.3 baseline run",
+          "baseline_trace_id": "37cf7f26cff7c4fb8fbeeb98d4667ea7",
+          "baseline_answer_correctness_v2": 0
+        },
+        "source_trace_id": null,
+        "source_observation_id": null,
+        "dataset_id": "cmvi09sib001hmj7tvbvge9iq",
+        "dataset_name": "low-score-three-high-reasoning-v2.3-luna-2026-10-21",
+        "created_at": "2026-11-13 12:31:56.986000+00:00",
+        "updated_at": "2026-11-13 12:31:56.986000+00:00",
+        "media_references": [],
+        "version": "2026-11-13T12:31:56.982Z"
+      },
+      "verified_after": {
+        "id": "7a4951d4-2f80-46f5-84c3-f9cfcaefe19f",
+        "input": {
+          "question": "Who shoots and kills Alexander Zalachenko in Sahlgrenska Hospital?"
+        },
+        "expected_output": {
+          "answer": "Evert Gullberg, the retired former head of the Section for Special Analysis, shoots and kills Zalachenko. Gullberg then shoots himself in an attempted suicide but initially survives. He dies three months later; the novel says cancer, rather than the bullet, finally determines his death.",
+          "facts_version": 3,
+          "required_facts": [
+            "Evert Gullberg shoots and kills Zalachenko"
+          ],
+          "supporting_details": [
+            "Gullberg was a retired former head of the Section for Special Analysis",
+            "Gullberg then shoots himself in an attempted suicide but initially survives",
+            "He dies three months later; the novel attributes his eventual death to cancer rather than the bullet"
+          ]
+        },
+        "metadata": {
+          "source_row": 30,
+          "seed_row_key": "a1e538287eeb34ceccf92a4ad46048d0fa091e325f7e94141fdc8af33f5cc539",
+          "source_dataset": "QA.csv",
+          "source_item_id": "ad6aba37-9261-56da-bf3b-713f0cf07851",
+          "seed_occurrence": 1,
+          "source_checksum": "af25aeb4b0411822decab5362dced6b147379d5427e07c67143ef678f26e8844",
+          "selection_reason": "lowest-scoring question in latest 2026-10-21 v2.3 baseline run",
+          "baseline_trace_id": "37cf7f26cff7c4fb8fbeeb98d4667ea7",
+          "baseline_answer_correctness_v2": 0
+        },
+        "source_trace_id": null,
+        "source_observation_id": null,
+        "status": "ACTIVE"
+      }
+    },
+    {
+      "dataset": "QA.csv",
+      "item_id": "e23fcfc0-fc13-5abc-b7d3-9d91ae09cc49",
+      "before": {
+        "id": "e23fcfc0-fc13-5abc-b7d3-9d91ae09cc49",
+        "input": {
+          "question": "What is the name of the secret rogue unit within Säpo responsible for protecting Zalachenko and persecuting Lisbeth?"
+        },
+        "expected_output": {
+          "answer": "\"The Section\" (Sektionen / Constitutional Protection Unit).",
+          "facts_version": 3,
+          "required_facts": [
+            "The unit is called the Section (Sektionen)"
+          ],
+          "supporting_details": [
+            "Also known as the Section for Special Analysis / part of Constitutional Protection"
+          ]
+        },
+        "metadata": {
+          "source_row": 28,
+          "seed_row_key": "25f561d5bde280967857496bf281d88f67435b502b6432efa9d27d121646c069",
+          "seed_occurrence": 1,
+          "source_checksum": "af25aeb4b0411822decab5362dced6b147379d5427e07c67143ef678f26e8844"
+        },
+        "source_trace_id": null,
+        "source_observation_id": null,
+        "status": "ACTIVE"
+      },
+      "expected_output_after": {
+        "answer": "The Section (Sektionen), also called the Section for Special Analysis. It is distinct from Edklinth's Constitutional Protection Unit, which investigates the conspiracy.",
+        "facts_version": 3,
+        "required_facts": [
+          "The rogue unit is called the Section (Sektionen), also known as the Section for Special Analysis"
+        ],
+        "supporting_details": [
+          "The Section secretly managed the Zalachenko affair",
+          "It is distinct from Edklinth's Constitutional Protection Unit, which investigates the conspiracy"
+        ]
+      },
+      "evidence_short_ids": [
+        "ca11f447",
+        "d846c790",
+        "39ff3e50",
+        "a192b68d"
+      ],
+      "response": {
+        "id": "e23fcfc0-fc13-5abc-b7d3-9d91ae09cc49",
+        "status": "ACTIVE",
+        "input": {
+          "question": "What is the name of the secret rogue unit within Säpo responsible for protecting Zalachenko and persecuting Lisbeth?"
+        },
+        "expected_output": {
+          "answer": "The Section (Sektionen), also called the Section for Special Analysis. It is distinct from Edklinth's Constitutional Protection Unit, which investigates the conspiracy.",
+          "facts_version": 3,
+          "required_facts": [
+            "The rogue unit is called the Section (Sektionen), also known as the Section for Special Analysis"
+          ],
+          "supporting_details": [
+            "The Section secretly managed the Zalachenko affair",
+            "It is distinct from Edklinth's Constitutional Protection Unit, which investigates the conspiracy"
+          ]
+        },
+        "metadata": {
+          "source_row": 28,
+          "seed_row_key": "25f561d5bde280967857496bf281d88f67435b502b6432efa9d27d121646c069",
+          "seed_occurrence": 1,
+          "source_checksum": "af25aeb4b0411822decab5362dced6b147379d5427e07c67143ef678f26e8844"
+        },
+        "source_trace_id": null,
+        "source_observation_id": null,
+        "dataset_id": "cmv7zo6nw0007pa7t55mno068",
+        "dataset_name": "QA.csv",
+        "created_at": "2026-11-13 12:31:57.006000+00:00",
+        "updated_at": "2026-11-13 12:31:57.006000+00:00",
+        "media_references": [],
+        "version": "2026-11-13T12:31:57.005Z"
+      },
+      "verified_after": {
+        "id": "e23fcfc0-fc13-5abc-b7d3-9d91ae09cc49",
+        "input": {
+          "question": "What is the name of the secret rogue unit within Säpo responsible for protecting Zalachenko and persecuting Lisbeth?"
+        },
+        "expected_output": {
+          "answer": "The Section (Sektionen), also called the Section for Special Analysis. It is distinct from Edklinth's Constitutional Protection Unit, which investigates the conspiracy.",
+          "facts_version": 3,
+          "required_facts": [
+            "The rogue unit is called the Section (Sektionen), also known as the Section for Special Analysis"
+          ],
+          "supporting_details": [
+            "The Section secretly managed the Zalachenko affair",
+            "It is distinct from Edklinth's Constitutional Protection Unit, which investigates the conspiracy"
+          ]
+        },
+        "metadata": {
+          "source_row": 28,
+          "seed_row_key": "25f561d5bde280967857496bf281d88f67435b502b6432efa9d27d121646c069",
+          "seed_occurrence": 1,
+          "source_checksum": "af25aeb4b0411822decab5362dced6b147379d5427e07c67143ef678f26e8844"
+        },
+        "source_trace_id": null,
+        "source_observation_id": null,
+        "status": "ACTIVE"
+      }
+    },
+    {
+      "dataset": "QA.csv",
+      "item_id": "ad6aba37-9261-56da-bf3b-713f0cf07851",
+      "before": {
+        "id": "ad6aba37-9261-56da-bf3b-713f0cf07851",
+        "input": {
+          "question": "Who shoots and kills Alexander Zalachenko in Sahlgrenska Hospital?"
+        },
+        "expected_output": {
+          "answer": "Evert Gullberg, the retired former head of The Section, who then commits suicide.",
+          "facts_version": 3,
+          "required_facts": [
+            "Evert Gullberg shoots Zalachenko"
+          ],
+          "supporting_details": [
+            "Gullberg was a retired former head of the Section",
+            "Gullberg then shoots himself"
+          ]
+        },
+        "metadata": {
+          "source_row": 30,
+          "seed_row_key": "a1e538287eeb34ceccf92a4ad46048d0fa091e325f7e94141fdc8af33f5cc539",
+          "seed_occurrence": 1,
+          "source_checksum": "af25aeb4b0411822decab5362dced6b147379d5427e07c67143ef678f26e8844"
+        },
+        "source_trace_id": null,
+        "source_observation_id": null,
+        "status": "ACTIVE"
+      },
+      "expected_output_after": {
+        "answer": "Evert Gullberg, the retired former head of the Section for Special Analysis, shoots and kills Zalachenko. Gullberg then shoots himself in an attempted suicide but initially survives. He dies three months later; the novel says cancer, rather than the bullet, finally determines his death.",
+        "facts_version": 3,
+        "required_facts": [
+          "Evert Gullberg shoots and kills Zalachenko"
+        ],
+        "supporting_details": [
+          "Gullberg was a retired former head of the Section for Special Analysis",
+          "Gullberg then shoots himself in an attempted suicide but initially survives",
+          "He dies three months later; the novel attributes his eventual death to cancer rather than the bullet"
+        ]
+      },
+      "evidence_short_ids": [
+        "15676af4",
+        "6ed3b0e5",
+        "d846c790",
+        "af7f641d"
+      ],
+      "response": {
+        "id": "ad6aba37-9261-56da-bf3b-713f0cf07851",
+        "status": "ACTIVE",
+        "input": {
+          "question": "Who shoots and kills Alexander Zalachenko in Sahlgrenska Hospital?"
+        },
+        "expected_output": {
+          "answer": "Evert Gullberg, the retired former head of the Section for Special Analysis, shoots and kills Zalachenko. Gullberg then shoots himself in an attempted suicide but initially survives. He dies three months later; the novel says cancer, rather than the bullet, finally determines his death.",
+          "facts_version": 3,
+          "required_facts": [
+            "Evert Gullberg shoots and kills Zalachenko"
+          ],
+          "supporting_details": [
+            "Gullberg was a retired former head of the Section for Special Analysis",
+            "Gullberg then shoots himself in an attempted suicide but initially survives",
+            "He dies three months later; the novel attributes his eventual death to cancer rather than the bullet"
+          ]
+        },
+        "metadata": {
+          "source_row": 30,
+          "seed_row_key": "a1e538287eeb34ceccf92a4ad46048d0fa091e325f7e94141fdc8af33f5cc539",
+          "seed_occurrence": 1,
+          "source_checksum": "af25aeb4b0411822decab5362dced6b147379d5427e07c67143ef678f26e8844"
+        },
+        "source_trace_id": null,
+        "source_observation_id": null,
+        "dataset_id": "cmv7zo6nw0007pa7t55mno068",
+        "dataset_name": "QA.csv",
+        "created_at": "2026-11-13 12:31:57.023000+00:00",
+        "updated_at": "2026-11-13 12:31:57.023000+00:00",
+        "media_references": [],
+        "version": "2026-11-13T12:31:57.022Z"
+      },
+      "verified_after": {
+        "id": "ad6aba37-9261-56da-bf3b-713f0cf07851",
+        "input": {
+          "question": "Who shoots and kills Alexander Zalachenko in Sahlgrenska Hospital?"
+        },
+        "expected_output": {
+          "answer": "Evert Gullberg, the retired former head of the Section for Special Analysis, shoots and kills Zalachenko. Gullberg then shoots himself in an attempted suicide but initially survives. He dies three months later; the novel says cancer, rather than the bullet, finally determines his death.",
+          "facts_version": 3,
+          "required_facts": [
+            "Evert Gullberg shoots and kills Zalachenko"
+          ],
+          "supporting_details": [
+            "Gullberg was a retired former head of the Section for Special Analysis",
+            "Gullberg then shoots himself in an attempted suicide but initially survives",
+            "He dies three months later; the novel attributes his eventual death to cancer rather than the bullet"
+          ]
+        },
+        "metadata": {
+          "source_row": 30,
+          "seed_row_key": "a1e538287eeb34ceccf92a4ad46048d0fa091e325f7e94141fdc8af33f5cc539",
+          "seed_occurrence": 1,
+          "source_checksum": "af25aeb4b0411822decab5362dced6b147379d5427e07c67143ef678f26e8844"
+        },
+        "source_trace_id": null,
+        "source_observation_id": null,
+        "status": "ACTIVE"
+      }
+    },
+    {
+      "dataset": "QA.csv",
+      "item_id": "02ad392b-b200-58ce-a96d-f7cd57a5a252",
+      "before": {
+        "id": "02ad392b-b200-58ce-a96d-f7cd57a5a252",
+        "input": {
+          "question": "What academic mathematics book does Lisbeth Salander carry around and memorize?"
+        },
+        "expected_output": {
+          "answer": "\"Dimensions in Mathematics\" by L.C. Young.",
+          "facts_version": 3,
+          "required_facts": [
+            "The book is Dimensions in Mathematics"
+          ],
+          "supporting_details": [
+            "By L.C. Young"
+          ]
+        },
+        "metadata": {
+          "source_row": 32,
+          "seed_row_key": "82f34fdc74d5dcf683dfe8fb09b75f2fb7d9a060af1beba5cc87ee86f6ff4423",
+          "seed_occurrence": 1,
+          "source_checksum": "af25aeb4b0411822decab5362dced6b147379d5427e07c67143ef678f26e8844"
+        },
+        "source_trace_id": null,
+        "source_observation_id": null,
+        "status": "ACTIVE"
+      },
+      "expected_output_after": {
+        "answer": "\"Dimensions in Mathematics\" by Dr. L. C. Parnault (Harvard University Press, 1999).",
+        "facts_version": 3,
+        "required_facts": [
+          "The book is Dimensions in Mathematics"
+        ],
+        "supporting_details": [
+          "By Dr. L. C. Parnault",
+          "Published by Harvard University Press in 1999"
+        ]
+      },
+      "evidence_short_ids": [
+        "e6a89583",
+        "006896c0"
+      ],
+      "response": {
+        "id": "02ad392b-b200-58ce-a96d-f7cd57a5a252",
+        "status": "ACTIVE",
+        "input": {
+          "question": "What academic mathematics book does Lisbeth Salander carry around and memorize?"
+        },
+        "expected_output": {
+          "answer": "\"Dimensions in Mathematics\" by Dr. L. C. Parnault (Harvard University Press, 1999).",
+          "facts_version": 3,
+          "required_facts": [
+            "The book is Dimensions in Mathematics"
+          ],
+          "supporting_details": [
+            "By Dr. L. C. Parnault",
+            "Published by Harvard University Press in 1999"
+          ]
+        },
+        "metadata": {
+          "source_row": 32,
+          "seed_row_key": "82f34fdc74d5dcf683dfe8fb09b75f2fb7d9a060af1beba5cc87ee86f6ff4423",
+          "seed_occurrence": 1,
+          "source_checksum": "af25aeb4b0411822decab5362dced6b147379d5427e07c67143ef678f26e8844"
+        },
+        "source_trace_id": null,
+        "source_observation_id": null,
+        "dataset_id": "cmv7zo6nw0007pa7t55mno068",
+        "dataset_name": "QA.csv",
+        "created_at": "2026-11-13 12:31:57.044000+00:00",
+        "updated_at": "2026-11-13 12:31:57.044000+00:00",
+        "media_references": [],
+        "version": "2026-11-13T12:31:57.042Z"
+      },
+      "verified_after": {
+        "id": "02ad392b-b200-58ce-a96d-f7cd57a5a252",
+        "input": {
+          "question": "What academic mathematics book does Lisbeth Salander carry around and memorize?"
+        },
+        "expected_output": {
+          "answer": "\"Dimensions in Mathematics\" by Dr. L. C. Parnault (Harvard University Press, 1999).",
+          "facts_version": 3,
+          "required_facts": [
+            "The book is Dimensions in Mathematics"
+          ],
+          "supporting_details": [
+            "By Dr. L. C. Parnault",
+            "Published by Harvard University Press in 1999"
+          ]
+        },
+        "metadata": {
+          "source_row": 32,
+          "seed_row_key": "82f34fdc74d5dcf683dfe8fb09b75f2fb7d9a060af1beba5cc87ee86f6ff4423",
+          "seed_occurrence": 1,
+          "source_checksum": "af25aeb4b0411822decab5362dced6b147379d5427e07c67143ef678f26e8844"
+        },
+        "source_trace_id": null,
+        "source_observation_id": null,
+        "status": "ACTIVE"
+      }
+    },
+    {
+      "dataset": "QA.csv",
+      "item_id": "8becb9a1-f9bc-5dae-8068-628617294f1e",
+      "before": {
+        "id": "8becb9a1-f9bc-5dae-8068-628617294f1e",
+        "input": {
+          "question": "Why did Amazon women allegedly cut off one of their breasts, and where did they live?"
+        },
+        "expected_output": {
+          "answer": "According to mythology, they cut off their right breast so it wouldn't interfere with drawing a bow or spear. Myths placed them in Asia Minor (Thermodon River) and Scythia.",
+          "facts_version": 3,
+          "required_facts": [
+            "They allegedly cut off a breast so it would not interfere with drawing a bow (or throwing a spear)",
+            "They lived in Asia Minor (Thermodon River) or Scythia"
+          ],
+          "supporting_details": [
+            "It was the right breast"
+          ],
+          "accepted_answer_variants": [
+            "Based on the passages in *The Girl Who Kicked the Hornet's Nest*:\n\nAllegedly, Amazon women cut off their right breast (either in early childhood or with a red-hot iron) to facilitate drawing a bow and using weapons more effectively [E1]. Regarding where they lived, the books mention several locations associated with Amazon legends:\n*   Ancient Greece, where the Greeks coined the term \"Amazon\" and featured them in literature like Homer's *Iliad* [E2] [E1].\n*   Libya (which at the time referred to all of North Africa west of Egypt), described by the historian Diodorus as having an Amazon reign ruled by Queen Myrina [E3].\n*   Anatolia, where women took up arms after a genocide of their men and copied Greek armor [E4].\n\nThe text notes that while there are many legends from Greece, South America, Africa, and elsewhere, only the Fon women's army in Dahomey (West Africa) is historically documented as a real example of female warriors [E5]."
+          ]
+        },
+        "metadata": {
+          "source_row": 33,
+          "seed_row_key": "87e91332caac486d9aec58a89b14c510509d916caa8444a936c515caaa6de44c",
+          "seed_occurrence": 1,
+          "source_checksum": "af25aeb4b0411822decab5362dced6b147379d5427e07c67143ef678f26e8844"
+        },
+        "source_trace_id": null,
+        "source_observation_id": null,
+        "status": "ACTIVE"
+      },
+      "expected_output_after": {
+        "answer": "The novel recounts a legend that Amazons removed the right breast to facilitate drawing a bow, but explicitly doubts that this was historically practised. Its geographic traditions include the Amazons of Libya (north Africa west of Egypt) and women warriors of Anatolia; it also recounts ancient Greek Amazon legends.",
+        "facts_version": 3,
+        "required_facts": [
+          "According to the legend, the right breast was removed to facilitate drawing a bow",
+          "The source describes Amazon traditions in Libya (north Africa west of Egypt) and women warriors in Anatolia"
+        ],
+        "supporting_details": [
+          "The novel explicitly doubts whether breast amputation was actually practised",
+          "It also recounts ancient Greek Amazon legends"
+        ],
+        "accepted_answer_variants": [
+          "Based on the passages in *The Girl Who Kicked the Hornet's Nest*:\n\nAllegedly, Amazon women cut off their right breast (either in early childhood or with a red-hot iron) to facilitate drawing a bow and using weapons more effectively [E1]. Regarding where they lived, the books mention several locations associated with Amazon legends:\n*   Ancient Greece, where the Greeks coined the term \"Amazon\" and featured them in literature like Homer's *Iliad* [E2] [E1].\n*   Libya (which at the time referred to all of North Africa west of Egypt), described by the historian Diodorus as having an Amazon reign ruled by Queen Myrina [E3].\n*   Anatolia, where women took up arms after a genocide of their men and copied Greek armor [E4].\n\nThe text notes that while there are many legends from Greece, South America, Africa, and elsewhere, only the Fon women's army in Dahomey (West Africa) is historically documented as a real example of female warriors [E5]."
+        ]
+      },
+      "evidence_short_ids": [
+        "6a4845d1",
+        "12088d8a",
+        "5dfb455c",
+        "916b2283"
+      ],
+      "response": {
+        "id": "8becb9a1-f9bc-5dae-8068-628617294f1e",
+        "status": "ACTIVE",
+        "input": {
+          "question": "Why did Amazon women allegedly cut off one of their breasts, and where did they live?"
+        },
+        "expected_output": {
+          "answer": "The novel recounts a legend that Amazons removed the right breast to facilitate drawing a bow, but explicitly doubts that this was historically practised. Its geographic traditions include the Amazons of Libya (north Africa west of Egypt) and women warriors of Anatolia; it also recounts ancient Greek Amazon legends.",
+          "facts_version": 3,
+          "required_facts": [
+            "According to the legend, the right breast was removed to facilitate drawing a bow",
+            "The source describes Amazon traditions in Libya (north Africa west of Egypt) and women warriors in Anatolia"
+          ],
+          "supporting_details": [
+            "The novel explicitly doubts whether breast amputation was actually practised",
+            "It also recounts ancient Greek Amazon legends"
+          ],
+          "accepted_answer_variants": [
+            "Based on the passages in *The Girl Who Kicked the Hornet's Nest*:\n\nAllegedly, Amazon women cut off their right breast (either in early childhood or with a red-hot iron) to facilitate drawing a bow and using weapons more effectively [E1]. Regarding where they lived, the books mention several locations associated with Amazon legends:\n*   Ancient Greece, where the Greeks coined the term \"Amazon\" and featured them in literature like Homer's *Iliad* [E2] [E1].\n*   Libya (which at the time referred to all of North Africa west of Egypt), described by the historian Diodorus as having an Amazon reign ruled by Queen Myrina [E3].\n*   Anatolia, where women took up arms after a genocide of their men and copied Greek armor [E4].\n\nThe text notes that while there are many legends from Greece, South America, Africa, and elsewhere, only the Fon women's army in Dahomey (West Africa) is historically documented as a real example of female warriors [E5]."
+          ]
+        },
+        "metadata": {
+          "source_row": 33,
+          "seed_row_key": "87e91332caac486d9aec58a89b14c510509d916caa8444a936c515caaa6de44c",
+          "seed_occurrence": 1,
+          "source_checksum": "af25aeb4b0411822decab5362dced6b147379d5427e07c67143ef678f26e8844"
+        },
+        "source_trace_id": null,
+        "source_observation_id": null,
+        "dataset_id": "cmv7zo6nw0007pa7t55mno068",
+        "dataset_name": "QA.csv",
+        "created_at": "2026-11-13 12:31:57.064000+00:00",
+        "updated_at": "2026-11-13 12:31:57.064000+00:00",
+        "media_references": [],
+        "version": "2026-11-13T12:31:57.062Z"
+      },
+      "verified_after": {
+        "id": "8becb9a1-f9bc-5dae-8068-628617294f1e",
+        "input": {
+          "question": "Why did Amazon women allegedly cut off one of their breasts, and where did they live?"
+        },
+        "expected_output": {
+          "answer": "The novel recounts a legend that Amazons removed the right breast to facilitate drawing a bow, but explicitly doubts that this was historically practised. Its geographic traditions include the Amazons of Libya (north Africa west of Egypt) and women warriors of Anatolia; it also recounts ancient Greek Amazon legends.",
+          "facts_version": 3,
+          "required_facts": [
+            "According to the legend, the right breast was removed to facilitate drawing a bow",
+            "The source describes Amazon traditions in Libya (north Africa west of Egypt) and women warriors in Anatolia"
+          ],
+          "supporting_details": [
+            "The novel explicitly doubts whether breast amputation was actually practised",
+            "It also recounts ancient Greek Amazon legends"
+          ],
+          "accepted_answer_variants": [
+            "Based on the passages in *The Girl Who Kicked the Hornet's Nest*:\n\nAllegedly, Amazon women cut off their right breast (either in early childhood or with a red-hot iron) to facilitate drawing a bow and using weapons more effectively [E1]. Regarding where they lived, the books mention several locations associated with Amazon legends:\n*   Ancient Greece, where the Greeks coined the term \"Amazon\" and featured them in literature like Homer's *Iliad* [E2] [E1].\n*   Libya (which at the time referred to all of North Africa west of Egypt), described by the historian Diodorus as having an Amazon reign ruled by Queen Myrina [E3].\n*   Anatolia, where women took up arms after a genocide of their men and copied Greek armor [E4].\n\nThe text notes that while there are many legends from Greece, South America, Africa, and elsewhere, only the Fon women's army in Dahomey (West Africa) is historically documented as a real example of female warriors [E5]."
+          ]
+        },
+        "metadata": {
+          "source_row": 33,
+          "seed_row_key": "87e91332caac486d9aec58a89b14c510509d916caa8444a936c515caaa6de44c",
+          "seed_occurrence": 1,
+          "source_checksum": "af25aeb4b0411822decab5362dced6b147379d5427e07c67143ef678f26e8844"
+        },
+        "source_trace_id": null,
+        "source_observation_id": null,
+        "status": "ACTIVE"
+      }
+    }
+  ],
+  "note": "Dataset item upserts preserve stable IDs, metadata, status and source links; Langfuse retains earlier item versions.",
+  "verified_at": "2026-11-13T12:31:57.140386+00:00",
+  "unrelated_items_unchanged": true,
+  "local_changes": [
+    {
+      "path": "corpora/millennium/answer-facts.json",
+      "before_sha256": "07e03b70412e772294af0a4a58cb376f87bd512ee9abedf2b80989c44ff42444",
+      "after_sha256": "ec560d3902b93e5c90ba4d346cdc00505c50849896e8d00b9e97095881e5f4de"
+    },
+    {
+      "path": "data/millennium/answer-facts.json",
+      "before_sha256": "36091ea765af5064555dbc3269aa005f8c2550587bfd8295a4650f9db0c57fef",
+      "after_sha256": "052721b8483bd4dfa4edf83194f4e0bd5512a4f146af6f31a0c2b4d8d4f21bb2"
+    },
+    {
+      "path": "corpora/millennium/QA.csv",
+      "before_sha256": "af25aeb4b0411822decab5362dced6b147379d5427e07c67143ef678f26e8844",
+      "after_sha256": "37a16736c3f6c7d9e2d711cd97f6a393fbc3463c079872ada914fa5dc5a9cdf2"
+    },
+    {
+      "path": "corpora/millennium/retrieval-qrels.json",
+      "before_sha256": "f3e3e070ecb8bbd5c1b1049242e741c1cb9c65f20602817296d0cae349bd77c1",
+      "after_sha256": "4a14d088d142a3f29539d42a7a07235e57c30e66de518f704d78cfbc94f2e7e8"
+    }
+  ],
+  "local_validation": {
+    "four_csv_answers_match": true,
+    "both_fact_files_match": true,
+    "unrelated_repository_facts_preserved": true,
+    "all_recorded_qrels_reference_discrepancies_resolved": true
+  }
+}
