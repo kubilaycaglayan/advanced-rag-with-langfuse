@@ -26,6 +26,9 @@ from langfuse import Langfuse
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_QRELS = ROOT / "corpora" / "millennium" / "retrieval-qrels.json"
 SEARCH_TOOLS = ("tool: semantic_search", "tool: keyword_search")
+JUDGE_MAX_CONTEXT_TOKENS = 262144
+JUDGE_OUTPUT_TOKENS = 4096
+JUDGE_PROMPT_OVERHEAD = 2048
 JUDGE_SCHEMA = {
     "type": "object",
     "properties": {
@@ -193,17 +196,22 @@ def faithfulness_context(observations: list[Any]) -> tuple[str | None, str | Non
     if not tool_messages or not all(isinstance(content, str) for content in tool_messages):
         return None, "Tool responses are missing or malformed"
     context = "\n\n".join(tool_messages)
-    # Conservative character budget leaves room for question, answer, schema and prompt.
-    if len(context) > 12000:
-        return None, "Agent context exceeds the judge's conservative input budget"
     return context, None
 
 
 def _ollama_json(messages: list[dict[str, str]], schema: dict[str, Any], model: str) -> tuple[dict[str, Any], str]:
     base = (os.getenv("EVALUATOR_OLLAMA_URL") or os.getenv("OLLAMA_URL")
             or "http://127.0.0.1:11434").rstrip("/")
+    # UTF-8 bytes conservatively budget the full request, including the schema,
+    # question and answer. Reserve space for the judge's response as well.
+    prompt_budget = len(json.dumps({"messages": messages, "format": schema}, ensure_ascii=False).encode("utf-8"))
+    required = prompt_budget + JUDGE_OUTPUT_TOKENS + JUDGE_PROMPT_OVERHEAD
+    if required > JUDGE_MAX_CONTEXT_TOKENS:
+        raise ValueError("Judge input exceeds the maximum safe context budget")
+    num_ctx = min(JUDGE_MAX_CONTEXT_TOKENS, max(16384, 1 << (required - 1).bit_length()))
     payload = {"model": model, "messages": messages, "stream": False, "think": False,
-               "format": schema, "options": {"temperature": 0, "num_ctx": 16384}}
+               "format": schema, "options": {"temperature": 0, "num_ctx": num_ctx,
+                                               "num_predict": JUDGE_OUTPUT_TOKENS}}
     response = requests.post(base + "/api/chat", json=payload, timeout=(10, 300))
     response.raise_for_status()
     raw = response.json().get("message", {}).get("content", "")

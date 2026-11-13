@@ -2,8 +2,9 @@
 import json
 import unittest
 from types import SimpleNamespace
+from unittest.mock import patch
 
-from app.quality_metrics import SearchCall, _context_text, _precision_at, extract_trace, faithfulness_context
+from app.quality_metrics import SearchCall, _context_text, _precision_at, _ollama_json, extract_trace, faithfulness_context
 
 
 class QualityMetricChecks(unittest.TestCase):
@@ -49,12 +50,20 @@ class QualityMetricChecks(unittest.TestCase):
         extra = SimpleNamespace(name="tool: read_passage", output={"passage": {"text": "unseen text"}})
         self.assertEqual(faithfulness_context([root, generation, extra]), ("actual snippet", None))
 
-    def test_faithfulness_rejects_oversize_and_rewritten_context(self):
+    def test_faithfulness_accepts_long_context_but_rejects_rewritten_context(self):
         root = SimpleNamespace(name="agent run", output={"stopped": "submit"})
         generation = SimpleNamespace(name="query agent model: tool selection and answer", start_time=1,
                                      input=[{"role": "tool", "content": "x" * 12001}])
-        self.assertIsNone(faithfulness_context([root, generation])[0])
+        self.assertEqual(faithfulness_context([root, generation])[0], "x" * 12001)
         self.assertIsNone(faithfulness_context([root, generation, SimpleNamespace(name="coverage rewrite")])[0])
+
+    @patch("app.quality_metrics.requests.post")
+    def test_judge_expands_context_for_long_inputs_and_rejects_oversize(self, post):
+        post.return_value.json.return_value = {"message": {"content": "{}"}}
+        _ollama_json([{"role": "user", "content": "x" * 35000}], {}, "judge")
+        self.assertEqual(post.call_args.kwargs["json"]["options"]["num_ctx"], 65536)
+        with self.assertRaisesRegex(ValueError, "maximum safe context"):
+            _ollama_json([{"role": "user", "content": "x" * 262144}], {}, "judge")
 
     def test_context_text_marks_each_passage_with_its_id(self):
         text = _context_text({"a", "b"}, {"a": "first", "b": "second"})
