@@ -30,7 +30,7 @@ try:
     from .indexer import build_index, corpus_paths
     from .intermediate_cache import scope_for as intermediate_cache_scope, use_cache as use_intermediate_cache
     from .evaluator_specs import CORRECTNESS_SPECS, DEFAULT_CORRECTNESS, JUDGE_MODELS, evaluator_manifest
-    from .observability import pack_scope_attributes, record_cache_lookup, use_client
+    from .observability import observation, pack_scope_attributes, record_cache_lookup, use_client
     from .pipeline import PROMPT_HASHES, run_pipeline
     from .prompt_assets import ManagedJudgePrompt, load_managed_evaluators, load_prompt_bundle, prompt_manifests
     from .resolved_config import ResolvedPipelineConfig, resolve_ollama_model, resolve_pipeline_model_identities
@@ -49,7 +49,7 @@ except ImportError:
     from indexer import build_index, corpus_paths
     from intermediate_cache import scope_for as intermediate_cache_scope, use_cache as use_intermediate_cache
     from evaluator_specs import CORRECTNESS_SPECS, DEFAULT_CORRECTNESS, JUDGE_MODELS, evaluator_manifest
-    from observability import pack_scope_attributes, record_cache_lookup, use_client
+    from observability import observation, pack_scope_attributes, record_cache_lookup, use_client
     from pipeline import PROMPT_HASHES, run_pipeline
     from prompt_assets import ManagedJudgePrompt, load_managed_evaluators, load_prompt_bundle, prompt_manifests
     from resolved_config import ResolvedPipelineConfig, resolve_ollama_model, resolve_pipeline_model_identities
@@ -105,6 +105,20 @@ class ExperimentLangfuse(Langfuse):
         tags = [f"question:{question_label(item.dataset_name, item.id, item.metadata)}"]
         with propagate_attributes(session_id=session, tags=tags, environment="sdk-experiment"):
             return await super()._process_experiment_item(item, *args, **kwargs)
+
+
+_EXPERIMENT_PROPAGATED_METADATA = frozenset({
+    "execution_id", "pipeline_id", "pipeline_version", "pipeline_derived", "evaluator_id",
+    "dataset_version", "variant_label", "snapshot_sha256", "correctness_evaluator",
+    "answer_cache_mode", "agent_provider", "agent_model", "agent_reasoning_effort",
+    "agent_think", "agent_context_length",
+})
+
+
+def pack_experiment_metadata(metadata: dict[str, Any]) -> tuple[dict[str, Any], str]:
+    """Propagate join keys and preserve the complete metadata as one observation attribute."""
+    propagated = {key: value for key, value in metadata.items() if key in _EXPERIMENT_PROPAGATED_METADATA}
+    return propagated, json.dumps(metadata, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
 
 def _client() -> Langfuse:
@@ -405,6 +419,11 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
                         "tags": [f"pipeline:{resolved.pipeline_id}"],
                     })
                     with propagate_attributes(**scope_attributes):
+                        # Langfuse limits propagated metadata values to 200 characters.
+                        # Observation metadata has no such propagation limit; a JSON
+                        # string also stays a single OpenTelemetry attribute.
+                        with observation("experiment configuration", metadata={"extended_json": packed_experiment_metadata}):
+                            pass
                         record_cache_lookup("answer", cache_statuses[item.id],
                                             cache_lookup_seconds, cache_source,
                                             input={"question": question}, output=cached_output)
@@ -439,13 +458,13 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
                                                       and resolved.agent_settings.reasoning_effort != "none"
                                                       else "chat_completions" if resolved.agent_settings.provider == "openai"
                                                       else "ollama")
-        # One key per setting: Langfuse drops propagated metadata values over 200 characters.
         experiment_metadata.update({f"config_{key}": value if isinstance(value, str) else json.dumps(value, sort_keys=True)
                                     for key, value in config.manifest().items() if key != "prompt_hashes"})
         experiment_metadata.update({f"prompt_{name}": f"{asset['id']}@{asset['version']}:{asset['label']}"
                                     for name, asset in prompt_versions.items()})
         experiment_metadata.update({f"managed_eval_{name}": f"{asset['id']}@{asset['version']}"
                                     for name, asset in managed_evaluators.items()})
+        experiment_metadata, packed_experiment_metadata = pack_experiment_metadata(experiment_metadata)
         # The SDK runner flushes internally before returning. Keep that flush in
         # the app's bounded cleanup phase so a stuck SDK queue cannot strand the
         # durable worker before it writes the local result artifact.

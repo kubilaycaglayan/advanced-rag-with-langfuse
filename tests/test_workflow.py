@@ -1,5 +1,6 @@
 """Regression checks for managed edits, full retrieval, and whole-session tracing."""
 import asyncio
+import json
 import os
 import threading
 import unittest
@@ -13,10 +14,23 @@ os.environ["LANGFUSE_TRACING_ENABLED"] = "false"
 from app.pipeline import _transform, run_pipeline
 from app.prompt_assets import ManagedJudgePrompt, _evaluator_definitions, load_managed_evaluators, load_prompt_bundle, PROMPT_CATALOG
 from app.resolved_config import ResolvedPipelineConfig
-from app.experiments import ExperimentLangfuse
+from app.experiments import ExperimentLangfuse, pack_experiment_metadata
 
 
 class WorkflowChecks(unittest.TestCase):
+    def test_experiment_metadata_preserves_full_values_in_one_json_attribute(self):
+        from langfuse._client.attributes import create_span_attributes
+
+        original = {"execution_id": "execution", "pipeline_id": "pipeline", "config_prompt": "é" * 300,
+                    "config_settings": {"nested": [1, 2, 3]}, "managed_eval_example": "judge@2"}
+        propagated, packed = pack_experiment_metadata(original)
+        self.assertEqual(propagated, {"execution_id": "execution", "pipeline_id": "pipeline"})
+        self.assertEqual(json.loads(packed), original)
+        attrs = create_span_attributes(metadata={"extended_json": packed})
+        metadata_attrs = {key: value for key, value in attrs.items() if "metadata" in key}
+        self.assertEqual(len(metadata_attrs), 1)
+        self.assertEqual(json.loads(next(iter(metadata_attrs.values()))), original)
+
     def test_full_mode_searches_original_hyde_three_alternatives_and_grammar(self):
         queries, spans = [], []
         class Qdrant:

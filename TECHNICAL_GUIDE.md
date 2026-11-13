@@ -143,6 +143,8 @@ Recover a failed or partial execution with an authenticated `POST /experiments/{
 
 The single worker uses the Langfuse Python SDK's hosted-dataset experiment runner at concurrency 1. It pins a historical dataset snapshot before selecting item IDs, writes a canonical snapshot checksum, resolves Hugging Face model commit SHAs when available, records pipeline and evaluator identities separately, and stores per-item evidence, outputs, errors, scores, and rationales. RAG latency and evaluator latency are recorded separately. An interrupted running job is marked failed on worker startup; a retry creates a new execution.
 
+Experiment traces propagate a small set of searchable identifiers and model settings. The full experiment metadata is also recorded on the `experiment configuration` observation in its `extended_json` metadata field. This keeps the extended configuration available in Langfuse without propagating every setting as a separate OpenTelemetry attribute on every child span.
+
 ### Historical acceptance status (before the full-retrieval workflow update)
 
 Acceptance checks are classified as mocked automated, live-service integration, or manual UI. The focused automated suite is `docker exec millenium-app-1 python -m unittest discover -s tests -v`.
