@@ -1,15 +1,15 @@
 # Best-performing pipeline versions
 
-Ranked by mean answer correctness score for each regular Millennium dataset. Citation-support scores are not included.
+Ranked by mean Qwen answer correctness score for each regular Millennium dataset. Citation-support scores are not included.
 
 ## Method
 
 - Included runs covering at least 80% of the items in that run's pinned dataset snapshot.
 - Excluded single-item runs.
 - Counts in parentheses show how many questions contributed to each score.
-- The remaining runs were evaluated against their saved traces with qrels v4 and `qwen3.6:35b`. A dash means the metric was unavailable or not applicable; faithfulness can be unavailable when the recorded answer path or context cannot be verified.
+- Retrieval, faithfulness, and relevancy metrics were evaluated against saved traces with qrels v4 and `qwen3.6:35b` for faithfulness and relevancy. A dash means the metric was unavailable or not applicable; faithfulness can be unavailable when the recorded answer path or context cannot be verified.
 - Coverage is completed result items over the pinned snapshot size. Dataset snapshots can differ in size across runs.
-- `Qwen` is mean `answer_correctness_v2` (`qwen3:8b`); `Codex` is mean `answer_correctness_codex_v1` (`gpt-5.6-luna`). `Faith` and `Rel` cover 36 items; `P5` 28; `P10` 5; `SetP` and `CtxR` 30; `H5` and `H10` 2. Retrieval skips the broad item and three items without direct gold passages. Names containing `openai` or `gpt-6-luna` identify the answer pipeline's query agent, not the evaluator.
+- `Qwen` is mean `answer_correctness_v2` (`qwen3:8b`); `Codex` is mean `answer_correctness_codex_v1` (`gpt-5.6-luna`). `Faith` and `Rel` cover 36 items; `P5` 28; `P10` 5; `SetP` and `CtxR` 30; `H5` and `H10` 2. Retrieval skips the broad item and three items without direct gold passages. All displayed ranking scores are Qwen evaluations, including runs whose query agent used OpenAI or GPT-6 Luna. The QA.csv winner also has a separate Codex rescore. The model that generates an answer does not determine which correctness column its score belongs in.
 - On 2026-11-13, retrieval, faithfulness, and answer-relevancy metrics were added for the top-ranked run in `set3`, `right-set-3`, and `Additional Questions`. These scores use qrels v4 and `qwen3.6:35b` for faithfulness/relevancy. P@K is averaged only over item traces with a search call returning at least K hits; set precision and context recall omit undefined items. Faithfulness is omitted when trace guards reject the stored context/path; it is not scored as zero. The 23 traces previously rejected by the context limit were rescored after that limit was raised. `Rel` measures topical responsiveness, not factual correctness.
 
 ## QA.csv
