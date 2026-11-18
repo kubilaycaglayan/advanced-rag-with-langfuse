@@ -2,7 +2,7 @@
 
 ```json
 {
-  "default": "v2.15"
+  "default": "v2.16"
 }
 ```
 
@@ -2396,12 +2396,12 @@ The v2.6 agent flow and shared settings, resolved against the active corpus prof
 ```
 
 
-## Version 2.16 — conversation handoff draft
+## Version 2.16 — conversation handoff
 
 ```json
 {
   "id": "v2.16",
-  "status": "draft",
+  "status": "released",
   "engine": "agent",
   "flow": [
     {
@@ -2551,6 +2551,6 @@ The v2.6 agent flow and shared settings, resolved against the active corpus prof
       "revision": null
     }
   },
-  "notes": "Draft based on v2.15. On timeout, turn budget, or tool budget, generate the answer from the compacted agent conversation instead of a separately selected evidence digest. Earlier tool results may still be compacted."
+  "notes": "Released based on v2.15. On timeout, turn budget, or tool budget, generate the answer from the compacted agent conversation instead of a separately selected evidence digest. Earlier tool results may still be compacted."
 }
 ```
