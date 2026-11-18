@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg viewBox="0 0 1280 648" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="pipeline-book-inspired-title pipeline-book-inspired-desc" id="pipeline-book-inspired-root">
-<title id="pipeline-book-inspired-title">Pipeline v2.12 · From question to cited answer</title>
-<desc id="pipeline-book-inspired-desc">A five-stage view of the v2.12 agent pipeline, its model roles, grouped query expansion outputs, retrieval and reading tools, evidence reranking, safeguards, and technologies.</desc>
+<title id="pipeline-book-inspired-title">Pipeline v2.16 · From question to cited answer</title>
+<desc id="pipeline-book-inspired-desc">A five-stage view of the v2.16 agent pipeline, its model roles, grouped query expansion outputs, retrieval and reading tools, evidence reranking, safeguards, and technologies.</desc>
 <defs>
 <style>
 #pipeline-book-inspired-root { color:#231f25; font-family:'Geist',system-ui,sans-serif; }
@@ -26,7 +26,7 @@
 </defs>
 <rect width="1280" height="760" fill="#f3eee4"/>
 <text x="32" y="38" class="zone-label">OPTIMIZED FOR MILLENNIUM SERIES</text>
-<rect x="1112" y="16" width="136" height="32" rx="4" fill="#8c3547"/><text x="1124" y="37" class="signature">PIPELINE V2.12</text>
+<rect x="1112" y="16" width="136" height="32" rx="4" fill="#8c3547"/><text x="1124" y="37" class="signature">PIPELINE V2.16</text>
 <text x="32" y="76" style="font:400 30px 'Instrument Serif',Georgia,serif;fill:#231f25">Agentic RAG for novels</text>
 <text x="32" y="100" class="detail">For corpora longer than 200,000 tokens</text>
 <!-- Model ribbon: each model is tied to its pipeline role -->

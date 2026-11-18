@@ -1,37 +1,127 @@
-# Millennium semantic search
+# 📚 Advanced RAG Pipeline
 
-Ask questions about Stieg Larsson's *Millennium* trilogy and find answers grounded in the books. This project searches passages from locally supplied EPUBs, chooses the most relevant evidence, and uses a local language model to write an answer with citations. You can inspect the cited passages and the steps that produced the answer.
+**[🌐 Try the pipeline](https://millennium.blaqc.space)**
 
-The backend also supports *The Alienist* as an isolated corpus. See [the Alienist backend guide](docs/plans/2026-10-22-thealienist-backend.md) for corpus switching, indexing, Langfuse setup, and the first-question workflow. The Millennium interface remains Millennium-specific; stop it while the backend is switched to Alienist.
+This is a RAG pipeline developed for Novels, and storybooks.
+Optimized for *Millennium* trilogy by Stieg Larsson.
 
-The Millennium EPUBs are **not included** in this repository; place them in the local `corpora/millennium/books/` directory. The Alienist EPUB is already present locally under `corpora/thealienist/books/` and remains excluded from Git.
+- 🔍 Finds subtle details scattered across thousands of pages.
+- 💭 Answers broad questions like “What special abilities does Salander have?”
+- 📚 Can be adapted and optimized for different collections of documents.
+- 🤖 Supports both local and API-based models.
+
+**[🏆 Explore top-performing runs and metrics](docs/best-performing-versions.md)**
 
 ## How it works
 
+The pipeline retrieves relevant passages from the books and uses them to generate answers with citations.
+
 ![Book-inspired diagram of the search pipeline, from user query to cited answer](docs/pipeline-book-inspired.svg)
 
-For a wider view, open the [book-inspired pipeline diagram](docs/pipeline-book-inspired.html) in a browser. The [style gallery](docs/pipeline-style-gallery.html) shows the other treatments using the same pipeline.
+1. **Understand the question**
+   - **Connection check:** Look for relevant entity-card information.
+   - **Initial scene probe:** Search scene summaries for a likely match.
+   - **True account checks:** Gather clues about deaths or crimes from entity cards, passages, and scenes.
+   - **Sequence check:** Look for scenes describing a sequence of events.
+   - **Moment check:** Look for a specific detail using scene summaries and keyword matching.
+   - **Premise probe:** For a question that assumes someone was killed, look for evidence that they survived.
 
-The default `full` mode runs six searches: the original query, one imagined answer passage (HyDE), three alternative phrasings, and one grammar-corrected query. If a short name can be completed from the books, a seventh search contributes extra results without changing the main fusion. A question asked in another language (most of its words are not ones the books use) is first translated into English, keeping names as written (a translated book title or nickname becomes the English edition's); the translation is searched too, and the rewrites, reranking and scene search use it. All searches use dense embeddings against Qdrant.
+2. **Expand the query**
+   - Generate a hypothetical passage with **HyDE**.
+   - Generate three alternative queries.
+   - Produce a grammar-corrected query.
 
-The embedding and reranking models run in the app process. `qwen3:8b` runs through Ollama for the fixed flow's search rewrites and final answer; Ollama can use a local GPU when one is available. When evidence looks weak, the pipeline can admit strong passages from the extra results and give the answer model more context. Some answers are a whole scene of dialogue in which no passage names the people involved; a second index of scene summaries (written once by `gemma4:26b` when the index is built) lets such a scene be found, and its passages are added after the usual evidence when its summary clearly beats the scenes the evidence already comes from. A `scene_moment` step handles questions about a detail at one moment ("what did she wear when they first met"): the model writes out the moment, searches the summaries with it and picks the scene that shows it. A passage that names neither the people nor the moment (often the line a chapter ends on, which is kept with the passage before it) is also searched for with the two sentences of its scene summary that describe it, and up to two such passages are added after the usual evidence. Released versions pin model names; endpoints remain deployment configuration. The web UI streams the answer as it is written, and the final answer cites the selected passages so you can check the source. The independent rewrite requests can run in parallel with the opt-in `parallel_transformations` setting.
+3. **Search the books**
+   - Search passages by meaning or keyword.
+   - Search scenes and specific moments.
+   - Look up names, entity cards, connections, and true accounts.
 
-The `/ask` endpoint defaults to the corpus-portable agentic `v2.16` pipeline, based on v2.8 and resolving its corpus profile and index from deployment configuration. At a turn or tool limit it answers from the agent conversation. It adds request-scoped query, embedding, search, reranking, and tool-read caches; cache hits and misses are traced in Langfuse. It adds premise checks, repeated-search progress feedback, and stricter answer verification. Premise-based early stopping is disabled by default in v2.12, while direct premise evidence remains available to answer synthesis. It supports optional `agent_provider`, `automatic_scene_search`, and `premise_early_stop` settings. For example, `{"pipeline":"v2.9","settings":{"agent_provider":"openai","automatic_scene_search":true}}` opts into both OpenAI GPT-6 Luna for the query agent and the automatic scene probe. Each setting can also be enabled on its own. Enabling automatic scene search uses a 30-candidate scene pool by default; the v2.2-compatible default remains 20 when the probe is off. Versions `v2.2` and `v2.7` remain selectable for comparison, and `v2.3` remains the standalone OpenAI query-agent experiment. Send `{"pipeline":"v2"}` to use the earlier agent flow or `{"pipeline":"v1"}` for the recorded fixed RAG flow. Both `/ask` and the Langfuse remote experiment payload accept `pipeline` and optional `settings` overrides. An override is recorded as a derived run, with its own `derived-` identity. The released flow definitions, prompt pins, index identity, and default are in [`pipelines.md`](pipelines.md); `pipelines.sha256` guards their fingerprints. On the 35 QA.csv questions the original agent scores 0.897 with a local fact judge (median 0.95, 30/35 at 0.9 or better), and it answers multi-hop questions the fixed pipeline gets wrong. See the [agentic retrieval experiment](docs/experiments/2026-10-19-agentic-rag.md).
+4. **Read and rerank evidence**
+   - Read passages, scenes, or chapters for more context.
+   - Rerank evidence using both the original question and the retrieval queries.
 
-## What Langfuse does here
+5. **Generate the answer**
+   - Check minimum tool use, citation IDs, and coverage.
+   - Verify that passages support the answer’s claims.
+   - Check whether a sequence answer covers the necessary stages.
+   - Synthesize from available evidence or abstain when needed.
+   - Convert passage IDs into citation labels such as **[E1]**.
+   - If a time, turn, or tool limit is reached, generate an answer from the compacted agent conversation without further tool calls.
 
-Langfuse is the project's workspace for **prompts, traces, and experiments**:
+### 📚 Indexing
 
-- **Prompts:** The instructions for search rewrites and answers are versioned in Langfuse. A run pins the versions it used, so later prompt edits do not change that run's record.
-- **Traces:** Each question records its search steps, retrieved passages, reranking, answer, and timing. The web app can show the trace for a question and send a helpfulness rating.
-- **Experiments:** A question-and-answer dataset can be run through different pipeline settings. Langfuse links each answer to its trace and scores answer correctness and citation support, making runs easier to compare. Reference answers are used for evaluation, never to generate the answer. New runs use the fact-based `answer_correctness_v2` judge by default; the optional `answer_correctness_v3` runs through a local `opencode serve`.
+The pipeline prepares the books for search using four indexes.
 
-The optional `answer_correctness_codex_v1` evaluator uses `gpt-5.6-luna` through `codex exec`. Each question starts a fresh ephemeral Codex session. Langfuse keeps the evaluator active using the local Ollama connection as a registry placeholder; its description identifies Codex CLI and `gpt-5.6-luna` as the actual judge. The experiment worker runs it through the host bridge at `CODEX_JUDGE_URL`. Run `python app/codex_judge_server.py` on the host with an authenticated Codex CLI before selecting this evaluator in an experiment. The trace contains a nested `gpt-5.6-luna` generation with input, cached input, and output token usage. Each score also includes the raw Codex counts; the bridge records the account's five hour usage percentage before and after each judge call when Codex exposes it. Experiment results include token totals and a per 100 question projection.
+#### 📄 Passage index
 
-Langfuse helps explain *why* an answer changed when a prompt or search setting changes. The actual book search runs through Qdrant, and the language model calls run through Ollama.
+Splits the books into passages and embeds them for search by meaning.
 
-Interactive questions use an optional persistent exact-answer cache. It only reuses answers for the same question and full pipeline/corpus identity, after the answer scores at least 0.90 for correctness or receives a thumbs-up. Citation-support scores do not affect eligibility. Dataset experiments bypass the cache unless the request opts in. Redis runs locally with persistent storage; cache status and source traces appear in Langfuse. See the [cache plan](docs/plans/2026-10-21-agent-v2.8-cache-and-latency.md) for controls and scoped maintenance commands.
+For example, a question about Salander’s bag can find a passage that calls it a “shoulder bag.”
 
-## Explore the project
+**Actual entry, excerpt:**
 
-The web app is for asking questions; its UI lives in the [dragon-tattoo-oracle](https://github.com/kubilaycaglayan/dragon-tattoo-oracle) repository, included as the `frontends/millennium/ui` submodule (clone with `git clone --recurse-submodules`, or run `git submodule update --init` in an existing checkout). The Python API handles indexing, search, answers, and experiment runs. Corpus selection is controlled by `CORPUS_ID` and each `corpora/<id>/corpus.yaml`; corpus files, indexes, caches, and experiment artifacts are kept in corpus-specific paths. Langfuse is optional for interactive answering and indexing: set `LANGFUSE_ENABLED=false` or leave its credentials unset to run without tracing or hosted prompts. Hosted Langfuse experiments still require an enabled, configured Langfuse project. See the [technical guide](TECHNICAL_GUIDE.md) for setup and configuration, the [frontend guide](frontends/millennium/README.md) for the UI, and the [improvement log](docs/IMPROVEMENTS.md) for examples of how the pipeline was tuned.
+```text
+ID: 910a9f44-c857-5cc3-906c-6895da8c4b32
+Book: The Girl Who Played with Fire
+Paragraph: 19 · Page: 56
+Text: “When he had got home the morning after the attack on Lundagatan,
+      he opened the shoulder bag and spread the contents on the kitchen table.”
+```
+
+#### 🔤 Keyword index
+
+Builds an in-memory index of passage word counts for BM25 search.
+
+For example, searching for “wallet” can find passages containing that word.
+
+**Actual word counts for the passage above, excerpt:**
+
+```text
+bag:     2
+wallet:  1
+kronor:  1
+mace:    1
+```
+
+#### 🎬 Scene index
+
+Embeds summaries of overlapping passages to help find scenes by meaning.
+
+For example, a question about Modig interviewing Miriam Wu can find a summary of that scene.
+
+**Actual entry, excerpt:**
+
+```text
+Summary: Faste tells Modig to stay away from an interview, accusing her
+         of sabotage. Modig slaps Faste after he makes a comment about her
+         interest in the interviewee. After Faste walks away, Modig returns
+         to Miriam Wu. […]
+Passages: 682589de-4e0d-4b52-6a13-2e19b2905db0
+          705ac181-0591-aea8-914f-e01a5a15f650
+          752e6a3e-1d76-804c-a237-4958c3111273
+          5f344cd2-42fd-79df-feb2-e933269ae2f8
+```
+
+#### 👤 Entity cards
+
+Store names, facts, and connections linked to passages.
+
+For example, a card for Mikael Blomkvist brings together facts about him.
+
+**Actual entry, excerpt:**
+
+```text
+Key: mikael blomkvist
+Text: Mikael (person, nickname). first name of Blomkvist; another name for
+      Blomkvist; name of Blomkvist. Mikael Blomkvist was handcuffed and
+      uncomfortable. Mikael Blomkvist is the brother of Annika Giannini. […]
+```
+
+### 💬 Example questions
+
+![Two example questions with answers and cited passages](docs/example-questions.svg)
+
+### ⚠️ Limitations
+
+- Response times have not been optimized.
+- Storage usage has not been optimized.

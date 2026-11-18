@@ -169,6 +169,24 @@ Ranked by mean Qwen answer correctness score for each regular Millennium dataset
   <tbody>
     <tr>
       <th>1</th>
+      <td>`openai-gpt-6-luna-high-v2.16-set3`</td>
+      <td>v2.16</td>
+      <td>0.90(15)</td>
+      <td>—</td>
+      <td>0.09(13)</td>
+      <td>0.07(3)</td>
+      <td>—</td>
+      <td>—</td>
+      <td>0.04(13)</td>
+      <td>0.85(13)</td>
+      <td>0.97(9)</td>
+      <td>0.94(15)</td>
+      <td>15/15</td>
+      <td>`37ebe85de2796617`</td>
+      <td>`2bfa8acb`</td>
+    </tr>
+    <tr>
+      <th>2</th>
       <td>`openai-gpt-6-luna-high-set3`</td>
       <td>v2.12</td>
       <td>0.77(15)</td>
@@ -186,7 +204,7 @@ Ranked by mean Qwen answer correctness score for each regular Millennium dataset
       <td>`77f54b4d`</td>
     </tr>
     <tr>
-      <th>2</th>
+      <th>3</th>
       <td>`entity-cards-reasoning-v2.13-set3`</td>
       <td>v2.13</td>
       <td>0.72(15)</td>
@@ -204,7 +222,7 @@ Ranked by mean Qwen answer correctness score for each regular Millennium dataset
       <td>`436795ab`</td>
     </tr>
     <tr>
-      <th>3</th>
+      <th>4</th>
       <td>`v2.3-gpt-6-luna-set3`</td>
       <td>v2.3</td>
       <td>0.72(15)</td>
@@ -222,7 +240,7 @@ Ranked by mean Qwen answer correctness score for each regular Millennium dataset
       <td>`a46dbdf5`</td>
     </tr>
     <tr>
-      <th>4</th>
+      <th>5</th>
       <td>`kubilay`</td>
       <td>v2.2</td>
       <td>0.68(15)</td>
@@ -239,28 +257,10 @@ Ranked by mean Qwen answer correctness score for each regular Millennium dataset
       <td>`9dd9500d0dcb8588`</td>
       <td>`9eb12349`</td>
     </tr>
-    <tr>
-      <th>5</th>
-      <td>`v2.12`</td>
-      <td>v2.12</td>
-      <td>0.67(15)</td>
-      <td>—</td>
-      <td>0.07(12)</td>
-      <td>0.05(4)</td>
-      <td>—</td>
-      <td>—</td>
-      <td>0.03(13)</td>
-      <td>0.46(13)</td>
-      <td>0.89(8)</td>
-      <td>0.95(15)</td>
-      <td>15/15</td>
-      <td>`71198828c3c0c970`</td>
-      <td>`039abfb9`</td>
-    </tr>
   </tbody>
 </table>
 
-2026-11-13 evaluator coverage for this winner: P@5 12/15, P@10 2/15, SetP 13/15, CtxR 13/15, Faith 8/15 (seven traces failed faithfulness path guards), Rel 15/15.
+2026-11-18 evaluator coverage for this winner: P@5 13/15, P@10 3/15, SetP 13/15, CtxR 13/15, Faith 9/15 (six traces failed faithfulness path guards), Rel 15/15.
 
 ## right-set-3
 
