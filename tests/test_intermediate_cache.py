@@ -80,6 +80,17 @@ class IntermediateCache(TestCase):
         self.assertEqual(self.spans[-1].metadata["cache_status"], "hit")
         self.assertGreaterEqual(self.spans[-1].metadata["cache_saved_seconds"], 0)
 
+    def test_refresh_ignores_existing_entry_and_replaces_it(self):
+        key = {"question": "Who?"}
+        with intermediate_cache.use_cache("refresh", ("embedding",), self.scope):
+            intermediate_cache.cache_value("embedding", "encode", key, input=key, compute=lambda: "old")
+            with patch.object(self.redis, "get", side_effect=AssertionError("refresh must not read cache")):
+                result = intermediate_cache.cache_value("embedding", "encode", key, input=key, compute=lambda: "new")
+        self.assertEqual(result, "new")
+        with intermediate_cache.use_cache("use", ("embedding",), self.scope):
+            self.assertEqual(intermediate_cache.cache_value(
+                "embedding", "encode", key, input=key, compute=lambda: self.fail("expected cached value")), "new")
+
     def test_bypass_computes_without_reading_or_writing(self):
         with intermediate_cache.use_cache("bypass", ("search",), self.scope):
             result = intermediate_cache.cache_value(

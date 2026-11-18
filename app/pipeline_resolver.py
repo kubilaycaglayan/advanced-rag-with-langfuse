@@ -33,6 +33,7 @@ _V22_PROVIDER_ADAPTER_COMPAT_FINGERPRINT = "edfc2ec1fbd340498afc2b139dc14f151a74
 _V23_HIGH_REASONING_ADAPTER_FINGERPRINT = "d117d53070e4cf4ccaeab0db35444bb8a5db4a7ff3750dea91fc15e1786a528f"
 _V25_SCENE_PROBE_FINGERPRINT = "4f3c86b9ec0ebe2f76328df25168cc4900e9ad6ecb8626c67780df12163042a8"
 _V26_PROBE_TRACE_FINGERPRINT = "59696263473e1c7bec631f012986747b8efb222739e51fed2077cbc9f6ace6bb"
+_CONVERSATION_HANDOFF_COMPAT_FINGERPRINT = "dbc2b5623281cdf1583d940fe5e5e889b0638946aa9b3de3e183bad35c83ae94"
 _DRAFT_SCOPED_INSTRUCTION_FINGERPRINT = "bbcfdbf2305d66a3ecbfac03eab187e5805195f095ecbc60e18c6a68c222549e"
 
 
@@ -159,8 +160,13 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
     agent_settings = None
     if block["engine"] == "agent":
         agent_values = {key: value for key, value in block["agent"].items()
-                        if key not in {"tools", "instruction_fingerprint"}}
+                        if key not in {"tools", "instruction_fingerprint", "conversation_handoff_fingerprint"}}
         agent_settings = AgentSettings(**agent_values)
+        if agent_settings.conversation_handoff:
+            expected_handoff = block["agent"].get("conversation_handoff_fingerprint")
+            actual_handoff = hashlib.sha256(Path(__file__).with_name("agent_final_handoff.py").read_bytes()).hexdigest()
+            if expected_handoff != actual_handoff:
+                raise ValueError(f"{version}: conversation handoff differs from its pinned fingerprint")
         if agent_provider is not None:
             if agent_provider not in ("ollama", "openai"):
                 raise ValueError("agent_provider must be ollama or openai")
@@ -235,10 +241,13 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
         # Other corpora select their agent instructions through their own profile and record
         # that profile/source identity separately, so they can reuse the pipeline settings
         # without inheriting Millennium's literal prompt fingerprint.
+        legacy_handoff_compatible = (block["status"] != "draft" and not agent_settings.conversation_handoff
+                                     and not graph_search_enabled
+                                     and actual_instructions == _CONVERSATION_HANDOFF_COMPAT_FINGERPRINT)
         if (selected_id == "millennium" and expected_instructions != actual_instructions
                 and not (legacy_v2 or legacy_v22 or compatible_v23_adapter
                          or compatible_probe_trace or draft_progress_compatible
-                         or draft_scoped_compatible)):
+                         or draft_scoped_compatible or legacy_handoff_compatible)):
             raise ValueError(f"{version}: agent instructions differ from released version; publish a new version")
     try:
         from .indexer import index_identity

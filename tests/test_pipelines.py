@@ -24,7 +24,7 @@ class PipelineVersions(TestCase):
     def test_catalog_and_reference_versions(self):
         catalog = load_catalog()
         self.assertEqual(catalog.default, "v2.15")
-        self.assertEqual(set(catalog.versions), {"v1", "v2", "v2.2", "v2.3", "v2.4", "v2.5", "v2.6", "v2.7", "v2.8", "v2.9", "v2.10", "v2.11", "v2.12", "v2.13", "v2.14", "v2.15"})
+        self.assertEqual(set(catalog.versions), {"v1", "v2", "v2.2", "v2.3", "v2.4", "v2.5", "v2.6", "v2.7", "v2.8", "v2.9", "v2.10", "v2.11", "v2.12", "v2.13", "v2.14", "v2.15", "v2.16"})
         self.assertEqual(set(catalog.releases), {"v1", "v2", "v2.2", "v2.3", "v2.6", "v2.7", "v2.8", "v2.9", "v2.10", "v2.11", "v2.12", "v2.15"})
         self.assertEqual(catalog.versions["v2"]["agent"]["tools"], tool_names())
         self.assertEqual(catalog.versions["v2.7"]["agent"]["instruction_fingerprint"],
@@ -191,7 +191,7 @@ class PipelineVersions(TestCase):
             bundle = load_prompt_bundle(Client(), versions=pins)
         self.assertEqual(set(bundle), set(PROMPT_CATALOG))
 
-    def test_dataset_execution_defaults_to_cache_bypass_and_dispatches_v2_9(self):
+    def test_dataset_execution_refreshes_cache_and_dispatches_v2_9(self):
         item = SimpleNamespace(id="item-1", input={"question": "Who?"}, expected_output={"answer": "A"}, metadata={})
         dataset = SimpleNamespace(id="dataset-1", name="QA.csv", items=[item])
         manifest = {"pipeline_id": "pipeline-v2.9-12345678", "pipeline_version": "v2.9", "pipeline_derived": False}
@@ -227,6 +227,7 @@ class PipelineVersions(TestCase):
                  patch.object(experiments_module, "_verify_trace_upload", return_value=None), \
                  patch.object(experiments_module, "propagate_attributes", return_value=nullcontext()), \
                  patch.object(experiments_module, "use_intermediate_cache", side_effect=record_cache_mode), \
+                 patch.object(experiments_module.answer_cache, "lookup") as lookup, \
                  patch.object(experiments_module, "run_resolved_pipeline", return_value={"answer": "A", "citations": [], "evidence": ""}) as runner:
                 result = experiments_module.execute_execution("execution-v2.9")
             recorded = json.loads((Path(directory) / "millennium" / "executions" / "execution-v2.9" / "manifest.json").read_text())
@@ -234,4 +235,12 @@ class PipelineVersions(TestCase):
         self.assertEqual(result["pipeline_version"], "v2.9")
         self.assertFalse(recorded["pipeline"]["pipeline_derived"])
         self.assertEqual(runner.call_args.args[1].engine, "agent")
-        self.assertEqual(cache_modes[0][0], "bypass")
+        self.assertEqual(cache_modes[0][0], "refresh")
+        lookup.assert_not_called()
+
+def test_only_draft_enables_conversation_handoff():
+    draft = resolve("v2.16")
+    released = resolve("v2.15")
+    assert draft.status == "draft"
+    assert draft.agent_settings.conversation_handoff
+    assert not released.agent_settings.conversation_handoff

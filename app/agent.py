@@ -39,6 +39,7 @@ import requests
 logger = logging.getLogger(__name__)
 
 try:
+    from .agent_final_handoff import conversation_final_messages
     from .entities import _cache_path as entity_cache_path, entity_cards_path
     from .evaluation import is_explicit_abstention
     from .observability import observation, update as update_observation
@@ -50,6 +51,7 @@ try:
     from .resolved_config import ResolvedPipelineConfig
     from .scenes import scene_collection
 except ImportError:  # running from app/ inside the container
+    from agent_final_handoff import conversation_final_messages
     from entities import _cache_path as entity_cache_path, entity_cards_path
     from evaluation import is_explicit_abstention
     from observability import observation, update as update_observation
@@ -131,6 +133,7 @@ class AgentSettings:
     reasoning_effort: str = "none"
     progress_control: bool = False
     premise_early_stop: bool = True
+    conversation_handoff: bool = False
 
     def with_model(self, model: str) -> "AgentSettings":
         return AgentSettings(**{**self.__dict__, "model": model})
@@ -2072,8 +2075,11 @@ def _evidence_digest(state: AgentState, limit: int = 14) -> str:
 
 def _forced_answer(state: AgentState, messages: list[dict[str, Any]]) -> dict[str, Any]:
     prompt = f"{FORCED_ANSWER_PROMPT}\n\nQuestion: {state.question}\n\nPassages found:\n{_evidence_digest(state)}"
-    reply = _tracked_agent_chat(state, [{"role": "system", "content": state.system_prompt},
-                                        {"role": "user", "content": prompt}], None, "forced answer")
+    final_messages = [{"role": "system", "content": state.system_prompt},
+                      {"role": "user", "content": prompt}]
+    if state.settings.conversation_handoff:
+        final_messages = conversation_final_messages(messages, _compact)
+    reply = _tracked_agent_chat(state, final_messages, None, "forced answer")
     message = reply.get("message") or {}
     content = (message.get("content") or "").strip()
     ids = [short.casefold() for short in re.findall(r"\[([0-9a-fA-F]{8})\]", content) if short.casefold() in state.evidence]
