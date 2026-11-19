@@ -2,8 +2,9 @@
 
 **[🌐 Try the pipeline](https://millennium.blaqc.space)**
 
-This is a RAG pipeline developed for novels, and storybooks.
-Optimized for *Millennium* trilogy by Stieg Larsson.
+This is a RAG pipeline developed for novels, and storybooks. <br/>
+Optimized correctness for *Millennium* trilogy by Stieg Larsson. <br/>
+Tested but not optimized with *The Alienist* by Caleb Carr. <br/>
 
 - 🔍 Finds subtle details scattered across thousands of pages.
 - 💭 Answers broad questions like “What special abilities does Salander have?”
@@ -125,3 +126,5 @@ Text: Mikael (person, nickname). first name of Blomkvist; another name for
 
 - Response times have not been optimized.
 - Storage usage has not been optimized.
+- The questions-answer is single turn format.
+- Cost (0.001-0.003 USD/Question) not optimized.
