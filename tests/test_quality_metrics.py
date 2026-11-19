@@ -60,6 +60,17 @@ class QualityMetricChecks(unittest.TestCase):
         self.assertEqual(faithfulness_context([root, generation])[0], "x" * 12001)
         self.assertIsNone(faithfulness_context([root, generation, SimpleNamespace(name="coverage rewrite")])[0])
 
+    def test_budget_answer_uses_recorded_final_handoff_context(self):
+        observations = [
+            SimpleNamespace(name="agent run", output={"stopped": "budget"}),
+            SimpleNamespace(name="query agent model: tool selection and answer", start_time=1,
+                            input=[{"role": "tool", "content": "older context"}]),
+            SimpleNamespace(name="query agent model: forced answer", start_time=2,
+                            input=[{"role": "tool", "content": "final handoff context"}]),
+        ]
+        self.assertEqual(faithfulness_context(observations), ("final handoff context", None))
+        self.assertIsNone(faithfulness_context(observations[:2])[0])
+
     @patch("app.quality_metrics.requests.post")
     def test_judge_expands_context_for_long_inputs_and_rejects_oversize(self, post):
         post.return_value.json.return_value = {"message": {"content": "{}"}}

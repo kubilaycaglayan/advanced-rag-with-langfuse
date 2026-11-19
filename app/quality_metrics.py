@@ -185,11 +185,13 @@ def faithfulness_context(observations: list[Any]) -> tuple[str | None, str | Non
     if len(roots) != 1:
         return None, "Missing or ambiguous agent run"
     result = _loads(roots[0].output)
-    if not isinstance(result, dict) or result.get("stopped") not in ("submit", "content"):
+    if not isinstance(result, dict) or result.get("stopped") not in ("submit", "content", "budget"):
         return None, "Final answer used an unsupported synthesis or stopping path"
     if any(o.name in ("coverage rewrite", "abstention synthesis") for o in observations):
         return None, "Final answer may have been rewritten after the agent response"
-    generations = [o for o in observations if o.name == "query agent model: tool selection and answer"]
+    generation_name = ("query agent model: forced answer" if result["stopped"] == "budget"
+                       else "query agent model: tool selection and answer")
+    generations = [o for o in observations if o.name == generation_name]
     if not generations or any(getattr(o, "start_time", None) is None for o in generations):
         return None, "Missing agent model inputs or their ordering"
     generation = max(generations, key=lambda o: o.start_time)
