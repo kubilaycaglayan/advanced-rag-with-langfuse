@@ -2,7 +2,7 @@
 
 **[🌐 Try the pipeline](https://millennium.blaqc.space)**
 
-This is a RAG pipeline developed for Novels, and storybooks.
+This is a RAG pipeline developed for novels, and storybooks.
 Optimized for *Millennium* trilogy by Stieg Larsson.
 
 - 🔍 Finds subtle details scattered across thousands of pages.

@@ -62,6 +62,24 @@ Ranked by mean Qwen answer correctness score for each regular Millennium dataset
     </tr>
     <tr>
       <th>2</th>
+      <td>`qa-v2.16-luna-high-qm`</td>
+      <td>v2.16</td>
+      <td>0.90(36)</td>
+      <td>—</td>
+      <td>0.29(31)</td>
+      <td>0.15(3)</td>
+      <td>1.00(2)</td>
+      <td>—</td>
+      <td>0.14(33)</td>
+      <td>0.64(30)</td>
+      <td>0.98(24)</td>
+      <td>0.91(36)</td>
+      <td>36/36</td>
+      <td>`4dc5a0a71e072c74`</td>
+      <td>`2a7000ac`</td>
+    </tr>
+    <tr>
+      <th>3</th>
       <td>`v2.1-query-aware-rerank-only`</td>
       <td>v2.1</td>
       <td>0.88(36)</td>
@@ -79,7 +97,7 @@ Ranked by mean Qwen answer correctness score for each regular Millennium dataset
       <td>`1693c551`</td>
     </tr>
     <tr>
-      <th>3</th>
+      <th>4</th>
       <td>`kubilay`</td>
       <td>v2.2</td>
       <td>0.87(36)</td>
@@ -97,7 +115,7 @@ Ranked by mean Qwen answer correctness score for each regular Millennium dataset
       <td>`33c78788`</td>
     </tr>
     <tr>
-      <th>4</th>
+      <th>5</th>
       <td>`2026-10-22-v2.13-luna-high-QA.csv`</td>
       <td>v2.13</td>
       <td>0.87(36)</td>
@@ -114,28 +132,10 @@ Ranked by mean Qwen answer correctness score for each regular Millennium dataset
       <td>`fd52e12721de3536`</td>
       <td>`8dc3ef0b`</td>
     </tr>
-    <tr>
-      <th>5</th>
-      <td>`story-graph-reasoning-v2.14-QA`</td>
-      <td>v2.14</td>
-      <td>0.87(36)</td>
-      <td>—</td>
-      <td>0.22(24)</td>
-      <td>0.16(5)</td>
-      <td>0.50(2)</td>
-      <td>—</td>
-      <td>0.10(33)</td>
-      <td>0.48(30)</td>
-      <td>0.87(17)</td>
-      <td>0.91(36)</td>
-      <td>36/36</td>
-      <td>`9957eaa7b41ed87b`</td>
-      <td>`61b3467c`</td>
-    </tr>
   </tbody>
 </table>
 
-2026-11-13 evaluator coverage for QA.csv rank 2: P@5 30/36, P@10 5/36, H@5 2/36, H@10 1/36, SetP 33/36, CtxR 30/36, Faith 0/36, Rel 36/36. Faithfulness was unavailable because the recorded traces lacked sufficient agent input or used unsupported or rewritten answer paths.
+2026-11-13 evaluator coverage for QA.csv rank 3: P@5 30/36, P@10 5/36, H@5 2/36, H@10 1/36, SetP 33/36, CtxR 30/36, Faith 0/36, Rel 36/36. Faithfulness was unavailable because the recorded traces lacked sufficient agent input or used unsupported or rewritten answer paths.
 
 ## set3
 

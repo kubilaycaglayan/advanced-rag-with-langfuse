@@ -3,63 +3,63 @@
 <desc id="desc">Two examples from pipeline v2.16 with answers, model, latency, and cited passages.</desc>
 <rect width="1200" height="990" rx="24" fill="#141820" />
 <rect x="25" y="25" width="550" height="940" rx="16" fill="#202631" stroke="#394453" />
-<text x="53" y="50" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="#f6efe5">What's in Salander's backpack found by</text>
-<text x="53" y="79" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="#f6efe5">Mikael?</text>
-<text x="53" y="122" font-family="Arial, sans-serif" font-size="13" font-weight="normal" fill="#e5ad83">Pipeline: v2.16 · Model: gpt-6-luna (high reasoning) ·</text>
-<text x="53" y="142" font-family="Arial, sans-serif" font-size="13" font-weight="normal" fill="#e5ad83">Latency: 21.3 s</text>
-<text x="53" y="171" font-family="Arial, sans-serif" font-size="13" font-weight="normal" fill="#c2cbd4">Quality metrics: Retrieval context recall 100% · Generation</text>
-<text x="53" y="190" font-family="Arial, sans-serif" font-size="13" font-weight="normal" fill="#c2cbd4">faithfulness 100% · Generation relevancy 100%</text>
-<text x="53" y="217" font-family="Arial, sans-serif" font-size="15" font-weight="normal" fill="#e2e7eb">Mikael found a wallet with Salander’s ID, about 600 kronor,</text>
-<text x="53" y="238" font-family="Arial, sans-serif" font-size="15" font-weight="normal" fill="#e2e7eb">200 U.S. dollars and a monthly travel card; cigarettes and</text>
-<text x="53" y="259" font-family="Arial, sans-serif" font-size="15" font-weight="normal" fill="#e2e7eb">lighters; throat lozenges, tissues, a toothbrush, toothpaste,</text>
-<text x="53" y="280" font-family="Arial, sans-serif" font-size="15" font-weight="normal" fill="#e2e7eb">tampons and condoms; a bound notebook, five pens, Mace,</text>
-<text x="53" y="301" font-family="Arial, sans-serif" font-size="15" font-weight="normal" fill="#e2e7eb">makeup, an FM radio without batteries, and Saturday’s</text>
-<text x="53" y="322" font-family="Arial, sans-serif" font-size="15" font-weight="normal" fill="#e2e7eb">Aftonbladet [E1]. There was also a hammer and a ring of six</text>
-<text x="53" y="343" font-family="Arial, sans-serif" font-size="15" font-weight="normal" fill="#e2e7eb">keys, including apartment and padlock keys [E2].</text>
+<text x="53" y="50" font-family="Arial, sans-serif" font-size="26.18" font-weight="bold" fill="#f6efe5">What's in Salander's backpack found by</text>
+<text x="53" y="79" font-family="Arial, sans-serif" font-size="26.18" font-weight="bold" fill="#f6efe5">Mikael?</text>
+<text x="53" y="122" font-family="Arial, sans-serif" font-size="15.47" font-weight="normal" fill="#e5ad83">Pipeline: v2.16 · Model: gpt-6-luna (high reasoning) ·</text>
+<text x="53" y="142" font-family="Arial, sans-serif" font-size="15.47" font-weight="normal" fill="#e5ad83">Latency: 21.3 s</text>
+<text x="53" y="171" font-family="Arial, sans-serif" font-size="15.47" font-weight="normal" fill="#c2cbd4">Quality metrics: Retrieval context recall 100% · Generation</text>
+<text x="53" y="190" font-family="Arial, sans-serif" font-size="15.47" font-weight="normal" fill="#c2cbd4">faithfulness 100% · Generation relevancy 100%</text>
+<text x="53" y="217" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">Mikael found a wallet with Salander’s ID, about 600 kronor,</text>
+<text x="53" y="238" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">200 U.S. dollars and a monthly travel card; cigarettes and</text>
+<text x="53" y="259" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">lighters; throat lozenges, tissues, a toothbrush, toothpaste,</text>
+<text x="53" y="280" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">tampons and condoms; a bound notebook, five pens, Mace,</text>
+<text x="53" y="301" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">makeup, an FM radio without batteries, and Saturday’s</text>
+<text x="53" y="322" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">Aftonbladet [E1]. There was also a hammer and a ring of six</text>
+<text x="53" y="343" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">keys, including apartment and padlock keys [E2].</text>
 <line x1="53" x2="547" y1="368" y2="368" stroke="#3e4956" />
-<text x="53" y="390" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#f0b789">CITED PASSAGES · 2</text>
-<text x="53" y="416" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#e5ad83">[E1] The Girl Who Played with Fire · Paragraph 19 ·</text>
-<text x="53" y="436" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#e5ad83">Page 56</text>
-<text x="53" y="460" font-family="Arial, sans-serif" font-size="15" font-weight="normal" fill="#e2e7eb">When he had got home the morning after the attack on</text>
-<text x="53" y="481" font-family="Arial, sans-serif" font-size="15" font-weight="normal" fill="#e2e7eb">Lundagatan, he opened the shoulder bag and spread the contents</text>
-<text x="53" y="502" font-family="Arial, sans-serif" font-size="15" font-weight="normal" fill="#e2e7eb">on the kitchen table. There was a wallet with an ID card,</text>
-<text x="53" y="523" font-family="Arial, sans-serif" font-size="15" font-weight="normal" fill="#e2e7eb">about 600 kronor, 200 American dollars, and a monthly travel</text>
-<text x="53" y="544" font-family="Arial, sans-serif" font-size="15" font-weight="normal" fill="#e2e7eb">card. There was a pack of Marlboro Lights, three Bic lighters,</text>
-<text x="53" y="565" font-family="Arial, sans-serif" font-size="15" font-weight="normal" fill="#e2e7eb">a box of throat lozenges, a packet of tissues, a toothbrush,</text>
-<text x="53" y="586" font-family="Arial, sans-serif" font-size="15" font-weight="normal" fill="#e2e7eb">toothpaste, three tampons in a side pocket, an unopened pack</text>
-<text x="53" y="607" font-family="Arial, sans-serif" font-size="15" font-weight="normal" fill="#e2e7eb">of condoms with a price sticker that showed they were bought</text>
-<text x="53" y="628" font-family="Arial, sans-serif" font-size="15" font-weight="normal" fill="#e2e7eb">at Gatwick Airport in London, a bound notebook with stiff</text>
-<text x="53" y="649" font-family="Arial, sans-serif" font-size="15" font-weight="normal" fill="#e2e7eb">black A4 dividers, five ballpoint pens, a can of Mace, a small</text>
-<text x="53" y="670" font-family="Arial, sans-serif" font-size="15" font-weight="normal" fill="#e2e7eb">bag with makeup, an FM radio with an earphone but no</text>
-<text x="53" y="691" font-family="Arial, sans-serif" font-size="15" font-weight="normal" fill="#e2e7eb">batteries, and Saturday’s Aftonbladet.</text>
-<text x="53" y="728" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#e5ad83">[E2] The Girl Who Played with Fire · Paragraph 22 ·</text>
-<text x="53" y="748" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#e5ad83">Page 56</text>
-<text x="53" y="772" font-family="Arial, sans-serif" font-size="15" font-weight="normal" fill="#e2e7eb">The most intriguing item was a hammer, easily accessible in an</text>
-<text x="53" y="793" font-family="Arial, sans-serif" font-size="15" font-weight="normal" fill="#e2e7eb">outside pocket. However, the attack had come so suddenly that</text>
-<text x="53" y="814" font-family="Arial, sans-serif" font-size="15" font-weight="normal" fill="#e2e7eb">she had not been able to make use of it or the Mace. She had</text>
-<text x="53" y="835" font-family="Arial, sans-serif" font-size="15" font-weight="normal" fill="#e2e7eb">evidently used her keys as brass knuckles—there were still</text>
-<text x="53" y="856" font-family="Arial, sans-serif" font-size="15" font-weight="normal" fill="#e2e7eb">traces of blood and skin on them. Of the six keys on the ring,</text>
-<text x="53" y="877" font-family="Arial, sans-serif" font-size="15" font-weight="normal" fill="#e2e7eb">three of them were typical apartment keys—front door,</text>
-<text x="53" y="898" font-family="Arial, sans-serif" font-size="15" font-weight="normal" fill="#e2e7eb">apartment door, and the key to a padlock. But none of them fit</text>
-<text x="53" y="919" font-family="Arial, sans-serif" font-size="15" font-weight="normal" fill="#e2e7eb">the door of the building on Lundagatan.</text>
+<text x="53" y="390" font-family="Arial, sans-serif" font-size="16.67" font-weight="bold" fill="#f0b789">CITED PASSAGES · 2</text>
+<text x="53" y="416" font-family="Arial, sans-serif" font-size="16.67" font-weight="bold" fill="#e5ad83">[E1] The Girl Who Played with Fire · Paragraph 19 ·</text>
+<text x="53" y="436" font-family="Arial, sans-serif" font-size="16.67" font-weight="bold" fill="#e5ad83">Page 56</text>
+<text x="53" y="460" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">When he had got home the morning after the attack on</text>
+<text x="53" y="481" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">Lundagatan, he opened the shoulder bag and spread the contents</text>
+<text x="53" y="502" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">on the kitchen table. There was a wallet with an ID card,</text>
+<text x="53" y="523" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">about 600 kronor, 200 American dollars, and a monthly travel</text>
+<text x="53" y="544" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">card. There was a pack of Marlboro Lights, three Bic lighters,</text>
+<text x="53" y="565" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">a box of throat lozenges, a packet of tissues, a toothbrush,</text>
+<text x="53" y="586" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">toothpaste, three tampons in a side pocket, an unopened pack</text>
+<text x="53" y="607" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">of condoms with a price sticker that showed they were bought</text>
+<text x="53" y="628" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">at Gatwick Airport in London, a bound notebook with stiff</text>
+<text x="53" y="649" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">black A4 dividers, five ballpoint pens, a can of Mace, a small</text>
+<text x="53" y="670" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">bag with makeup, an FM radio with an earphone but no</text>
+<text x="53" y="691" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">batteries, and Saturday’s Aftonbladet.</text>
+<text x="53" y="728" font-family="Arial, sans-serif" font-size="16.67" font-weight="bold" fill="#e5ad83">[E2] The Girl Who Played with Fire · Paragraph 22 ·</text>
+<text x="53" y="748" font-family="Arial, sans-serif" font-size="16.67" font-weight="bold" fill="#e5ad83">Page 56</text>
+<text x="53" y="772" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">The most intriguing item was a hammer, easily accessible in an</text>
+<text x="53" y="793" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">outside pocket. However, the attack had come so suddenly that</text>
+<text x="53" y="814" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">she had not been able to make use of it or the Mace. She had</text>
+<text x="53" y="835" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">evidently used her keys as brass knuckles—there were still</text>
+<text x="53" y="856" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">traces of blood and skin on them. Of the six keys on the ring,</text>
+<text x="53" y="877" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">three of them were typical apartment keys—front door,</text>
+<text x="53" y="898" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">apartment door, and the key to a padlock. But none of them fit</text>
+<text x="53" y="919" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">the door of the building on Lundagatan.</text>
 <rect x="610" y="25" width="550" height="940" rx="16" fill="#202631" stroke="#394453" />
-<text x="638" y="50" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="#f6efe5">For what crime is Blomkvist tried and</text>
-<text x="638" y="79" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="#f6efe5">convicted?</text>
-<text x="638" y="122" font-family="Arial, sans-serif" font-size="13" font-weight="normal" fill="#e5ad83">Pipeline: v2.16 · Model: qwen3.6:35b · Latency: 28.7 s</text>
-<text x="638" y="151" font-family="Arial, sans-serif" font-size="15" font-weight="normal" fill="#e2e7eb">Blomkvist was tried and convicted of libelling and defaming</text>
-<text x="638" y="172" font-family="Arial, sans-serif" font-size="15" font-weight="normal" fill="#e2e7eb">the financier Hans-Erik Wennerström. The court sentenced him</text>
-<text x="638" y="193" font-family="Arial, sans-serif" font-size="15" font-weight="normal" fill="#e2e7eb">to three months in jail and 150,000 kronor in damages [E1].</text>
+<text x="638" y="50" font-family="Arial, sans-serif" font-size="26.18" font-weight="bold" fill="#f6efe5">For what crime is Blomkvist tried and</text>
+<text x="638" y="79" font-family="Arial, sans-serif" font-size="26.18" font-weight="bold" fill="#f6efe5">convicted?</text>
+<text x="638" y="122" font-family="Arial, sans-serif" font-size="15.47" font-weight="normal" fill="#e5ad83">Pipeline: v2.16 · Model: qwen3.6:35b · Latency: 28.7 s</text>
+<text x="638" y="151" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">Blomkvist was tried and convicted of libelling and defaming</text>
+<text x="638" y="172" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">the financier Hans-Erik Wennerström. The court sentenced him</text>
+<text x="638" y="193" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">to three months in jail and 150,000 kronor in damages [E1].</text>
 <line x1="638" x2="1132" y1="218" y2="218" stroke="#3e4956" />
-<text x="638" y="240" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#f0b789">CITED PASSAGES · 1</text>
-<text x="638" y="266" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#e5ad83">[E1] The Girl with the Dragon Tattoo · CHAPTER 1</text>
-<text x="638" y="286" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#e5ad83">Friday, December 20 · Paragraph 18 · Page 7</text>
-<text x="638" y="310" font-family="Arial, sans-serif" font-size="15" font-weight="normal" fill="#e2e7eb">“Three months in gaol and 150,000 kronor damages. That’s</text>
-<text x="638" y="331" font-family="Arial, sans-serif" font-size="15" font-weight="normal" fill="#e2e7eb">pretty severe,” said She from TV4. “I’ll survive.” “Are you</text>
-<text x="638" y="352" font-family="Arial, sans-serif" font-size="15" font-weight="normal" fill="#e2e7eb">going to apologise to Wennerström? Shake his hand?” “I think</text>
-<text x="638" y="373" font-family="Arial, sans-serif" font-size="15" font-weight="normal" fill="#e2e7eb">not.” “So you still would say that he’s a crook?” Dagens</text>
-<text x="638" y="394" font-family="Arial, sans-serif" font-size="15" font-weight="normal" fill="#e2e7eb">Nyheter. The court had just ruled that Blomkvist had libelled</text>
-<text x="638" y="415" font-family="Arial, sans-serif" font-size="15" font-weight="normal" fill="#e2e7eb">and defamed the financier Hans-Erik Wennerström. The trial was</text>
-<text x="638" y="436" font-family="Arial, sans-serif" font-size="15" font-weight="normal" fill="#e2e7eb">over and he had no plans to appeal. So what would happen if he</text>
-<text x="638" y="457" font-family="Arial, sans-serif" font-size="15" font-weight="normal" fill="#e2e7eb">repeated his claim on the courthouse steps? Blomkvist decided</text>
-<text x="638" y="478" font-family="Arial, sans-serif" font-size="15" font-weight="normal" fill="#e2e7eb">that he did not want to find out.</text>
+<text x="638" y="240" font-family="Arial, sans-serif" font-size="16.67" font-weight="bold" fill="#f0b789">CITED PASSAGES · 1</text>
+<text x="638" y="266" font-family="Arial, sans-serif" font-size="16.67" font-weight="bold" fill="#e5ad83">[E1] The Girl with the Dragon Tattoo · CHAPTER 1</text>
+<text x="638" y="286" font-family="Arial, sans-serif" font-size="16.67" font-weight="bold" fill="#e5ad83">Friday, December 20 · Paragraph 18 · Page 7</text>
+<text x="638" y="310" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">“Three months in gaol and 150,000 kronor damages. That’s</text>
+<text x="638" y="331" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">pretty severe,” said She from TV4. “I’ll survive.” “Are you</text>
+<text x="638" y="352" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">going to apologise to Wennerström? Shake his hand?” “I think</text>
+<text x="638" y="373" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">not.” “So you still would say that he’s a crook?” Dagens</text>
+<text x="638" y="394" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">Nyheter. The court had just ruled that Blomkvist had libelled</text>
+<text x="638" y="415" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">and defamed the financier Hans-Erik Wennerström. The trial was</text>
+<text x="638" y="436" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">over and he had no plans to appeal. So what would happen if he</text>
+<text x="638" y="457" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">repeated his claim on the courthouse steps? Blomkvist decided</text>
+<text x="638" y="478" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">that he did not want to find out.</text>
 </svg>
