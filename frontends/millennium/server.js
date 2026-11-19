@@ -136,7 +136,8 @@ export function createApp({ fetcher = fetch, production = process.env.NODE_ENV =
       const streaming = (req.headers.accept || '').includes('application/x-ndjson')
       const upstream = await fetcher(`${ragUrl}/ask${streaming ? '/stream' : ''}`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question, pipeline: 'v2.12', settings: {},
+        body: JSON.stringify({ question, pipeline: 'v2.16',
+          settings: { agent_provider: 'openai', agent_reasoning_effort: 'high' },
           session_id: ip === 'unknown' ? browserId : ipSession(ip), user_id: browserId,
           source: 'frontend', client_ip: ip === 'unknown' ? null : ip,
           production }),

@@ -1,0 +1,1677 @@
+{
+  "version": 2,
+  "description": "Per-question passage relevance labels for retrieval metrics. Relevance is judged without using the pipeline's answer.",
+  "corpus": "thealienist",
+  "index_collection": "thealienist_books_b579fad4de89e8892f26",
+  "datasets": {
+    "set-1": {
+      "2d9a46bc-2e03-5686-a3cf-5eef4f8d2880": {
+        "question": "How was the Sara's first appearance in the police department?",
+        "claims": {
+          "C1": "Sara takes Moore by the arm near the caged elevator and guides him away from Kreizler and Connor toward the stairs.",
+          "C2": "She wears a simple green dress matching her eyes.",
+          "C3": "She rebuffs Paul Kelly despite the threatening encounter on the staircase.",
+          "C4": "She is a secretary who aspires to become the city’s first female police officer.",
+          "C5": "She ushers Moore into Roosevelt’s office."
+        },
+        "passages": [
+          {
+            "id": "50026a14-d203-2ddc-a772-dfaf1fd0b2cf",
+            "short_id": "50026a14",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/cB5.xhtml",
+            "chapter": "CHAPTER 5",
+            "paragraph_start": 28,
+            "paragraph_end": 29,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "Inside I found Kreizler standing near the caged elevator, talking heatedly with Connor, the detective who had been at the murder scene the previous night. I was about to join them when my arm was taken and I was guided toward a staircase by one of the more pleasant sights available at headquarters: Sara Howard, an old friend of mine.\n“Don’t get involved in that, John,” she said, with a tone of sage wisdom that often marked her statements. “Connor is taking a lashing from your friend, and he deserves the full treatment. Besides, the president wants you upstairs— sans Dr. Kreizler.”",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "f5c9b20e-03a4-f8cf-7d6e-c350dc725509",
+            "short_id": "f5c9b20e",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/cB5.xhtml",
+            "chapter": "CHAPTER 5",
+            "paragraph_start": 30,
+            "paragraph_end": 31,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C2"
+            ],
+            "quote": "“Sara!” I said happily. “I am glad to see you. I’ve spent a night and a morning with maniacs. I need the sound of a sane voice.”\nSara’s taste in dresses ran toward simple designs in shades of green that matched her eyes, and the one she wore that day, with only a minimal bustle and not much petticoat business, showed off her tall, athletic body to advantage. Her face was by no means striking but handsomely plain; it was the play of eyes and mouth, back and forth between mischievous and sad, that made it such a delight to watch her. Back in the early seventies, when I was in my teens, her family moved into a house near ours on Gramercy Park, and I’d subsequently watched her spend her single-digit years turning that decorous neighborhood into her private rumpus room. Time had not changed her much, except to make her as thoughtful (and occasionally brooding) as she was excitable; and following the demise of my engagement to Julia Pratt I had one night gotten more than a little drunk, decided that all women held by society to be beauties were in fact demons, and asked Sara to marry me. Her answer was to take me in a cab to the Hudson River and throw me in.",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "b10fa6f0-2c79-2803-6295-deeaf52d7799",
+            "short_id": "b10fa6f0",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/cB5.xhtml",
+            "chapter": "CHAPTER 5",
+            "paragraph_start": 37,
+            "paragraph_end": 37,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "support",
+            "supports": [
+              "C3"
+            ],
+            "quote": "“Well, now,” Kelly said amiably, the stud in his cravat gleaming as he approached, “it’s Mr. Moore of the Times —along with one of the lovely new ladies of the Police Department.” Taking Sara’s hand, Kelly lowered his chiseled, Black Irish features and kissed it. “It certainly is more enjoyable getting summoned to headquarters these days.” His smile as he stared at Sara was well practiced and confident; none of which changed the fact that the air in the staircase had suddenly become charged with oppressive threat.",
+            "evidence_basis": "context_or_inference_chain"
+          },
+          {
+            "id": "50eacc56-bfa7-964e-1b9e-63675ca6c99f",
+            "short_id": "50eacc56",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/cB5.xhtml",
+            "chapter": "CHAPTER 5",
+            "paragraph_start": 38,
+            "paragraph_end": 39,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C3"
+            ],
+            "quote": "“Mr. Kelly,” Sara answered with a brave nod, though I could see that she was quite nervous. “A pity your charm isn’t matched by the company you choose to keep.”\nKelly laughed, but Ellison, who already towered over Sara and me, rose up even higher, his fleshy face and ferret’s eyes darkening. “It’d be best to watch your mouth, missy—it’s a long walk from headquarters to Gramercy Park. A lot of unpleasant things could happen to a girl all alone.”",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "1738e5f6-8746-ce32-6811-ce863636947d",
+            "short_id": "1738e5f6",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/cB5.xhtml",
+            "chapter": "CHAPTER 5",
+            "paragraph_start": 51,
+            "paragraph_end": 54,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C4"
+            ],
+            "quote": "“In the language he speaks, a rabbit is a tough customer.”\n“Oh. I must remember to write that down. I want my knowledge of the criminal class to be as thorough as possible.”\nI could only laugh. “Sara—with all the professions open to women these days, why do you insist on this one? Smart as you are, you could be a scientist, a doctor, even—”\n“So could you, John,” she answered sharply. “Except that you don’t happen to want to. And, by way of coincidence, neither do I. Honestly, sometimes you are the most idiotic man. You know perfectly well what I want.” And so did every other friend of Sara’s: to be the city’s first female police officer.",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "c37b7f45-c6e1-9968-933e-636e1ab3913c",
+            "short_id": "c37b7f45",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/cB5.xhtml",
+            "chapter": "CHAPTER 5",
+            "paragraph_start": 55,
+            "paragraph_end": 57,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C4"
+            ],
+            "quote": "“But, Sara, are you any closer to your goal? You’re only a secretary, after all.”\nShe smiled wisely, with a hint of that same tense sharpness behind the smile. “Yes, John—but I’m in the building, aren’t I? Ten years ago that would have been impossible.”\nI nodded with a shrug, aware that it was useless to argue with her, and then looked around the second-floor hallway in an attempt to find a familiar face. But the detectives and officers that came from and went to the various rooms were all new to me. “Hell’s bells,” I said quietly, “I don’t recognize anyone up here today.”",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "e9c77948-4b6b-8533-6077-cbc50940c694",
+            "short_id": "e9c77948",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/cB5.xhtml",
+            "chapter": "CHAPTER 5",
+            "paragraph_start": 58,
+            "paragraph_end": 60,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C5"
+            ],
+            "quote": "“Yes, it’s gotten worse. We lost a dozen more last month. They’d all rather resign or retire than face investigation.”\n“But Theodore can’t staff the whole force with googoos.” Such being the colloquial term for new officers.\n“So everyone says. But if the choice is between corruption and inexperience, you know which way he’ll go.” Sara gave me a firm push in the back. “Oh, do stop dawdling, John, he wanted you right away.” We wove through uniformed leatherheads and “fly cops” (officers dressed in civilian clothing) until we were at the end of the hall. “And later,” Sara added, “you must explain to me exactly why it is that cases like this one are not usually investigated.” Then, in a flurry, she rapped on the door of Theodore’s office, opened it, and kept on shoving me till I was through. “Mr. Moore, Commissioner,” she announced, closing the door and leaving me inside.",
+            "evidence_basis": "explicit_source_statement"
+          }
+        ],
+        "evidence_review_status": "user_reviewed",
+        "retrieval_metrics_ready": true,
+        "gold_completeness": "selected_evidence_reviewed_not_exhaustive",
+        "answerability": "evidence_found",
+        "provenance": {
+          "reviewed_at": "2026-11-19T13:23:40.690895+00:00",
+          "dataset_item_id": "2d9a46bc-2e03-5686-a3cf-5eef4f8d2880",
+          "source_row": 2,
+          "source_checksum": "abc02ad36bec52d368c46bddaa4cdf2a4034228279c76ca94c751a91a507ccfe",
+          "source_book": "books/The Alienist.epub",
+          "review_method": "Manually selected indexed passages; passage text verified against its EPUB section. Claims grounded in source text independently of pipeline answers."
+        }
+      },
+      "61875a8f-498b-53e6-9dda-cc999d5bb53d": {
+        "question": "What was the atmosphere of the first murder in the book?",
+        "claims": {
+          "C1": "The first investigation scene presents a mutilated young victim on a bridge walkway at night, creating horror and disorientation for Moore.",
+          "C2": "Flynn treats the victim with contempt, while Roosevelt insists that a murdered child deserves investigation."
+        },
+        "passages": [
+          {
+            "id": "d59e5604-cef9-f510-7cc8-c04b67125ea7",
+            "short_id": "d59e5604",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/c6U.xhtml",
+            "chapter": "CHAPTER 3",
+            "paragraph_start": 1,
+            "paragraph_end": 3,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "CHAPTER 3\nO dd, how long it took my mind to make any sense of the image. Or perhaps not; there was so much so very wrong, so very out of place, so…distorted. How could I have expected myself to grasp it quickly?\nOn the walkway was the body of a young person. I say “person” because, though the physical attributes were those of an adolescent boy, the clothes (little more than a chemise that was missing a sleeve) and facial paint were those of a girl. Or, rather, of a woman, and a woman of dubious repute at that. The unfortunate creature’s wrists were trussed behind the back, and the legs were bent in a kneeling position that pressed the face to the steel of the walkway. There was no sign of any pants or shoes, just one sock hanging pathetically from a foot. But what had been done to the body…",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "65459ccb-a63b-c89b-a0d7-ff0ab3ab9917",
+            "short_id": "65459ccb",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/c6U.xhtml",
+            "chapter": "CHAPTER 3",
+            "paragraph_start": 4,
+            "paragraph_end": 4,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "The face did not seem heavily beaten or bruised—the paint and powder were still intact—but where once there had been eyes there were now only bloody, cavernous sockets. A puzzling piece of flesh protruded from the mouth. A wide gash stretched across the throat, though there was little blood near the opening. Large cuts crisscrossed the abdomen, revealing the mass of the inner organs. The right hand had been chopped neatly off. At the groin there was another gaping wound, one that explained the mouth—the genitals had been cut away and stuffed between the jaws. The buttocks, too, had been shorn off, in what appeared large…one could only call them carving strokes.",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "8854c8bb-1d66-1c92-e557-a59c904064c7",
+            "short_id": "8854c8bb",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/c6U.xhtml",
+            "chapter": "CHAPTER 3",
+            "paragraph_start": 5,
+            "paragraph_end": 6,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "support",
+            "supports": [
+              "C1"
+            ],
+            "quote": "In the minute or two that it took me to note all these details the vista around me faded into a sea of indistinguishable blackness, and what I thought was the churning progress of a ship turned out to be my own blood in my ears. With the sudden realization that I might be sick, I spun to grasp the railing of the walkway and hung my head out over the water.\n“Commissioner!” Connor called, stepping out of the watchtower. But it was Theodore who got to me first, in a quick bound.",
+            "evidence_basis": "context_or_inference_chain"
+          },
+          {
+            "id": "51e1315a-3c34-410e-0ec4-3bf7c50219ec",
+            "short_id": "51e1315a",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/c6U.xhtml",
+            "chapter": "CHAPTER 3",
+            "paragraph_start": 55,
+            "paragraph_end": 55,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "support",
+            "supports": [
+              "C1"
+            ],
+            "quote": "And then he grabbed me around the shoulders in a tight hug, his enthusiasm and moral certainty all back in full force. As for my own sense of certainty, any kind of certainty, I waited in vain for its arrival. All I knew was that I was being drawn into something that involved the two most passionately determined men I’d ever known—and that thought offered me no comfort as we went back downstairs to Kreizler’s carriage, leaving the body of the pitiable Santorelli boy alone on that tower, high in the freezing sky that was still untouched by any trace of dawn.",
+            "evidence_basis": "context_or_inference_chain"
+          },
+          {
+            "id": "d01c9e50-0b38-9d99-6e2d-ffade9a2bbc4",
+            "short_id": "d01c9e50",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/c6U.xhtml",
+            "chapter": "CHAPTER 3",
+            "paragraph_start": 11,
+            "paragraph_end": 13,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C2"
+            ],
+            "quote": "“‘It’?” I said, wiping cold sweat from my forehead with the cuff of my coat. “Why do you call him ‘it’?”\nFlynn’s smile became a grin. “Sure, and what would you call it, Mr. Moore? It warn’t no male, not to judge by its antics—but God didn’t create it female, teither. They’re all its to me, that breed.”\nTheodore’s hands went forcefully to his hips, the fingers curling up into fists—he’d taken the measure of Flynn. “I’m not interested in your philosophical analysis of the situation, Sergeant. Whatever else, the boy was a child and the child has been murdered.”",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "1988a25d-5367-b9fa-4f55-b5124c1863c9",
+            "short_id": "1988a25d",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/c6U.xhtml",
+            "chapter": "CHAPTER 3",
+            "paragraph_start": 25,
+            "paragraph_end": 26,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C2"
+            ],
+            "quote": "“Perhaps you would like to tell me the real reason for your resistance,” Theodore said, those busy fists of his starting to flex behind his back. He walked right up and put his spectacles in Flynn’s face. “Is Mr. Ellison not one of your primary sources of graft?”\nFlynn’s eyes widened, but he managed to draw himself up haughtily and affect wounded pride. “Mr. Roosevelt, I’ve been on the force for fifteen years, sir, and I think I know how this city works. You don’t go harassing a man like Mr. Ellison just because some little piece of immigrant trash finally gets what’s coming to it!”",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "a49130b1-b2f9-5f10-6b89-b4343df4362f",
+            "short_id": "a49130b1",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/c6U.xhtml",
+            "chapter": "CHAPTER 3",
+            "paragraph_start": 36,
+            "paragraph_end": 36,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C2"
+            ],
+            "quote": "“So would I,” Roosevelt answered. “But I, too, would only be guessing. Because we don’t even pay attention to most of them. Oh, the force bends every effort if the victim is respectable and well-to-do. But a boy like this, an immigrant who turned to the flesh trade—I’m ashamed to say it, Moore, but there’s no precedent for looking into such a case, as you could see in Flynn’s attitude.” His hands went to his hips again. “But I’m getting tired of it. In these vile neighborhoods husbands and wives kill each other, drunkards and dope fiends murder decent working people, prostitutes are slaughtered and commit suicide by the score, and at most it’s seen as some sort of grimly amusing spectacle by outsiders. That’s bad enough. But when the victims are children like this, and the general reaction is no different than Flynn’s—by God, I get to feeling warlike with my own people! Why, already this year we’ve had three such cases, and not so much as a whisper from the precincts or the detectives.”",
+            "evidence_basis": "explicit_source_statement"
+          }
+        ],
+        "evidence_review_status": "user_reviewed",
+        "retrieval_metrics_ready": true,
+        "gold_completeness": "selected_evidence_reviewed_not_exhaustive",
+        "answerability": "evidence_found",
+        "provenance": {
+          "reviewed_at": "2026-11-19T13:23:40.690895+00:00",
+          "dataset_item_id": "61875a8f-498b-53e6-9dda-cc999d5bb53d",
+          "source_row": 3,
+          "source_checksum": "abc02ad36bec52d368c46bddaa4cdf2a4034228279c76ca94c751a91a507ccfe",
+          "source_book": "books/The Alienist.epub",
+          "review_method": "Manually selected indexed passages; passage text verified against its EPUB section. Claims grounded in source text independently of pipeline answers."
+        }
+      },
+      "7b95d08d-eb14-5c9a-bd49-5cb14460e39f": {
+        "question": "How John and Laszlo know each other?",
+        "claims": {
+          "C1": "Moore and Kreizler are childhood friends.",
+          "C2": "They also overlap at Harvard, where Kreizler studies psychology with William James and Moore attends James’s course."
+        },
+        "passages": [
+          {
+            "id": "53ded36b-9380-d2d3-01a8-dbf46f644e54",
+            "short_id": "53ded36b",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/cB5.xhtml",
+            "chapter": "CHAPTER 5",
+            "paragraph_start": 73,
+            "paragraph_end": 73,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2"
+            ],
+            "quote": "Meanwhile, another childhood friend of mine, Laszlo Kreizler, having earlier completed an unprecedentedly quick course of study at the Columbia Medical College, had been drawn away from a job as a junior assistant at the Lunatic Asylum on Blackwells Island by a new graduate course in psychology offered at Harvard by Dr. William James. That gregarious, terrier-like professor, who would go on to fame as a philosopher, had recently established America’s first psychological laboratory in a few small rooms in Lawrence Hall. He also taught comparative anatomy to undergraduates; and in the fall 1877 term, having heard that James was an amusing professor who was sympathetic when it came to grades, I signed up for his course. On the first day I found myself sitting next to Theodore, who was pursuing the interest in all things wild that had consumed him since early youth. Although Roosevelt often got into spirited discussions over some minor point of animal behavior with James, he, like all of us, quickly became charmed by the still-young professor, who had a habit of reclining on the floor when his students’ participation was flagging and declaring that teaching was “a mutual process.”",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "7ae4be31-fe44-3f83-de1e-0bb374d0273d",
+            "short_id": "7ae4be31",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/cB5.xhtml",
+            "chapter": "CHAPTER 5",
+            "paragraph_start": 74,
+            "paragraph_end": 74,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C2"
+            ],
+            "quote": "Kreizler’s relationship with James was far more complex. Though he greatly respected James’s work and grew to have enormous affection for the man himself (it really was impossible not to), Laszlo was nonetheless unable to accept James’s famous theories on free will, which were the cornerstone of our teacher’s philosophy. James had been a maudlin, unhealthy boy, and as a young man had more than once contemplated suicide; but he overcame this tendency as a result of reading the works of the French philosopher Renouvier, who taught that a man could, by force of will, overcome all psychic (and many physical) ailments. “My first act of free will shall be to believe in free will!” had been James’s early battle cry, an attitude that continued to dominate his thinking in 1877. Such a philosophy was bound to collide with Kreizler’s developing belief in what he called “context”: the theory that every man’s actions are to a very decisive extent influenced by his early experiences, and that no man’s behavior can be analyzed or affected without knowledge of those experiences.",
+            "evidence_basis": "explicit_source_statement"
+          }
+        ],
+        "evidence_review_status": "user_reviewed",
+        "retrieval_metrics_ready": true,
+        "gold_completeness": "selected_evidence_reviewed_not_exhaustive",
+        "answerability": "evidence_found",
+        "provenance": {
+          "reviewed_at": "2026-11-19T13:23:40.690895+00:00",
+          "dataset_item_id": "7b95d08d-eb14-5c9a-bd49-5cb14460e39f",
+          "source_row": 4,
+          "source_checksum": "abc02ad36bec52d368c46bddaa4cdf2a4034228279c76ca94c751a91a507ccfe",
+          "source_book": "books/The Alienist.epub",
+          "review_method": "Manually selected indexed passages; passage text verified against its EPUB section. Claims grounded in source text independently of pipeline answers."
+        }
+      },
+      "4a4cc6c4-84ee-5d16-a1b4-38474ea9f675": {
+        "question": "What was the famous boxing match about?",
+        "claims": {
+          "C1": "Roosevelt’s insult about gypsy blood offends Kreizler because his mother is Hungarian and provokes a challenge of honor.",
+          "C2": "Roosevelt chooses boxing, and the match takes place in Hemenway Gymnasium despite Kreizler’s impaired arm.",
+          "C3": "Kreizler loses but earns Roosevelt’s admiration for his courage, establishing a lasting bond."
+        },
+        "passages": [
+          {
+            "id": "a6f69b13-0749-65a0-4430-e62935ee0ae7",
+            "short_id": "a6f69b13",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/cB5.xhtml",
+            "chapter": "CHAPTER 5",
+            "paragraph_start": 76,
+            "paragraph_end": 76,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2"
+            ],
+            "quote": "I dined with Kreizler after the debate in a tavern across the Charles that was frequented by Harvardians. In the middle of our meal Theodore entered with some friends and, seeing me with Kreizler, requested an introduction. He made some good-natured but pointed remarks about Laszlo’s “mystical mumbo jumbo concerning the human psyche” and how it was all the result of his European background; but he went too far when he spouted a jibe about “gypsy blood,” for Laszlo’s mother was Hungarian and he took great offense. Kreizler laid down the challenge for an affair of honor, and Theodore delightedly took him up, suggesting a boxing match. I knew Laszlo would have preferred fencing foils—with his bad left arm he stood little chance in a ring—but he agreed, in keeping with the code duello, which gave Theodore, as the challenged party, the choice of weapons.",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "1591810a-fa09-b236-61db-813ff35d4faf",
+            "short_id": "1591810a",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/cB5.xhtml",
+            "chapter": "CHAPTER 5",
+            "paragraph_start": 77,
+            "paragraph_end": 77,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C2",
+              "C3"
+            ],
+            "quote": "To Roosevelt’s credit, when the two men had stripped to their waists in the Hemenway Gymnasium (entered, at that late hour, by way of a set of keys I had won from a custodian in a poker game earlier in the year) and saw Kreizler’s arm, he offered to let him choose some weapon other than fists; but Kreizler was stubborn and proud, and though he was, for the second time in the same evening, predestined for defeat, he put up a far better fight than anyone had expected. His gameness impressed all present and, predictably, won him Roosevelt’s heartfelt admiration. We all returned to the tavern and drank until the late hours; and though Theodore and Laszlo never became the most intimate of friends, a very special bond had been formed between them, one that opened Roosevelt’s mind—if only a crack—to Kreizler’s theories and opinions.",
+            "evidence_basis": "explicit_source_statement"
+          }
+        ],
+        "evidence_review_status": "user_reviewed",
+        "retrieval_metrics_ready": true,
+        "gold_completeness": "selected_evidence_reviewed_not_exhaustive",
+        "answerability": "evidence_found",
+        "provenance": {
+          "reviewed_at": "2026-11-19T13:23:40.690895+00:00",
+          "dataset_item_id": "4a4cc6c4-84ee-5d16-a1b4-38474ea9f675",
+          "source_row": 5,
+          "source_checksum": "abc02ad36bec52d368c46bddaa4cdf2a4034228279c76ca94c751a91a507ccfe",
+          "source_book": "books/The Alienist.epub",
+          "review_method": "Manually selected indexed passages; passage text verified against its EPUB section. Claims grounded in source text independently of pipeline answers."
+        }
+      },
+      "bf6a97dd-c087-5f11-a5bf-6e49e9192ee3": {
+        "question": "How is Laszlo's physical appearance?",
+        "claims": {
+          "C1": "Kreizler wears black suits and coats.",
+          "C2": "He has black hawklike eyes, a neatly trimmed mustache and small beard beneath his lower lip, and long swept-back dark hair.",
+          "C3": "He goes hatless and holds his underdeveloped left arm close to his body."
+        },
+        "passages": [
+          {
+            "id": "fb7fb3a3-13b1-fe34-abc4-b263c4efd396",
+            "short_id": "fb7fb3a3",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/c8T.xhtml",
+            "chapter": "CHAPTER 4",
+            "paragraph_start": 26,
+            "paragraph_end": 26,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2",
+              "C3"
+            ],
+            "quote": "As soon as I was inside the vestibule I heard the usual shouts and howls—some coherent protests, some simply wails of madness and despair—coming from the cells beyond. At the same instant I spotted Kreizler; odd, how strongly the sight of him has always been associated, in my mind, with such sounds. As usual, his suit and coat were black, and as often he was reading the music notices in the Times. His black eyes, so much like a large bird’s, flitted about the paper as he shifted from one foot to the other in sudden, quick movements. He held the Times in his right hand, and his left arm, underdeveloped as the result of a childhood injury, was pulled in close to his body. The left hand occasionally rose to swipe at his neatly trimmed mustache and the small patch of beard under his lower lip. His dark hair, cut far too long to meet the fashion of the day, and swept back on his head, was moist, for he always went hatless; and this, along with the bobbing of his face at the pages before him, only increased the impression of some hungry, restless hawk determined to wring satisfaction from the worrisome world around him.",
+            "evidence_basis": "explicit_source_statement"
+          }
+        ],
+        "evidence_review_status": "user_reviewed",
+        "retrieval_metrics_ready": true,
+        "gold_completeness": "selected_evidence_reviewed_not_exhaustive",
+        "answerability": "evidence_found",
+        "provenance": {
+          "reviewed_at": "2026-11-19T13:23:40.690895+00:00",
+          "dataset_item_id": "bf6a97dd-c087-5f11-a5bf-6e49e9192ee3",
+          "source_row": 6,
+          "source_checksum": "abc02ad36bec52d368c46bddaa4cdf2a4034228279c76ca94c751a91a507ccfe",
+          "source_book": "books/The Alienist.epub",
+          "review_method": "Manually selected indexed passages; passage text verified against its EPUB section. Claims grounded in source text independently of pipeline answers."
+        }
+      },
+      "6752f8a7-d52e-502c-977d-833cea33b4ea": {
+        "question": "How Moore have the Hemenway Gymnasium keys?",
+        "claims": {
+          "C1": "Moore won the gymnasium keys from a custodian in a poker game earlier that year."
+        },
+        "passages": [
+          {
+            "id": "1591810a-fa09-b236-61db-813ff35d4faf",
+            "short_id": "1591810a",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/cB5.xhtml",
+            "chapter": "CHAPTER 5",
+            "paragraph_start": 77,
+            "paragraph_end": 77,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "To Roosevelt’s credit, when the two men had stripped to their waists in the Hemenway Gymnasium (entered, at that late hour, by way of a set of keys I had won from a custodian in a poker game earlier in the year) and saw Kreizler’s arm, he offered to let him choose some weapon other than fists; but Kreizler was stubborn and proud, and though he was, for the second time in the same evening, predestined for defeat, he put up a far better fight than anyone had expected. His gameness impressed all present and, predictably, won him Roosevelt’s heartfelt admiration. We all returned to the tavern and drank until the late hours; and though Theodore and Laszlo never became the most intimate of friends, a very special bond had been formed between them, one that opened Roosevelt’s mind—if only a crack—to Kreizler’s theories and opinions.",
+            "evidence_basis": "explicit_source_statement"
+          }
+        ],
+        "evidence_review_status": "user_reviewed",
+        "retrieval_metrics_ready": true,
+        "gold_completeness": "selected_evidence_reviewed_not_exhaustive",
+        "answerability": "evidence_found",
+        "provenance": {
+          "reviewed_at": "2026-11-19T13:23:40.690895+00:00",
+          "dataset_item_id": "6752f8a7-d52e-502c-977d-833cea33b4ea",
+          "source_row": 7,
+          "source_checksum": "abc02ad36bec52d368c46bddaa4cdf2a4034228279c76ca94c751a91a507ccfe",
+          "source_book": "books/The Alienist.epub",
+          "review_method": "Manually selected indexed passages; passage text verified against its EPUB section. Claims grounded in source text independently of pipeline answers."
+        }
+      },
+      "da2df1d0-e929-527e-932e-f1e610207524": {
+        "question": "List the murders in the book",
+        "claims": {
+          "C1": "Benjamin and Sofia Zweig were murdered and their bodies found in a water tower three years before the investigation.",
+          "C2": "Millie and Aaron Morton were murdered before Giorgio Santorelli; their bodies were found at an Ellis Island ferry and the Brooklyn Bridge respectively.",
+          "C3": "Giorgio Santorelli, also called Gloria, is the murdered boy at the opening bridge scene.",
+          "C4": "Ali ibn-Ghazi is another victim, whose mutilations repeat the killer’s signature.",
+          "C5": "Ernst Lohmann is killed during the investigation.",
+          "C6": "Joseph is also murdered during the investigation.",
+          "C7": "Other killings discussed include the Dury parents and the mutilation of a dead Chicago striker by Beecham.",
+          "C8": "Other deaths include the girl at Shang Draper’s brothel, Louisa Rudesheimer, and Mary Palmer."
+        },
+        "passages": [
+          {
+            "id": "c3898a62-5fc8-fcb8-e8cf-6cc93daa5a08",
+            "short_id": "c3898a62",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/cHK.xhtml",
+            "chapter": "CHAPTER 7",
+            "paragraph_start": 58,
+            "paragraph_end": 60,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "The Isaacson brothers’ faces displayed nothing but fascination as they approached the tables and listened to Laszlo: “Brother and sister, Benjamin and Sofia Zweig. Murdered. Their bodies found—”\n“In a water tower,” Marcus said. “Three years ago. The case is still officially open.”\nThis, too, pleased Kreizler. “Over here,” he continued, indicating a small white table in the corner that was piled with clippings and documents, “you’ll find all the information concerning the case that I’ve been able to assemble. I should like the two of you to review it, and study the bodies. There is some urgency about the matter, so I can only offer you the afternoon and evening. I will be at Delmonico’s at eleven-thirty tonight. Meet me there, and in exchange for your information I shall be happy to offer you an excellent dinner.”",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "880100fc-7efd-3ea3-f77e-35d3aa715762",
+            "short_id": "880100fc",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/cDV.xhtml",
+            "chapter": "CHAPTER 6",
+            "paragraph_start": 43,
+            "paragraph_end": 43,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C2"
+            ],
+            "quote": "The records were sent for. From them we discovered that the bodies of the other two boys, both of whom had indeed been prostitutes, had also been found within what the coroners guessed were hours of their deaths. As Roosevelt had told me the night before, there was somewhat less mutilation involved than in the Santorelli murder; that seemed, however, a difference of quantity rather than quality, for the similarities among the cases far outweighed any slight differences. The first boy, a twelve-year-old African immigrant with no known name other than “Millie,” had been chained to the stern of an Ellis Island ferry; and the second, a ten-year-old named Aaron Morton, had been found suspended by his feet from the Brooklyn Bridge. Both were nearly naked, according to the reports; both had their throats cut, along with various other bodily lacerations; and, again, both were missing their eyes. As Laszlo finished reading the accounts, he mumbled that last fact to himself several times, lost in cogitation.",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "d59e5604-cef9-f510-7cc8-c04b67125ea7",
+            "short_id": "d59e5604",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/c6U.xhtml",
+            "chapter": "CHAPTER 3",
+            "paragraph_start": 1,
+            "paragraph_end": 3,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C3"
+            ],
+            "quote": "CHAPTER 3\nO dd, how long it took my mind to make any sense of the image. Or perhaps not; there was so much so very wrong, so very out of place, so…distorted. How could I have expected myself to grasp it quickly?\nOn the walkway was the body of a young person. I say “person” because, though the physical attributes were those of an adolescent boy, the clothes (little more than a chemise that was missing a sleeve) and facial paint were those of a girl. Or, rather, of a woman, and a woman of dubious repute at that. The unfortunate creature’s wrists were trussed behind the back, and the legs were bent in a kneeling position that pressed the face to the steel of the walkway. There was no sign of any pants or shoes, just one sock hanging pathetically from a foot. But what had been done to the body…",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "6c3719b9-0e3a-fd0c-079f-1ba3795e7e89",
+            "short_id": "6c3719b9",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/c6U.xhtml",
+            "chapter": "CHAPTER 3",
+            "paragraph_start": 9,
+            "paragraph_end": 10,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C3"
+            ],
+            "quote": "“Then you do know the child, Flynn?” Theodore said, leaning me against the wall of the watchtower. Steadiness was returning to my head.\n“That I do, Commissioner.” Flynn seemed in the dim light to be smiling. “Though it was no child, this one, not if childhood be judged by behavior. Family name Santorelli. Must’ve been, oh, thirteen years old, or thereabouts. Giorgio, it was called originally, and since it began working out of Paresis Hall, it called itself Gloria.”",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "767aedc1-fa73-8985-ba91-7564b1897f53",
+            "short_id": "767aedc1",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/c133.xhtml",
+            "chapter": "CHAPTER 14",
+            "paragraph_start": 34,
+            "paragraph_end": 34,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C4"
+            ],
+            "quote": "The body was that of an olive-skinned boy, with delicate Semitic features and thick black hair on the right side of his head. On the left side, a large section of scalp had been torn away, revealing the slick surface of the skull. Other than that, the mutilations seemed to be identical to those that had marked Giorgio Santorelli (except that the injuries to the buttocks had not been repeated): the eyes were missing, the genitals had been cut off and stuffed in the mouth, the torso was crisscrossed by deep lacerations, the wrists were bound, and the right hand had been severed and apparently removed from the scene. As Kreizler had said, there seemed little doubt about who was responsible. It was all as distinctive as a signature. That same terrible sense of pathos that I’d felt on the Williamsburg Bridge anchor—prompted not only by the age of the victim but as well by the cruel way in which the body was trussed and pushed to the ground—returned to steal my breath and rattle what seemed every bone in my body.",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "3e6fbde0-bb29-9f51-71ff-c14c477d5c78",
+            "short_id": "3e6fbde0",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/c1XP.xhtml",
+            "chapter": "CHAPTER 26",
+            "paragraph_start": 34,
+            "paragraph_end": 36,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C5"
+            ],
+            "quote": "Kreizler sighed in great disappointment. “Balding, eh?” he said, as he scratched the word on the chalkboard. “Well, I suppose it’s more than we knew yesterday.”\n“It doesn’t seem much,” Lucius said. “Measured against a boy’s life.”\nA few minutes later Sara finally telephoned again. The body of Ernst Lohmann was on its way to the morgue at Bellevue. The guard who’d found it, naturally, had witnessed no part of the killing, but had heard a sound just before he spotted the dead boy that could have been a steam launch drawing away from the island. Roosevelt had told Sara that he needed some time to get rid of the police officers that were with him; he thought that if we were to meet him at Bellevue at six-thirty he could make sure that we would be allowed to examine the body without interference. That left just over an hour; I decided to go home, bathe, and change my clothes before joining the others at the morgue.",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "48cb61e0-1ac0-432b-e75e-aaa1695103f7",
+            "short_id": "48cb61e0",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/c392.xhtml",
+            "chapter": "CHAPTER 42",
+            "paragraph_start": 3,
+            "paragraph_end": 3,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C6"
+            ],
+            "quote": "My warnings. As Joseph’s little body was wheeled out of one of the morgue’s autopsy rooms, it occurred to me for what must have been the thousandth time that it was meeting me that had brought the boy to such an unhappy end. I had tried to prepare him for every possible danger—but how could I have foreseen that the greatest of those dangers would be to speak to me in the first place? And now here I was at the morgue, telling the coroner that I’d arranged for a funeral and that everything was to be taken care of properly, as if it mattered whether the boy’s body was buried in a nice patch of Brooklyn ground or thrown into the tidal currents of the East River and pulled out to sea. Vanity, arrogance, irresponsibility—all through the night my mind had been pulled back to what Kreizler had said after Mary Palmer’s murder: that in our dash to defeat evil, we had only given it a wider field in which to run its own wretched course.",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "03319502-505e-2308-9485-c0b6754cbf66",
+            "short_id": "03319502",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/c2B4.xhtml",
+            "chapter": "CHAPTER 32",
+            "paragraph_start": 12,
+            "paragraph_end": 13,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C7"
+            ],
+            "quote": "I reached over and grabbed the Interior Department document that told of the murdered minister and his wife. Those crimes had been committed in 1880, and the victims were listed as having a teenaged son who’d been kidnapped by Indians. A second and older son, Adam Dury, was apparently at his home just outside Newton, Massachusetts, at the time of the murders.\nI grabbed another sheet of the hospital file and scanned the notes penned by John Beecham’s admitting alienist, in an effort to find the specific cause of the corporal’s confinement. Despite the sloppiness of the doctor’s handwriting, I soon had it:",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "950a8dc9-44c0-93e9-116d-9711e0773319",
+            "short_id": "950a8dc9",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/c2XS.xhtml",
+            "chapter": "CHAPTER 38",
+            "paragraph_start": 6,
+            "paragraph_end": 6,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C7"
+            ],
+            "quote": "When he returned to his unit, at the beginning of 1886, Beecham seemed much improved. He was once again the obedient, efficient soldier Miller had first known. This image proved an illusion, however; and it was shattered during the violence that followed the Haymarket Riots in the Chicago area during the first week of May. Sara and I already knew that Beecham had been sent to St. Elizabeth’s Hospital after Miller had found him “stabbing” (as the doctors put it) the corpse of a dead striker during the May 5th melee in the northern suburbs; we now learned from the Isaacsons that this “stabbing” had borne a chilling resemblance to the mutilations of both Japheth Dury’s parents and the dead children in New York. Revolted and horrified at finding the blood-drenched Beecham standing over a carved-up corpse whose eyes had been gouged out with an enormous knife, Miller had not hesitated to relieve the corporal of duty. Though the lieutenant had seen men driven to acts of blood lust in the West, such behavior was uniformly predicated upon years of savagely violent encounters with the Indian tribes. Beecham, on the other hand, had no such history, and no such rationalization for his actions.",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "35fdcc2d-966f-cfc8-073a-2fb53a02fded",
+            "short_id": "35fdcc2d",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/c6U.xhtml",
+            "chapter": "CHAPTER 3",
+            "paragraph_start": 37,
+            "paragraph_end": 38,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C8"
+            ],
+            "quote": "“Three?” I asked. “I only know about the girl at Draper’s.” Shang Draper ran a notorious brothel at Sixth Avenue and Twenty-fourth Street, where customers could purchase the favors of children (mostly girls, but the occasional boy as well) between the ages of nine and fourteen. In January a ten-year-old girl had been found beaten to death in one of the brothel’s small paneled rooms.\n“Yes, and you only know of that one because Draper had been slow with his graft payments,” Roosevelt said. The bitter battle against corruption waged by the current mayor, Colonel William L. Strong, and lieutenants such as Roosevelt had been courageous, but they had not succeeded in eradicating the oldest and most lucrative of police activities: the collection of graft from the operators of saloons, concert halls, disorderly houses, opium dens, and every other palace of vice. “Someone in the Sixteenth Precinct, I still don’t know who, made the most of that story to the press as a method of turning the screws. But the other two victims were boys like this, found in the streets and therefore useless in trying to pressure their panderers. So the stories went untold…”",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "205249f3-5b6c-299a-876f-19e7643efcd1",
+            "short_id": "205249f3",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/c8T.xhtml",
+            "chapter": "CHAPTER 4",
+            "paragraph_start": 51,
+            "paragraph_end": 51,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C8"
+            ],
+            "quote": "For the next hour I sat through Kreizler’s examination of this vague, disoriented man, who held as firmly as the chloral hydrate would allow to the notion that if he had truly erased most of young Louisa Rudesheimer’s head with his pistol—and we assured him that he had—then he must be insane, and should of course be sent to an asylum (or at most to the facility for insane convicts at Mattewan) rather than to prison or the gallows. Kreizler took careful note of this attitude but for the moment did not discuss the case itself. Instead he ran through a long list of seemingly unconnected questions about Wolff’s past, his family, friends, and childhood. The questions were deeply personal and in any normal setting would have seemed presumptuous and even offensive; and the fact that Wolff’s reactions to Kreizler’s inquiries were less violent than most men’s was almost certainly due to his being drugged. But the absence of anger also indicated a lack of precision and forthrightness in the responses, and the interview seemed destined for a premature end.",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "8849949f-337e-69f9-a9a7-31f0c22712d9",
+            "short_id": "8849949f",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/c2PH.xhtml",
+            "chapter": "CHAPTER 36",
+            "paragraph_start": 26,
+            "paragraph_end": 27,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C8"
+            ],
+            "quote": "Though afraid to ask, I did: “And Mary?”\nSara’s arms went up in resignation. “She must’ve heard Stevie screaming. I can’t imagine what else would have made her act so—rashly. She got hold of a knife, and managed to get out of the kitchen. I don’t know what she thought she was going to do, but…The knife ended up in Connor’s side. Mary ended up at the bottom of the stairs. Her neck was…” Sara’s voice trailed off.",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "c032151b-b790-9bed-7a7f-c72b69c169e9",
+            "short_id": "c032151b",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/c2PH.xhtml",
+            "chapter": "CHAPTER 36",
+            "paragraph_start": 28,
+            "paragraph_end": 29,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C8"
+            ],
+            "quote": "“Broken,” I finished for her, in a horrified whisper. “She was dead?”\nSara nodded, and then cleared her throat to speak again. “Stevie got to the telephone, and called Dr. Osborne. I came by when I got back from New Paltz last night, and everything was—well, taken care of. Stevie did manage to say that it was an accident. That Connor didn’t mean to do it. But when Mary stabbed him he spun around and…”",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "29cd8e9f-e86e-4d67-624d-309728eb03a2",
+            "short_id": "29cd8e9f",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/c1D8.xhtml",
+            "chapter": "CHAPTER 19",
+            "paragraph_start": 5,
+            "paragraph_end": 5,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C4"
+            ],
+            "quote": "Spurred on by that sinister irritant, our team assumed and maintained a quickened pace over the next week or so. Murder sites and disorderly houses were visited and revisited by the Isaacsons, who spent hours trying to discover new clues and days trying to coax new information out of anyone who might have seen or heard anything of importance. But they generally ran up against the same wall of interference that had silenced Ali ibn-Ghazi’s father. Marcus, for example, was anxious to put the watchman from Castle Garden to a much more severe test than he’d been able to do on the night of Ali’s death—but when he returned to the old fort he was told that the watchman had quit his job and departed from the city, leaving no indication as to his destination. It was safe to assume, we all agreed, that wherever the man had disappeared to, he had taken with him one of the impressive wads of money that the two unidentified priests were dispensing around town.",
+            "evidence_basis": "explicit_source_statement"
+          }
+        ],
+        "evidence_review_status": "user_reviewed",
+        "retrieval_metrics_ready": true,
+        "gold_completeness": "selected_evidence_reviewed_not_exhaustive",
+        "answerability": "evidence_found",
+        "provenance": {
+          "reviewed_at": "2026-11-19T13:23:40.690895+00:00",
+          "dataset_item_id": "da2df1d0-e929-527e-932e-f1e610207524",
+          "source_row": 8,
+          "source_checksum": "abc02ad36bec52d368c46bddaa4cdf2a4034228279c76ca94c751a91a507ccfe",
+          "source_book": "books/The Alienist.epub",
+          "review_method": "Manually selected indexed passages; passage text verified against its EPUB section. Claims grounded in source text independently of pipeline answers."
+        },
+        "notes": "Broad question: selected murders discussed in the novel, not an exhaustive inventory. The Chicago record describes mutilation of an already dead striker; it does not establish that Beecham killed him."
+      },
+      "13d2133f-78f1-5ed6-87aa-ed6c495265bc": {
+        "question": "What made the investigative team think that there could be a serial killer?",
+        "claims": {
+          "C1": "The missing eyes link Santorelli to earlier victims, and knife marks show deliberate removal rather than scavenging.",
+          "C2": "Matching knife marks are subsequently confirmed on the Zweig children and the two other early victims.",
+          "C3": "Kreizler rejects the imitator explanation and believes the same man committed the murders.",
+          "C4": "Later mutilations are recognizable as the same killer’s distinctive signature."
+        },
+        "passages": [
+          {
+            "id": "77f7c86a-07d1-ef38-0730-95379deb1607",
+            "short_id": "77f7c86a",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/cDV.xhtml",
+            "chapter": "CHAPTER 6",
+            "paragraph_start": 28,
+            "paragraph_end": 29,
+            "part_start": 2,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "The girl’s was somewhat more intact for having stayed dry, but any clues that might have been gathered from it were destroyed by another incompetent coroner. I never saw anything more than the official reports, but I did note one curious detail from those.” He pointed with his left hand to his face. “The eyes were gone.”\nA quiver went through me as I remembered not only the Santorelli boy but the two other murders that Roosevelt had told me of the night before. Glancing at Roosevelt, I saw that he had made the same connection: while his body was quite still, his eyes were wide with apprehension. But we both tried to battle the feeling off, Roosevelt declaring, “That’s not uncommon. Particularly if the bodies were exposed for a long period of time. And if the throats were cut, there would have been plenty of blood to attract scavengers.”",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "cd3423d2-6103-cb43-1133-423084195878",
+            "short_id": "cd3423d2",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/cDV.xhtml",
+            "chapter": "CHAPTER 6",
+            "paragraph_start": 34,
+            "paragraph_end": 34,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "“True, John,” Kreizler said. “And in the absence of any further details, I was forced to accept that explanation. Why even New York City rats, on discovering a pair of bodies, should so carefully gnaw out only the eyes was a disturbing mystery that I tried to ignore and which remained unaddressed. Until last night.” Kreizler took to pacing the floor again. “As soon as I saw the condition of the Santorelli boy, I made an examination of the ocular orbits of the skull. Working by torchlight was hardly ideal, but I found what I was looking for. On the malar bone as well as the supraorbital ridge were a series of narrow grooves, and on the greater wing of the sphenoid—at the base of the cavities—several small indentations. All consistent with the cutting edge and point of a knife, of the type most frequently used by hunters, I’d say. My guess would be that if we exhumed the bodies of the two 1893 victims—and I intend to request such action—we would find the same thing. In other words, gentlemen, the eyes were removed by the hand of man.”",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "880100fc-7efd-3ea3-f77e-35d3aa715762",
+            "short_id": "880100fc",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/cDV.xhtml",
+            "chapter": "CHAPTER 6",
+            "paragraph_start": 43,
+            "paragraph_end": 43,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "The records were sent for. From them we discovered that the bodies of the other two boys, both of whom had indeed been prostitutes, had also been found within what the coroners guessed were hours of their deaths. As Roosevelt had told me the night before, there was somewhat less mutilation involved than in the Santorelli murder; that seemed, however, a difference of quantity rather than quality, for the similarities among the cases far outweighed any slight differences. The first boy, a twelve-year-old African immigrant with no known name other than “Millie,” had been chained to the stern of an Ellis Island ferry; and the second, a ten-year-old named Aaron Morton, had been found suspended by his feet from the Brooklyn Bridge. Both were nearly naked, according to the reports; both had their throats cut, along with various other bodily lacerations; and, again, both were missing their eyes. As Laszlo finished reading the accounts, he mumbled that last fact to himself several times, lost in cogitation.",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "8978c496-69bb-678a-5d75-05246fd00014",
+            "short_id": "8978c496",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/cT2.xhtml",
+            "chapter": "CHAPTER 10",
+            "paragraph_start": 30,
+            "paragraph_end": 31,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C2"
+            ],
+            "quote": "Kreizler, Sara, and I all stopped in mid-chew and looked at each other. “Knife marks?” Kreizler said quietly. “There was no mention of knife marks in any of the reports.”\n“Yes, I know!” Lucius said jovially. The conversation, though gruesome, seemed to be relaxing him; the wine didn’t hurt, either. “It really was strange. But there they were—some very narrow grooves on the malar bone and supraorbital ridge, along with some additional cuts on the sphenoid.”",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "6fc41e3e-ad4c-75c5-ca6c-97670738a966",
+            "short_id": "6fc41e3e",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/cT2.xhtml",
+            "chapter": "CHAPTER 10",
+            "paragraph_start": 32,
+            "paragraph_end": 33,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C2"
+            ],
+            "quote": "They were virtually the same words Kreizler had used to Theodore and me in describing Giorgio Santorelli’s body.\n“At first glance,” Lucius continued, “one might’ve been led to believe that the various cuts were unconnected, indications of separate jabs of a blade. But they seemed to me to bear a relation to each other, so I tried an experiment. There’s a fairly good cutlery store in the neighborhood of your Institute, Doctor, which also sells hunting knives. I went there and bought the kind of blade I thought was probably used, in three different lengths—nine-inch, ten-inch, and eleven.” He fumbled in the inside pocket of his jacket. “The largest proved the best fit.”",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "e97d2514-672c-0500-941a-60a07e5ef0fb",
+            "short_id": "e97d2514",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/c11F.xhtml",
+            "chapter": "CHAPTER 13",
+            "paragraph_start": 6,
+            "paragraph_end": 6,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C2"
+            ],
+            "quote": "As for Lucius’s examination itself, the results were just what we’d hoped for: both bodies bore the same knife marks that had been found on Giorgio Santorelli and the Zweig children. With that confirmation, Marcus Isaacson took two more pins with red flags and stuck them into the large map of Manhattan, one at the Brooklyn Bridge, and one at the Ellis Island ferry station. Kreizler posted the dates of those killings—January 1st and February 2nd—on the right-hand side of the large chalkboard, along with March 3rd, the day Giorgio had died. Somewhere in those months and days, we all knew, was one of the many patterns we needed to identify. (That pattern would ultimately prove far more complex, Kreizler believed from the start, than the apparent similarity of the number of the month and the number of the day.)",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "27e8851b-a175-dfc8-6bcf-56f586ba37c6",
+            "short_id": "27e8851b",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/cDV.xhtml",
+            "chapter": "CHAPTER 6",
+            "paragraph_start": 48,
+            "paragraph_end": 49,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C3"
+            ],
+            "quote": "“All right,” I said, throwing up my hands. “So someone murdered those two children three years ago, and now we’ve got a mimicking lunatic who also likes to mutilate dead bodies on our hands. What are we supposed to do about it?”\n“Almost nothing in what you have just said, John,” Kreizler replied evenly, “is accurate. I am not at all certain he is a lunatic. Nor am I inclined to believe that he likes what he does, in the sense that you understand or intend that statement. But most importantly—and I’m afraid that here I must disappoint you, too, Roosevelt—I am as sure as I can be that this is not an imitator but the same man. ”",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "767aedc1-fa73-8985-ba91-7564b1897f53",
+            "short_id": "767aedc1",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/c133.xhtml",
+            "chapter": "CHAPTER 14",
+            "paragraph_start": 34,
+            "paragraph_end": 34,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C4"
+            ],
+            "quote": "The body was that of an olive-skinned boy, with delicate Semitic features and thick black hair on the right side of his head. On the left side, a large section of scalp had been torn away, revealing the slick surface of the skull. Other than that, the mutilations seemed to be identical to those that had marked Giorgio Santorelli (except that the injuries to the buttocks had not been repeated): the eyes were missing, the genitals had been cut off and stuffed in the mouth, the torso was crisscrossed by deep lacerations, the wrists were bound, and the right hand had been severed and apparently removed from the scene. As Kreizler had said, there seemed little doubt about who was responsible. It was all as distinctive as a signature. That same terrible sense of pathos that I’d felt on the Williamsburg Bridge anchor—prompted not only by the age of the victim but as well by the cruel way in which the body was trussed and pushed to the ground—returned to steal my breath and rattle what seemed every bone in my body.",
+            "evidence_basis": "explicit_source_statement"
+          }
+        ],
+        "evidence_review_status": "user_reviewed",
+        "retrieval_metrics_ready": true,
+        "gold_completeness": "selected_evidence_reviewed_not_exhaustive",
+        "answerability": "evidence_found",
+        "provenance": {
+          "reviewed_at": "2026-11-19T13:23:40.690895+00:00",
+          "dataset_item_id": "13d2133f-78f1-5ed6-87aa-ed6c495265bc",
+          "source_row": 9,
+          "source_checksum": "abc02ad36bec52d368c46bddaa4cdf2a4034228279c76ca94c751a91a507ccfe",
+          "source_book": "books/The Alienist.epub",
+          "review_method": "Manually selected indexed passages; passage text verified against its EPUB section. Claims grounded in source text independently of pipeline answers."
+        }
+      },
+      "994407c7-1757-5093-92f1-a92874e9cae1": {
+        "question": "Who is Doctor Laszlo?",
+        "claims": {
+          "C1": "Dr. Laszlo Kreizler is a physician and alienist.",
+          "C2": "He founded the Kreizler Institute for Children as a school and research center.",
+          "C3": "His theory of context emphasizes formative early experiences in explaining adult behavior.",
+          "C4": "He proposes an auxiliary investigation outside the regular detectives’ work."
+        },
+        "passages": [
+          {
+            "id": "2e74fcb5-9771-2d70-e23e-004ee893293b",
+            "short_id": "2e74fcb5",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/c4T.xhtml",
+            "chapter": "CHAPTER 2",
+            "paragraph_start": 13,
+            "paragraph_end": 16,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "“Mr. Moore!” The young man pleaded again, adding a few healthy kicks to his knocks. “I must talk to Mr. John Schuyler Moore!”\nI stood on the black and white marble floor of the vestibule. “Who’s there?” I said, one hand on the lock of the door.\n“It’s me, sir! Stevie, sir!”\nI breathed a slight sigh of relief and unlocked the heavy wooden portal. Outside, standing in the dim light of an overhead gas lamp—the only one in the house that my grandmother had refused to have replaced with an electric bulb—was Stevie Taggert, “the Stevepipe,” as he was known. In his first eleven years Stevie had risen to become the bane of fifteen police precincts; but he’d then been reformed by, and was now a driver and general errand boy for, the eminent physician and alienist, my good friend Dr. Laszlo Kreizler. Stevie leaned against one of the white columns outside the door and tried to catch his breath—something had clearly terrified the lad.",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "01534fbe-4e6d-b3e3-de2f-ceaea1b10deb",
+            "short_id": "01534fbe",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/c4T.xhtml",
+            "chapter": "CHAPTER 2",
+            "paragraph_start": 23,
+            "paragraph_end": 24,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C2"
+            ],
+            "quote": "“Stevie,” I called out over the din of the carriage wheels hitting the worn edges of the granite Russ slabs, “where is Dr. Kreizler? Is he all right?”\n“At the Institute!” Stevie answered, his blue eyes wide. Laszlo’s work was based in the Kreizler Institute for Children, a combination of school and research center that he had founded during the eighties. I was about to ask what he was doing there at such an hour but swallowed the query when we charged headlong through the still-busy intersection of Broadway and Houston Street. Here, it was once sagely remarked, you could fire a shotgun in any direction without hitting an honest man; Stevie contented himself with sending drunkards, faro dealers, morphine and cocaine addicts, prostitutes, their sailor marks, and simple vagrants flying for the safety of the sidewalk. From that sanctuary most of them called curses after us.",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "7ae4be31-fe44-3f83-de1e-0bb374d0273d",
+            "short_id": "7ae4be31",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/cB5.xhtml",
+            "chapter": "CHAPTER 5",
+            "paragraph_start": 74,
+            "paragraph_end": 74,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C3"
+            ],
+            "quote": "Kreizler’s relationship with James was far more complex. Though he greatly respected James’s work and grew to have enormous affection for the man himself (it really was impossible not to), Laszlo was nonetheless unable to accept James’s famous theories on free will, which were the cornerstone of our teacher’s philosophy. James had been a maudlin, unhealthy boy, and as a young man had more than once contemplated suicide; but he overcame this tendency as a result of reading the works of the French philosopher Renouvier, who taught that a man could, by force of will, overcome all psychic (and many physical) ailments. “My first act of free will shall be to believe in free will!” had been James’s early battle cry, an attitude that continued to dominate his thinking in 1877. Such a philosophy was bound to collide with Kreizler’s developing belief in what he called “context”: the theory that every man’s actions are to a very decisive extent influenced by his early experiences, and that no man’s behavior can be analyzed or affected without knowledge of those experiences.",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "00959065-763c-4345-dc9e-8d35c9b9c7ae",
+            "short_id": "00959065",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/c11F.xhtml",
+            "chapter": "CHAPTER 13",
+            "paragraph_start": 10,
+            "paragraph_end": 10,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C3"
+            ],
+            "quote": "From that moment on, he said, we must make every possible effort to rid ourselves of preconceptions about human behavior. We must try not to see the world through our own eyes, nor to judge it by our own values, but through and by those of our killer. His experience, the context of his life, was all that mattered. Any aspect of his behavior that puzzled us, from the most trivial to the most horrendous, we must try to explain by postulating childhood events that could lead to such eventualities. This process of cause and effect—what we would soon learn was called “psychological determinism”—might not always seem entirely logical to us, but it would be consistent.",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "2307ce0d-65b8-e44f-28f2-b96df1d12c6a",
+            "short_id": "2307ce0d",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/cDV.xhtml",
+            "chapter": "CHAPTER 6",
+            "paragraph_start": 82,
+            "paragraph_end": 82,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C4"
+            ],
+            "quote": "“I’m afraid that salary is not what I had in mind. Neither is an advisory capacity. Good lord, Roosevelt, the detectives on your force were not even able to divine the clue regarding the removal of the eyes—three murders in three months and the most vital aspect is attributed to rats! Who can say what other blunders they’ve committed. As for connecting this to the cases of three years ago, assuming such a connection exists, I suspect we’d all die old men in our beds before they’d achieve it, whether they were ‘advised’ or not. No, it won’t do to work with them. What I have in mind is an— auxiliary effort.”",
+            "evidence_basis": "explicit_source_statement"
+          }
+        ],
+        "evidence_review_status": "user_reviewed",
+        "retrieval_metrics_ready": true,
+        "gold_completeness": "selected_evidence_reviewed_not_exhaustive",
+        "answerability": "evidence_found",
+        "provenance": {
+          "reviewed_at": "2026-11-19T13:23:40.690895+00:00",
+          "dataset_item_id": "994407c7-1757-5093-92f1-a92874e9cae1",
+          "source_row": 10,
+          "source_checksum": "abc02ad36bec52d368c46bddaa4cdf2a4034228279c76ca94c751a91a507ccfe",
+          "source_book": "books/The Alienist.epub",
+          "review_method": "Manually selected indexed passages; passage text verified against its EPUB section. Claims grounded in source text independently of pipeline answers."
+        }
+      },
+      "26734d08-3de8-5158-8c5b-18deb61f7de8": {
+        "question": "Who is John Moore?",
+        "claims": {
+          "C1": "John Schuyler Moore is a police reporter for The New York Times.",
+          "C2": "He is Kreizler’s childhood friend and a Harvard contemporary of Roosevelt.",
+          "C3": "He comes from Knickerbocker society and is familiar with less respectable city districts.",
+          "C4": "He lives with his grandmother after his engagement ends."
+        },
+        "passages": [
+          {
+            "id": "2a8f0180-1754-0d8e-563c-4bba7f7b425e",
+            "short_id": "2a8f0180",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/c2FF.xhtml",
+            "chapter": "CHAPTER 34",
+            "paragraph_start": 7,
+            "paragraph_end": 7,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "I moved directly—and, if I may say so, gracefully—into the bit of subterfuge that Laszlo and I had worked out on the Boston train. “This is Dr. Laszlo Kreizler,” I said, “and my name is John Schuyler Moore. I’m a reporter for The New York Times. ” I found my billfold and revealed some professional identification. “A police reporter, actually. My editors have assigned me to investigate some of the more—well, to come to the point, some of the more outstanding unsolved cases of recent decades.”",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "46ef6919-f75d-dfe9-0bff-1938dcd7dc22",
+            "short_id": "46ef6919",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/c4T.xhtml",
+            "chapter": "CHAPTER 2",
+            "paragraph_start": 5,
+            "paragraph_end": 5,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C3",
+              "C4"
+            ],
+            "quote": "I then heard footsteps heading toward my room and decided I’d better get ready. Since the demise of my engagement to Miss Julia Pratt of Washington some two years earlier, I’d been staying with my grandmother, and during that time the old girl had become steadily more skeptical about the ways in which I spent my off-hours. I had repeatedly explained that, as a police reporter for The New York Times, I was required to visit many of the city’s seamier districts and houses and consort with some less than savory characters; but she remembered my youth too well to accept that admittedly strained story. My home-coming deportment on the average evening generally reinforced her suspicion that it was state of mind, not professional obligation, that drew me to the dance halls and gaming tables of the Tenderloin every night; and I realized, having caught the gambling remark just made to Harriet, that it was now crucial to project the image of a sober man with serious concerns. I shot into a black Chinese robe, forced my short hair down on my head, and opened the door loftily just as Harriet reached it.",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "53ded36b-9380-d2d3-01a8-dbf46f644e54",
+            "short_id": "53ded36b",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/cB5.xhtml",
+            "chapter": "CHAPTER 5",
+            "paragraph_start": 73,
+            "paragraph_end": 73,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C2"
+            ],
+            "quote": "Meanwhile, another childhood friend of mine, Laszlo Kreizler, having earlier completed an unprecedentedly quick course of study at the Columbia Medical College, had been drawn away from a job as a junior assistant at the Lunatic Asylum on Blackwells Island by a new graduate course in psychology offered at Harvard by Dr. William James. That gregarious, terrier-like professor, who would go on to fame as a philosopher, had recently established America’s first psychological laboratory in a few small rooms in Lawrence Hall. He also taught comparative anatomy to undergraduates; and in the fall 1877 term, having heard that James was an amusing professor who was sympathetic when it came to grades, I signed up for his course. On the first day I found myself sitting next to Theodore, who was pursuing the interest in all things wild that had consumed him since early youth. Although Roosevelt often got into spirited discussions over some minor point of animal behavior with James, he, like all of us, quickly became charmed by the still-young professor, who had a habit of reclining on the floor when his students’ participation was flagging and declaring that teaching was “a mutual process.”",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "5d9393f2-f723-6ecc-e053-b1400ad1e263",
+            "short_id": "5d9393f2",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/cB5.xhtml",
+            "chapter": "CHAPTER 5",
+            "paragraph_start": 71,
+            "paragraph_end": 71,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C3"
+            ],
+            "quote": "Though I’d known Theodore for many years before his arrival at Harvard as a freshman in 1876, I’d never been very close to him. In addition to being sickly, he’d been a studious and generally well-behaved boy, whereas both I and my younger brother had spent our youths ensuring that anarchy reigned as much as possible on the streets of our Gramercy Park neighborhood. “Ringleaders” was a label my brother and I were usually given by our parents’ friends, and there was much talk about the remarkable misfortune of one family being afflicted with two black sheep. In reality there was nothing very evil or malicious in what we did; it was more that we chose to do it in the company of a small band of boys whose homes were the back alleys and doorways of the Gas House district to the east of us. Such were not considered acceptable playmates in our staid little corner of Knickerbocker society, where class counted for much and no adult was prepared to tolerate children with minds of their own.",
+            "evidence_basis": "explicit_source_statement"
+          }
+        ],
+        "evidence_review_status": "user_reviewed",
+        "retrieval_metrics_ready": true,
+        "gold_completeness": "selected_evidence_reviewed_not_exhaustive",
+        "answerability": "evidence_found",
+        "provenance": {
+          "reviewed_at": "2026-11-19T13:23:40.690895+00:00",
+          "dataset_item_id": "26734d08-3de8-5158-8c5b-18deb61f7de8",
+          "source_row": 11,
+          "source_checksum": "abc02ad36bec52d368c46bddaa4cdf2a4034228279c76ca94c751a91a507ccfe",
+          "source_book": "books/The Alienist.epub",
+          "review_method": "Manually selected indexed passages; passage text verified against its EPUB section. Claims grounded in source text independently of pipeline answers."
+        }
+      },
+      "a58da51b-d066-5eb7-8c68-4b8badb4a52b": {
+        "question": "Who saved John?",
+        "claims": {
+          "C1": "Stevie Taggert intervenes when Moore is attacked at Paresis Hall, carrying a board studded with nails.",
+          "C2": "Jack McManus intervenes at the reservoir, subdues the threat, and returns the guns to Moore.",
+          "C3": "Sara Howard shoots Connor at the reservoir and Moore expresses relief at her arrival.",
+          "C4": "Roosevelt supports Moore when he becomes ill at the opening murder scene."
+        },
+        "passages": [
+          {
+            "id": "3d7b6155-979a-8d48-d6c1-60feee677f49",
+            "short_id": "3d7b6155",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/cWC.xhtml",
+            "chapter": "CHAPTER 11",
+            "paragraph_start": 76,
+            "paragraph_end": 78,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "“I told you not to talk to anybody, Moore,” Ellison said. And then to the youths: “Well, girls—he’s a pretty one to look at, ain’t he? Who wants to have some fun with the reporter?”\nTwo of the young painted men leapt onto the bed and began to tug at my clothes. I was able to get halfway up and onto my elbows before Riley raced over and laid a shot on my jaw. Going back down, I recall hearing the singer downstairs launch into “You Made Me What I Am Today—I Hope You’re Satisfied”; then the two youths were fighting over my billfold and tearing at my pants as Riley began to bind my hands.\nUnconsciousness was coming fast—but just before it arrived, I thought I caught a glimpse of Stevie Taggert jumping into the room like a wild wolf cub, brandishing a long piece of wood studded with rusty nails…",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "8d630839-2193-48ea-5f37-6d6f82ec0c89",
+            "short_id": "8d630839",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/c3EH.xhtml",
+            "chapter": "CHAPTER 44",
+            "paragraph_start": 71,
+            "paragraph_end": 71,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C2"
+            ],
+            "quote": "It was Eat-’Em-Up Jack McManus, former prizefighter and current enforcer of decorum at Paul Kelly’s New Brighton Dance Hall. Tucking his piece of pipe into his pants, McManus picked up both the Colt and the Webley and then stepped toward me. I braced myself, reasonably calculating that Laszlo and I would be the next victims of his pugilistic artistry; instead, McManus straightened his shabby jacket, spat hard into the waters of the reservoir, and handed me the guns. I trained the Colt on Beecham as Jack slowly walked up to Kreizler, raised a hand, and touched the brim of his cap respectfully.",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "525f33a2-3737-1e22-028f-bc4696a53112",
+            "short_id": "525f33a2",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/c3HE.xhtml",
+            "chapter": "CHAPTER 45",
+            "paragraph_start": 28,
+            "paragraph_end": 28,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "support",
+            "supports": [
+              "C3"
+            ],
+            "quote": "I complied, slowly and carefully; but just as the Colt touched the pathway another gunshot cut through the air—this one from farther off—and then Connor jerked forward as if he’d been struck hard in the back. He fell on his face with a small grunt, revealing a hole in his jacket out of which blood began to pump immediately. The powder smoke from the shot Connor had fired at Beecham had not even cleared when a new figure stepped forward on the dark promenade and became visible in the moonlight.",
+            "evidence_basis": "context_or_inference_chain"
+          },
+          {
+            "id": "d0395b7b-115e-a2d5-6eaa-3c04f93e604b",
+            "short_id": "d0395b7b",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/c3HE.xhtml",
+            "chapter": "CHAPTER 45",
+            "paragraph_start": 29,
+            "paragraph_end": 31,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C3"
+            ],
+            "quote": "It was Sara, pearl-gripped revolver in hand. She stared down at Connor for an instant without betraying any emotion, then looked up at Kreizler and me.\n“I thought of this place just after we’d gotten into position at High Bridge Tower,” she said tightly, as the Isaacsons appeared in the darkness behind her. “When Theodore said you’d left the opera, I knew…”\nI let out an enormous breath. “And thank God you did,” I said, wiping my brow with my hand and then picking up the Colt.",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "5a48436b-4804-567b-5d78-9b1dbbab34f5",
+            "short_id": "5a48436b",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/c3HE.xhtml",
+            "chapter": "CHAPTER 45",
+            "paragraph_start": 74,
+            "paragraph_end": 77,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C3"
+            ],
+            "quote": "“Stevie?” Roosevelt echoed incredulously. “Kreizler’s boy?”\nI looked at him with deep earnestness. “Roosevelt, Stevie was the only witness to Connor’s murder of Mary Palmer.”\nTheodore’s face opened up with comprehension, his eyes going wide behind the spectacles. “Ah!” he noised, now pointing his finger upward. “Of course!” The brow wrinkled again. “But what happened?”\n“Fortunately, Commissioner,” Sara said, having correctly perceived that my powers of invention were weakening, “the detective sergeants and I arrived in time.” She indicated the body with more confidence and certainty than I knew she felt. “That’s a bullet of mine you’ll find in Connor’s back.”",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "8854c8bb-1d66-1c92-e557-a59c904064c7",
+            "short_id": "8854c8bb",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/c6U.xhtml",
+            "chapter": "CHAPTER 3",
+            "paragraph_start": 5,
+            "paragraph_end": 6,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "support",
+            "supports": [
+              "C4"
+            ],
+            "quote": "In the minute or two that it took me to note all these details the vista around me faded into a sea of indistinguishable blackness, and what I thought was the churning progress of a ship turned out to be my own blood in my ears. With the sudden realization that I might be sick, I spun to grasp the railing of the walkway and hung my head out over the water.\n“Commissioner!” Connor called, stepping out of the watchtower. But it was Theodore who got to me first, in a quick bound.",
+            "evidence_basis": "context_or_inference_chain"
+          },
+          {
+            "id": "826a2e5a-c89f-85ce-57a9-f7df4dbd86c7",
+            "short_id": "826a2e5a",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/c6U.xhtml",
+            "chapter": "CHAPTER 3",
+            "paragraph_start": 7,
+            "paragraph_end": 8,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C4"
+            ],
+            "quote": "“Easy, now, John,” I heard him say, as he supported me with that wiry yet remarkably strong boxer’s frame of his. “Breathe deeply.”\nAs I followed his instructions I heard a long, trailing whistle from Flynn, who continued to stare at the body. “Well, now,” he said, addressing the corpse without sounding particularly concerned. “Somebody has done for you, young Giorgio-called-Gloria, haven’t they? You’re a hell of a mess.”",
+            "evidence_basis": "explicit_source_statement"
+          }
+        ],
+        "evidence_review_status": "user_reviewed",
+        "retrieval_metrics_ready": true,
+        "gold_completeness": "selected_evidence_reviewed_not_exhaustive",
+        "answerability": "evidence_found",
+        "provenance": {
+          "reviewed_at": "2026-11-19T13:23:40.690895+00:00",
+          "dataset_item_id": "a58da51b-d066-5eb7-8c68-4b8badb4a52b",
+          "source_row": 12,
+          "source_checksum": "abc02ad36bec52d368c46bddaa4cdf2a4034228279c76ca94c751a91a507ccfe",
+          "source_book": "books/The Alienist.epub",
+          "review_method": "Manually selected indexed passages; passage text verified against its EPUB section. Claims grounded in source text independently of pipeline answers."
+        },
+        "notes": "The question does not specify a rescue scene; evidence covers multiple incidents rather than assuming a single rescuer."
+      },
+      "90abd137-d1d0-5b76-8e2c-462b7ea19f74": {
+        "question": "How Laszlo's arm was defected?",
+        "claims": {
+          "C1": "A police report describes six-year-old Kreizler’s badly shattered left arm after a domestic disturbance involving his drunken father’s arrest for assault.",
+          "C2": "The report contradicts the childhood story that Kreizler had fallen."
+        },
+        "passages": [
+          {
+            "id": "37fa2946-99f2-d1a3-e0c6-93a3c81a7667",
+            "short_id": "37fa2946",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/c1TP.xhtml",
+            "chapter": "CHAPTER 24",
+            "paragraph_start": 47,
+            "paragraph_end": 47,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "The document was a report filed by one Roundsman O’Bannion, who, on a September night in 1862—when Laszlo was a boy of only six—had investigated a domestic disturbance at the Kreizler home. The yellowing report contained just a few details: it spoke of Laszlo’s father, apparently drunk, spending the night in the precinct house under a charge of assault (the charge was later dropped), and then of a local surgeon being brought to the Kreizler home to treat a young boy whose left arm had been badly shattered.",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "58269ea6-fec9-4543-939f-33e17c968e21",
+            "short_id": "58269ea6",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/c1TP.xhtml",
+            "chapter": "CHAPTER 24",
+            "paragraph_start": 48,
+            "paragraph_end": 50,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "support",
+            "supports": [
+              "C2"
+            ],
+            "quote": "Conclusions weren’t hard to draw; given my lifelong acquaintance with Laszlo, however, as well as the image I’d always had of his family, my mind resisted them. “But,” I said, refolding the document absentmindedly, “but we were told that he fell…”\nSara let out a deep breath. “Apparently not.”\nDuring a long pause I looked around at the park, somewhat stunned. Familiar conceptions die hard, and their passage can be damned disorienting; for a few moments the trees and buildings of Madison Square looked strangely different. Then an image of Laszlo as a boy suddenly flashed through my head, followed by another of his big, outwardly gregarious father and his vivacious mother. As I saw these faces and forms I simultaneously remembered the comment that Jesse Pomeroy had made during our visit to Sing Sing about chopping off people’s arms; and from there my mind leapt to a seemingly meaningless remark that Laszlo himself had made on the train ride home:",
+            "evidence_basis": "context_or_inference_chain"
+          }
+        ],
+        "evidence_review_status": "user_reviewed",
+        "retrieval_metrics_ready": true,
+        "gold_completeness": "selected_evidence_reviewed_not_exhaustive",
+        "answerability": "evidence_found",
+        "provenance": {
+          "reviewed_at": "2026-11-19T13:23:40.690895+00:00",
+          "dataset_item_id": "90abd137-d1d0-5b76-8e2c-462b7ea19f74",
+          "source_row": 13,
+          "source_checksum": "abc02ad36bec52d368c46bddaa4cdf2a4034228279c76ca94c751a91a507ccfe",
+          "source_book": "books/The Alienist.epub",
+          "review_method": "Manually selected indexed passages; passage text verified against its EPUB section. Claims grounded in source text independently of pipeline answers."
+        }
+      },
+      "30f0775d-66b8-569c-b87b-30a4ed0649cb": {
+        "question": "What was the first ever clue that took the investigative team to the murderer?",
+        "claims": {
+          "C1": "The early forensic link between the murders is the deliberate removal of the eyes with a knife.",
+          "C2": "A later lead connects the mutilation pattern to a distorted imitation of frontier practices and directs the investigation toward western experience.",
+          "C3": "Washington research produces Beecham’s hospital file, while the Dury murders supply a connected line of inquiry."
+        },
+        "passages": [
+          {
+            "id": "cd3423d2-6103-cb43-1133-423084195878",
+            "short_id": "cd3423d2",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/cDV.xhtml",
+            "chapter": "CHAPTER 6",
+            "paragraph_start": 34,
+            "paragraph_end": 34,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "“True, John,” Kreizler said. “And in the absence of any further details, I was forced to accept that explanation. Why even New York City rats, on discovering a pair of bodies, should so carefully gnaw out only the eyes was a disturbing mystery that I tried to ignore and which remained unaddressed. Until last night.” Kreizler took to pacing the floor again. “As soon as I saw the condition of the Santorelli boy, I made an examination of the ocular orbits of the skull. Working by torchlight was hardly ideal, but I found what I was looking for. On the malar bone as well as the supraorbital ridge were a series of narrow grooves, and on the greater wing of the sphenoid—at the base of the cavities—several small indentations. All consistent with the cutting edge and point of a knife, of the type most frequently used by hunters, I’d say. My guess would be that if we exhumed the bodies of the two 1893 victims—and I intend to request such action—we would find the same thing. In other words, gentlemen, the eyes were removed by the hand of man.”",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "ee8bde5d-1c74-3b24-6290-e0d9216f19d6",
+            "short_id": "ee8bde5d",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/cDV.xhtml",
+            "chapter": "CHAPTER 6",
+            "paragraph_start": 45,
+            "paragraph_end": 47,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C1"
+            ],
+            "quote": "Kreizler, however, just sat tapping a forefinger against his pursed lips, with a look that clearly stated that the whole affair was far more complicated than even he had guessed.\nI searched for some way to reach a different conclusion. “What about the rest of it?” I asked. “The…the missing organs, and the cut-away flesh of the…well, the rest of it. There was none of that in the earlier cases.”\n“No,” Kreizler answered slowly. “But I believe there is an explanation for that difference, not that it need concern us now. The eyes are the link, the key, the way in—I would stake everything on that…” His voice faded again.",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "702cafbe-24d3-ff7d-866f-ff271002f982",
+            "short_id": "702cafbe",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/c21E.xhtml",
+            "chapter": "CHAPTER 28",
+            "paragraph_start": 57,
+            "paragraph_end": 57,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C2"
+            ],
+            "quote": "“Yes, I can see why you’ve come to us,” he said. Still carrying the war bonnet, he looked around for a place to lay it, but saw only construction rubble. “I’m sorry, gentlemen, but—” He slipped the bonnet back on his head. “I really must keep this clean until the display is ready. So—the mutilations you’re describing, or at least some of them, do bear a resemblance to acts that have been committed on the bodies of dead enemies by various tribes on the Great Plains—most notably the Dakota, or Sioux. There are important differences, however.”",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "5d16ffc4-a34d-e73c-a53f-b4fd580ad2b7",
+            "short_id": "5d16ffc4",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/c21E.xhtml",
+            "chapter": "CHAPTER 28",
+            "paragraph_start": 75,
+            "paragraph_end": 76,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C2"
+            ],
+            "quote": "“Let me ask you this, Dr. Wissler,” Kreizler said, having glanced over his notes. “Would the behavior we’ve described to you be consistent with someone who had witnessed Indian mutilations but was too ignorant of their cultural meaning to interpret them as anything more than savagery? And who, in imitating them, might think that more savagery will make his actions look more like an Indian’s?”\nWissler weighed the idea and nodded, knocking burnt tobacco from his pipe. “Yes. Yes, that’d be about how I’d see it, Dr. Kreizler.”",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "ddfb9ccf-e21c-73e5-7e35-02fb5bd9c822",
+            "short_id": "ddfb9ccf",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/c21E.xhtml",
+            "chapter": "CHAPTER 28",
+            "paragraph_start": 78,
+            "paragraph_end": 81,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C2"
+            ],
+            "quote": "By the time I caught up to Kreizler on the street, he’d already flagged down a hansom and gotten into it. Thinking there was a good chance he’d leave me behind if I didn’t hurry, I dashed to the curb and leapt in, closing the doors on our legs.\n“Number 808 Broadway, driver!” Laszlo shouted, and then he began to wave his fist. “Do you see, Moore? Do you see? He’s been out there, our man, he’s witnessed it! He defines such behavior as horrible and dirty—‘dirty as a Red Indian’—yet he also considers himself full of filth. He combats those feelings with anger and violence—but when he kills, he only sinks further down, down to a level he despises even more, down to the lowest, most animal behavior he can imagine—modeled on that of Indians, but, in his mind, even more Indian than an Indian.”\n“He’s been on the frontier, then,” was what it all meant to me.\n“He must have been,” Laszlo answered. “Either as a child or as a soldier—hopefully we can clear that up through our Washington inquiries. I tell you, John, we may have blundered last night, but today we’re closer!”",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "24faeff2-abfb-a3c9-8fe0-af071f51d1fa",
+            "short_id": "24faeff2",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/c29B.xhtml",
+            "chapter": "CHAPTER 31",
+            "paragraph_start": 39,
+            "paragraph_end": 39,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "support",
+            "supports": [
+              "C3"
+            ],
+            "quote": "The rest of the day offered only two cases that held out any hope of advancing our investigation. The first involved a group of children and their teacher who’d been slaughtered during their studies in an isolated schoolhouse; and the second, yet another prairie family who’d been massacred after a treaty violation. Realizing that the two accounts were meager reward for a long day’s work, I set my sights on the Willard Hotel, hoping that Kreizler had had better luck during his second day of research. But Laszlo had discovered only a few additional names of soldiers who’d served in the Army of the West during the fifteen-year span we were investigating, then been institutionalized in the capital because of violent, unstable behavior, and finally suffered from some sort of facial disfigurement. Of these few, only one fell within the general age range that we were looking for (about thirty). As we sat down to dinner in the hotel dining room Kreizler handed me the case file on this man, and I offered him the document that told the tale of the Dury murders.",
+            "evidence_basis": "context_or_inference_chain"
+          },
+          {
+            "id": "03319502-505e-2308-9485-c0b6754cbf66",
+            "short_id": "03319502",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/c2B4.xhtml",
+            "chapter": "CHAPTER 32",
+            "paragraph_start": 12,
+            "paragraph_end": 13,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C3"
+            ],
+            "quote": "I reached over and grabbed the Interior Department document that told of the murdered minister and his wife. Those crimes had been committed in 1880, and the victims were listed as having a teenaged son who’d been kidnapped by Indians. A second and older son, Adam Dury, was apparently at his home just outside Newton, Massachusetts, at the time of the murders.\nI grabbed another sheet of the hospital file and scanned the notes penned by John Beecham’s admitting alienist, in an effort to find the specific cause of the corporal’s confinement. Despite the sloppiness of the doctor’s handwriting, I soon had it:",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "00a0bc2d-d79f-23f8-c2cc-b20fb178fb40",
+            "short_id": "00a0bc2d",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/c2B4.xhtml",
+            "chapter": "CHAPTER 32",
+            "paragraph_start": 14,
+            "paragraph_end": 14,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C3"
+            ],
+            "quote": "“Patient was part of force requested by governor of Illinois to quell disturbances arising from strikes in Chicago area beginning May 1st (Haymarket riots, etc.). During May 5th action against strikers North Chicago, soldiers ordered to open fire; patient subsequently found stabbing corpse of one dead striker. Lieutenant M—discovered patient in flagrante; patient claims M—always ‘had it in for him,’ etc., and was constantly ‘watching’ him; M—ordered patient relieved of duty, regimental surgeon pronounced him unfit for service.”",
+            "evidence_basis": "explicit_source_statement"
+          },
+          {
+            "id": "4ea65c9b-d0f6-c233-a265-0305781e8a8f",
+            "short_id": "4ea65c9b",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/c29B.xhtml",
+            "chapter": "CHAPTER 31",
+            "paragraph_start": 48,
+            "paragraph_end": 50,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "support",
+            "supports": [
+              "C3"
+            ],
+            "quote": "His hands moving quickly, Kreizler snatched some more folded papers from his inside pocket. Quickly flattening them on the table, he then thrust the pile across to me. “Notice anything?”\nIt took one or two seconds, but I did. At the top of the first sheet of paper, which was yet another form from St. Elizabeth’s Hospital, there was a space marked PLACE OF BIRTH.\nIn that space had been scribbled the words “New Paltz, New York.”",
+            "evidence_basis": "context_or_inference_chain"
+          }
+        ],
+        "evidence_review_status": "user_reviewed",
+        "retrieval_metrics_ready": true,
+        "gold_completeness": "selected_evidence_reviewed_not_exhaustive",
+        "answerability": "evidence_found",
+        "provenance": {
+          "reviewed_at": "2026-11-19T13:23:40.690895+00:00",
+          "dataset_item_id": "30f0775d-66b8-569c-b87b-30a4ed0649cb",
+          "source_row": 14,
+          "source_checksum": "abc02ad36bec52d368c46bddaa4cdf2a4034228279c76ca94c751a91a507ccfe",
+          "source_book": "books/The Alienist.epub",
+          "review_method": "Manually selected indexed passages; passage text verified against its EPUB section. Claims grounded in source text independently of pipeline answers."
+        },
+        "notes": "The phrase first ever clue is ambiguous. Evidence distinguishes the early forensic link from later leads toward identifying the murderer; no unique first clue is asserted."
+      },
+      "88e3874f-0af5-5234-9c17-9a35345c45c7": {
+        "question": "What was the Captain Miller's telegraph saying?",
+        "claims": {
+          "C1": "The wire reports that Captain Miller at Fort Yates confirms Corporal John Beecham had a facial spasm.",
+          "C2": "It reports that Beecham carried a similar knife and climbed mountains when off duty, then asks for advice."
+        },
+        "passages": [
+          {
+            "id": "c772b40f-6ac0-16fb-badb-f2c73936b789",
+            "short_id": "c772b40f",
+            "book": "The Alienist",
+            "book_file": "The Alienist.epub",
+            "section": "OEBPS/c2SV.xhtml",
+            "chapter": "CHAPTER 37",
+            "paragraph_start": 3,
+            "paragraph_end": 6,
+            "part_start": 1,
+            "part_end": 1,
+            "page": null,
+            "relevance": "direct",
+            "supports": [
+              "C1",
+              "C2"
+            ],
+            "quote": "CAPTAIN MILLER, FORT YATES, CONFIRMS CPL JOHN BEECHAM HAD FACIAL SPASM. CARRIED SIMILAR KNIFE. KNOWN TO CLIMB MOUNTAINS WHEN OFF DUTY. ADVISE.\nAs I finished reading the wire for a third time, I became aware that the delivery boy was saying something, and I looked up blankly. “What’s that?”\n“Reply, sir,” the boy said impatiently. “Do you want to send a reply?”\n“Oh.” I thought about it for a moment, trying to decide what the best course would be in light of the morning’s developments. “Oh…yes.”",
+            "evidence_basis": "explicit_source_statement"
+          }
+        ],
+        "evidence_review_status": "user_reviewed",
+        "retrieval_metrics_ready": true,
+        "gold_completeness": "selected_evidence_reviewed_not_exhaustive",
+        "answerability": "evidence_found",
+        "provenance": {
+          "reviewed_at": "2026-11-19T13:23:40.690895+00:00",
+          "dataset_item_id": "88e3874f-0af5-5234-9c17-9a35345c45c7",
+          "source_row": 15,
+          "source_checksum": "abc02ad36bec52d368c46bddaa4cdf2a4034228279c76ca94c751a91a507ccfe",
+          "source_book": "books/The Alienist.epub",
+          "review_method": "Manually selected indexed passages; passage text verified against its EPUB section. Claims grounded in source text independently of pipeline answers."
+        }
+      }
+    }
+  },
+  "review_history": [
+    {
+      "version": 1,
+      "created_at": "2026-11-19T13:23:40.690895+00:00",
+      "added_items": 14,
+      "note": "Initial source-checked provisional labels. Selected evidence is not exhaustive; retrieval metrics readiness remains false pending completeness review."
+    },
+    {
+      "version": 2,
+      "created_at": "2026-11-19T13:32:19.821119+00:00",
+      "note": "User confirmed review and readiness for the experiment. Enabled retrieval metrics for all 14 set-1 items."
+    }
+  ]
+}

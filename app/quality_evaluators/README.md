@@ -1,13 +1,21 @@
 # Native quality evaluation rules
 
-`rules.py` defines two persistent Langfuse rules for v2.12 measurement observations:
+Shared evaluator definitions and scoring live in `app/quality_evaluators/`.
+Corpus settings live in `corpora/<corpus>/quality-evaluators.json`; `CORPUS_ID`
+and `CORPUS_ROOT` select them through the existing corpus configuration.
+Credentials must resolve to that corpus's Langfuse project before reconciliation.
 
-| Rule | Eligible questions | Evaluators |
-| --- | --- | --- |
-| millennium-qm-retrieval-rule | normal, single_evidence | millennium-qm-retrieval |
-| millennium-qm-answer-quality-rule | all three types | millennium-qm-faithfulness, millennium-qm-relevancy |
+Millennium retains its existing v2.12 rules and character-name hint. The Alienist
+uses separate `thealienist-qm-*` evaluators and rules for v2.16, GPT-6 Luna,
+and high reasoning. These settings select the **source answer run**; the quality
+judges continue to use `qwen3.6:35b-judge-16k`.
 
-Run `python -m app.quality_evaluators.rules` to compare definitions with Langfuse;
+The two rules route retrieval to normal/single-evidence questions with ready
+qrels, and faithfulness/relevancy to all question types. Provisional qrels skip
+retrieval. This readiness check also applies to the command-line scorer.
+
+Run `python -m app.quality_evaluators` to inspect evaluator definitions; add
+`--write` to install them. Run `python -m app.quality_evaluators.rules` to compare definitions with Langfuse;
 add `--write` to create or update these two rules through the public API. Use the
 repository's one-off container instructions when running inside Docker.
 Reconciliation does not submit observations, execute judges, or modify old rules.
@@ -23,7 +31,7 @@ because the retrieval evaluator uses it to select Hit@K or precision/recall.
 
 Langfuse stores the applied rules and assignments in PostgreSQL. Historical
 rules, scores, errors and retries remain there; these rules match only the new
-prepared observation name. The QA1 submission utility now uses these shared
+prepared observation name. The submission utility uses these shared
 rules and writes a uniquely named manifest for each run, recording rule snapshots,
 evaluator versions, run ID, source trace, and observation ID.
 
@@ -54,3 +62,17 @@ is included in the parent output's total and source durations, while the
 parent's Langfuse span starts after that fetch. Historical scores retain their
 original attachments; past per-metric durations cannot be recovered from the
 older combined timings.
+
+## Preparing an existing answer for native evaluation
+
+Load the selected corpus's environment and project credentials, then run:
+
+```bash
+python -m app.quality_evaluators.submit --dataset set-1 --item-id ITEM_ID --trace-id TRACE_ID
+```
+
+The command checks the source pipeline/model metadata, reads corpus-local qrels,
+and creates a measurement observation. It refuses missing or mismatched source
+metadata and unapplied rules. Manifests go under `data/<corpus>/quality-reviews/`.
+`test_single` is a compatibility entry point with the same required arguments.
+Installing evaluators or rules alone does not submit measurements or run judges.

@@ -7,7 +7,7 @@ The first implementation scores one question at a time:
 - qm_faithfulness_generation: answer claims supported by the union context.
 - qm_relevancy_generation: how directly the answer addresses the question.
 
-Relevance labels come from corpora/millennium/retrieval-qrels.json.
+Relevance labels come from the selected corpus retrieval-qrels.json.
 """
 from __future__ import annotations
 
@@ -25,8 +25,10 @@ from typing import Any
 import requests
 from langfuse import Langfuse
 
+from app.corpus_config import corpus_config, langfuse_dataset_name
+
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_QRELS = ROOT / "corpora" / "millennium" / "retrieval-qrels.json"
+DEFAULT_QRELS = corpus_config().root / "retrieval-qrels.json"
 SEARCH_TOOLS = ("tool: semantic_search", "tool: keyword_search")
 JUDGE_MAX_CONTEXT_TOKENS = 262144
 JUDGE_OUTPUT_TOKENS = 4096
@@ -243,7 +245,7 @@ def judge_relevancy(question: str, answer: str, model: str) -> dict[str, Any]:
     messages = [
         {"role": "system", "content": (
             "Score how directly and completely the answer addresses the question. Do not judge factual accuracy, "
-            "name completeness, or whether the answer is correct; Blomkvist and Mikael refer to the same person. "
+            "name completeness, or whether the answer is correct. "
             "0 means off-topic; 1 means it directly attempts to answer the question. "
             "Return a score between 0 and 1, inclusive, and JSON only."
         )},
@@ -264,6 +266,8 @@ def score_trace(trace_id: str, qrels_path: Path, dataset: str, item_id: str,
     question = item["question"]
     single = item.get("single_evidence", False)
     broad = item.get("question_type") == "broad"
+    retrieval_ready = item.get("retrieval_metrics_ready", True) and item.get("question_type_status") != "awaiting_user"
+    skip_retrieval = broad or not retrieval_ready
     metadata = {"dataset": dataset, "item_id": item_id, "qrels_version": qrels.get("version"),
                 "index_collection": qrels.get("index_collection"), "judge_model": model}
     client = Langfuse()
@@ -318,7 +322,7 @@ def score_trace(trace_id: str, qrels_path: Path, dataset: str, item_id: str,
                         result = {"tool": call.tool, "observation_id": call.observation_id,
                                   "query": call.query, "returned": len(call.hit_ids), "precision": {}}
                         for k in ks:
-                            value = None if broad else (_hit_at(call, direct, k) if single else _precision_at(call, direct, k))
+                            value = None if skip_retrieval else (_hit_at(call, direct, k) if single else _precision_at(call, direct, k))
                             if value is not None:
                                 result["precision"][k] = value
                         call_seconds = time.perf_counter() - call_start
@@ -334,11 +338,11 @@ def score_trace(trace_id: str, qrels_path: Path, dataset: str, item_id: str,
                         per_call.append(result)
                 for k in ks:
                     values = [row["precision"][k] for row in per_call if k in row["precision"]]
-                    if not broad:
+                    if not skip_retrieval:
                         name = "hit" if single else "precision"
                         metrics[f"qm_{name}_retrieval_at_{k}"] = round(statistics.mean(values), 4) if values else None
                 direct_in_union = direct & union_ids
-                if not single and not broad:
+                if not single and not skip_retrieval:
                     metrics["qm_precision_retrieval_set"] = (round(len(direct_in_union) / len(union_ids), 4)
                                                              if union_ids else None)
                     metrics["qm_recall_retrieval_context"] = (round(len(direct_in_union) / len(direct), 4)
@@ -349,8 +353,8 @@ def score_trace(trace_id: str, qrels_path: Path, dataset: str, item_id: str,
                           comment=f"{dataset}/{item_id[:8]} direct-only {name}")
                 if retrieval_span is not None:
                     retrieval_span.update(output={"metrics": metrics.copy(), "duration_seconds": retrieval_seconds,
-                                                  "status": "skipped" if broad else "completed",
-                                                  "reason": "Broad question" if broad else None})
+                                                  "status": "skipped" if skip_retrieval else "completed",
+                                                  "reason": "Provisional qrels" if not retrieval_ready else "Broad question" if broad else None})
 
             errors = []
             with scope("faithfulness evaluation", input={"question": question, "answer": answer},
@@ -413,8 +417,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--trace-id", required=True)
     parser.add_argument("--qrels", type=Path, default=DEFAULT_QRELS)
-    parser.add_argument("--dataset", default="QA.csv")
-    parser.add_argument("--item-id", default="785e319a-89a1-5950-96cf-f99a23162a87")
+    parser.add_argument("--dataset", default=langfuse_dataset_name())
+    parser.add_argument("--item-id", required=True)
     parser.add_argument("--k", default="5,10")
     parser.add_argument("--model", default=os.getenv("QUALITY_JUDGE_MODEL", "qwen3.6:35b"))
     parser.add_argument("--write", action="store_true", help="write spans and scores to Langfuse")

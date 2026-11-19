@@ -1,0 +1,8 @@
+{
+  "pipeline": "v2.16",
+  "agent_settings": {
+    "agent_provider": "openai",
+    "agent_model": "gpt-6-luna",
+    "agent_reasoning_effort": "high"
+  }
+}

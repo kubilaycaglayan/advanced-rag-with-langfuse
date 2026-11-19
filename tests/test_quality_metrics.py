@@ -117,6 +117,28 @@ class QualityMetricChecks(unittest.TestCase):
         self.assertEqual(result["metrics"]["qm_relevancy_generation"], 0.8)
         self.assertGreaterEqual(result["durations_seconds"]["total"], 0)
 
+    def test_provisional_qrels_skip_retrieval_and_keep_answer_scores(self):
+        observations = [
+            SimpleNamespace(id="search", name="tool: semantic_search", output={
+                "hits": [{"id": "12345678"}]}),
+            SimpleNamespace(name="agent run", output={"stopped": "submit", "answer": "answer"}),
+            SimpleNamespace(name="query agent model: tool selection and answer", start_time=1,
+                            input=[{"role": "tool", "content": "evidence"}], output={}),
+        ]
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "qrels.json"
+            path.write_text(json.dumps({"datasets": {"set": {"item": {
+                "question": "question", "retrieval_metrics_ready": False,
+                "passages": [{"short_id": "12345678", "relevance": "direct"}]}}}}))
+            with patch("app.quality_metrics.Langfuse"), \
+                 patch("app.quality_metrics.fetch_observations", return_value=observations), \
+                 patch("app.quality_metrics.judge_faithfulness", return_value={"score": 1.0}), \
+                 patch("app.quality_metrics.judge_relevancy", return_value={"score": 0.8}):
+                result = score_trace("trace", path, "set", "item", (1,), "judge", write=False)
+        self.assertFalse(any("retrieval" in key for key in result["metrics"]))
+        self.assertEqual(result["metrics"]["qm_faithfulness_generation"], 1.0)
+        self.assertEqual(result["metrics"]["qm_relevancy_generation"], 0.8)
+
     def test_failed_judge_does_not_prevent_other_metrics(self):
         observations = [
             SimpleNamespace(name="agent run", output={"stopped": "submit", "answer": "answer"}),

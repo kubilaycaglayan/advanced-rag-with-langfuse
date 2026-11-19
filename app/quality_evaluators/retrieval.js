@@ -2,7 +2,7 @@ function evaluate({observation: {input}}) {
   if (!input || !Array.isArray(input.direct_gold_ids) || !Array.isArray(input.search_calls) || !Array.isArray(input.union_passage_ids)) {
     throw new Error('Expected direct_gold_ids, search_calls and union_passage_ids');
   }
-  if (input.question_type === 'broad') return {scores: []};
+  if (input.retrieval_metrics_ready === false || input.question_type === 'broad') return {scores: []};
   const gold = new Set(input.direct_gold_ids);
   if (!gold.size) throw new Error('Direct gold labels are required');
   const single = input.single_evidence === true;
