@@ -46,20 +46,22 @@
 <text x="638" y="50" font-family="Arial, sans-serif" font-size="26.18" font-weight="bold" fill="#f6efe5">For what crime is Blomkvist tried and</text>
 <text x="638" y="79" font-family="Arial, sans-serif" font-size="26.18" font-weight="bold" fill="#f6efe5">convicted?</text>
 <text x="638" y="122" font-family="Arial, sans-serif" font-size="15.47" font-weight="normal" fill="#e5ad83">Pipeline: v2.16 · Model: qwen3.6:35b · Latency: 28.7 s</text>
-<text x="638" y="151" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">Blomkvist was tried and convicted of libelling and defaming</text>
-<text x="638" y="172" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">the financier Hans-Erik Wennerström. The court sentenced him</text>
-<text x="638" y="193" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">to three months in jail and 150,000 kronor in damages [E1].</text>
-<line x1="638" x2="1132" y1="218" y2="218" stroke="#3e4956" />
-<text x="638" y="240" font-family="Arial, sans-serif" font-size="16.67" font-weight="bold" fill="#f0b789">CITED PASSAGES · 1</text>
-<text x="638" y="266" font-family="Arial, sans-serif" font-size="16.67" font-weight="bold" fill="#e5ad83">[E1] The Girl with the Dragon Tattoo · CHAPTER 1</text>
-<text x="638" y="286" font-family="Arial, sans-serif" font-size="16.67" font-weight="bold" fill="#e5ad83">Friday, December 20 · Paragraph 18 · Page 7</text>
-<text x="638" y="310" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">“Three months in gaol and 150,000 kronor damages. That’s</text>
-<text x="638" y="331" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">pretty severe,” said She from TV4. “I’ll survive.” “Are you</text>
-<text x="638" y="352" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">going to apologise to Wennerström? Shake his hand?” “I think</text>
-<text x="638" y="373" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">not.” “So you still would say that he’s a crook?” Dagens</text>
-<text x="638" y="394" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">Nyheter. The court had just ruled that Blomkvist had libelled</text>
-<text x="638" y="415" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">and defamed the financier Hans-Erik Wennerström. The trial was</text>
-<text x="638" y="436" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">over and he had no plans to appeal. So what would happen if he</text>
-<text x="638" y="457" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">repeated his claim on the courthouse steps? Blomkvist decided</text>
-<text x="638" y="478" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">that he did not want to find out.</text>
+<text x="638" y="151" font-family="Arial, sans-serif" font-size="15.47" font-weight="normal" fill="#c2cbd4">Quality metrics: Retrieval context recall 11.1% · Generation</text>
+<text x="638" y="170" font-family="Arial, sans-serif" font-size="15.47" font-weight="normal" fill="#c2cbd4">faithfulness 100% · Generation relevancy 100%</text>
+<text x="638" y="210" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">Blomkvist was tried and convicted of libelling and defaming</text>
+<text x="638" y="231" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">the financier Hans-Erik Wennerström. The court sentenced him</text>
+<text x="638" y="252" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">to three months in jail and 150,000 kronor in damages [E1].</text>
+<line x1="638" x2="1132" y1="277" y2="277" stroke="#3e4956" />
+<text x="638" y="299" font-family="Arial, sans-serif" font-size="16.67" font-weight="bold" fill="#f0b789">CITED PASSAGES · 1</text>
+<text x="638" y="325" font-family="Arial, sans-serif" font-size="16.67" font-weight="bold" fill="#e5ad83">[E1] The Girl with the Dragon Tattoo · CHAPTER 1</text>
+<text x="638" y="345" font-family="Arial, sans-serif" font-size="16.67" font-weight="bold" fill="#e5ad83">Friday, December 20 · Paragraph 18 · Page 7</text>
+<text x="638" y="369" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">“Three months in gaol and 150,000 kronor damages. That’s</text>
+<text x="638" y="390" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">pretty severe,” said She from TV4. “I’ll survive.” “Are you</text>
+<text x="638" y="411" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">going to apologise to Wennerström? Shake his hand?” “I think</text>
+<text x="638" y="432" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">not.” “So you still would say that he’s a crook?” Dagens</text>
+<text x="638" y="453" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">Nyheter. The court had just ruled that Blomkvist had libelled</text>
+<text x="638" y="474" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">and defamed the financier Hans-Erik Wennerström. The trial was</text>
+<text x="638" y="495" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">over and he had no plans to appeal. So what would happen if he</text>
+<text x="638" y="516" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">repeated his claim on the courthouse steps? Blomkvist decided</text>
+<text x="638" y="537" font-family="Arial, sans-serif" font-size="17.86" font-weight="normal" fill="#e2e7eb">that he did not want to find out.</text>
 </svg>

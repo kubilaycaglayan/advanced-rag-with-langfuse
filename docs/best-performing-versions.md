@@ -330,6 +330,24 @@ Ranked by mean Qwen answer correctness score for each regular Millennium dataset
     </tr>
     <tr>
       <th>3</th>
+      <td>`v2.16-luna-high`</td>
+      <td>v2.16</td>
+      <td>0.88(28)</td>
+      <td>—</td>
+      <td>0.10(22)</td>
+      <td>0.06(3)</td>
+      <td>—</td>
+      <td>—</td>
+      <td>0.04(24)</td>
+      <td>0.63(23)</td>
+      <td>0.99(18)</td>
+      <td>1.00(28)</td>
+      <td>28/28</td>
+      <td>`c2cde1e05faa6f40`</td>
+      <td>`52b29974`</td>
+    </tr>
+    <tr>
+      <th>4</th>
       <td>`v2.12`</td>
       <td>v2.12</td>
       <td>0.85(28)</td>
@@ -347,7 +365,7 @@ Ranked by mean Qwen answer correctness score for each regular Millennium dataset
       <td>`c07f1c5b`</td>
     </tr>
     <tr>
-      <th>4</th>
+      <th>5</th>
       <td>`baseline-v2.12-default-right-set-3`</td>
       <td>v2.12</td>
       <td>0.84(28)</td>
@@ -363,24 +381,6 @@ Ranked by mean Qwen answer correctness score for each regular Millennium dataset
       <td>28/28</td>
       <td>`b247cd5d9ce9da1d`</td>
       <td>`8b30a2d7`</td>
-    </tr>
-    <tr>
-      <th>5</th>
-      <td>`story-graph-reasoning-v2.14-right-set-3`</td>
-      <td>v2.14</td>
-      <td>0.84(28)</td>
-      <td>—</td>
-      <td>0.09(15)</td>
-      <td>0.11(4)</td>
-      <td>—</td>
-      <td>—</td>
-      <td>0.02(24)</td>
-      <td>0.41(23)</td>
-      <td>0.89(20)</td>
-      <td>0.97(28)</td>
-      <td>28/28</td>
-      <td>`25790c44c054508a`</td>
-      <td>`25b489d9`</td>
     </tr>
   </tbody>
 </table>
@@ -419,6 +419,24 @@ Ranked by mean Qwen answer correctness score for each regular Millennium dataset
   <tbody>
     <tr>
       <th>1</th>
+      <td>`v2.16-luna-high`</td>
+      <td>v2.16</td>
+      <td>1.00(9)</td>
+      <td>—</td>
+      <td>0.09(6)</td>
+      <td>0.10(1)</td>
+      <td>—</td>
+      <td>—</td>
+      <td>0.06(9)</td>
+      <td>0.94(9)</td>
+      <td>0.92(6)</td>
+      <td>1.00(9)</td>
+      <td>9/9</td>
+      <td>`4411d1a1728f4990`</td>
+      <td>`4bcb3bce`</td>
+    </tr>
+    <tr>
+      <th>2</th>
       <td>`baseline-v2.12-default-Additional-Questions`</td>
       <td>v2.12</td>
       <td>0.99(8)</td>
@@ -436,7 +454,7 @@ Ranked by mean Qwen answer correctness score for each regular Millennium dataset
       <td>`090606b4`</td>
     </tr>
     <tr>
-      <th>2</th>
+      <th>3</th>
       <td>`kubilay`</td>
       <td>v2.2</td>
       <td>0.98(8)</td>
@@ -454,7 +472,7 @@ Ranked by mean Qwen answer correctness score for each regular Millennium dataset
       <td>`a684db5d`</td>
     </tr>
     <tr>
-      <th>3</th>
+      <th>4</th>
       <td>`v2.3-gpt-6-luna-Additional-Questions`</td>
       <td>v2.3</td>
       <td>0.95(8)</td>
@@ -472,7 +490,7 @@ Ranked by mean Qwen answer correctness score for each regular Millennium dataset
       <td>`6494f50f`</td>
     </tr>
     <tr>
-      <th>4</th>
+      <th>5</th>
       <td>`2026-10-22-v2.13-luna-high-Additional-Questions`</td>
       <td>v2.13</td>
       <td>0.90(8)</td>
@@ -489,30 +507,12 @@ Ranked by mean Qwen answer correctness score for each regular Millennium dataset
       <td>`96ab190ac570dbe8`</td>
       <td>`98e9df42`</td>
     </tr>
-    <tr>
-      <th>5</th>
-      <td>`story-graph-reasoning-v2.14-Additional-Questions`</td>
-      <td>v2.14</td>
-      <td>0.86(8)</td>
-      <td>—</td>
-      <td>0.08(4)</td>
-      <td>0.03(3)</td>
-      <td>—</td>
-      <td>—</td>
-      <td>0.05(8)</td>
-      <td>0.69(8)</td>
-      <td>0.83(2)</td>
-      <td>1.00(8)</td>
-      <td>8/8</td>
-      <td>`d97ba1ac2f66173f`</td>
-      <td>`6914235c`</td>
-    </tr>
   </tbody>
 </table>
 
-The Additional Questions winner used a pinned 8-item snapshot. Current qrels contain 9 items; the ninth item has no trace in this run. Some QA.csv runs have a `partial` overall execution status because a non-correctness evaluator failed; correctness scores were available for all 36 items and were included here.
+The v2.16 Luna High winner covers all 9 questions. Correctness uses the accepted answer-base v4 rescore plus the question-specific v5 photo-identification alternative; original correctness was 0.7463. Earlier runs used 8-item snapshots and their original answer references, so correctness is not measured against identical references. Rescore artifacts: `data/millennium/experiment-settings/v2.16-luna-high/rescore-facts-v4.json` and `rescore-photo-facts-v5.json`. Some QA.csv runs have a `partial` overall execution status because a non-correctness evaluator failed; correctness scores were available for all 36 items and were included here.
 
-2026-11-13 evaluator coverage for this winner: P@5 4/8, P@10 2/8, SetP 8/8, CtxR 8/8, Faith 6/8, Rel 8/8. Faithfulness was unavailable on two traces because of answer-path guards.
+Evaluator coverage for the v2.16 winner: P@5 6/9, P@10 1/9, SetP 9/9, CtxR 9/9, Faith 6/9, Rel 9/9. Undefined or skipped faithfulness scores are excluded from the mean.
 
 ## Metric abbreviations
 

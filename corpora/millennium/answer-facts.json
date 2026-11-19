@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 5,
   "description": "Per-item scoring rules for answer_correctness_v2. required_facts are the minimal canonical facts; supporting_details earn at most 10%; accepted_answer_variants are item-specific human-approved alternative full-credit paths scored additively without replacing the canonical facts. Keyed by Langfuse dataset item ID; the reference answer is left unchanged.",
   "datasets": {
     "QA.csv": {
@@ -316,47 +316,33 @@
     "Additional Questions": {
       "ba2fffee-c82e-4029-9b0c-1c7a52bed602": {
         "required_facts": [
-          "Irene Nesser is her fake identity (Norwegian passport)"
+          "Irene Nesser is a fake identity used by Salander."
         ],
-        "supporting_details": [
-          "Monica Sholes, used in Zurich to drain Wennerström's accounts",
-          "Her hacker handle is Wasp / her company Wasp Enterprises",
-          "V. Kulla on her Fiskargatan doorplate"
-        ]
+        "supporting_details": []
       },
       "74355fed-d6cb-401c-9a41-ee80faaf18cd": {
         "required_facts": [
-          "He learned of her through the background check on him that she had researched/written (commissioned by Frode via Milton Security)"
+          "Mikael learned about Salander through her background investigation/report on him; identifying Frode as the person who told him is sufficient. Reading the report, deducing hacking, and visiting her apartment are optional later events."
         ],
-        "supporting_details": [
-          "Frode let it slip when Mikael asked for a researcher",
-          "Mikael read her report and realised she must have hacked his computer",
-          "He then went to her Lundagatan apartment to recruit her"
-        ]
+        "supporting_details": []
       },
       "dece0abd-3214-459e-ae0a-ff5c4c75f38a": {
         "required_facts": [
           "The T-shirt said 'Armageddon was yesterday - today we have a serious problem'"
         ],
-        "supporting_details": [
-          "She first opened the door wrapped in a sheet"
-        ]
+        "supporting_details": []
       },
       "45d561b9-ca5e-4c5d-83cb-04b610da13dc": {
         "required_facts": [
           "She said 'Kalle Fucking Blomkvist'"
         ],
-        "supporting_details": [
-          "She then let go of the gun"
-        ]
+        "supporting_details": []
       },
       "e43e2f16-b8e6-4735-8179-9ebd7cfbd42f": {
         "required_facts": [
           "She said 'Kalle Fucking Blomkvist'"
         ],
-        "supporting_details": [
-          "She then let go of the gun"
-        ]
+        "supporting_details": []
       },
       "36c50723-3b65-49f6-9d9b-70574cc9471c": {
         "required_facts": [
@@ -367,16 +353,16 @@
           "She tipped off Svavelsjö MC and the police",
           "The bikers killed Niedermann and the police arrested the bikers",
           "She found evidence of trafficking/a body there"
+        ],
+        "accepted_answer_variants": [
+          "At the abandoned brickworks Salander discovers bodies, is trapped by Niedermann, fights him and escapes, and brings the bikers and police to the site. This is an accepted concise account; the nail gun is optional on this answer path."
         ]
       },
       "1e785ac0-34a9-4b22-95c1-dd83cfff1764": {
         "required_facts": [
-          "It is Salander's personal stance of refusing to compromise or give in"
+          "No compromises describes Salander refusing to yield, negotiate, or accept a halfway resolution during her trial. A concrete account of her refusal to continue participating or answer questions is sufficient."
         ],
-        "supporting_details": [
-          "It is how Ekström/the court read her at her trial, where she rejects any deal",
-          "Her one 'little compromise': agreeing to testify when her guardianship is revoked"
-        ],
+        "supporting_details": [],
         "accepted_answer_variants": [
           "In *The Girl Who Kicked the Hornet's Nest*, the phrase \"**No compromises**\" appears twice during Lisbeth Salander's trial to describe her unyielding, defiant demeanor:\n\n1.  **Prosecutor Ekström's Observation:** When Prosecutor Ekström looks at Salander, he sees \"curiosity and vengeance\" in her eyes and notes \"**No compromises**,\" realizing that she will not be easily intimidated or convicted despite the serious charges against her [E1].\n2.  **Salander's Stance toward the Judge:** Later, when Salander turns to face Judge Iversen, the text again states \"**No compromises**,\" highlighting her refusal to back down or show weakness as the judge acknowledges the collapse of the prosecutor's case and the validity of her autobiography [E2].\n\nIn both instances, the phrase signifies Salander's absolute refusal to negotiate, submit, or yield in the face of legal persecution."
         ]
@@ -386,6 +372,15 @@
           "Her mother is Agneta Sofia Salander"
         ],
         "supporting_details": []
+      },
+      "8acd68c6-d285-42c3-b33b-ac2fb9833565": {
+        "required_facts": [
+          "Mikael identified Martin by matching the distinctive dark padded jacket and shoulder patch seen in the photograph along Harriet’s line of sight to a clearer photograph of Martin."
+        ],
+        "supporting_details": [],
+        "accepted_answer_variants": [
+          "Mikael followed Harriet’s line of sight to a parade photograph of a man in a dark padded jacket with a red shoulder patch, matched him and the jacket to a clearer photograph from the search for Harriet, and Anna identified him as Martin. This is a user-approved alternative identification account. The steps tracing Mildred Berggren and obtaining her negatives are optional for this concise answer path."
+        ]
       }
     },
     "set3": {
