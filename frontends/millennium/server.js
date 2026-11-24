@@ -118,7 +118,8 @@ export function createApp({ fetcher = fetch, production = process.env.NODE_ENV =
   const app = express()
   const activeAskIps = new Set()
   app.disable('x-powered-by')
-  app.use('/api', (req, res, next) => {
+  app.use((req, res, next) => {
+    if (req.path === '/api' || req.path.startsWith('/api/')) return next()
     res.vary('Origin')
     if (req.headers.origin === 'https://kubilaycaglayan.com') {
       res.set('Access-Control-Allow-Origin', req.headers.origin)
