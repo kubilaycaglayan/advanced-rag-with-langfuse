@@ -27,6 +27,28 @@ before(async () => {
 })
 after(() => server?.close())
 
+test('allows API preflight and responses for kubilaycaglayan.com only', async () => {
+  const origin = 'https://kubilaycaglayan.com'
+  const preflight = await fetch(`${base}/api/ask`, { method: 'OPTIONS', headers: {
+    Origin: origin, 'Access-Control-Request-Method': 'POST', 'Access-Control-Request-Headers': 'content-type',
+  } })
+  assert.equal(preflight.status, 204)
+  assert.equal(preflight.headers.get('access-control-allow-origin'), origin)
+  assert.equal(preflight.headers.get('access-control-allow-credentials'), 'true')
+  assert.match(preflight.headers.get('access-control-allow-methods'), /POST/)
+  assert.match(preflight.headers.get('access-control-allow-headers'), /Content-Type/i)
+  const response = await fetch(`${base}/api/ask`, { method: 'POST', headers: {
+    Origin: origin, 'Content-Type': 'application/json',
+  }, body: '{}' })
+  assert.equal(response.status, 400)
+  assert.equal(response.headers.get('access-control-allow-origin'), origin)
+  assert.match(response.headers.get('vary'), /Origin/)
+  for (const untrusted of ['https://example.com', 'https://kubilaycaglayan.com.evil.example']) {
+    const denied = await fetch(`${base}/api/ask`, { method: 'OPTIONS', headers: { Origin: untrusted } })
+    assert.equal(denied.headers.get('access-control-allow-origin'), null)
+  }
+})
+
 test('maps only cited passages, keeping citation order', () => {
   assert.deepEqual(citedSources({ citations: ['[E2]'], reranked: [{ text: 'first' }, { book: 'Two', text: 'second' }] }),
     [{ label: '[E2]', book: 'Two', chapter: null, page: null, paragraph: null, text: 'second' }])

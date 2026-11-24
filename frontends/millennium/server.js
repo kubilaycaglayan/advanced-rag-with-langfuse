@@ -118,6 +118,20 @@ export function createApp({ fetcher = fetch, production = process.env.NODE_ENV =
   const app = express()
   const activeAskIps = new Set()
   app.disable('x-powered-by')
+  app.use('/api', (req, res, next) => {
+    res.vary('Origin')
+    if (req.headers.origin === 'https://kubilaycaglayan.com') {
+      res.set('Access-Control-Allow-Origin', req.headers.origin)
+      res.set('Access-Control-Allow-Credentials', 'true')
+      res.set('Access-Control-Expose-Headers', 'Retry-After')
+      if (req.method === 'OPTIONS') {
+        res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        res.set('Access-Control-Allow-Headers', 'Content-Type, Accept')
+        return res.sendStatus(204)
+      }
+    }
+    next()
+  })
   app.use(express.json({ limit: '8kb' }))
 
   app.post('/api/ask', async (req, res) => {
