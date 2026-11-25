@@ -42,16 +42,16 @@ class CurrentContract(TestCase):
         from unittest.mock import patch
         from app.agent.instructions import instruction_fingerprint
         baseline = instruction_fingerprint()
-        with patch("app.agent.instructions.SYSTEM_PROMPT", "changed system instruction"):
+        with patch("app.agent.prompts.SYSTEM_PROMPT", "changed system instruction"):
             self.assertNotEqual(instruction_fingerprint(), baseline)
-        with patch("app.agent.instructions._tool_specs", return_value=[]):
+        with patch("app.agent.schemas._tool_specs", return_value=[]):
             self.assertNotEqual(instruction_fingerprint(), baseline)
         parse = ast.parse
         with patch("app.agent.instructions.ast.parse", side_effect=lambda source: parse(source.replace(
                 "Submit a supported answer with passage IDs, or say the evidence is insufficient.",
                 "Changed inline instruction."))):
             self.assertNotEqual(instruction_fingerprint(), baseline)
-        with patch("app.agent.instructions.ENTITY_CARD_DRAFT_PROMPT", "unused draft changed", create=True):
+        with patch("app.agent.prompts.ENTITY_CARD_DRAFT_PROMPT", "unused draft changed", create=True):
             self.assertEqual(instruction_fingerprint(), baseline)
 
     def test_fixed_only_configuration_is_rejected(self):
