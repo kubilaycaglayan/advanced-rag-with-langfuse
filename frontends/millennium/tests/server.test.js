@@ -3,7 +3,9 @@ import { after, before, test } from 'node:test'
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { createApp, citedSources, clientIp, ipSession, quotaMessage } from '../server.js'
+import { createApp } from '../server/application.js'
+import { citedSources, quotaMessage } from '../server/responses.js'
+import { clientIp, ipSession } from '../server/security.js'
 
 let server
 let base

@@ -13,6 +13,7 @@ WORKDIR /frontend
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev && npm cache clean --force
 COPY server.js ./
+COPY server/ ./server/
 COPY --from=build /frontend/ui/dist/client ./ui/dist/client
 EXPOSE 43179
 CMD ["node", "server.js"]
