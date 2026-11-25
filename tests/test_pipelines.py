@@ -124,7 +124,7 @@ class PipelineVersions(TestCase):
                 return [0.9] if self.calls == 1 else [0.8, 0.7]
 
         with patch("app.agent.submission.observation", side_effect=observe), \
-             patch("app.agent.submission._reranker", return_value=Reranker()):
+             patch("app.agent.submission.reranker", return_value=Reranker()):
             selected = _synthesis_rows(state, limit=2)
 
         self.assertEqual([row["id"] for row in selected], ["passage-1", "passage-2"])

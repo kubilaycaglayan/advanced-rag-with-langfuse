@@ -7,13 +7,13 @@ from app.agent.tools.search import _scene_points
 from app.context.citations import _passage
 from app.context.citations import _scene_member
 from app.indexing.entities import entity_cards_path
-from app.retrieval.entities import _display_name
-from app.retrieval.entities import _person_full_name
-from app.retrieval.passages import _scene_member_rows
-from app.retrieval.scenes import _scene_lookup
-from app.retrieval.search import _entity_anchors
-from app.retrieval.search import _entity_cards
-from app.retrieval.search import _moment_scene_hits
+from app.retrieval.entities import display_name
+from app.retrieval.entities import person_full_name
+from app.retrieval.passages import scene_member_rows
+from app.retrieval.scenes import scene_lookup
+from app.retrieval.search import entity_anchors
+from app.retrieval.search import entity_cards
+from app.retrieval.moments import moment_scene_hits
 from app.retrieval.search import qdrant_client
 from typing import Any
 import re
@@ -28,7 +28,7 @@ def _scene_payload(state: "AgentState", point: Any, score: float, *, full: bool,
     characters, the size of one scene window and the per-call token budget.
     """
     members = [str(member) for member in (point.payload.get("members") or [])]
-    rows = _scene_member_rows(state.collection, members)
+    rows = scene_member_rows(state.collection, members)
     state.remember(rows, query=query)
     if full:
         state.focus_on(rows)
@@ -45,7 +45,7 @@ def _tool_scene_search(state: AgentState, args: dict[str, Any]) -> dict[str, Any
     people = args.get("people") or []
     if isinstance(people, str):
         people = [people]
-    names = [_person_full_name(state.collection, str(person).strip()) for person in people if str(person).strip()]
+    names = [person_full_name(state.collection, str(person).strip()) for person in people if str(person).strip()]
     if names:
         query = " ".join([*names, query]).strip()
     if not query:
@@ -83,10 +83,10 @@ def _initial_scene_message(scene: dict[str, Any]) -> str:
 
 def _tool_read_scene(state: AgentState, args: dict[str, Any]) -> dict[str, Any]:
     wanted = str(args.get("scene_id") or args.get("id") or "")
-    point, error = _scene_lookup(state.collection, state.config, wanted)
+    point, error = scene_lookup(state.collection, state.config, wanted)
     if point is None:
         return {"error": error}
-    rows = _scene_member_rows(state.collection, [str(member) for member in (point.payload.get("members") or [])])
+    rows = scene_member_rows(state.collection, [str(member) for member in (point.payload.get("members") or [])])
     state.remember(rows)
     state.focus_on(rows)
     return {"scene_id": str(point.id)[:8], "summary": point.payload.get("summary"),
@@ -105,12 +105,12 @@ def _alias_variants(state: AgentState, moment: str) -> list[str]:
     path = entity_cards_path(state.collection, state.config)
     if not path.exists():
         return []
-    data = _entity_cards(str(path))
+    data = entity_cards(str(path))
     cards = {card["key"]: card for card in data.get("cards", [])}
     alias = data.get("alias", {})
     variants = []
-    for key in sorted(_entity_anchors(moment, data), key=lambda name: data.get("mentions", {}).get(name, 0)):
-        display = _display_name(key)
+    for key in sorted(entity_anchors(moment, data), key=lambda name: data.get("mentions", {}).get(name, 0)):
+        display = display_name(key)
         if not re.search(rf"\b{re.escape(display)}\b", moment, re.I):
             continue
         for edge in data.get("edges", []):
@@ -123,7 +123,7 @@ def _alias_variants(state: AgentState, moment: str) -> list[str]:
             other = right if left == key else left
             if other == key or other not in cards or cards[other].get("mentions", 0) < 3:
                 continue
-            alias_name = _display_name(other)
+            alias_name = display_name(other)
             if alias_name.casefold() in moment.casefold():
                 continue
             variants.append(re.sub(rf"\b{re.escape(display)}\b", alias_name, moment, flags=re.I))
@@ -153,7 +153,7 @@ def _tool_scene_moment(state: AgentState, args: dict[str, Any]) -> dict[str, Any
         return {"error": "question is required"}
     evidence = [row for short in state.order if (row := state.evidence.get(short))]
     present = {str(row["id"]) for row in evidence if row.get("id")}
-    rows, moment = _moment_scene_hits(question, state.config, state.collection, qdrant_client(), evidence, present, None)
+    rows, moment = moment_scene_hits(question, state.config, state.collection, qdrant_client(), evidence, present, None)
     scenes: dict[str, tuple[Any, float]] = {}
     if moment:
         core = _moment_core(moment)

@@ -4,14 +4,14 @@ from __future__ import annotations
 from app.agent.state import AgentState
 from app.indexing.entities import _cache_path as entity_cache_path
 from app.indexing.entities import entity_cards_path
-from app.retrieval.entities import _connection_pairs
-from app.retrieval.entities import _fact_sources
-from app.retrieval.entities import _rank_facts
-from app.retrieval.entities import _resolve_entity
-from app.retrieval.passages import _row_index
-from app.retrieval.search import _entity_cards
-from app.retrieval.search import _keywords
-from app.retrieval.search import _name_pairs
+from app.retrieval.entities import connection_pairs
+from app.retrieval.entities import fact_sources
+from app.retrieval.entities import rank_facts
+from app.retrieval.entities import resolve_entity
+from app.retrieval.passages import passage_index
+from app.retrieval.search import entity_cards
+from app.retrieval.search import keywords
+from app.retrieval.search import name_pairs
 from typing import Any
 import difflib
 
@@ -24,15 +24,15 @@ def _tool_find_connections(state: AgentState, args: dict[str, Any]) -> dict[str,
     path = entity_cards_path(state.collection, state.config)
     if not path.exists():
         return {"error": "entity cards are not built for this collection"}
-    data = _entity_cards(str(path))
-    first, second = _resolve_entity(data, first_name), _resolve_entity(data, second_name)
+    data = entity_cards(str(path))
+    first, second = resolve_entity(data, first_name), resolve_entity(data, second_name)
     if first is None or second is None:
         missing = first_name if first is None else second_name
         close = difflib.get_close_matches(missing.casefold(), [card["key"] for card in data["cards"]], n=4, cutoff=0.6)
         return {"error": f"no entity card for {missing!r}", "close_names": close}
-    facts, edges = _connection_pairs(data, first, second)
-    sources = _fact_sources(str(entity_cache_path()))
-    by_id, _ = _row_index(state.collection)
+    facts, edges = connection_pairs(data, first, second)
+    sources = fact_sources(str(entity_cache_path()))
+    by_id, _ = passage_index(state.collection)
     shown_facts = [row | {"passage_ids": [member[:8] for member in sources.get(row["fact"].casefold(), []) if member in by_id][:6]}
                    for row in facts[:6]]
     source_ids = [member for row in shown_facts for member in sources.get(row["fact"].casefold(), []) if member in by_id]
@@ -54,13 +54,13 @@ def _tool_entity_card(state: AgentState, args: dict[str, Any]) -> dict[str, Any]
     path = entity_cards_path(state.collection, state.config)
     if not path.exists():
         return {"error": "entity cards are not built for this collection"}
-    data = _entity_cards(str(path))
-    key = _resolve_entity(data, name)
+    data = entity_cards(str(path))
+    key = resolve_entity(data, name)
     if key is None:
         close = difflib.get_close_matches(name.casefold(), [card["key"] for card in data["cards"]], n=4, cutoff=0.6)
         return {"error": f"no entity card for {name!r}", "close_names": close}
     card = next(card for card in data["cards"] if card["key"] == key)
-    by_id, _ = _row_index(state.collection)
+    by_id, _ = passage_index(state.collection)
     rows = [by_id[member] | {"id": member} for member in card.get("members", [])[:6] if member in by_id]
     state.remember(rows)
     about = str(args.get("about") or state.question)
@@ -73,10 +73,10 @@ def _tool_entity_card(state: AgentState, args: dict[str, Any]) -> dict[str, Any]
             continue
         links.append({"other_name": other, "relation": edge.get("relation"), "fact": (edge.get("text") or "")[:220],
                       "passage_ids": [str(member)[:8] for member in edge.get("members", [])[:3]]})
-    words = {word for word in _keywords(about) if len(word) >= 3}
-    links.sort(key=lambda link: (-sum(1 for word in words if word in _keywords(f"{link['relation']} {link['fact']}")),
+    words = {word for word in keywords(about) if len(word) >= 3}
+    links.sort(key=lambda link: (-sum(1 for word in words if word in keywords(f"{link['relation']} {link['fact']}")),
                                  link["relation"] or ""))
-    return {"name": key, "mentions": card.get("mentions"), "facts": _rank_facts(card.get("facts", []), about),
+    return {"name": key, "mentions": card.get("mentions"), "facts": rank_facts(card.get("facts", []), about),
             "links": links[:10], "passage_ids": [str(row["id"])[:8] for row in rows[:6]],
             "note": "passage_ids are the passages the card was extracted from"}
 
@@ -86,7 +86,7 @@ def _tool_find_names(state: AgentState, args: dict[str, Any]) -> dict[str, Any]:
     name = str(args.get("name") or "").strip()
     if not name:
         return {"error": "name is required"}
-    pairs, words = _name_pairs(state.collection)
+    pairs, words = name_pairs(state.collection)
     close = difflib.get_close_matches(name, list(words), n=6, cutoff=0.55)
     matches = []
     for word in close:

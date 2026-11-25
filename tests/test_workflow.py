@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock, patch
 # Keep fixture spans out of the live Langfuse project the container is configured for.
 os.environ["LANGFUSE_TRACING_ENABLED"] = "false"
 
-from app.retrieval.search import _transform
+from app.retrieval.queries import transform_query
 from app.prompt_assets import ManagedJudgePrompt, _evaluator_definitions, load_managed_evaluators
 from app.pipelines.config import ResolvedPipelineConfig
 from app.experiments import ExperimentLangfuse, pack_experiment_metadata
@@ -47,9 +47,9 @@ class WorkflowChecks(unittest.TestCase):
                 return "corrected question"
             return "unexpected"
         config = ResolvedPipelineConfig.from_mapping({"parallel_transformations": True})
-        with patch("app.retrieval.search._observe", return_value=nullcontext(None)), \
-             patch("app.retrieval.search._ollama", side_effect=fake):
-            hypothetical, alternatives, corrected = _transform("question", config)
+        with patch("app.retrieval.queries._observe", return_value=nullcontext(None)), \
+             patch("app.retrieval.queries.local_generate", side_effect=fake):
+            hypothetical, alternatives, corrected = transform_query("question", config)
         self.assertEqual(hypothetical, "hypothetical document")
         self.assertEqual(alternatives, ["alternative one", "alternative two", "alternative three"])
         self.assertEqual(corrected, "corrected question")

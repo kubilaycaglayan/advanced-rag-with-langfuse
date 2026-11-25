@@ -125,12 +125,12 @@ class CurrentContract(TestCase):
         from contextlib import nullcontext
         from types import SimpleNamespace
         from unittest.mock import patch
-        from app.retrieval.search import _ollama
+        from app.models.local import local_generate
         replies = [{"message": {"content": ""}},
                    {"message": {"content": " transformed query "}, "prompt_eval_count": 8, "eval_count": 4}]
         responses = [SimpleNamespace(raise_for_status=lambda: None, json=lambda data=data: data) for data in replies]
-        with patch("app.retrieval.search.requests.post", side_effect=responses) as post,              patch("app.retrieval.search._observe", return_value=nullcontext(None)),              patch("app.retrieval.search._update") as update:
-            self.assertEqual(_ollama([{"role": "user", "content": "q"}], "local", (10, 20)), "transformed query")
+        with patch("app.models.local.requests.post", side_effect=responses) as post,              patch("app.models.local._observe", return_value=nullcontext(None)),              patch("app.models.local._update") as update:
+            self.assertEqual(local_generate([{"role": "user", "content": "q"}], "local", (10, 20)), "transformed query")
         self.assertEqual([call.kwargs["json"]["options"]["num_predict"] for call in post.call_args_list], [10, 20])
         self.assertTrue(all(call.kwargs["json"]["think"] is False for call in post.call_args_list))
         self.assertEqual(update.call_args.kwargs["usage_details"], {"input": 8, "output": 4})
@@ -179,9 +179,9 @@ class CurrentContract(TestCase):
         current = resolve()
         state = AgentState(question="Question?", collection="fixture", config=current.config,
                            settings=current.agent_settings, started=0)
-        with patch("app.agent.submission._row_index", return_value=({}, [])),              patch("app.agent.submission._tracked_agent_chat", return_value={"message": {"content": "malformed verdict"}}):
+        with patch("app.agent.submission.passage_index", return_value=({}, [])),              patch("app.agent.submission._tracked_agent_chat", return_value={"message": {"content": "malformed verdict"}}):
             self.assertFalse(_verify_submission(state, "Unsupported answer", [])[0])
-        with patch("app.agent.submission._row_index", return_value=({}, [])),              patch("app.agent.submission._tracked_agent_chat", side_effect=RuntimeError("provider unavailable")):
+        with patch("app.agent.submission.passage_index", return_value=({}, [])),              patch("app.agent.submission._tracked_agent_chat", side_effect=RuntimeError("provider unavailable")):
             self.assertFalse(_verify_submission(state, "Unsupported answer", [])[0])
             state.settings = replace(state.settings, provider="openai")
             with self.assertRaisesRegex(RuntimeError, "provider unavailable"):

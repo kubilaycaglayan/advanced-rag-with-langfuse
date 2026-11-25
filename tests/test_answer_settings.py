@@ -9,23 +9,24 @@ from unittest.mock import MagicMock, patch
 os.environ["LANGFUSE_TRACING_ENABLED"] = "false"
 
 from app.retrieval import search as pipeline
+from app.retrieval.moments import moment_scene_hits
 from app.pipelines.config import ResolvedPipelineConfig
 
 
 class NameCompletionChecks(unittest.TestCase):
     def setUp(self):
-        pipeline._name_pairs.cache_clear()
+        pipeline.name_pairs.cache_clear()
 
     def _pairs(self, texts):
         client = MagicMock()
         client.scroll.return_value = ([MagicMock(payload={"text": t}) for t in texts], None)
         with patch.object(pipeline, "qdrant_client", return_value=client):
-            return pipeline._name_pairs("collection")
+            return pipeline.name_pairs("collection")
 
     def test_expands_dominant_full_name_only(self):
         pairs = self._pairs(["Mikael Blomkvist said. " * 30 + "Mikael Persson left. " * 3 + "Anna Berg and Anna Lind. " * 15
                              + "Then Blomkvist went. " * 100 + "Lisbeth Salander came. " * 30 + "Salander left. " * 200])
-        with patch.object(pipeline, "_name_pairs", return_value=pairs):
+        with patch.object(pipeline, "name_pairs", return_value=pairs):
             self.assertEqual(pipeline._complete_names("Who tried to shoot Mikael?", "c"), "Who tried to shoot Mikael Blomkvist?")
             # No single dominant name: left unchanged.
             self.assertEqual(pipeline._complete_names("Where is Anna?", "c"), "Where is Anna?")
@@ -43,10 +44,10 @@ class NameCompletionChecks(unittest.TestCase):
 
 class KeywordSearchChecks(unittest.TestCase):
     def setUp(self):
-        pipeline._keyword_index.cache_clear()
+        pipeline.keyword_index.cache_clear()
 
     def tearDown(self):
-        pipeline._keyword_index.cache_clear()
+        pipeline.keyword_index.cache_clear()
 
 
     def test_rare_exact_words_rank_first(self):
@@ -54,7 +55,7 @@ class KeywordSearchChecks(unittest.TestCase):
         client = MagicMock()
         client.scroll.return_value = ([MagicMock(id=f"p{i}", payload={"text": t}) for i, t in enumerate(texts)], None)
         with patch.object(pipeline, "qdrant_client", return_value=client):
-            hits = pipeline._keyword_search('What is "no compromises"?', "c", 10)
+            hits = pipeline.keyword_search('What is "no compromises"?', "c", 10)
         # Stop words ("what", "is") are ignored, a plural matches its singular, and passages sharing no word are not returned.
         self.assertEqual([row["id"] for row in hits], ["p0", "p1", "p2"])
         self.assertGreater(hits[0]["keyword_score"], hits[1]["keyword_score"])
@@ -96,9 +97,9 @@ class MomentSceneChecks(unittest.TestCase):
         embedder.encode.return_value = MagicMock(tolist=lambda: [0.0])
         prompts = []
         config = ResolvedPipelineConfig(name_completion=False)
-        with patch.object(pipeline, "_embedder", return_value=embedder), patch.object(pipeline, "_reranker", return_value=reranker), \
-                patch.object(pipeline, "_ollama", side_effect=lambda messages, *a, **k: prompts.append(messages[-1]["content"]) or replies.pop(0)):
-            rows, moment = pipeline._moment_scene_hits("q", config, "c", client, [{"id": i} for i in evidence], set(present))
+        with patch("app.models.retrieval.embedder", return_value=embedder), patch("app.retrieval.moments.reranker", return_value=reranker), \
+                patch("app.retrieval.queries.local_generate", side_effect=lambda messages, *a, **k: prompts.append(messages[-1]["content"]) or replies.pop(0)):
+            rows, moment = moment_scene_hits("q", config, "c", client, [{"id": i} for i in evidence], set(present))
         return [row["id"] for row in rows], moment, prompts
 
 

@@ -10,15 +10,15 @@ from app.agent.tools.scenes import _tool_scene_moment
 from app.agent.tools.search import _semantic_rows
 from app.indexing.entities import _cache_path as entity_cache_path
 from app.indexing.entities import entity_cards_path
-from app.retrieval.entities import _connection_pairs
-from app.retrieval.entities import _fact_sources
-from app.retrieval.passages import _row_index
-from app.retrieval.passages import _scene_member_rows
-from app.retrieval.scenes import _scene_lookup
-from app.retrieval.search import _entity_anchors
-from app.retrieval.search import _entity_cards
-from app.retrieval.search import _keyword_search
-from app.retrieval.search import _name_pairs
+from app.retrieval.entities import connection_pairs
+from app.retrieval.entities import fact_sources
+from app.retrieval.passages import passage_index
+from app.retrieval.passages import scene_member_rows
+from app.retrieval.scenes import scene_lookup
+from app.retrieval.search import entity_anchors
+from app.retrieval.search import entity_cards
+from app.retrieval.search import keyword_search
+from app.retrieval.search import name_pairs
 from typing import Any
 import difflib
 import re
@@ -31,7 +31,7 @@ _CONNECTION_CUE = re.compile(r"\b(know|knew|known|learn|learned|learnt|meet|met|
 
 def _normalize_question(state: AgentState) -> tuple[str, list[dict[str, str]]]:
     """Replace a name the books do not use with the closest book name (Mikhail -> Mikael Blomkvist)."""
-    pairs, words = _name_pairs(state.collection)
+    pairs, words = name_pairs(state.collection)
     normalized, notes = state.question, []
     for token in dict.fromkeys(re.findall(r"\b[A-ZÅÄÖ][a-zåäöéü]{2,}\b", state.question)):
         if words.get(token, 0) >= 20:
@@ -52,17 +52,17 @@ def _connection_precheck(state: AgentState) -> dict[str, Any] | None:
     path = entity_cards_path(state.collection, state.config)
     if not path.exists():
         return None
-    data = _entity_cards(str(path))
-    anchors = _entity_anchors(state.question, data)
+    data = entity_cards(str(path))
+    anchors = entity_anchors(state.question, data)
     if len(anchors) < 2:
         return None
     mentions = {card["key"]: card.get("mentions", 0) for card in data["cards"]}
     first, second = sorted(anchors, key=lambda key: mentions.get(key, 0), reverse=True)[:2]
-    facts, edges = _connection_pairs(data, first, second)
+    facts, edges = connection_pairs(data, first, second)
     if not facts:
         return None
-    sources = _fact_sources(str(entity_cache_path()))
-    by_id, _ = _row_index(state.collection)
+    sources = fact_sources(str(entity_cache_path()))
+    by_id, _ = passage_index(state.collection)
     shown = []
     for row in facts[:4]:
         ids = [member for member in sources.get(row["fact"].casefold(), []) if member in by_id][:6]
@@ -98,8 +98,8 @@ def _true_account_precheck(state: AgentState) -> dict[str, Any] | None:
     path = entity_cards_path(state.collection, state.config)
     if not path.exists():
         return None
-    data = _entity_cards(str(path))
-    anchors = _entity_anchors(state.question, data)
+    data = entity_cards(str(path))
+    anchors = entity_anchors(state.question, data)
     if not anchors:
         return None
     person = max(anchors, key=lambda key: data.get("mentions", {}).get(key, 0))
@@ -185,7 +185,7 @@ def _moment_precheck(state: AgentState) -> dict[str, Any] | None:
         # The exact-word passages can still hold the line even when the moment path fails.
         payload = {"question": state.question, "moment": "", "scenes": [], "passages": []}
     keyword_rows = []
-    for row in _keyword_search(state.question, state.collection, 5):
+    for row in keyword_search(state.question, state.collection, 5):
         keyword_rows.append(row | {"score": row.get("keyword_score")})
     state.remember(keyword_rows)
     extra_rows: list[dict[str, Any]] = []
@@ -194,7 +194,7 @@ def _moment_precheck(state: AgentState) -> dict[str, Any] | None:
         anchors = set()
         path = entity_cards_path(state.collection, state.config)
         if path.exists():
-            anchors = _entity_anchors(state.question, _entity_cards(str(path)))
+            anchors = entity_anchors(state.question, entity_cards(str(path)))
         scored = []
         for scene in scenes:
             summary = scene.get("summary") or ""
@@ -204,9 +204,9 @@ def _moment_precheck(state: AgentState) -> dict[str, Any] | None:
             scored.append((named, scene.get("score") or 0.0, scene))
         if scored:
             scene = max(scored, key=lambda item: (item[0], item[1]))[2]
-            point, _ = _scene_lookup(state.collection, state.config, scene["scene_id"])
+            point, _ = scene_lookup(state.collection, state.config, scene["scene_id"])
             if point is not None:
-                extra_rows = _scene_member_rows(state.collection,
+                extra_rows = scene_member_rows(state.collection,
                                                 [str(member) for member in (point.payload.get("members") or [])])
                 # The passage with the speech is the one to put first, and to show whole: the line follows the setup.
                 extra_rows.sort(key=lambda row: 0 if _SPEECH_CUES.search(row.get("text") or "") else 1)

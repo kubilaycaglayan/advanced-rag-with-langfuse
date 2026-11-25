@@ -13,9 +13,9 @@ from app.evaluation.judges import is_explicit_abstention
 from app.models.agent import _tracked_agent_chat
 from app.observability import observation
 from app.observability import update as update_observation
-from app.retrieval.passages import _row_index
-from app.retrieval.search import _passage_position
-from app.retrieval.search import _reranker
+from app.retrieval.passages import passage_index
+from app.retrieval.search import passage_position
+from app.models.retrieval import reranker
 from typing import Any
 import json
 import re
@@ -26,7 +26,7 @@ def _verify_submission(state: AgentState, answer: str, ids: list[str], extra_ids
     """Ask the model whether the cited passages (or a passage a tool read on purpose) state the proposed answer."""
     blocks = []
     by_section: dict[tuple, list[dict[str, Any]]] = {}
-    _, rows = _row_index(state.collection)
+    _, rows = passage_index(state.collection)
     for row in rows:
         by_section.setdefault((row.get("book_file"), row.get("section")), []).append(row)
     checked = list(dict.fromkeys([*ids, *extra_ids]))
@@ -34,7 +34,7 @@ def _verify_submission(state: AgentState, answer: str, ids: list[str], extra_ids
         row = state.evidence.get(short)
         if not row:
             continue
-        section = sorted(by_section.get((row.get("book_file"), row.get("section")), [row]), key=_passage_position)
+        section = sorted(by_section.get((row.get("book_file"), row.get("section")), [row]), key=passage_position)
         index = next((number for number, item in enumerate(section) if item["id"] == row["id"]), None)
         context = section[max(0, (index or 0) - 1): (index or 0) + 2] if index is not None else [row]
         blocks.append(f"[E{position}] id={short} | {row.get('book')} | {row.get('chapter')}\n" + "\n".join(
@@ -139,7 +139,7 @@ def _synthesis_rows(state: AgentState, limit: int = 10) -> list[dict[str, Any]]:
                 short = str(row["id"])[:8]
                 queries = list(dict.fromkeys([state.question, *state.retrieval_queries.get(short, [])[-3:]]))
                 ranked_pairs.extend((short, query, row.get("text") or "") for query in queries)
-            scores = _reranker(state.config.reranker_model.name, state.config.reranker_model.revision).predict(
+            scores = reranker(state.config.reranker_model.name, state.config.reranker_model.revision).predict(
                 [(query, text) for _, query, text in ranked_pairs], show_progress_bar=False)
             row_scores: dict[str, float] = {}
             for (short, _, _), score in zip(ranked_pairs, scores):
@@ -153,7 +153,7 @@ def _synthesis_rows(state: AgentState, limit: int = 10) -> list[dict[str, Any]]:
                     "reranked_candidate_count": len(ranked_pairs),
                 })
                 return focused
-            scores = _reranker(state.config.reranker_model.name, state.config.reranker_model.revision).predict(
+            scores = reranker(state.config.reranker_model.name, state.config.reranker_model.revision).predict(
                 [(state.question, row.get("text") or "") for row in rest], show_progress_bar=False)
             ranked = [row for row, score in sorted(zip(rest, (float(value) for value in scores)),
                                                    key=lambda pair: pair[1], reverse=True)[:limit - len(focused)]]
@@ -169,7 +169,7 @@ def _synthesis_rows(state: AgentState, limit: int = 10) -> list[dict[str, Any]]:
     rest = [row for row in rows if row["id"] not in {item["id"] for item in kept}]
     if len(kept) >= limit or not rest:
         return kept
-    scores = _reranker(state.config.reranker_model.name, state.config.reranker_model.revision).predict(
+    scores = reranker(state.config.reranker_model.name, state.config.reranker_model.revision).predict(
         [(state.question, row.get("text") or "") for row in rest], show_progress_bar=False)
     ranked = [row for row, score in sorted(zip(rest, (float(value) for value in scores)),
                                            key=lambda pair: pair[1], reverse=True)[:limit - len(kept)]]

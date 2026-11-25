@@ -14,20 +14,20 @@ from app.agent.tools.accounts import _bare_name
 from app.context.citations import _book_short
 from app.agent.tools.accounts import _candidate_others
 from app.context.conversation import _compact
-from app.retrieval.entities import _connection_pairs
+from app.retrieval.entities import connection_pairs
 from app.agent.tools.coverage import _covered_stages
 from app.agent.tools.accounts import _event_verb
 from app.agent.submission import _final
 from app.agent.submission import _finish
 from app.agent.protocol import _int
 from app.agent.submission import _looks_like_abstention
-from app.retrieval.entities import _name_score
+from app.retrieval.entities import name_score
 from app.agent.prechecks import _normalize_question
 from app.agent.protocol import _parse_text_tool
-from app.retrieval.entities import _rank_facts
+from app.retrieval.entities import rank_facts
 from app.agent.tools.accounts import _relation_role
-from app.retrieval.passages import _resolve_id
-from app.retrieval.passages import _scene_member_rows
+from app.retrieval.passages import resolve_passage_id
+from app.retrieval.passages import scene_member_rows
 from app.agent.tools.scenes import _scene_payload
 from app.agent.prechecks import _speech_excerpt
 from app.agent.submission import _synthesis_rows
@@ -164,29 +164,29 @@ class Connections(unittest.TestCase):
     }
 
     def test_finds_the_fact_that_names_both_people(self):
-        facts, _ = _connection_pairs(self.data, "mikael blomkvist", "lisbeth salander")
+        facts, _ = connection_pairs(self.data, "mikael blomkvist", "lisbeth salander")
         self.assertEqual(facts[0]["fact"], "Lisbeth Salander wrote a report about Mikael Blomkvist.")
         self.assertEqual(facts[0]["score"], 8)  # both names, plus wrote and report
 
     def test_keeps_direct_edges_and_drops_ones_that_only_touch_a_person(self):
-        _, edges = _connection_pairs(self.data, "mikael blomkvist", "lisbeth salander")
+        _, edges = connection_pairs(self.data, "mikael blomkvist", "lisbeth salander")
         self.assertEqual([edge["relation"] for edge in edges], ["knows"])
 
     def test_full_name_scores_higher_than_one_word(self):
-        self.assertEqual(_name_score("Lisbeth Salander wrote a report.", "lisbeth salander"), 2)
-        self.assertEqual(_name_score("Salander wrote a report.", "lisbeth salander"), 1)
-        self.assertEqual(_name_score("Mimmi wrote a report.", "lisbeth salander"), 0)
+        self.assertEqual(name_score("Lisbeth Salander wrote a report.", "lisbeth salander"), 2)
+        self.assertEqual(name_score("Salander wrote a report.", "lisbeth salander"), 1)
+        self.assertEqual(name_score("Mimmi wrote a report.", "lisbeth salander"), 0)
 
     def test_ranks_facts_for_what_is_asked(self):
         facts = ["Blomkvist's apartment is on Bellmansgatan.", "Salander wrote a report about Blomkvist.", "Mimmi gave her a case."]
-        self.assertIn("report", _rank_facts(facts, "report")[0])
+        self.assertIn("report", rank_facts(facts, "report")[0])
 
 
 class QuestionNormalization(unittest.TestCase):
     def test_replaces_a_misspelled_name_with_the_books_full_name(self):
         agent = state()
         agent.question = "How did Mikhail first know about Salander?"
-        with patch("app.agent.prechecks._name_pairs", return_value=({"Mikael": ("Mikael Blomkvist", 87, 367)},
+        with patch("app.agent.prechecks.name_pairs", return_value=({"Mikael": ("Mikael Blomkvist", 87, 367)},
                                                           Counter({"Mikael": 367, "Salander": 770}))):
             normalized, notes = _normalize_question(agent)
         self.assertEqual(normalized, "How did Mikael Blomkvist first know about Salander?")
@@ -195,7 +195,7 @@ class QuestionNormalization(unittest.TestCase):
     def test_leaves_names_the_books_use(self):
         agent = state()
         agent.question = "What did Salander do?"
-        with patch("app.agent.prechecks._name_pairs", return_value=({}, Counter({"Salander": 770}))):
+        with patch("app.agent.prechecks.name_pairs", return_value=({}, Counter({"Salander": 770}))):
             normalized, notes = _normalize_question(agent)
         self.assertEqual(normalized, "What did Salander do?")
         self.assertEqual(notes, [])
@@ -231,15 +231,15 @@ class SceneReading(unittest.TestCase):
 
     def test_members_are_returned_in_reading_order(self):
         by_id = {row["id"]: row for row in self.rows}
-        with patch("app.retrieval.passages._row_index", return_value=(by_id, self.rows)):
-            ordered = _scene_member_rows("test", [row["id"] for row in self.rows])
+        with patch("app.retrieval.passages.passage_index", return_value=(by_id, self.rows)):
+            ordered = scene_member_rows("test", [row["id"] for row in self.rows])
         self.assertEqual([row["text"] for row in ordered], ["first", "second", "third"])
 
     def test_compact_scene_keeps_four_snippets_and_exposes_every_id(self):
         members = [row["id"] for row in self.rows]
         by_id = {row["id"]: row for row in self.rows}
         agent = state()
-        with patch("app.retrieval.passages._row_index", return_value=(by_id, self.rows)):
+        with patch("app.retrieval.passages.passage_index", return_value=(by_id, self.rows)):
             payload = _scene_payload(agent, self.Point(members), 4.2, full=False)
         self.assertEqual(payload["scene_id"], "abcdef12")
         self.assertEqual(len(payload["passages"]), 3)
@@ -251,7 +251,7 @@ class SceneReading(unittest.TestCase):
         members = [row["id"] for row in self.rows]
         by_id = {row["id"]: row for row in self.rows}
         agent = state()
-        with patch("app.retrieval.passages._row_index", return_value=(by_id, self.rows)):
+        with patch("app.retrieval.passages.passage_index", return_value=(by_id, self.rows)):
             payload = _scene_payload(agent, self.Point(members), 4.2, full=True)
         self.assertTrue(payload["passages"])
         self.assertEqual(payload["more_passages"], 0)
@@ -259,8 +259,8 @@ class SceneReading(unittest.TestCase):
     def test_read_scene_remembers_what_it_returns(self):
         agent = state()
         by_id = {row["id"]: row for row in self.rows}
-        with patch("app.agent.tools.scenes._scene_lookup", return_value=(self.Point([row["id"] for row in self.rows]), "")), \
-                patch("app.retrieval.passages._row_index", return_value=(by_id, self.rows)):
+        with patch("app.agent.tools.scenes.scene_lookup", return_value=(self.Point([row["id"] for row in self.rows]), "")), \
+                patch("app.retrieval.passages.passage_index", return_value=(by_id, self.rows)):
             payload = _tool_read_scene(agent, {"scene_id": "abcdef12"})
         self.assertEqual(payload["scene_id"], "abcdef12")
         self.assertEqual(len(payload["passages"]), 3)
@@ -353,7 +353,7 @@ class MomentHelpers(unittest.TestCase):
                           for index in range(8)}
         agent.order = list(agent.evidence)
         agent.focus = ["00000007"]
-        with patch("app.agent.submission._reranker") as reranker:
+        with patch("app.agent.submission.reranker") as reranker:
             reranker.return_value.predict.return_value = [0.0] * 7
             rows = _synthesis_rows(agent, limit=3)
         self.assertEqual(rows[0]["id"], "00000007-0000-0000-0000-000000000000")
@@ -388,7 +388,7 @@ class Coverage(unittest.TestCase):
     def test_moment_tool_returns_the_chosen_scene(self):
         agent = state()
         row = {"id": "a1b2c3d4-0000-0000-0000-000000000000", "text": "Kalle Fucking Blomkvist."}
-        with patch("app.agent.tools.scenes._moment_scene_hits",
+        with patch("app.agent.tools.scenes.moment_scene_hits",
                    return_value=([row | {"scene_summary": "the kitchen"}], "Salander saw him in the kitchen")), \
                 patch("app.agent.tools.scenes._scene_points", return_value=([], "")), \
                 patch("app.agent.tools.scenes._alias_variants", return_value=[]):
@@ -401,15 +401,15 @@ class Coverage(unittest.TestCase):
 class IdsAndHelpers(unittest.TestCase):
     def test_resolves_a_unique_prefix(self):
         row = {"id": "abcdef12-3456-7890-abcd-ef1234567890", "text": "x"}
-        with patch("app.retrieval.passages._row_index", return_value=({row["id"]: row}, [row])):
-            self.assertIs(_resolve_id("test", "abcdef12")[0], row)
-            self.assertIsNone(_resolve_id("test", "abcde")[0])  # too short to guess
-            self.assertIn("no passage", _resolve_id("test", "ffffffff")[1])
+        with patch("app.retrieval.passages.passage_index", return_value=({row["id"]: row}, [row])):
+            self.assertIs(resolve_passage_id("test", "abcdef12")[0], row)
+            self.assertIsNone(resolve_passage_id("test", "abcde")[0])  # too short to guess
+            self.assertIn("no passage", resolve_passage_id("test", "ffffffff")[1])
 
     def test_reports_an_ambiguous_prefix(self):
         rows = [{"id": "abcdef12-0000-0000-0000-000000000001"}, {"id": "abcdef12-0000-0000-0000-000000000002"}]
-        with patch("app.retrieval.passages._row_index", return_value=({row["id"]: row for row in rows}, rows)):
-            row, error = _resolve_id("test", "abcdef12")
+        with patch("app.retrieval.passages.passage_index", return_value=({row["id"]: row for row in rows}, rows)):
+            row, error = resolve_passage_id("test", "abcdef12")
             self.assertIsNone(row)
             self.assertIn("ambiguous", error)
 

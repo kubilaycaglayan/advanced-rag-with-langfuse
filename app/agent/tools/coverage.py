@@ -6,11 +6,11 @@ from app.agent.tools.accounts import _RELATION_WORDS
 from app.agent.tools.search import _scene_points
 from app.context.citations import _scene_member
 from app.indexing.entities import entity_cards_path
-from app.retrieval.passages import _row_index
-from app.retrieval.passages import _scene_member_rows
-from app.retrieval.search import _entity_anchors
-from app.retrieval.search import _entity_cards
-from app.retrieval.search import _name_pairs
+from app.retrieval.passages import passage_index
+from app.retrieval.passages import scene_member_rows
+from app.retrieval.search import entity_anchors
+from app.retrieval.search import entity_cards
+from app.retrieval.search import name_pairs
 from typing import Any
 import re
 
@@ -42,7 +42,7 @@ def _covered_stages(text: str) -> set[str]:
 
 def _is_person_key(collection: str, key: str) -> bool:
     """Whether a card key is a character's name rather than a place or thing (the books' name vocabulary decides)."""
-    words = _name_pairs(collection)[1]
+    words = name_pairs(collection)[1]
     known = {word.casefold(): count for word, count in words.items()}
     return any(known.get(word.casefold(), 0) >= 20 for word in key.split())
 
@@ -79,11 +79,11 @@ def _coverage_people(state: AgentState, answer: str) -> list[str]:
     path = entity_cards_path(state.collection, state.config)
     if not path.exists():
         return []
-    data = _entity_cards(str(path))
+    data = entity_cards(str(path))
     rows = [state.evidence[short] for short in state.order[:10] if short in state.evidence]
     match_text = " ".join([state.question, answer])
     text = " ".join([match_text] + [(row.get("text") or "")[:500] for row in rows])
-    names = set(_entity_anchors(text, data))
+    names = set(entity_anchors(text, data))
     lowered = match_text.casefold()
     place_counts: dict[str, int] = {}
     for card in data.get("cards", []):
@@ -94,7 +94,7 @@ def _coverage_people(state: AgentState, answer: str) -> list[str]:
             continue
         # A place or thing named in the answer: the people its facts name belong to that event. A name that several
         # of those cards mention is the one the answer is about, not an aside from one long card.
-        found = _entity_anchors(" ".join(card.get("facts", [])), data)
+        found = entity_anchors(" ".join(card.get("facts", [])), data)
         names |= found
         for name in found:
             neighbours = _person_neighbours(state.collection, data, name)
@@ -113,7 +113,7 @@ def _scene_chapter(state: AgentState, point: Any) -> tuple:
     members = point.payload.get("members") or []
     if not members:
         return ()
-    by_id, _ = _row_index(state.collection)
+    by_id, _ = passage_index(state.collection)
     row = by_id.get(str(members[0]))
     if not row:
         return ()
@@ -158,7 +158,7 @@ def _coverage_hint(state: AgentState, answer: str) -> dict[str, Any]:
             scene_rows = []
             for point, _ in ranked_scenes:
                 members = [str(member) for member in (point.payload.get("members") or [])][:1]
-                scene_rows += _scene_member_rows(state.collection, members)
+                scene_rows += scene_member_rows(state.collection, members)
             state.remember(scene_rows)
             state.focus_on(scene_rows)
             summary["scene_passages"] = [_scene_member(row, 400) for row in scene_rows]

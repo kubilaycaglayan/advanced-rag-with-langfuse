@@ -16,7 +16,7 @@ from app.agent.tools.search import _tool_keyword_search
 from app.agent.tools.search import _tool_semantic_search
 from app.agent.tools.submission import _tool_submit_answer
 from app.cache.intermediate import cache_value as _cache_value
-from app.retrieval.passages import _row_index
+from app.retrieval.passages import passage_index
 from typing import Any
 
 
@@ -57,7 +57,7 @@ def _run_tool(state: AgentState, name: str, args: dict[str, Any]) -> tuple[dict[
             {"collection": state.collection, "question": state.question, "arguments": args},
             input={"tool": name, "arguments": args}, compute=read,
             trace_output=lambda value: value.get("payload"))
-        by_id, _ = _row_index(state.collection)
+        by_id, _ = passage_index(state.collection)
         rows = [by_id[identifier] for identifier in cached["remembered_ids"] if identifier in by_id]
         state.remember(rows)
         focused = set(cached["focused_ids"])

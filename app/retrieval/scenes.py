@@ -7,7 +7,7 @@ from app.retrieval.search import qdrant_client
 from typing import Any
 
 
-def _scene_lookup(collection: str, config: ResolvedPipelineConfig, wanted: str) -> tuple[Any | None, str]:
+def scene_lookup(collection: str, config: ResolvedPipelineConfig, wanted: str) -> tuple[Any | None, str]:
     """Resolve a scene id (full or 8-character prefix) against the scene index."""
     wanted = (wanted or "").strip().strip("[]")
     if len(wanted) < 6:

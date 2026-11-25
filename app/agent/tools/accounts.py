@@ -7,11 +7,11 @@ from app.agent.tools.search import _semantic_rows
 from app.context.citations import _passage
 from app.context.citations import _scene_member
 from app.indexing.entities import entity_cards_path
-from app.retrieval.entities import _display_name
-from app.retrieval.entities import _resolve_entity
-from app.retrieval.passages import _scene_member_rows
-from app.retrieval.search import _entity_anchors
-from app.retrieval.search import _entity_cards
+from app.retrieval.entities import display_name
+from app.retrieval.entities import resolve_entity
+from app.retrieval.passages import scene_member_rows
+from app.retrieval.search import entity_anchors
+from app.retrieval.search import entity_cards
 from typing import Any
 import re
 
@@ -137,7 +137,7 @@ def _candidate_others(state: AgentState, person: str, data: dict[str, Any]) -> l
     for key, other_card in cards.items():
         if key != person and key in facts:
             scores[key] = scores.get(key, 0) + 1
-    for anchor in _entity_anchors(state.question, data):
+    for anchor in entity_anchors(state.question, data):
         if anchor != person:
             scores[anchor] = scores.get(anchor, 0) + 2
     ordered = sorted(scores, key=lambda key: (scores[key], cards[key].get("mentions", 0)), reverse=True)
@@ -190,18 +190,18 @@ def _tool_true_account(state: AgentState, args: dict[str, Any]) -> dict[str, Any
     data: dict[str, Any] = {}
     path = entity_cards_path(state.collection, state.config)
     if path.exists():
-        data = _entity_cards(str(path))
-    person_key = _resolve_entity(data, person_name) if data else None
-    person = _display_name(person_key) if person_key else person_name
+        data = entity_cards(str(path))
+    person_key = resolve_entity(data, person_name) if data else None
+    person = display_name(person_key) if person_key else person_name
     other_key = ""
     if other_name:
-        other_key = (_resolve_entity(data, other_name) or "") if data else ""
+        other_key = (resolve_entity(data, other_name) or "") if data else ""
         other_key = other_key or other_name
     elif person_key:
         candidates = _candidate_others(state, person_key, data)
         if candidates:
             other_key = candidates[0]
-    other = _display_name(other_key) if other_key else ""
+    other = display_name(other_key) if other_key else ""
     role = _relation_role(data, person_key or person, other_key or other) if other else ""
     queries = (_true_account_queries(person, other, event, role, _pronoun(data, other_key)) if other else [
         f"{_bare_name(person)} {event}".strip()])
@@ -233,7 +233,7 @@ def _tool_true_account(state: AgentState, args: dict[str, Any]) -> dict[str, Any
                 "queries": used,
                 "note": "nothing found; name who else was present and call again, or search the event words directly"}
     chosen = ranked_scenes[0][0] if ranked_scenes else None
-    chosen_rows = (_scene_member_rows(state.collection, [str(member) for member in (chosen.payload.get("members") or [])])
+    chosen_rows = (scene_member_rows(state.collection, [str(member) for member in (chosen.payload.get("members") or [])])
                    if chosen is not None else [])
     shown_passages = sorted(passages.values(), key=lambda row: float(row.get("score") or 0), reverse=True)[:2]
     state.remember(chosen_rows)

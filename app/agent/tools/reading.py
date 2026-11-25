@@ -4,23 +4,23 @@ from __future__ import annotations
 from app.agent.protocol import _int
 from app.agent.state import AgentState
 from app.context.citations import _passage
-from app.retrieval.passages import _resolve_id
-from app.retrieval.passages import _row_index
-from app.retrieval.search import _passage_position
+from app.retrieval.passages import resolve_passage_id
+from app.retrieval.passages import passage_index
+from app.retrieval.search import passage_position
 from typing import Any
 import re
 
 
 def _tool_read_passage(state: AgentState, args: dict[str, Any]) -> dict[str, Any]:
     wanted = str(args.get("id") or "")
-    row, error = _resolve_id(state.collection, wanted)
+    row, error = resolve_passage_id(state.collection, wanted)
     if row is None:
         return {"error": error}
     before = _int(args, "before", 1, 0, 3)
     after = _int(args, "after", 1, 0, 3)
-    _, rows = _row_index(state.collection)
+    _, rows = passage_index(state.collection)
     section = [item for item in rows if item.get("book_file") == row.get("book_file") and item.get("section") == row.get("section")]
-    section.sort(key=_passage_position)
+    section.sort(key=passage_position)
     position = next((index for index, item in enumerate(section) if item["id"] == row["id"]), None)
     window = section[max(0, (position or 0) - before): (position or 0) + after + 1] if position is not None else [row]
     state.remember(window)
@@ -37,7 +37,7 @@ def _tool_read_chapter(state: AgentState, args: dict[str, Any]) -> dict[str, Any
         return {"error": "book and chapter are required"}
     offset = _int(args, "offset", 0, 0, 200)
     limit = _int(args, "limit", 8, 1, 12)
-    _, rows = _row_index(state.collection)
+    _, rows = passage_index(state.collection)
     books = sorted({row.get("book") or "" for row in rows})
     matched_books = [title for title in books if book.casefold() in title.casefold()]
     if len(matched_books) != 1:
@@ -52,7 +52,7 @@ def _tool_read_chapter(state: AgentState, args: dict[str, Any]) -> dict[str, Any
     if len(matched) != 1:
         return {"error": f"chapter {chapter!r} matched {len(matched)} chapters", "chapters": chapters}
     chapter_name = matched[0]
-    paragraphs = sorted((row for row in in_book if row.get("chapter") == chapter_name), key=_passage_position)
+    paragraphs = sorted((row for row in in_book if row.get("chapter") == chapter_name), key=passage_position)
     window = paragraphs[offset: offset + limit]
     state.remember(window)
     return {"book": title, "chapter": chapter_name, "total_paragraphs": len(paragraphs), "offset": offset,
