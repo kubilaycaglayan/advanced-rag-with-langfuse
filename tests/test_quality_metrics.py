@@ -7,7 +7,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
-from app.quality_metrics import SearchCall, _context_text, _precision_at, _ollama_json, extract_trace, faithfulness_context, score_trace
+from app.evaluation.metrics import SearchCall, _context_text, _precision_at, _ollama_json, extract_trace, faithfulness_context, score_trace
 
 
 class QualityMetricChecks(unittest.TestCase):
@@ -71,7 +71,7 @@ class QualityMetricChecks(unittest.TestCase):
         self.assertEqual(faithfulness_context(observations), ("final handoff context", None))
         self.assertIsNone(faithfulness_context(observations[:2])[0])
 
-    @patch("app.quality_metrics.requests.post")
+    @patch("app.evaluation.metrics.requests.post")
     def test_judge_expands_context_for_long_inputs_and_rejects_oversize(self, post):
         post.return_value.json.return_value = {"message": {"content": "{}"}}
         _ollama_json([{"role": "user", "content": "x" * 35000}], {}, "judge")
@@ -112,10 +112,10 @@ class QualityMetricChecks(unittest.TestCase):
             path.write_text(json.dumps({"version": 4, "index_collection": "idx", "datasets": {
                 "set": {"item": {"question": "question", "passages": [
                     {"short_id": "12345678", "relevance": "direct"}]}}}}))
-            with patch("app.quality_metrics.Langfuse", return_value=client), \
-                 patch("app.quality_metrics.fetch_observations", return_value=observations), \
-                 patch("app.quality_metrics.judge_faithfulness", return_value={"score": 1.0}), \
-                 patch("app.quality_metrics.judge_relevancy", return_value={"score": 0.8}):
+            with patch("app.evaluation.metrics.Langfuse", return_value=client), \
+                 patch("app.evaluation.metrics.fetch_observations", return_value=observations), \
+                 patch("app.evaluation.metrics.judge_faithfulness", return_value={"score": 1.0}), \
+                 patch("app.evaluation.metrics.judge_relevancy", return_value={"score": 0.8}):
                 result = score_trace("trace", path, "set", "item", (1,), "judge", write=True)
         self.assertEqual(spans["retrieval evaluation"][1], "quality evaluation")
         self.assertEqual(spans["retrieval search call evaluation"][1], "retrieval evaluation")
@@ -141,10 +141,10 @@ class QualityMetricChecks(unittest.TestCase):
             path.write_text(json.dumps({"datasets": {"set": {"item": {
                 "question": "question", "retrieval_metrics_ready": False,
                 "passages": [{"short_id": "12345678", "relevance": "direct"}]}}}}))
-            with patch("app.quality_metrics.Langfuse"), \
-                 patch("app.quality_metrics.fetch_observations", return_value=observations), \
-                 patch("app.quality_metrics.judge_faithfulness", return_value={"score": 1.0}), \
-                 patch("app.quality_metrics.judge_relevancy", return_value={"score": 0.8}):
+            with patch("app.evaluation.metrics.Langfuse"), \
+                 patch("app.evaluation.metrics.fetch_observations", return_value=observations), \
+                 patch("app.evaluation.metrics.judge_faithfulness", return_value={"score": 1.0}), \
+                 patch("app.evaluation.metrics.judge_relevancy", return_value={"score": 0.8}):
                 result = score_trace("trace", path, "set", "item", (1,), "judge", write=False)
         self.assertFalse(any("retrieval" in key for key in result["metrics"]))
         self.assertEqual(result["metrics"]["qm_faithfulness_generation"], 1.0)
@@ -160,10 +160,10 @@ class QualityMetricChecks(unittest.TestCase):
             path = Path(directory) / "qrels.json"
             path.write_text(json.dumps({"datasets": {"set": {"item": {
                 "question": "question", "passages": []}}}}))
-            with patch("app.quality_metrics.Langfuse"), \
-                 patch("app.quality_metrics.fetch_observations", return_value=observations), \
-                 patch("app.quality_metrics.judge_faithfulness", side_effect=RuntimeError("judge unavailable")), \
-                 patch("app.quality_metrics.judge_relevancy", return_value={"score": 0.8}):
+            with patch("app.evaluation.metrics.Langfuse"), \
+                 patch("app.evaluation.metrics.fetch_observations", return_value=observations), \
+                 patch("app.evaluation.metrics.judge_faithfulness", side_effect=RuntimeError("judge unavailable")), \
+                 patch("app.evaluation.metrics.judge_relevancy", return_value={"score": 0.8}):
                 result = score_trace("trace", path, "set", "item", (1,), "judge", write=False)
         self.assertEqual(result["errors"], ["faithfulness"])
         self.assertIn("judge unavailable", result["faithfulness"]["reason"])

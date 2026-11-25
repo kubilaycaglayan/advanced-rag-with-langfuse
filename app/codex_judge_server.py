@@ -8,7 +8,7 @@ import subprocess
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-from .evaluation import _codex_chat
+from app.evaluation.judges import _codex_chat
 
 
 class Handler(BaseHTTPRequestHandler):

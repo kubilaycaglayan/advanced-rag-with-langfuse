@@ -11,7 +11,7 @@ from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
 from app.main import AskRequest, app, ask, ask_stream, experiment_status, _run_ask
-from app.resolved_config import ResolvedPipelineConfig
+from app.pipelines.config import ResolvedPipelineConfig
 
 
 class InteractiveAskContract(TestCase):
@@ -121,7 +121,7 @@ class InteractiveAskContract(TestCase):
              patch("app.main.observation", return_value=nullcontext(None)), \
              patch("app.main.update_observation"), \
              patch("app.main.get_client", return_value=client), \
-             patch("app.pipeline_runner.run_agent", return_value=agent_result) as agent:
+             patch("app.pipelines.runner.run_agent", return_value=agent_result) as agent:
             result = ask(AskRequest(question="Who?", cache_mode="bypass"))
         self.assertEqual(result["engine"], "agent")
         self.assertEqual(result["mode"], "agent")

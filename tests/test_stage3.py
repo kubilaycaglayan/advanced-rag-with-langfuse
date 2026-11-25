@@ -15,15 +15,15 @@ os.environ["LANGFUSE_TRACING_ENABLED"] = "false"
 from langfuse.api import NotFoundError
 
 from app.identity import question_label, question_session_id
-from app.resolved_config import ResolvedPipelineConfig
+from app.pipelines.config import ResolvedPipelineConfig
 from app.experiment_store import enqueue, get_execution, initialize, mark_interrupted, update_execution
 from app.seed_dataset import _seed_dataset
-from app.evaluation import FALLBACK_FACTS, _judge, _opencode_chat, _codex_chat, _langfuse_usage, answer_facts, fact_score
-from app.evaluator_specs import ANSWER_CORRECTNESS_V1, ANSWER_CORRECTNESS_V2, ANSWER_CORRECTNESS_V3, ANSWER_CORRECTNESS_CODEX_V1
-from app.indexer import index_identity
+from app.evaluation.judges import FALLBACK_FACTS, _judge, _opencode_chat, _codex_chat, _langfuse_usage, answer_facts, fact_score
+from app.evaluation.specs import ANSWER_CORRECTNESS_V1, ANSWER_CORRECTNESS_V2, ANSWER_CORRECTNESS_V3, ANSWER_CORRECTNESS_CODEX_V1
+from app.indexing.passages import index_identity
 from app.experiments import _flush_client, submit_retry
 from app.main import _custom_payload
-from app.evaluation import correctness, citation_support, is_explicit_abstention
+from app.evaluation.judges import correctness, citation_support, is_explicit_abstention
 from app import experiments as experiments_module
 
 
@@ -138,8 +138,8 @@ class Stage3Checks(unittest.TestCase):
         relabelled = '{"R1":{"quote":"x","verdict":"present"},"D9":{"quote":"","verdict":"present"},"explanation":"e"}'
         complete = ('{"R1":{"quote":"x","verdict":"present"},"D1":{"quote":"","verdict":"missing"},'
                     '"explanation":"core answer given","score":0}')
-        with patch("app.evaluation.observation", return_value=nullcontext(None)), \
-             patch("app.evaluation.requests.post", side_effect=[Response(relabelled), Response(complete)]) as post:
+        with patch("app.evaluation.judges.observation", return_value=nullcontext(None)), \
+             patch("app.evaluation.judges.requests.post", side_effect=[Response(relabelled), Response(complete)]) as post:
             result = _judge(ANSWER_CORRECTNESS_V2, question="q", answer="a", expected="r", facts=(["fact"], ["detail"]))
         self.assertEqual(result["score"], 0.9)
         self.assertEqual(post.call_count, 2)
@@ -150,7 +150,7 @@ class Stage3Checks(unittest.TestCase):
     def test_v2_correctness_reports_its_own_score_name_and_verdicts(self):
         judged = {"score": 0.9, "explanation": "ok", "latency_seconds": 0.1,
                   "verdicts": {"R1": {"quote": "x", "verdict": "present"}}}
-        with patch("app.evaluation._judge", return_value=judged) as judge:
+        with patch("app.evaluation.judges._judge", return_value=judged) as judge:
             score = correctness(input={"question": "q"}, output={"answer": "a"}, spec=ANSWER_CORRECTNESS_V2,
                                 expected_output={"answer": "r", "required_facts": ["f"], "supporting_details": []})
         self.assertEqual((score["name"], score["value"]), ("answer_correctness_v2", 0.9))
@@ -160,7 +160,7 @@ class Stage3Checks(unittest.TestCase):
     def test_v3_correctness_uses_the_same_fact_contract(self):
         judged = {"score": 0.95, "explanation": "ok", "latency_seconds": 0.1,
                   "verdicts": {"R1": {"quote": "x", "verdict": "present"}}}
-        with patch("app.evaluation._judge", return_value=judged) as judge:
+        with patch("app.evaluation.judges._judge", return_value=judged) as judge:
             score = correctness(input={"question": "q"}, output={"answer": "a"}, spec=ANSWER_CORRECTNESS_V3,
                                 expected_output={"answer": "r", "required_facts": ["f"], "supporting_details": ["d"]})
         self.assertEqual((score["name"], score["value"]), ("answer_correctness_v3", 0.95))
@@ -178,8 +178,8 @@ class Stage3Checks(unittest.TestCase):
                 return Response({"id": "session-1"})
             return Response({"info": {"error": None, "structured": {"score": 0.8, "explanation": "ok"}}})
         schema = {"type": "object", "properties": {"score": {"type": "number"}}, "required": ["score"]}
-        with patch("app.evaluation.requests.post", side_effect=post), \
-             patch("app.evaluation.requests.delete") as delete:
+        with patch("app.evaluation.judges.requests.post", side_effect=post), \
+             patch("app.evaluation.judges.requests.delete") as delete:
             raw = _opencode_chat([{"role": "system", "content": "judge"}, {"role": "user", "content": "claim"}],
                                  "opencode/deepseek-v4.1-flash-free", "low", schema)
         self.assertEqual(json.loads(raw), {"score": 0.8, "explanation": "ok"})
@@ -198,8 +198,8 @@ class Stage3Checks(unittest.TestCase):
         managed = SimpleNamespace(model="qwen3:8b",
                                   compile=lambda **variables: [{"role": "user", "content": "judge"}])
         judged = '{"R1":{"quote":"x","verdict":"present"},"explanation":"core fact"}'
-        with patch("app.evaluation._opencode_chat", return_value=judged) as opencode, \
-             patch("app.evaluation.observation", return_value=nullcontext(None)):
+        with patch("app.evaluation.judges._opencode_chat", return_value=judged) as opencode, \
+             patch("app.evaluation.judges.observation", return_value=nullcontext(None)):
             result = _judge(ANSWER_CORRECTNESS_V3, question="q", answer="a", managed_prompt=managed,
                             facts=(["fact"], []))
         self.assertEqual(result["score"], 1.0)
@@ -217,7 +217,7 @@ class Stage3Checks(unittest.TestCase):
                                                  "output_tokens": 30}}))
         schema = {"type": "object"}
         with patch.dict(os.environ, {"CODEX_JUDGE_URL": ""}), \
-             patch("app.evaluation.subprocess.run", side_effect=run):
+             patch("app.evaluation.judges.subprocess.run", side_effect=run):
             first = _codex_chat([{"role": "user", "content": "first"}], "gpt-5.6-luna", schema)
             second = _codex_chat([{"role": "user", "content": "second"}], "gpt-5.6-luna", schema)
         self.assertEqual(first[1], {"input_tokens": 100, "cached_input_tokens": 20, "output_tokens": 30})
@@ -230,9 +230,9 @@ class Stage3Checks(unittest.TestCase):
     def test_codex_score_carries_token_usage(self):
         managed = SimpleNamespace(model="qwen3:8b", compile=lambda **variables: [{"role": "user", "content": "judge"}])
         judged = '{"R1":{"quote":"answer","verdict":"present"},"explanation":"stated"}'
-        with patch("app.evaluation._codex_chat", return_value=(judged, {"input_tokens": 100,
+        with patch("app.evaluation.judges._codex_chat", return_value=(judged, {"input_tokens": 100,
              "cached_input_tokens": 0, "output_tokens": 30})), \
-             patch("app.evaluation.observation", return_value=nullcontext(None)):
+             patch("app.evaluation.judges.observation", return_value=nullcontext(None)):
             result = correctness(input={"question": "q"}, output={"answer": "answer"},
                                  expected_output={"answer": "answer", "required_facts": ["answer"]},
                                  spec=ANSWER_CORRECTNESS_CODEX_V1, managed_prompt=managed)
@@ -247,10 +247,10 @@ class Stage3Checks(unittest.TestCase):
             seen.append((name, kwargs))
             return nullcontext(generation if kwargs["as_type"] == "generation" else None)
         judged = '{"R1":{"quote":"answer","verdict":"present"},"explanation":"stated"}'
-        with patch("app.evaluation._codex_chat", return_value=(judged, {"input_tokens": 100,
+        with patch("app.evaluation.judges._codex_chat", return_value=(judged, {"input_tokens": 100,
              "cached_input_tokens": 20, "output_tokens": 30})), \
-             patch("app.evaluation.observation", side_effect=observe), \
-             patch("app.evaluation.update_observation") as update:
+             patch("app.evaluation.judges.observation", side_effect=observe), \
+             patch("app.evaluation.judges.update_observation") as update:
             _judge(ANSWER_CORRECTNESS_CODEX_V1, question="q", answer="answer", facts=(["answer"], []))
         self.assertEqual(seen[1][1]["as_type"], "generation")
         self.assertEqual(seen[1][1]["model"], "gpt-5.6-luna")
@@ -262,8 +262,8 @@ class Stage3Checks(unittest.TestCase):
     def test_opencode_judge_error_is_retried_then_reported(self):
         managed = SimpleNamespace(model="qwen3:8b",
                                   compile=lambda **variables: [{"role": "user", "content": "judge"}])
-        with patch("app.evaluation._opencode_chat", side_effect=ValueError("provider failed")) as opencode, \
-             patch("app.evaluation.observation", return_value=nullcontext(None)):
+        with patch("app.evaluation.judges._opencode_chat", side_effect=ValueError("provider failed")) as opencode, \
+             patch("app.evaluation.judges.observation", return_value=nullcontext(None)):
             with self.assertRaisesRegex(RuntimeError, "after one retry"):
                 _judge(ANSWER_CORRECTNESS_V3, question="q", answer="a", managed_prompt=managed,
                        facts=(["fact"], []))
@@ -274,14 +274,14 @@ class Stage3Checks(unittest.TestCase):
             def __init__(self, content): self.content = content
             def raise_for_status(self): pass
             def json(self): return {"message": {"content": self.content}}
-        with patch("app.evaluation.observation", return_value=nullcontext(None)), \
-             patch("app.evaluation.requests.post", side_effect=[Response("not json"), Response('{"score":0.75,"explanation":"partial"}')]) as post:
+        with patch("app.evaluation.judges.observation", return_value=nullcontext(None)), \
+             patch("app.evaluation.judges.requests.post", side_effect=[Response("not json"), Response('{"score":0.75,"explanation":"partial"}')]) as post:
             result = _judge(ANSWER_CORRECTNESS_V1, question="q", answer="a", expected="r")
         self.assertEqual(result["score"], 0.75)
         self.assertEqual(post.call_count, 2)
 
     def test_unavailable_ollama_is_an_evaluation_error_not_a_quality_score(self):
-        with patch("app.evaluation._judge", side_effect=RuntimeError("connection refused")):
+        with patch("app.evaluation.judges._judge", side_effect=RuntimeError("connection refused")):
             score = correctness(input={"question": "q"}, output={"answer": "a"},
                                 expected_output={"answer": "reference"})
         self.assertEqual(score["name"], "answer_correctness_v1_error")
@@ -290,8 +290,8 @@ class Stage3Checks(unittest.TestCase):
 
 
     def test_invalid_citation_label_cannot_earn_support_even_if_judge_would_score_it(self):
-        with patch("app.evaluation.observation", return_value=nullcontext(None)), \
-             patch("app.evaluation.requests.post") as post:
+        with patch("app.evaluation.judges.observation", return_value=nullcontext(None)), \
+             patch("app.evaluation.judges.requests.post") as post:
             score = citation_support(input={"question": "q"},
                 output={"answer": "Claim [E99].", "evidence": "[E1] supporting passage"})
         self.assertEqual(score["name"], "citation_support_v1")
@@ -306,8 +306,8 @@ class Stage3Checks(unittest.TestCase):
             def json(self):
                 return {"message": {"content": json.dumps({"score": None,
                     "explanation": "No factual claims; citation score not applicable."})}}
-        with patch("app.evaluation.observation", return_value=nullcontext(None)), \
-             patch("app.evaluation.requests.post", return_value=Response()):
+        with patch("app.evaluation.judges.observation", return_value=nullcontext(None)), \
+             patch("app.evaluation.judges.requests.post", return_value=Response()):
             score = citation_support(input={"question": "Who tried to shoot Mikael?"},
                 output={"answer": "The evidence does not indicate who tried to shoot Mikael. None of the passages mention it.",
                         "evidence": "[E1] passage"})

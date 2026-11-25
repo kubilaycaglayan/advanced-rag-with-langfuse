@@ -3,7 +3,7 @@ from contextlib import contextmanager
 from unittest import TestCase
 from unittest.mock import patch
 
-from app import intermediate_cache
+from app.cache import intermediate as intermediate_cache
 
 
 class MemoryRedis:

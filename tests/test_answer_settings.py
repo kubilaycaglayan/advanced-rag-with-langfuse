@@ -8,8 +8,8 @@ from unittest.mock import MagicMock, patch
 
 os.environ["LANGFUSE_TRACING_ENABLED"] = "false"
 
-from app import pipeline
-from app.resolved_config import ResolvedPipelineConfig
+from app.retrieval import search as pipeline
+from app.pipelines.config import ResolvedPipelineConfig
 
 
 class NameCompletionChecks(unittest.TestCase):
@@ -64,7 +64,7 @@ class SceneSearchChecks(unittest.TestCase):
     def test_validation(self):
         config = ResolvedPipelineConfig()
         self.assertEqual((config.scene_window, config.scene_stride, config.scene_search_hits), (6, 3, 10))
-        from app import scenes
+        from app.indexing import scenes as scenes
         self.assertEqual(scenes.summary_model(config), "gemma4:26b")
         self.assertFalse(config.scene_thinking)
         self.assertTrue(ResolvedPipelineConfig.from_mapping({"scene_thinking": True}).scene_thinking)
@@ -127,7 +127,7 @@ if __name__ == "__main__":
 
 class SceneSummaryNameChecks(unittest.TestCase):
     def setUp(self):
-        from app import scenes
+        from app.indexing import scenes as scenes
         self.scenes = scenes
         books = (["and Mikael Blomkvist said hello. " * 25 + "Then he saw Blomkvist and Salander. " * 40
                   + "and Lisbeth Salander left. " * 25 + "and Wadensjöö came, and Armansky too. " * 5

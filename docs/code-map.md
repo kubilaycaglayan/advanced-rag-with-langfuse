@@ -1,7 +1,7 @@
 # Backend and server ownership
 
-This map describes the target of the organization refactor. Until the moves land,
-use the current-owner column to locate code. The UI submodule is a separate,
+This map describes the target of the organization refactor. The indexing, pipelines, cache, evaluation, and retrieval packages have moved;
+the table records their previous owners for navigation during the remaining work. The UI submodule is a separate,
 unchanged HTTP consumer.
 
 | Responsibility | Current owner | Intended owner |

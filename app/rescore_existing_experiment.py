@@ -12,10 +12,10 @@ import time
 
 from langfuse import Langfuse
 
-from .corpus_config import corpus_data_dir
-from .evaluation import correctness
-from .evaluator_specs import ANSWER_CORRECTNESS_CODEX_V1
-from .prompt_assets import ManagedJudgePrompt, load_managed_evaluators
+from app.corpus_config import corpus_data_dir
+from app.evaluation.judges import correctness
+from app.evaluation.specs import ANSWER_CORRECTNESS_CODEX_V1
+from app.prompt_assets import ManagedJudgePrompt, load_managed_evaluators
 
 
 def _save(path: Path, state: dict) -> None:

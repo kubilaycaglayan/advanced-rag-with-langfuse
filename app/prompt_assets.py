@@ -11,9 +11,8 @@ from typing import Any
 import requests
 from requests.auth import HTTPBasicAuth
 
-from .corpus_config import corpus_config, corpus_id, langfuse_evaluator_prefix
-from .evaluator_specs import (ANSWER_CORRECTNESS_V2, CITATION_SUPPORT_V1,
-                              EVALUATOR_SPECS, FACT_SPECS, JUDGE_MODELS)
+from app.corpus_config import corpus_config, corpus_id, langfuse_evaluator_prefix
+from app.evaluation.specs import ANSWER_CORRECTNESS_V2, CITATION_SUPPORT_V1, EVALUATOR_SPECS, FACT_SPECS, JUDGE_MODELS
 
 
 logger = logging.getLogger(__name__)

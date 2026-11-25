@@ -27,7 +27,7 @@ from langfuse import Langfuse
 
 from app.corpus_config import corpus_config, langfuse_dataset_name
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_QRELS = corpus_config().root / "retrieval-qrels.json"
 SEARCH_TOOLS = ("tool: semantic_search", "tool: keyword_search")
 JUDGE_MAX_CONTEXT_TOKENS = 262144

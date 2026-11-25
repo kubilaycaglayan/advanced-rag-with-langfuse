@@ -23,17 +23,15 @@ import requests
 
 logger = logging.getLogger(__name__)
 
-from .agent_final_handoff import conversation_final_messages
-from .entities import _cache_path as entity_cache_path, entity_cards_path
-from .evaluation import is_explicit_abstention
-from .observability import observation, update as update_observation
-from .corpus_profiles import agent_synthesis_prompt, profile_tool_specs
-from .intermediate_cache import cache_value as _cache_value
-from .pipeline import (_encode_query, _entity_cards, _keyword_index, _keyword_search, _entity_anchors, _keywords,
-                       _moment_scene_hits, _name_pairs, _passage_position, _query_points_cached,
-                       _reranker, _transform, qdrant_client)
-from .resolved_config import ResolvedPipelineConfig
-from .scenes import scene_collection
+from app.agent_final_handoff import conversation_final_messages
+from app.indexing.entities import _cache_path as entity_cache_path, entity_cards_path
+from app.evaluation.judges import is_explicit_abstention
+from app.observability import observation, update as update_observation
+from app.corpus_profiles import agent_synthesis_prompt, profile_tool_specs
+from app.cache.intermediate import cache_value as _cache_value
+from app.retrieval.search import _encode_query, _entity_cards, _keyword_index, _keyword_search, _entity_anchors, _keywords, _moment_scene_hits, _name_pairs, _passage_position, _query_points_cached, _reranker, _transform, qdrant_client
+from app.pipelines.config import ResolvedPipelineConfig
+from app.indexing.scenes import scene_collection
 
 
 SYSTEM_PROMPT = """You answer questions about Stieg Larsson's Millennium trilogy using a search index of the three books: The Girl with the Dragon Tattoo, The Girl Who Played with Fire and The Girl Who Kicked the Hornet's Nest.
@@ -1461,7 +1459,7 @@ def instruction_manifest() -> dict[str, Any]:
     Corpus overrides are recorded independently through prompt/profile identities.
     """
     try:
-        from .prompt_templates import PROMPT_TEMPLATES
+        from app.prompt_templates import PROMPT_TEMPLATES
     except ImportError:
         from prompt_templates import PROMPT_TEMPLATES
     functions = {

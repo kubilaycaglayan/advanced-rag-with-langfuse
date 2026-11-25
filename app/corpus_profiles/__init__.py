@@ -8,8 +8,8 @@ from pathlib import Path
 from dataclasses import dataclass
 from typing import Any
 
-from ..corpus_config import corpus_config
-from ..identity import canonical_json
+from app.corpus_config import corpus_config
+from app.identity import canonical_json
 
 
 @dataclass(frozen=True)
@@ -55,7 +55,7 @@ def agent_prompt() -> str:
 def prompt_identity() -> str:
     profile = load_profile()
     try:
-        from ..prompt_templates import PROMPT_TEMPLATES
+        from app.prompt_templates import PROMPT_TEMPLATES
     except ImportError:
         from prompt_templates import PROMPT_TEMPLATES
     templates = {**PROMPT_TEMPLATES, **(profile.prompt_overrides or {})}

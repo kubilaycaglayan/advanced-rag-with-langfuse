@@ -1,7 +1,7 @@
 """Project-checked Langfuse access for evaluator configuration."""
 import requests
 from app.prompt_assets import _api
-from .config import configuration
+from app.quality_evaluators.config import configuration
 
 
 def project_api():

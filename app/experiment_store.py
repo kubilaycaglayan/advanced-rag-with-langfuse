@@ -9,8 +9,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from .corpus_config import corpus_data_dir
-from .identity import canonical_json
+from app.corpus_config import corpus_data_dir
+from app.identity import canonical_json
 
 _local = threading.local()
 

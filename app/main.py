@@ -23,20 +23,20 @@ from langfuse import Langfuse, get_client
 from pydantic import BaseModel, Field, IPvAnyAddress
 from qdrant_client import QdrantClient
 
-from . import answer_cache
-from .corpus_config import corpus_config, corpus_data_dir, langfuse_project, langfuse_dataset_name
-from .corpus_profiles import langfuse_enabled, langfuse_tracing_required
-from .evaluator_specs import CORRECTNESS_SPECS
-from .experiment_store import get_execution, initialize
-from .frontend_rate_limit import reserve_request
-from .experiments import start_worker, submit, submit_retry
-from .indexer import build_index, validate_index
-from .intermediate_cache import scope_for as intermediate_cache_scope, use_cache as use_intermediate_cache
-from .observability import observation, record_cache_lookup, trace_scope, update as update_observation
-from .pipeline_catalog import load_catalog
-from .pipeline_resolver import resolve
-from .pipeline_runner import run as run_resolved_pipeline
-from .resolved_config import ResolvedPipelineConfig, resolve_pipeline_model_identities
+from app.cache import answers as answer_cache
+from app.corpus_config import corpus_config, corpus_data_dir, langfuse_project, langfuse_dataset_name
+from app.corpus_profiles import langfuse_enabled, langfuse_tracing_required
+from app.evaluation.specs import CORRECTNESS_SPECS
+from app.experiment_store import get_execution, initialize
+from app.frontend_rate_limit import reserve_request
+from app.experiments import start_worker, submit, submit_retry
+from app.indexing.passages import build_index, validate_index
+from app.cache.intermediate import scope_for as intermediate_cache_scope, use_cache as use_intermediate_cache
+from app.observability import observation, record_cache_lookup, trace_scope, update as update_observation
+from app.pipelines.catalog import load_catalog
+from app.pipelines.resolver import resolve
+from app.pipelines.runner import run as run_resolved_pipeline
+from app.pipelines.config import ResolvedPipelineConfig, resolve_pipeline_model_identities
 
 app = FastAPI(title=f"{corpus_config().title} RAG Experiment Runner", version="0.2.0")
 logger = logging.getLogger(__name__)

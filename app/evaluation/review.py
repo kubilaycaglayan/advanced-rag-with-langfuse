@@ -14,7 +14,7 @@ from typing import Any
 from langfuse import Langfuse
 from qdrant_client import QdrantClient
 
-from .quality_metrics import DEFAULT_QRELS, SEARCH_TOOLS, fetch_observations
+from app.evaluation.metrics import DEFAULT_QRELS, SEARCH_TOOLS, fetch_observations
 
 DEFAULT_TRACES = [
     ("QA1", "785e319a-89a1-5950-96cf-f99a23162a87", "a18f003e157b35c8c10e455e5a7b6551"),

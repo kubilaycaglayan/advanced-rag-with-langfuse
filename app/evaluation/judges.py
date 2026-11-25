@@ -13,8 +13,8 @@ from typing import Any
 
 import requests
 
-from .evaluator_specs import ANSWER_CORRECTNESS_V1, CITATION_SUPPORT_V1, FACT_SPECS, JUDGE_MODELS
-from .observability import observation, update as update_observation, use_client
+from app.evaluation.specs import ANSWER_CORRECTNESS_V1, CITATION_SUPPORT_V1, FACT_SPECS, JUDGE_MODELS
+from app.observability import observation, update as update_observation, use_client
 
 
 _ABSTENTION_PATTERN = re.compile(

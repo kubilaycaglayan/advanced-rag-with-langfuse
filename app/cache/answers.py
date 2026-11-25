@@ -11,7 +11,7 @@ from functools import lru_cache
 from typing import Any
 from urllib.parse import quote
 
-from .identity import canonical_json
+from app.identity import canonical_json
 
 logger = logging.getLogger(__name__)
 CACHE_FORMAT = 1

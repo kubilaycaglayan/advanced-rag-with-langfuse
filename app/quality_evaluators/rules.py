@@ -4,8 +4,8 @@ import json
 
 import requests
 
-from .client import project_api, list_resources
-from .config import configuration
+from app.quality_evaluators.client import project_api, list_resources
+from app.quality_evaluators.config import configuration
 
 OBSERVATION_NAME = configuration().observation_name
 QUESTION_TYPES = ("normal", "single_evidence", "broad")

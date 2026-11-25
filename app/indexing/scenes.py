@@ -26,11 +26,11 @@ from typing import Any
 import requests
 from qdrant_client import QdrantClient, models
 
-from .corpus_config import corpus_file_path
-from .corpus_profiles import load_profile, profile_prompt
-from .identity import canonical_json
-from .prompt_templates import PROMPT_TEMPLATES
-from .resolved_config import ResolvedPipelineConfig
+from app.corpus_config import corpus_file_path
+from app.corpus_profiles import load_profile, profile_prompt
+from app.identity import canonical_json
+from app.prompt_templates import PROMPT_TEMPLATES
+from app.pipelines.config import ResolvedPipelineConfig
 
 
 def summary_model(config: ResolvedPipelineConfig) -> str:
@@ -258,8 +258,8 @@ def repair_cache(collection: str, config: ResolvedPipelineConfig, qdrant: Qdrant
 
 if __name__ == "__main__":
     try:
-        from .indexer import build_index, index_identity
-        from .resolved_config import resolve_pipeline_model_identities
+        from app.indexing.passages import build_index, index_identity
+        from app.pipelines.config import resolve_pipeline_model_identities
     except ImportError:
         from indexer import build_index, index_identity
         from resolved_config import resolve_pipeline_model_identities

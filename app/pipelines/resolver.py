@@ -7,12 +7,12 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping
 
-from .corpus_config import corpus_config, corpus_id
-from .corpus_profiles import profile_identity, prompt_identity
-from .agent import AgentSettings, instruction_fingerprint, tool_names
-from .identity import canonical_json
-from .pipeline_catalog import PipelineCatalog, load_catalog
-from .resolved_config import ResolvedPipelineConfig
+from app.corpus_config import corpus_config, corpus_id
+from app.corpus_profiles import profile_identity, prompt_identity
+from app.agent import AgentSettings, instruction_fingerprint, tool_names
+from app.identity import canonical_json
+from app.pipelines.catalog import PipelineCatalog, load_catalog
+from app.pipelines.config import ResolvedPipelineConfig
 
 IDENTITY_KEYS = {"corpus_checksum", "prompt_hashes", "engine", "pipeline", "agent", "index", "prompts", "models"}
 
@@ -103,7 +103,7 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
                     if key not in {"tools", "instruction_fingerprint", "conversation_handoff_fingerprint"}}
     agent_settings = AgentSettings(**agent_values)
     expected_handoff = block["agent"].get("conversation_handoff_fingerprint")
-    actual_handoff = hashlib.sha256(Path(__file__).with_name("agent_final_handoff.py").read_bytes()).hexdigest()
+    actual_handoff = hashlib.sha256((Path(__file__).resolve().parents[1] / "agent_final_handoff.py").read_bytes()).hexdigest()
     if expected_handoff != actual_handoff:
         raise ValueError(f"{version}: conversation handoff differs from its pinned fingerprint")
     if agent_provider is not None:
@@ -157,7 +157,7 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
     if selected_id == "millennium" and expected_instructions != actual_instructions:
         raise ValueError(f"{version}: agent instructions differ from released version; publish a new version")
     try:
-        from .indexer import index_identity
+        from app.indexing.passages import index_identity
     except ImportError:
         from indexer import index_identity
     expected_collection = index_identity(config)[0]

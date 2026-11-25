@@ -1,8 +1,8 @@
 """Native Langfuse quality evaluator definitions; execution belongs to Langfuse."""
 from pathlib import Path
 import requests
-from .client import project_api, list_resources
-from .config import configuration
+from app.quality_evaluators.client import project_api, list_resources
+from app.quality_evaluators.config import configuration
 
 JUDGE_MODEL = "qwen3.6:35b-judge-16k"
 

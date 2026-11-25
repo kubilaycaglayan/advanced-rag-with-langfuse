@@ -12,8 +12,8 @@ from unittest import TestCase
 from unittest.mock import patch
 
 from app.agent import AgentSettings, _synthesis_rows, instruction_fingerprint, run_agent, tool_names
-from app.pipeline_catalog import CATALOG, RELEASES, fingerprint, load_catalog
-from app.pipeline_resolver import resolve
+from app.pipelines.catalog import CATALOG, RELEASES, fingerprint, load_catalog
+from app.pipelines.resolver import resolve
 from app import experiments as experiments_module
 from app.experiment_store import enqueue, initialize
 
@@ -185,6 +185,6 @@ class SupportedCatalog(TestCase):
                 resolve(version)
 
     def test_instruction_tampering_is_rejected(self):
-        with patch("app.pipeline_resolver.instruction_fingerprint", return_value="changed"):
+        with patch("app.pipelines.resolver.instruction_fingerprint", return_value="changed"):
             with self.assertRaisesRegex(ValueError, "agent instructions differ"):
                 resolve()

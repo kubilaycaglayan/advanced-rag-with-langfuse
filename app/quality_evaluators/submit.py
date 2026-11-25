@@ -6,10 +6,10 @@ import uuid
 from langfuse import Langfuse
 
 from app.corpus_config import corpus_data_dir
-from app.quality_metrics import extract_trace, faithfulness_context, fetch_observations, load_qrels
-from .client import project_api
-from .config import configuration
-from .rules import observation_metadata, reconcile
+from app.evaluation.metrics import extract_trace, faithfulness_context, fetch_observations, load_qrels
+from app.quality_evaluators.client import project_api
+from app.quality_evaluators.config import configuration
+from app.quality_evaluators.rules import observation_metadata, reconcile
 
 
 def validate_source(observations, config):

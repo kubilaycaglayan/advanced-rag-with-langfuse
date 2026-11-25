@@ -8,11 +8,11 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from app import indexer
+from app.indexing import passages as indexer
 from app.corpus_config import corpus_config, corpus_data_dir
 from app.corpus_profiles import agent_prompt, langfuse_enabled, load_profile, profile_prompt
-from app.pipeline_resolver import resolve
-from app.resolved_config import ResolvedPipelineConfig
+from app.pipelines.resolver import resolve
+from app.pipelines.config import ResolvedPipelineConfig
 from app.seed_dataset import default_seed_path
 
 

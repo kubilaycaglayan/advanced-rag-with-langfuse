@@ -18,22 +18,21 @@ from typing import Any
 from langfuse import Langfuse, propagate_attributes
 from opentelemetry import trace as otel_trace_api
 
-from . import answer_cache
-from .corpus_config import corpus_config, corpus_data_dir, langfuse_project, langfuse_dataset_name
-from .corpus_profiles import profile_identity, prompt_identity
-from .evaluation import citation_support, correctness, is_explicit_abstention
-from .experiment_store import (enqueue, get_execution, initialize, mark_interrupted,
-                               pending_jobs, update_execution)
-from .identity import canonical_json, dataset_snapshot, evaluator_identity, question_label, question_session_id, source_manifest
-from .indexer import build_index, corpus_paths
-from .intermediate_cache import scope_for as intermediate_cache_scope, use_cache as use_intermediate_cache
-from .evaluator_specs import CORRECTNESS_SPECS, DEFAULT_CORRECTNESS, JUDGE_MODELS, evaluator_manifest
-from .observability import observation, pack_scope_attributes, record_cache_lookup, use_client
-from .prompt_assets import ManagedJudgePrompt, load_managed_evaluators
-from .resolved_config import ResolvedPipelineConfig, resolve_ollama_model
-from .pipeline_resolver import ResolvedRun, resolve
-from .pipeline_catalog import load_catalog
-from .pipeline_runner import run as run_resolved_pipeline
+from app.cache import answers as answer_cache
+from app.corpus_config import corpus_config, corpus_data_dir, langfuse_project, langfuse_dataset_name
+from app.corpus_profiles import profile_identity, prompt_identity
+from app.evaluation.judges import citation_support, correctness, is_explicit_abstention
+from app.experiment_store import enqueue, get_execution, initialize, mark_interrupted, pending_jobs, update_execution
+from app.identity import canonical_json, dataset_snapshot, evaluator_identity, question_label, question_session_id, source_manifest
+from app.indexing.passages import build_index, corpus_paths
+from app.cache.intermediate import scope_for as intermediate_cache_scope, use_cache as use_intermediate_cache
+from app.evaluation.specs import CORRECTNESS_SPECS, DEFAULT_CORRECTNESS, JUDGE_MODELS, evaluator_manifest
+from app.observability import observation, pack_scope_attributes, record_cache_lookup, use_client
+from app.prompt_assets import ManagedJudgePrompt, load_managed_evaluators
+from app.pipelines.config import ResolvedPipelineConfig, resolve_ollama_model
+from app.pipelines.resolver import ResolvedRun, resolve
+from app.pipelines.catalog import load_catalog
+from app.pipelines.runner import run as run_resolved_pipeline
 
 _jobs: queue.Queue[str] = queue.Queue()
 _worker: threading.Thread | None = None
@@ -157,7 +156,7 @@ def _fingerprints(config: ResolvedPipelineConfig, managed_evaluators: dict[str, 
         evaluator_model = {"name": judge_model, "digest": None, "executor": executor}
     evaluator_prompt = canonical_json({"specs": evaluator_manifest(), "managed": managed_evaluators,
                                        "prompts": {}})
-    evaluator_code = hashlib.sha256((Path(__file__).resolve().parent / "evaluation.py").read_bytes()).hexdigest()
+    evaluator_code = hashlib.sha256((Path(__file__).resolve().parent / "evaluation" / "judges.py").read_bytes()).hexdigest()
     evaluator = evaluator_identity(model=evaluator_model, settings={"temperature": 0, "stream": False, "format": "json"},
                                    rubric=evaluator_prompt, prompt=evaluator_prompt, code_version=f"evaluation.py:{evaluator_code}")
     return pipeline, {"evaluator_id": evaluator, "managed_evaluators": managed_evaluators,

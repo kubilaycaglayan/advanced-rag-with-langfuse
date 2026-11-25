@@ -8,9 +8,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from .identity import canonical_json
+from app.identity import canonical_json
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 CATALOG = ROOT / "pipelines.md"
 RELEASES = ROOT / "pipelines.sha256"
 FINGERPRINT_KEYS = ("id", "engine", "flow", "agent", "settings", "prompts", "index", "models")

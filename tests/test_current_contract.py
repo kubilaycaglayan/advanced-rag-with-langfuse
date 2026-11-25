@@ -4,7 +4,7 @@ from pathlib import Path
 from unittest import TestCase
 
 from app.agent import SYSTEM_PROMPT, _tool_specs
-from app.pipeline_resolver import resolve
+from app.pipelines.resolver import resolve
 from app.prompt_templates import PROMPT_TEMPLATES
 
 
@@ -54,7 +54,7 @@ class CurrentContract(TestCase):
             self.assertEqual(instruction_fingerprint(), baseline)
 
     def test_fixed_only_configuration_is_rejected(self):
-        from app.resolved_config import ResolvedPipelineConfig
+        from app.pipelines.config import ResolvedPipelineConfig
         for name in ("candidate_count", "top_k", "rrf_constant", "scene_context",
                      "entity_graph", "keyword_margin", "query_translation", "answer_thinking"):
             with self.subTest(name=name), self.assertRaisesRegex(ValueError, "unknown config"):
@@ -122,11 +122,11 @@ class CurrentContract(TestCase):
         from contextlib import nullcontext
         from types import SimpleNamespace
         from unittest.mock import patch
-        from app.pipeline import _ollama
+        from app.retrieval.search import _ollama
         replies = [{"message": {"content": ""}},
                    {"message": {"content": " transformed query "}, "prompt_eval_count": 8, "eval_count": 4}]
         responses = [SimpleNamespace(raise_for_status=lambda: None, json=lambda data=data: data) for data in replies]
-        with patch("app.pipeline.requests.post", side_effect=responses) as post,              patch("app.pipeline._observe", return_value=nullcontext(None)),              patch("app.pipeline._update") as update:
+        with patch("app.retrieval.search.requests.post", side_effect=responses) as post,              patch("app.retrieval.search._observe", return_value=nullcontext(None)),              patch("app.retrieval.search._update") as update:
             self.assertEqual(_ollama([{"role": "user", "content": "q"}], "local", (10, 20)), "transformed query")
         self.assertEqual([call.kwargs["json"]["options"]["num_predict"] for call in post.call_args_list], [10, 20])
         self.assertTrue(all(call.kwargs["json"]["think"] is False for call in post.call_args_list))

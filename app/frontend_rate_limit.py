@@ -8,7 +8,7 @@ import time
 from contextlib import closing
 from pathlib import Path
 
-from .corpus_config import corpus_data_dir
+from app.corpus_config import corpus_data_dir
 
 
 WINDOWS = ((60, 3), (30 * 60, 10), (60 * 60, 15), (24 * 60 * 60, 25))

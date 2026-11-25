@@ -3,7 +3,7 @@ import fnmatch
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
-from app import answer_cache
+from app.cache import answers as answer_cache
 from app.experiments import _cached_output_with_timing
 
 

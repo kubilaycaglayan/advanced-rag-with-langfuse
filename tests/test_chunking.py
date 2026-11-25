@@ -5,9 +5,9 @@ from unittest.mock import patch
 
 os.environ["LANGFUSE_TRACING_ENABLED"] = "false"
 
-from app.evaluation import is_explicit_abstention
-from app.indexer import _merge, index_identity
-from app.resolved_config import ResolvedPipelineConfig
+from app.evaluation.judges import is_explicit_abstention
+from app.indexing.passages import _merge, index_identity
+from app.pipelines.config import ResolvedPipelineConfig
 
 
 def rows(*texts, section="s1"):
@@ -44,7 +44,7 @@ class ChunkingChecks(unittest.TestCase):
         self.assertEqual([m["text"] for m in merged], ["aaaa\nbbbb\nc"])
 
     def test_merge_changes_index_identity_only_when_enabled(self):
-        with patch("app.indexer.corpus_paths") as paths:
+        with patch("app.indexing.passages.corpus_paths") as paths:
             paths.return_value = [type("P", (), {"name": n, "read_bytes": lambda self: b"x", "parent": "c"})() for n in "abc"]
             plain = index_identity(ResolvedPipelineConfig(min_passage_chars=0))
             merged = index_identity(ResolvedPipelineConfig(min_passage_chars=400))

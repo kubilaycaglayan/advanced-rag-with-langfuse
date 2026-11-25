@@ -1,6 +1,6 @@
 import argparse
 import json
-from . import reconcile
+from app.quality_evaluators import reconcile
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--write', action='store_true')

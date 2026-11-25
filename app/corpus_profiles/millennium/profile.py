@@ -1,4 +1,4 @@
-from .. import CorpusProfile
+from app.corpus_profiles import CorpusProfile
 
 PROFILE = CorpusProfile(
     id="millennium",
