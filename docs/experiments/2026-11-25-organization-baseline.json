@@ -1,0 +1,155 @@
+{
+  "backend_revision": "7febbf7",
+  "ui_revision": "33cb103b31b0ce12bf6e9488b19aa406a0a3f5a6",
+  "instruction_fingerprint": "e45b61a77dea658e04f29a7327294072d8416f3398877bd5c9676b6dea9fbc1e",
+  "providers": {
+    "ollama": {
+      "pipeline_id": "derived-v2.16-3f1bc03e",
+      "settings": {
+        "model": "qwen3.6:35b",
+        "provider": "ollama",
+        "max_turns": 10,
+        "max_tool_calls": 16,
+        "min_tool_calls": 4,
+        "timeout_seconds": 900.0,
+        "context_length": 16384,
+        "num_predict": 1600,
+        "think": false,
+        "snippet_chars": 300,
+        "scene_candidate_count": 30,
+        "initial_scene_probe": true,
+        "reasoning_effort": "none",
+        "premise_early_stop": false
+      },
+      "index": {
+        "collection": "millennium_books_a7ebc5a988df037cd2ee",
+        "corpus_checksum": null
+      },
+      "config": {
+        "retrieval_mode": "full",
+        "passage_chars": 1200,
+        "embedding_model": {
+          "name": "sentence-transformers/multi-qa-MiniLM-L6-cos-v1",
+          "digest": null,
+          "revision": "b207367332321f8e44f96e224ef15bc607f4dbf0"
+        },
+        "reranker_model": {
+          "name": "cross-encoder/ms-marco-MiniLM-L-6-v2",
+          "digest": null,
+          "revision": "233902d25c440f23af6f7d6e94d2946bac0bee0a"
+        },
+        "generation_model": {
+          "name": "qwen3:8b",
+          "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+          "revision": null
+        },
+        "generation": {
+          "temperature": 0.0,
+          "context_length": 8192,
+          "output_budgets": [
+            4096,
+            8192
+          ]
+        },
+        "min_passage_chars": 400,
+        "passage_overlap": 0,
+        "expansion_count": 3,
+        "hyde": true,
+        "parallel_transformations": false,
+        "name_completion": true,
+        "scene_window": 6,
+        "scene_stride": 3,
+        "scene_search_hits": 10,
+        "scene_summary_model": {
+          "name": "gemma4:26b",
+          "digest": null,
+          "revision": null
+        },
+        "scene_thinking": false,
+        "corpus_checksum": "",
+        "prompt_hashes": {}
+      }
+    },
+    "openai": {
+      "pipeline_id": "derived-v2.16-d9bd22c3",
+      "settings": {
+        "model": "gpt-6-luna",
+        "provider": "openai",
+        "max_turns": 10,
+        "max_tool_calls": 16,
+        "min_tool_calls": 4,
+        "timeout_seconds": 900.0,
+        "context_length": 16384,
+        "num_predict": 1600,
+        "think": false,
+        "snippet_chars": 300,
+        "scene_candidate_count": 30,
+        "initial_scene_probe": true,
+        "reasoning_effort": "none",
+        "premise_early_stop": false
+      },
+      "index": {
+        "collection": "millennium_books_a7ebc5a988df037cd2ee",
+        "corpus_checksum": null
+      },
+      "config": {
+        "retrieval_mode": "full",
+        "passage_chars": 1200,
+        "embedding_model": {
+          "name": "sentence-transformers/multi-qa-MiniLM-L6-cos-v1",
+          "digest": null,
+          "revision": "b207367332321f8e44f96e224ef15bc607f4dbf0"
+        },
+        "reranker_model": {
+          "name": "cross-encoder/ms-marco-MiniLM-L-6-v2",
+          "digest": null,
+          "revision": "233902d25c440f23af6f7d6e94d2946bac0bee0a"
+        },
+        "generation_model": {
+          "name": "qwen3:8b",
+          "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+          "revision": null
+        },
+        "generation": {
+          "temperature": 0.0,
+          "context_length": 8192,
+          "output_budgets": [
+            4096,
+            8192
+          ]
+        },
+        "min_passage_chars": 400,
+        "passage_overlap": 0,
+        "expansion_count": 3,
+        "hyde": true,
+        "parallel_transformations": false,
+        "name_completion": true,
+        "scene_window": 6,
+        "scene_stride": 3,
+        "scene_search_hits": 10,
+        "scene_summary_model": {
+          "name": "gemma4:26b",
+          "digest": null,
+          "revision": null
+        },
+        "scene_thinking": false,
+        "corpus_checksum": "",
+        "prompt_hashes": {}
+      }
+    }
+  },
+  "checks": {
+    "python": {
+      "artifact": "data/millennium/comparisons/2026-11-25-organization/python-baseline.log",
+      "sha256": "6e144210dbf7183ddfce0378951b6004283f2571f7e2ecbd4c55bfdc5dd62745"
+    },
+    "frontend": {
+      "artifact": "data/millennium/comparisons/2026-11-25-organization/frontend-baseline.log",
+      "sha256": "5d6855aefe9b55e8d0081d4b98ae7fa8aa38e0fe89f2f01cfc1cb257ae0bc51c"
+    },
+    "build": {
+      "artifact": "data/millennium/comparisons/2026-11-25-organization/frontend-build-baseline.log",
+      "sha256": "b6858e27109f9c5018981425d1e373364b0e85f7b2034fb4c8ee5b9e1a4ccab7"
+    }
+  }
+}
