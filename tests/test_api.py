@@ -10,7 +10,12 @@ from unittest.mock import Mock, patch
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
-from app.main import AskRequest, app, ask, ask_stream, experiment_status, _run_ask
+from app.api.schemas import AskRequest
+from app.api.application import app
+from app.api.questions import ask
+from app.api.questions import ask_stream
+from app.api.experiments import experiment_status
+from app.answering.interactive import _run_ask
 from app.pipelines.config import ResolvedPipelineConfig
 
 
@@ -29,17 +34,17 @@ class InteractiveAskContract(TestCase):
         with tempfile.TemporaryDirectory() as directory, \
              patch.dict("os.environ", {"LANGFUSE_ENABLED": "false", "LANGFUSE_PUBLIC_KEY": "pk-test",
                                        "LANGFUSE_SECRET_KEY": "sk-test", "EXPERIMENT_DATA_DIR": directory}), \
-             patch("app.main._prepare_ask", return_value=prepared), \
-             patch("app.main.run_resolved_pipeline", return_value={"answer": "A", "citations": []}), \
-             patch("app.main.langfuse_enabled", return_value=False), \
-             patch("app.main.get_client") as get_client:
+             patch("app.api.questions._prepare_ask", return_value=prepared), \
+             patch("app.answering.interactive.run_resolved_pipeline", return_value={"answer": "A", "citations": []}), \
+             patch("app.answering.interactive.langfuse_enabled", return_value=False), \
+             patch("app.answering.interactive.get_client") as get_client:
             result = ask(AskRequest(question="Who?"))
         self.assertIsNone(result["trace_id"])
         get_client.assert_not_called()
 
     def test_remote_frontend_quota_rejection_is_429_with_retry_after(self):
         with patch.dict("os.environ", {"FRONTEND_RATE_LIMIT_ENABLED": "true"}), \
-             patch("app.main.reserve_request", return_value=60) as reserve:
+             patch("app.api.questions.reserve_request", return_value=60) as reserve:
             with self.assertRaises(HTTPException) as error:
                 ask(AskRequest(question="Who?", source="frontend", client_ip="198.51.100.9", production=True))
             self.assertEqual(error.exception.status_code, 429)
@@ -72,15 +77,15 @@ class InteractiveAskContract(TestCase):
         prepared = {"config": ResolvedPipelineConfig(), "collection": "collection", "bundle": {},
                     "prompts": prompts, "pipeline_id": "pipeline-v1-12345678", "resolved": resolved}
         client = SimpleNamespace(get_current_trace_id=lambda: "a" * 32)
-        with patch("app.main._prepare_ask", return_value=prepared), \
-             patch("app.main.trace_scope", side_effect=propagate), \
-             patch("app.main.observation", side_effect=observe), \
-             patch("app.main.langfuse_enabled", return_value=True), \
-             patch("app.main.get_client", return_value=client), \
-             patch("app.main.run_resolved_pipeline", return_value={"answer": "A [E1]", "citations": ["[E1]"],
+        with patch("app.api.questions._prepare_ask", return_value=prepared), \
+             patch("app.answering.interactive.trace_scope", side_effect=propagate), \
+             patch("app.answering.interactive.observation", side_effect=observe), \
+             patch("app.answering.interactive.langfuse_enabled", return_value=True), \
+             patch("app.answering.interactive.get_client", return_value=client), \
+             patch("app.answering.interactive.run_resolved_pipeline", return_value={"answer": "A [E1]", "citations": ["[E1]"],
                                                                     "pipeline_version": "v1", "pipeline_derived": False}), \
              patch.dict("os.environ", {"FRONTEND_RATE_LIMIT_ENABLED": "true"}), \
-             patch("app.main.reserve_request") as reserve:
+             patch("app.api.questions.reserve_request") as reserve:
             result = ask(AskRequest(question="Who?", engine="agent", source="frontend", session_id="ui-127-0-0-1", user_id="interactive-ui-browser", client_ip="127.0.0.1", cache_mode="bypass"))
             ask(AskRequest(question="Who?", engine="agent", source="api", client_ip="192.0.2.12", cache_mode="bypass"))
             reserve.assert_not_called()
@@ -115,12 +120,12 @@ class InteractiveAskContract(TestCase):
             "trace": [{"tool": "semantic_search", "arguments": {"query": "Who?"}}], "tool_calls": 4,
             "stopped": "submit", "latency_seconds": 12.3, "model": "qwen3.6:35b"}
         client = SimpleNamespace(get_current_trace_id=lambda: "a" * 32)
-        with patch("app.main._prepare_ask", return_value=prepared), \
-             patch("app.main.trace_scope", return_value=nullcontext()), \
-            patch("app.main.langfuse_enabled", return_value=True), \
-             patch("app.main.observation", return_value=nullcontext(None)), \
-             patch("app.main.update_observation"), \
-             patch("app.main.get_client", return_value=client), \
+        with patch("app.api.questions._prepare_ask", return_value=prepared), \
+             patch("app.answering.interactive.trace_scope", return_value=nullcontext()), \
+            patch("app.answering.interactive.langfuse_enabled", return_value=True), \
+             patch("app.answering.interactive.observation", return_value=nullcontext(None)), \
+             patch("app.answering.interactive.update_observation"), \
+             patch("app.answering.interactive.get_client", return_value=client), \
              patch("app.pipelines.runner.run_agent", return_value=agent_result) as agent:
             result = ask(AskRequest(question="Who?", cache_mode="bypass"))
         self.assertEqual(result["engine"], "agent")
@@ -133,7 +138,7 @@ class InteractiveAskContract(TestCase):
         agent.assert_called_once()
 
     def test_cache_feedback_route_records_owner_scoped_rating(self):
-        with patch("app.main.answer_cache.record_feedback", return_value="promoted") as record:
+        with patch("app.api.feedback.answer_cache.record_feedback", return_value="promoted") as record:
             response = TestClient(app).post("/cache/feedback", json={
                 "trace_id": "a" * 32, "owner_id": "interactive-ui-browser", "helpful": True})
         self.assertEqual(response.status_code, 200)
@@ -158,14 +163,14 @@ class InteractiveAskContract(TestCase):
         client = SimpleNamespace(get_current_trace_id=lambda: "b" * 32)
         cached = {"question": "Who?", "answer": "Cached answer [E1]", "citations": ["[E1]"]}
         tokens, statuses = [], []
-        with patch("app.main.trace_scope", side_effect=trace_scope), \
-             patch("app.main.observation", return_value=nullcontext(None)), \
-             patch("app.main.update_observation"), \
-             patch("app.main.langfuse_enabled", return_value=True), \
-             patch("app.main.get_client", return_value=client), \
-             patch("app.main.answer_cache.lookup", return_value=(cached, "hit", "a" * 32)), \
-             patch("app.main.answer_cache.mark_served") as mark_served, \
-             patch("app.main.run_resolved_pipeline") as run_pipeline:
+        with patch("app.answering.interactive.trace_scope", side_effect=trace_scope), \
+             patch("app.answering.interactive.observation", return_value=nullcontext(None)), \
+             patch("app.answering.interactive.update_observation"), \
+             patch("app.answering.interactive.langfuse_enabled", return_value=True), \
+             patch("app.answering.interactive.get_client", return_value=client), \
+             patch("app.answering.interactive.answer_cache.lookup", return_value=(cached, "hit", "a" * 32)), \
+             patch("app.answering.interactive.answer_cache.mark_served") as mark_served, \
+             patch("app.answering.interactive.run_resolved_pipeline") as run_pipeline:
             result = _run_ask(AskRequest(question="Who?", user_id="browser-a"), prepared,
                               on_token=tokens.append, on_status=statuses.append)
 
@@ -187,7 +192,7 @@ class InteractiveAskContract(TestCase):
             on_token("Hello ")
             on_token("world [E1]")
             return result
-        with patch("app.main._prepare_ask", return_value=prepared), patch("app.main._run_ask", side_effect=run):
+        with patch("app.api.questions._prepare_ask", return_value=prepared), patch("app.api.questions._run_ask", side_effect=run):
             response = ask_stream(AskRequest(question="Who?"))
             async def collect():
                 return [json.loads(chunk) async for chunk in response.body_iterator]
@@ -199,8 +204,8 @@ class InteractiveAskContract(TestCase):
 
     def test_stream_reports_a_failed_pipeline_as_an_error_event(self):
         prepared = {"config": ResolvedPipelineConfig(), "collection": "collection", "bundle": {}, "prompts": {}, "pipeline_id": "pipeline-123"}
-        with patch("app.main._prepare_ask", return_value=prepared), \
-             patch("app.main._run_ask", side_effect=ValueError("bad question")):
+        with patch("app.api.questions._prepare_ask", return_value=prepared), \
+             patch("app.api.questions._run_ask", side_effect=ValueError("bad question")):
             response = ask_stream(AskRequest(question="Who?"))
             async def collect():
                 return [json.loads(chunk) async for chunk in response.body_iterator]
@@ -228,10 +233,10 @@ class VersionPayloadContract(TestCase):
             queued = {"execution_id": "execution-1", "status": "queued"}
             with patch.dict("os.environ", {"CORPUS_ID": "questions", "CORPUS_ROOT": directory,
                                            "EXPERIMENT_TRIGGER_TOKEN": "test-token"}), \
-                 patch("app.main.Langfuse", return_value=fake), \
-                 patch("app.main.langfuse_enabled", return_value=True), \
-                 patch("app.main.resolve", return_value=SimpleNamespace(version="v2.16", overrides={})), \
-                 patch("app.main.submit", return_value=(queued, True)) as submit:
+                 patch("app.api.experiments.Langfuse", return_value=fake), \
+                 patch("app.api.experiments.langfuse_enabled", return_value=True), \
+                 patch("app.api.experiments.resolve", return_value=SimpleNamespace(version="v2.16", overrides={})), \
+                 patch("app.api.experiments.submit", return_value=(queued, True)) as submit:
                 response = TestClient(app).post("/experiments/run", json={"datasetName": "Local set",
                     "customPayload": json.dumps({"pipeline": "v2.16"})},
                     headers={"X-Experiment-Trigger-Token": "test-token"})
@@ -244,14 +249,14 @@ class VersionPayloadContract(TestCase):
                "payload_json": json.dumps({"pipeline": "v1", "settings": {"passage_chars": 600}}),
                "status": "failed", "created_at": None, "updated_at": None,
                "started_at": None, "finished_at": None, "error": "prompt missing"}
-        with patch("app.main.get_execution", return_value=row):
+        with patch("app.api.experiments.get_execution", return_value=row):
             status = experiment_status("execution-1")
         self.assertEqual(status["pipeline_version"], "v1")
         self.assertTrue(status["pipeline_derived"])
 
     def test_ask_rejects_unknown_or_unused_settings_before_execution(self):
         slot = SimpleNamespace(close=lambda: None)
-        with patch("app.main._reserve_ask_slot", return_value=slot):
+        with patch("app.api.access._reserve_ask_slot", return_value=slot):
             client = TestClient(app)
             for payload in ({"question": "Who?", "pipeline": "missing"},
                             {"question": "Who?", "pipeline": "v2.16", "settings": {"candidate_count": 50}},
@@ -280,9 +285,9 @@ class VersionPayloadContract(TestCase):
                                api=SimpleNamespace(projects=SimpleNamespace(get=lambda: SimpleNamespace(data=[project]))))
         row = {"execution_id": "execution-1", "status": "queued"}
         with patch.dict("os.environ", {"EXPERIMENT_TRIGGER_TOKEN": "test-token"}), \
-             patch("app.main.Langfuse", return_value=fake), \
-             patch("app.main.langfuse_enabled", return_value=True), \
-             patch("app.main.submit", return_value=(row, True)) as submit:
+             patch("app.api.experiments.Langfuse", return_value=fake), \
+             patch("app.api.experiments.langfuse_enabled", return_value=True), \
+             patch("app.api.experiments.submit", return_value=(row, True)) as submit:
             response = TestClient(app).post("/experiments/run", json={"datasetName": "QA.csv",
                 "customPayload": json.dumps({"pipeline": "v2.16"})},
                 headers={"X-Experiment-Trigger-Token": "test-token"})

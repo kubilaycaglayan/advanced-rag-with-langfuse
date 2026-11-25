@@ -22,7 +22,7 @@ from app.evaluation.judges import FALLBACK_FACTS, _judge, _opencode_chat, _codex
 from app.evaluation.specs import ANSWER_CORRECTNESS_V1, ANSWER_CORRECTNESS_V2, ANSWER_CORRECTNESS_V3, ANSWER_CORRECTNESS_CODEX_V1
 from app.indexing.passages import index_identity
 from app.experiments import _flush_client, submit_retry
-from app.main import _custom_payload
+from app.api.experiments import _custom_payload
 from app.evaluation.judges import correctness, citation_support, is_explicit_abstention
 from app import experiments as experiments_module
 
