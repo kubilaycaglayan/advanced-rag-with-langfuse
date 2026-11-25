@@ -14,7 +14,6 @@ from unittest.mock import patch
 from app.agent import AgentSettings, _synthesis_rows, instruction_fingerprint, run_agent, tool_names
 from app.pipeline_catalog import CATALOG, RELEASES, fingerprint, load_catalog
 from app.pipeline_resolver import resolve
-from app.prompt_assets import PROMPT_CATALOG, load_prompt_bundle
 from app import experiments as experiments_module
 from app.experiment_store import enqueue, initialize
 

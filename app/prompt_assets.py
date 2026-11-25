@@ -1,35 +1,26 @@
-"""Langfuse-managed runtime prompt catalog and explicit reconciliation command."""
+"""Langfuse-managed evaluators and explicit reconciliation command."""
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import logging
 import os
-from pathlib import Path
 import re
 from typing import Any
 
 import requests
 from requests.auth import HTTPBasicAuth
-from langfuse import Langfuse
-from langfuse.api import NotFoundError
 
 try:
-    from .corpus_config import corpus_config, corpus_id, langfuse_evaluator_prefix, langfuse_prompt_label
-    from .corpus_profiles import profile_prompt
+    from .corpus_config import corpus_config, corpus_id, langfuse_evaluator_prefix
     from .evaluator_specs import (ANSWER_CORRECTNESS_V2, CITATION_SUPPORT_V1,
                                   EVALUATOR_SPECS, FACT_SPECS, JUDGE_MODELS)
-    from .prompt_templates import PROMPT_TEMPLATES
 except ImportError:
-    from corpus_config import corpus_config, corpus_id, langfuse_evaluator_prefix, langfuse_prompt_label
-    from corpus_profiles import profile_prompt
+    from corpus_config import corpus_config, corpus_id, langfuse_evaluator_prefix
     from evaluator_specs import (ANSWER_CORRECTNESS_V2, CITATION_SUPPORT_V1,
                                  EVALUATOR_SPECS, FACT_SPECS, JUDGE_MODELS)
-    from prompt_templates import PROMPT_TEMPLATES
 
 
-PROMPT_LABEL = os.getenv("LANGFUSE_PROMPT_LABEL") or langfuse_prompt_label()
 logger = logging.getLogger(__name__)
 
 
@@ -45,94 +36,6 @@ def _configured_evaluator_specs() -> tuple[Any, ...]:
     if unknown:
         raise ValueError(f"corpus {corpus_id()!r} selects unknown evaluators: {sorted(unknown)}")
     return tuple(by_name[name] for name in selected)
-
-
-def _prompt(name: str) -> str:
-    return profile_prompt(name, PROMPT_TEMPLATES[name])
-
-
-PROMPT_CATALOG: dict[str, dict[str, Any]] = {
-    "rag-answer": {"type": "chat", "prompt": [
-        {"role": "system", "content": _prompt("answer_system")},
-        {"role": "user", "content": "Question: {{question}}\n\nEvidence passages:\n{{evidence}}"},
-    ]},
-    "rag-hyde": {"type": "chat", "prompt": [
-        {"role": "system", "content": _prompt("hyde_system")},
-        {"role": "user", "content": "{{question}}"},
-    ]},
-    "rag-grammar-correction": {"type": "chat", "prompt": [
-        {"role": "system", "content": _prompt("grammar_system")},
-        {"role": "user", "content": "{{question}}"},
-    ]},
-    "rag-query-expansion": {"type": "chat", "prompt": [
-        {"role": "system", "content": _prompt("query_expansion_system")},
-        {"role": "user", "content": "{{question}}"},
-    ]},
-    "rag-query-translation": {"type": "chat", "prompt": [
-        {"role": "system", "content": _prompt("query_translation_system")},
-        {"role": "user", "content": "{{question}}"},
-    ]},
-    "rag-scene-moment": {"type": "chat", "prompt": [
-        {"role": "system", "content": _prompt("scene_moment_system")},
-        {"role": "user", "content": "{{question}}"},
-    ]},
-    "rag-scene-select": {"type": "chat", "prompt": [
-        {"role": "system", "content": _prompt("scene_select_system")},
-        {"role": "user", "content": "Moment: {{moment}}\n\nScenes:\n{{scenes}}"},
-    ]},
-}
-
-
-def _hash_prompt(definition: dict[str, Any]) -> str:
-    return hashlib.sha256(json.dumps(definition, sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode()).hexdigest()
-
-
-def prompt_version(prompt: Any, label: str | None = None) -> dict[str, Any]:
-    name, version = getattr(prompt, "name", None), getattr(prompt, "version", None)
-    base, auth = _api()
-    chosen_label = label or PROMPT_LABEL
-    params = {"version": version} if version is not None else {"label": chosen_label}
-    response = requests.get(f"{base}/api/public/v2/prompts/{name}", params=params, auth=auth, timeout=20)
-    response.raise_for_status()
-    remote = response.json()
-    return {"id": remote.get("id"), "name": name, "version": version, "label": chosen_label}
-
-
-def load_prompt_bundle(client: Langfuse, *, versions: dict[str, int] | None = None,
-                       label: str | None = None) -> dict[str, Any]:
-    """Fetch the exact released versions, or a label when authoring a draft."""
-    chosen_label = label or PROMPT_LABEL
-    if versions is not None and set(versions) != set(PROMPT_CATALOG):
-        raise ValueError("prompt pins must name every managed RAG prompt")
-    bundle: dict[str, Any] = {}
-    for name, spec in PROMPT_CATALOG.items():
-        try:
-            if versions is None:
-                prompt = client.get_prompt(name, label=chosen_label, type=spec["type"], cache_ttl_seconds=0)
-            else:
-                prompt = client.get_prompt(name, version=versions[name], type=spec["type"], cache_ttl_seconds=0)
-        except Exception as exc:
-            if versions is not None:
-                raise RuntimeError(f"Langfuse prompt {name!r} version {versions[name]} is unavailable") from exc
-            raise
-        declared = prompt_version(prompt, chosen_label)
-        if versions is not None and declared["version"] != versions[name]:
-            raise RuntimeError(f"Langfuse prompt {name!r} returned version {declared['version']}, expected {versions[name]}")
-        if versions is not None:
-            declared["label"] = "version-pinned"
-        if not declared["id"] or not isinstance(declared["version"], int):
-            raise RuntimeError(f"Langfuse prompt {name!r} did not return an immutable ID and version")
-        bundle[name] = {"client": prompt, "manifest": declared}
-    return bundle
-
-
-def compile_prompt(bundle: dict[str, Any], name: str, **variables: str) -> Any:
-    item = bundle[name]
-    return item["client"].compile(**variables)
-
-
-def prompt_manifests(bundle: dict[str, Any]) -> dict[str, dict[str, Any]]:
-    return {name: entry["manifest"] for name, entry in bundle.items()}
 
 
 def _auth() -> tuple[str, str]:
@@ -256,38 +159,16 @@ class ManagedJudgePrompt:
             for message in self.definition["prompt"]]
 
 
-def reconcile(*, create_missing: bool = False, create_new_versions: bool = False,
-              label: str | None = None) -> dict[str, Any]:
-    """Compare remote assets with this catalog; mutate only under explicit CLI flags."""
+def reconcile(*, create_missing: bool = False, create_new_versions: bool = False) -> dict[str, Any]:
+    """Inspect evaluator definitions; mutate only under explicit CLI flags.
+
+    Historical managed RAG prompt objects are left untouched.
+    """
     base, auth = _api()
-    session = requests.Session()
-    session.auth = auth
-    session.headers.update({"Content-Type": "application/json"})
-    chosen_label = label or PROMPT_LABEL
-    result: dict[str, Any] = {"prompts": [], "evaluators": []}
-    client = Langfuse()
-    try:
-        for name, spec in PROMPT_CATALOG.items():
-            try:
-                current = client.get_prompt(name, label=chosen_label, type=spec["type"], cache_ttl_seconds=0)
-                item = {"name": name, "status": "present", **prompt_version(current, chosen_label)}
-                current_prompt = getattr(current, "prompt", None)
-                if spec["type"] == "chat" and current_prompt:
-                    current_prompt = [{"role": message.get("role"), "content": message.get("content")} for message in current_prompt]
-                current_definition = {"type": spec["type"], "prompt": current_prompt}
-                if _hash_prompt(spec) != _hash_prompt(current_definition):
-                    item["status"] = "mismatch"
-                if create_new_versions and item["status"] == "mismatch":
-                    created = client.create_prompt(name=name, type=spec["type"], prompt=spec["prompt"], labels=[chosen_label], commit_message="Explicit catalog reconciliation")
-                    item = {"name": name, "status": "created_new_version", **prompt_version(created, chosen_label)}
-            except Exception as exc:
-                item = {"name": name, "status": "missing_or_unavailable", "error": f"{type(exc).__name__}: {exc}"}
-                if create_missing and isinstance(exc, NotFoundError):
-                    created = client.create_prompt(name=name, type=spec["type"], prompt=spec["prompt"], labels=[chosen_label], commit_message="Initial RAG prompt catalog")
-                    item = {"name": name, "status": "created", **prompt_version(created, chosen_label)}
-                elif create_missing:
-                    raise
-            result["prompts"].append(item)
+    result: dict[str, Any] = {"evaluators": []}
+    with requests.Session() as session:
+        session.auth = auth
+        session.headers.update({"Content-Type": "application/json"})
         response = session.get(base + "/api/public/v2/evaluators", params={"limit": 100}, timeout=20)
         response.raise_for_status()
         existing = response.json().get("data", [])
@@ -312,18 +193,15 @@ def reconcile(*, create_missing: bool = False, create_new_versions: bool = False
                     row = created.json()
                     item.update(status="created", id=row.get("id"), version=row.get("version"))
             result["evaluators"].append(item)
-        return result
-    finally:
-        client.shutdown()
+    return result
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Inspect or explicitly reconcile Langfuse prompts and evaluator definitions")
+    parser = argparse.ArgumentParser(description="Inspect or explicitly reconcile Langfuse evaluator definitions")
     parser.add_argument("--create-missing", action="store_true", help="create catalog entries that do not exist")
-    parser.add_argument("--create-new-versions", action="store_true", help="create prompt/evaluator versions for detected definition mismatches")
-    parser.add_argument("--label", default=PROMPT_LABEL, help="prompt environment label to inspect or create")
+    parser.add_argument("--create-new-versions", action="store_true", help="create evaluator versions for detected definition mismatches")
     args = parser.parse_args()
-    print(json.dumps(reconcile(create_missing=args.create_missing, create_new_versions=args.create_new_versions, label=args.label), indent=2))
+    print(json.dumps(reconcile(create_missing=args.create_missing, create_new_versions=args.create_new_versions), indent=2))
 
 
 if __name__ == "__main__":

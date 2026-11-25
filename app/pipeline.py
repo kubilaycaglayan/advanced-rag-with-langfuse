@@ -138,13 +138,11 @@ def _ollama(messages: list[dict[str, str]], model: str, budgets: tuple[int, ...]
         raise RuntimeError(f"Ollama request failed or returned empty content: {last_error or 'empty response'}")
 
 
-def _transform(question: str, config: ResolvedPipelineConfig, prompt_bundle: dict[str, Any] | None = None) -> tuple[str | None, list[str], str | None]:
+def _transform(question: str, config: ResolvedPipelineConfig) -> tuple[str | None, list[str], str | None]:
     mode = config.retrieval_mode
-    prompts = {name: {"id": value.get("id"), "version": value.get("version")}
-               for name, value in (prompt_bundle or {}).items()}
 
     def transform_cache_key(operation: str) -> dict[str, Any]:
-        return {"query": question, "prompt_assets": prompts, "model": config.generation_model.name,
+        return {"query": question, "model": config.generation_model.name,
                 "model_revision": config.generation_model.revision,
                 "temperature": config.generation.temperature,
                 "context_length": config.generation.context_length,
@@ -152,13 +150,12 @@ def _transform(question: str, config: ResolvedPipelineConfig, prompt_bundle: dic
 
     def hyde() -> str:
         with _observe("HyDE transformation", input=question) as obs:
-            messages = (prompt_bundle["rag-hyde"]["client"].compile(question=question) if prompt_bundle else [
-                {"role": "system", "content": profile_prompt("hyde_system", PROMPT_TEMPLATES["hyde_system"])}, {"role": "user", "content": question}])
+            messages = [
+                {"role": "system", "content": profile_prompt("hyde_system", PROMPT_TEMPLATES["hyde_system"])}, {"role": "user", "content": question}]
             hypothetical = _cache_value("query", "hyde", transform_cache_key("hyde"),
                 input={"query": question, "operation": "hyde"},
                 compute=lambda: _ollama(messages, config.generation_model.name, config.generation.output_budgets,
                     config.generation.temperature, config.generation.context_length,
-                    prompt=prompt_bundle["rag-hyde"]["client"] if prompt_bundle else None,
                     name="hypothetical document generation"))
             _update(obs, output=hypothetical)
         return hypothetical
@@ -166,14 +163,13 @@ def _transform(question: str, config: ResolvedPipelineConfig, prompt_bundle: dic
     def expansion() -> list[str]:
         with _observe("query expansion", input=question) as obs:
             # Prompts may reference {{expansion_count}}; templates without it ignore the value.
-            messages = (prompt_bundle["rag-query-expansion"]["client"].compile(question=question, expansion_count=str(config.expansion_count)) if prompt_bundle else [
+            messages = [
                 {"role": "system", "content": profile_prompt("query_expansion_system", PROMPT_TEMPLATES["query_expansion_system"]).replace("{{expansion_count}}", str(config.expansion_count))},
-                {"role": "user", "content": question}])
+                {"role": "user", "content": question}]
             raw = _cache_value("query", "expansion", transform_cache_key("expansion"),
                 input={"query": question, "operation": "expansion"},
                 compute=lambda: _ollama(messages, config.generation_model.name, config.generation.output_budgets,
                     config.generation.temperature, config.generation.context_length,
-                    prompt=prompt_bundle["rag-query-expansion"]["client"] if prompt_bundle else None,
                     name="literary query generation"))
             _update(obs, output=raw)
         alternatives = list(dict.fromkeys(line.strip().lstrip("-•0123456789. )") for line in raw.splitlines() if line.strip()))
@@ -184,13 +180,12 @@ def _transform(question: str, config: ResolvedPipelineConfig, prompt_bundle: dic
 
     def grammar() -> str:
         with _observe("grammar correction", input=question) as obs:
-            messages = (prompt_bundle["rag-grammar-correction"]["client"].compile(question=question) if prompt_bundle else [
-                {"role": "system", "content": profile_prompt("grammar_system", PROMPT_TEMPLATES["grammar_system"])}, {"role": "user", "content": question}])
+            messages = [
+                {"role": "system", "content": profile_prompt("grammar_system", PROMPT_TEMPLATES["grammar_system"])}, {"role": "user", "content": question}]
             corrected = _cache_value("query", "grammar", transform_cache_key("grammar"),
                 input={"query": question, "operation": "grammar"},
                 compute=lambda: _ollama(messages, config.generation_model.name, config.generation.output_budgets,
                     config.generation.temperature, config.generation.context_length,
-                    prompt=prompt_bundle["rag-grammar-correction"]["client"] if prompt_bundle else None,
                     name="grammar corrected query generation"))
             _update(obs, output=corrected)
         return corrected
@@ -341,13 +336,12 @@ def _complete_names(question: str, collection: str, min_count: int = 20, min_sha
     }, input={"query": question, "operation": "name_completion"}, compute=complete)
 
 
-def _prompted(prompt_bundle: dict[str, Any] | None, asset: str, system: str, user: str, config: ResolvedPipelineConfig, name: str,
-              **variables: str) -> str:
-    """One generation-model request with a Langfuse prompt (``asset``), or the local template when there is no bundle."""
-    client = prompt_bundle[asset]["client"] if prompt_bundle else None
-    messages = client.compile(**variables) if client else [{"role": "system", "content": profile_prompt(system, PROMPT_TEMPLATES[system])}, {"role": "user", "content": user}]
-    return _ollama(messages, config.generation_model.name, config.generation.output_budgets, config.generation.temperature,
-                   config.generation.context_length, prompt=client, name=name)
+def _prompted(system: str, user: str, config: ResolvedPipelineConfig, name: str) -> str:
+    """One generation-model request using the active corpus's local template."""
+    messages = [{"role": "system", "content": profile_prompt(system, PROMPT_TEMPLATES[system])},
+                {"role": "user", "content": user}]
+    return _ollama(messages, config.generation_model.name, config.generation.output_budgets,
+                   config.generation.temperature, config.generation.context_length, name=name)
 
 
 def _passage_position(payload: dict[str, Any]) -> tuple:
@@ -355,7 +349,7 @@ def _passage_position(payload: dict[str, Any]) -> tuple:
 
 
 def _moment_scene_hits(question: str, config: ResolvedPipelineConfig, collection: str, qdrant: QdrantClient,
-                       evidence: list[dict[str, Any]], present: set[str], prompt_bundle: dict[str, Any] | None = None
+                       evidence: list[dict[str, Any]], present: set[str]
                        ) -> tuple[list[dict[str, Any]], str]:
     """Passages of the scene that shows the moment the question asks about ("... when they first met in her house"),
     chosen by the generation model among the scenes whose summaries best match that moment. Returns them and the moment.
@@ -368,7 +362,7 @@ def _moment_scene_hits(question: str, config: ResolvedPipelineConfig, collection
     is added when the question names no moment, no summary shows it, or the evidence already holds a passage of it.
     """
     with _observe("moment description", input=question) as obs:
-        reply = _prompted(prompt_bundle, "rag-scene-moment", "scene_moment_system", question, config, "moment description", question=question)
+        reply = _prompted("scene_moment_system", question, config, "moment description")
         # The reply also states the detail asked for (DETAIL: ...); asking for it separately keeps it out of the moment.
         moment = next((line.partition(":")[2].strip().strip('"') for line in reply.splitlines()
                        if line.strip().upper().startswith("MOMENT:")), "")
@@ -391,8 +385,8 @@ def _moment_scene_hits(question: str, config: ResolvedPipelineConfig, collection
     listing = "\n\n".join(f"[{n}] {first[scene.payload['members'][0]].get('book')}, {first[scene.payload['members'][0]].get('chapter') or 'chapter unknown'}: "
                           f"{scene.payload['summary']}" for n, scene in enumerate(found, 1))
     with _observe("moment scene choice", input={"moment": moment, "scenes": listing}) as obs:
-        reply = _prompted(prompt_bundle, "rag-scene-select", "scene_select_system", f"Moment: {moment}\n\nScenes:\n{listing}", config,
-                          "moment scene choice", moment=moment, scenes=listing)
+        reply = _prompted("scene_select_system", f"Moment: {moment}\n\nScenes:\n{listing}", config,
+                          "moment scene choice")
         number = re.fullmatch(r"\W*(\d+)\W*", reply)
         chosen = found[int(number[1]) - 1] if number and 1 <= int(number[1]) <= len(found) else None
         _update(obs, output=chosen.payload["summary"] if chosen else None)

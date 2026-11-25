@@ -367,7 +367,7 @@ def _tool_keyword_search(state: AgentState, args: dict[str, Any]) -> dict[str, A
 
 def _tool_expand_query(state: AgentState, args: dict[str, Any]) -> dict[str, Any]:
     query = str(args.get("query") or state.question).strip()
-    hypothetical, alternatives, corrected = _transform(query, state.config, None)
+    hypothetical, alternatives, corrected = _transform(query, state.config)
     return {"query": query, "hypothetical_document": hypothetical, "alternative_phrasings": alternatives,
             "grammar_corrected": corrected,
             "note": "search these phrasings with semantic_search; they are not evidence"}

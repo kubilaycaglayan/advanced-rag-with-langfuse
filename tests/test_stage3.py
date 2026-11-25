@@ -22,7 +22,6 @@ from app.evaluation import FALLBACK_FACTS, _judge, _opencode_chat, _codex_chat, 
 from app.evaluator_specs import ANSWER_CORRECTNESS_V1, ANSWER_CORRECTNESS_V2, ANSWER_CORRECTNESS_V3, ANSWER_CORRECTNESS_CODEX_V1
 from app.indexer import index_identity
 from app.experiments import _flush_client, submit_retry
-from app.prompt_assets import load_prompt_bundle
 from app.main import _custom_payload
 from app.evaluation import correctness, citation_support, is_explicit_abstention
 from app import experiments as experiments_module
@@ -338,17 +337,6 @@ class Stage3Checks(unittest.TestCase):
         self.assertTrue(is_explicit_abstention("The evidence does not indicate who did it."))
         self.assertFalse(is_explicit_abstention("The answer is Dimension in Mathematics [E1]."))
 
-    def test_missing_prompt_label_fails_without_fallback(self):
-        class MissingPromptClient:
-            def __init__(self): self.calls = []
-            def get_prompt(self, name, **kwargs):
-                self.calls.append((name, kwargs))
-                raise NotFoundError({"message": "not found"}, {})
-        client = MissingPromptClient()
-        with self.assertRaises(NotFoundError):
-            load_prompt_bundle(client, label="unavailable")
-        self.assertEqual(len(client.calls), 1)
-        self.assertEqual(client.calls[0][1]["label"], "unavailable")
 
     def test_queued_job_lifecycle_and_restart_marking(self):
         with tempfile.TemporaryDirectory() as directory, patch.dict(os.environ, {"EXPERIMENT_DATA_DIR": directory}):

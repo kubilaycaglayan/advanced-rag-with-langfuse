@@ -12,7 +12,7 @@ from unittest.mock import AsyncMock, patch
 os.environ["LANGFUSE_TRACING_ENABLED"] = "false"
 
 from app.pipeline import _transform
-from app.prompt_assets import ManagedJudgePrompt, _evaluator_definitions, load_managed_evaluators, load_prompt_bundle, PROMPT_CATALOG
+from app.prompt_assets import ManagedJudgePrompt, _evaluator_definitions, load_managed_evaluators
 from app.resolved_config import ResolvedPipelineConfig
 from app.experiments import ExperimentLangfuse, pack_experiment_metadata
 
@@ -59,14 +59,6 @@ class WorkflowChecks(unittest.TestCase):
         with self.assertRaises(ValueError):
             ResolvedPipelineConfig.from_mapping({"parallel_transformations": "yes"})
 
-    def test_prompt_bundle_disables_cache_on_every_run(self):
-        calls = []
-        client = SimpleNamespace(get_prompt=lambda name, **kwargs: calls.append(kwargs) or object())
-        with patch('app.prompt_assets.prompt_version', return_value={'id':'p', 'version':2}):
-            load_prompt_bundle(client)
-            load_prompt_bundle(client)
-        self.assertEqual(len(calls), 2 * len(PROMPT_CATALOG))
-        self.assertTrue(all(call['cache_ttl_seconds'] == 0 for call in calls))
 
 
     def test_managed_evaluator_edits_are_accepted_and_used(self):

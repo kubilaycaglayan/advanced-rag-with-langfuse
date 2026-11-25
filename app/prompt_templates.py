@@ -2,8 +2,6 @@
 import hashlib
 
 PROMPT_TEMPLATES = {
-    "answer_system": ("Answer the user's question using only the evidence passages provided. Do not use outside knowledge or make unsupported claims. "
-                      "If evidence is insufficient, say so. Cite each factual claim with labels such as [E1]. Keep the answer concise."),
     "hyde_system": "Write a short passage, in the style of a novel's narration, that could appear in the source text and would answer the question. Use only the names that appear in the question; do not invent names, dates, places, or other specific facts — describe unknown details generically (for example \"her mother\", \"the town\"). No preamble; do not claim access to the source books.",
     "grammar_system": "Correct the grammar and spelling of this question while preserving its meaning and all character and place names. Return only the corrected question, without explanation or an answer.",
     # Index-time only: summaries of consecutive-passage windows used as a second search index (app/scenes.py).
@@ -20,17 +18,6 @@ PROMPT_TEMPLATES = {
                                  "- \"relation\": how it relates to that person, in a few words (e.g. \"false identity used by\", \"nickname of\", \"owned by\", \"worn by\", \"home of\"); null when \"of\" is null\n"
                                  "- \"fact\": one short sentence from what the excerpt says about it, naming the person rather than \"she\"/\"he\"\n"
                                  "Only what the excerpt states; do not use outside knowledge. Reply with JSON: {\"entities\": [...]}"),
-    # Index-time only: events between people of the same windows, read with the text before them so "my father" or
-    # "the patient" is named; they join the entity graph (entity_graph, app/entities.py).
-    "entity_events_system": ("You index a novel. List the events of the excerpt: what one person does to, for or with another (kills, "
-                             "saves, helps, hires, pays, threatens, gives or buys something, tells or reveals something, learns something "
-                             "about them, meets them), and what happens to a person (dies, is shot, survives, is arrested, is operated on), "
-                             "with how and why when the excerpt says so.\n"
-                             "For each give \"who\" (full name), \"what\" (a few words), \"whom\" (full name, or null) and \"fact\": one "
-                             "sentence stating it with full names and its key detail.\n"
-                             "When the excerpt only says 'he', 'she', 'I', 'you' or a role ('my father', 'the patient', 'the old man'), use "
-                             "the TEXT BEFORE to tell who that is and write the name; take no events from the text before. Only what the "
-                             "excerpt states; do not use outside knowledge. Reply with JSON: {\"events\": [...]}"),
     # Moment scene path (scene_moment): the moment a question asks about, and which of the scenes found for it shows it.
     "scene_moment_system": ("Split a question about a novel into two search queries. Output exactly two lines and nothing else:\n"
                             "MOMENT: the situation in which the thing asked about happens, as a plain statement of who does what, where "
@@ -45,13 +32,6 @@ PROMPT_TEMPLATES = {
                             "the number of the scene that shows this moment, or \"none\" if no summary shows it. When the moment says "
                             "\"first\", \"last\", \"before\" or \"after\", use what the summaries state (for example that two people do "
                             "not know each other yet) to choose. Reply with only the number or \"none\"."),
-    "query_translation_system": ("Reply with exactly two lines and nothing else:\n"
-                                 "LANGUAGE: the language the question is written in\n"
-                                 "ENGLISH: the question translated into English (if it is already English, repeat it unchanged)\n"
-                                 "Keep every name of a person, place, company or other entity exactly as written; never translate, respell, "
-                                 "complete or add names. The only exception is a translated form of a name from Stieg Larsson's Millennium "
-                                 "novels (for example a translated book title or nickname): write it as the English edition does. Do not answer "
-                                 "the question."),
     "query_expansion_system": "Generate exactly {{expansion_count}} distinct search queries for finding passages in a novel that answer the question. Preserve the question's intent and keep every name exactly as written in the question; never add names that are not in the question. Each query must be worded differently from the question and from each other: vary the vocabulary (for example synonyms, statements instead of questions, words a narrator or character in the book might use). Do not answer the question. Return one query per line, with no numbering or commentary.",
 }
 PROMPT_HASHES = {name: hashlib.sha256(value.encode("utf-8")).hexdigest() for name, value in PROMPT_TEMPLATES.items()}

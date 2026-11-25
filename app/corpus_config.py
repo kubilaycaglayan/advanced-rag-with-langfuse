@@ -81,10 +81,6 @@ def langfuse_evaluator_prefix() -> str:
     return str(corpus_config().langfuse.get("evaluator_prefix", corpus_id()))
 
 
-def langfuse_prompt_label() -> str:
-    return str(corpus_config().langfuse.get("prompt_label", "production"))
-
-
 def langfuse_dataset_name(name: str | None = None) -> str:
     config = corpus_config()
     requested = name or config.langfuse.get("default_dataset")
