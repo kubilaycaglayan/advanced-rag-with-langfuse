@@ -11,7 +11,11 @@ from types import SimpleNamespace
 from unittest import TestCase
 from unittest.mock import patch
 
-from app.agent import AgentSettings, _synthesis_rows, instruction_fingerprint, run_agent, tool_names
+from app.agent.state import AgentSettings
+from app.agent.submission import _synthesis_rows
+from app.agent.instructions import instruction_fingerprint
+from app.agent.runner import run_agent
+from app.agent.schemas import tool_names
 from app.pipelines.catalog import CATALOG, RELEASES, fingerprint, load_catalog
 from app.pipelines.resolver import resolve
 from app import experiments as experiments_module
@@ -58,8 +62,9 @@ class PipelineVersions(TestCase):
         self.assertEqual(resolve(engine="agent").version, "v2.16")
 
     def test_agent_declared_steps_have_instrumentation(self):
-        source = Path(__file__).resolve().parents[1] / "app" / "agent.py"
-        tree = ast.parse(source.read_text())
+        source = Path(__file__).resolve().parents[1] / "app"
+        tree = ast.Module(body=[node for path in source.rglob("*.py")
+                                for node in ast.parse(path.read_text()).body], type_ignores=[])
         spans = {node.args[0].value for node in ast.walk(tree) if isinstance(node, ast.Call)
                  and isinstance(node.func, ast.Name) and node.func.id == "observation"
                  and node.args and isinstance(node.args[0], ast.Constant)
@@ -73,13 +78,13 @@ class PipelineVersions(TestCase):
         def observe(name, **kwargs):
             spans.append(name)
             return nullcontext(None)
-        with patch("app.agent.observation", side_effect=observe), \
-             patch("app.agent._normalize_question", side_effect=lambda state: (state.question, [])), \
-             patch("app.agent._connection_precheck", return_value=None), \
-             patch("app.agent._true_account_precheck", return_value=None), \
-             patch("app.agent._sequence_precheck", return_value=None), \
-             patch("app.agent._moment_precheck", return_value=None), \
-             patch("app.agent._ollama_chat", return_value={"message": {"content": "No passage found", "tool_calls": []}}):
+        with patch("app.agent.runner.observation", side_effect=observe), \
+             patch("app.agent.runner._normalize_question", side_effect=lambda state: (state.question, [])), \
+             patch("app.agent.runner._connection_precheck", return_value=None), \
+             patch("app.agent.runner._true_account_precheck", return_value=None), \
+             patch("app.agent.runner._sequence_precheck", return_value=None), \
+             patch("app.agent.runner._moment_precheck", return_value=None), \
+             patch("app.models.agent._ollama_chat", return_value={"message": {"content": "No passage found", "tool_calls": []}}):
             result = run_agent("Who?", "fixture", resolve("v2.16").config,
                                settings=AgentSettings(model="qwen3.6:35b", max_turns=1, min_tool_calls=0, initial_scene_probe=False))
         self.assertEqual(result["stopped"], "budget")
@@ -118,8 +123,8 @@ class PipelineVersions(TestCase):
                 self.calls += 1
                 return [0.9] if self.calls == 1 else [0.8, 0.7]
 
-        with patch("app.agent.observation", side_effect=observe), \
-             patch("app.agent._reranker", return_value=Reranker()):
+        with patch("app.agent.submission.observation", side_effect=observe), \
+             patch("app.agent.submission._reranker", return_value=Reranker()):
             selected = _synthesis_rows(state, limit=2)
 
         self.assertEqual([row["id"] for row in selected], ["passage-1", "passage-2"])

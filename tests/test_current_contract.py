@@ -3,7 +3,8 @@ import json
 from pathlib import Path
 from unittest import TestCase
 
-from app.agent import SYSTEM_PROMPT, _tool_specs
+from app.agent.prompts import SYSTEM_PROMPT
+from app.agent.schemas import _tool_specs
 from app.pipelines.resolver import resolve
 from app.prompt_templates import PROMPT_TEMPLATES
 
@@ -39,18 +40,18 @@ class CurrentContract(TestCase):
     def test_instruction_manifest_protects_messages_and_schemas(self):
         import ast
         from unittest.mock import patch
-        from app.agent import instruction_fingerprint
+        from app.agent.instructions import instruction_fingerprint
         baseline = instruction_fingerprint()
-        with patch("app.agent.SYSTEM_PROMPT", "changed system instruction"):
+        with patch("app.agent.instructions.SYSTEM_PROMPT", "changed system instruction"):
             self.assertNotEqual(instruction_fingerprint(), baseline)
-        with patch("app.agent._tool_specs", return_value=[]):
+        with patch("app.agent.instructions._tool_specs", return_value=[]):
             self.assertNotEqual(instruction_fingerprint(), baseline)
         parse = ast.parse
-        with patch("app.agent.ast.parse", side_effect=lambda source: parse(source.replace(
+        with patch("app.agent.instructions.ast.parse", side_effect=lambda source: parse(source.replace(
                 "Submit a supported answer with passage IDs, or say the evidence is insufficient.",
                 "Changed inline instruction."))):
             self.assertNotEqual(instruction_fingerprint(), baseline)
-        with patch("app.agent.ENTITY_CARD_DRAFT_PROMPT", "unused draft changed", create=True):
+        with patch("app.agent.instructions.ENTITY_CARD_DRAFT_PROMPT", "unused draft changed", create=True):
             self.assertEqual(instruction_fingerprint(), baseline)
 
     def test_fixed_only_configuration_is_rejected(self):
@@ -73,7 +74,7 @@ class CurrentContract(TestCase):
         from contextlib import ExitStack, nullcontext
         from dataclasses import replace
         from unittest.mock import patch
-        from app.agent import run_agent
+        from app.agent.runner import run_agent
         base = resolve()
         for reason in ("timeout", "tool_budget", "turn_budget"):
             settings = replace(base.agent_settings, initial_scene_probe=False, min_tool_calls=0,
@@ -82,12 +83,13 @@ class CurrentContract(TestCase):
             with self.subTest(reason=reason), ExitStack() as stack:
                 for name in ("_connection_precheck", "_true_account_precheck", "_sequence_precheck",
                              "_moment_precheck", "_premise_probe"):
-                    stack.enter_context(patch("app.agent." + name, return_value=None))
-                stack.enter_context(patch("app.agent._normalize_question", side_effect=lambda state: (state.question, [])))
-                stack.enter_context(patch("app.agent.observation", return_value=nullcontext(None)))
-                stack.enter_context(patch("app.agent.update_observation"))
-                stack.enter_context(patch("app.agent._run_tool", return_value=({"hits": [], "marker": "latest tool result"}, False)))
-                stack.enter_context(patch("app.agent._finish", return_value={"answer": "answer"}))
+                    stack.enter_context(patch("app.agent.runner." + name, return_value=None))
+                stack.enter_context(patch("app.agent.runner._normalize_question", side_effect=lambda state: (state.question, [])))
+                stack.enter_context(patch("app.agent.runner.observation", return_value=nullcontext(None)))
+                stack.enter_context(patch("app.agent.runner.update_observation"))
+                stack.enter_context(patch("app.agent.runner._run_tool", return_value=({"hits": [], "marker": "latest tool result"}, False)))
+                stack.enter_context(patch("app.agent.runner._finish", return_value={"answer": "answer"}))
+                stack.enter_context(patch("app.agent.submission._finish", return_value={"answer": "answer"}))
                 def chat(state, messages, tools, purpose):
                     if tools is None:
                         self.assertIn("Do not call tools.", messages[-1]["content"])
@@ -96,7 +98,8 @@ class CurrentContract(TestCase):
                         return {"message": {"content": "answer"}}
                     return {"message": {"tool_calls": [{"id": "call", "function": {
                         "name": "semantic_search", "arguments": {"query": "question"}}}]}}
-                model = stack.enter_context(patch("app.agent._tracked_agent_chat", side_effect=chat))
+                model = stack.enter_context(patch("app.agent.runner._tracked_agent_chat", side_effect=chat))
+                stack.enter_context(patch("app.agent.submission._tracked_agent_chat", new=model))
                 run_agent("Question?", "fixture", base.config, settings=settings)
                 self.assertEqual(model.call_args.args[3], "forced answer")
                 self.assertIsNone(model.call_args.args[2])
@@ -135,13 +138,13 @@ class CurrentContract(TestCase):
     def test_openai_errors_do_not_fall_back_to_local_model(self):
         from types import SimpleNamespace
         from unittest.mock import patch
-        from app.agent import _agent_chat
+        from app.models.agent import _agent_chat
         failure = SimpleNamespace(ok=False, status_code=503,
                                   json=lambda: {"error": {"message": "provider unavailable"}})
         for effort in ("none", "high"):
             settings = resolve(overrides={"agent_provider": "openai",
                                           "agent_reasoning_effort": effort}).agent_settings
-            with self.subTest(effort=effort), patch.dict("os.environ", {"OPENAI_API_KEY": "test-only"}),                  patch("app.agent.requests.post", return_value=failure),                  patch("app.agent._ollama_chat") as local:
+            with self.subTest(effort=effort), patch.dict("os.environ", {"OPENAI_API_KEY": "test-only"}),                  patch("app.models.agent.requests.post", return_value=failure),                  patch("app.models.agent._ollama_chat") as local:
                 with self.assertRaisesRegex(RuntimeError, "HTTP 503"):
                     _agent_chat([{"role": "user", "content": "Question"}], None, settings)
                 local.assert_not_called()
@@ -150,19 +153,19 @@ class CurrentContract(TestCase):
         from contextlib import ExitStack, nullcontext
         from dataclasses import replace
         from unittest.mock import patch
-        from app.agent import run_agent
+        from app.agent.runner import run_agent
         current = resolve(overrides={"premise_early_stop": True, "automatic_scene_search": False})
         row = {"id": "a1b2c3d4-0000", "text": "Harriet said, I am alive.",
                "book": "Book", "chapter": "Chapter", "paragraph": 1}
         with ExitStack() as stack:
             for name in ("_connection_precheck", "_true_account_precheck", "_sequence_precheck", "_moment_precheck"):
-                stack.enter_context(patch("app.agent." + name, return_value=None))
-            stack.enter_context(patch("app.agent._normalize_question", side_effect=lambda state: (state.question, [])))
-            stack.enter_context(patch("app.agent._semantic_rows", return_value=[row]))
-            stack.enter_context(patch("app.agent._verify_submission", return_value=(True, "supported")))
-            stack.enter_context(patch("app.agent.observation", return_value=nullcontext(None)))
-            stack.enter_context(patch("app.agent.update_observation"))
-            model = stack.enter_context(patch("app.agent._tracked_agent_chat"))
+                stack.enter_context(patch("app.agent.runner." + name, return_value=None))
+            stack.enter_context(patch("app.agent.runner._normalize_question", side_effect=lambda state: (state.question, [])))
+            stack.enter_context(patch("app.agent.prechecks._semantic_rows", return_value=[row]))
+            stack.enter_context(patch("app.agent.runner._verify_submission", return_value=(True, "supported")))
+            stack.enter_context(patch("app.agent.runner.observation", return_value=nullcontext(None)))
+            stack.enter_context(patch("app.agent.runner.update_observation"))
+            model = stack.enter_context(patch("app.agent.runner._tracked_agent_chat"))
             result = run_agent("Who killed Harriet?", "fixture", current.config, settings=current.agent_settings)
         self.assertEqual(result["stopped"], "premise_resolved")
         self.assertIn("No one killed Harriet", result["answer"])
@@ -171,13 +174,14 @@ class CurrentContract(TestCase):
     def test_submission_verification_fails_closed(self):
         from dataclasses import replace
         from unittest.mock import patch
-        from app.agent import AgentState, _verify_submission
+        from app.agent.state import AgentState
+        from app.agent.submission import _verify_submission
         current = resolve()
         state = AgentState(question="Question?", collection="fixture", config=current.config,
                            settings=current.agent_settings, started=0)
-        with patch("app.agent._row_index", return_value=({}, [])),              patch("app.agent._tracked_agent_chat", return_value={"message": {"content": "malformed verdict"}}):
+        with patch("app.agent.submission._row_index", return_value=({}, [])),              patch("app.agent.submission._tracked_agent_chat", return_value={"message": {"content": "malformed verdict"}}):
             self.assertFalse(_verify_submission(state, "Unsupported answer", [])[0])
-        with patch("app.agent._row_index", return_value=({}, [])),              patch("app.agent._tracked_agent_chat", side_effect=RuntimeError("provider unavailable")):
+        with patch("app.agent.submission._row_index", return_value=({}, [])),              patch("app.agent.submission._tracked_agent_chat", side_effect=RuntimeError("provider unavailable")):
             self.assertFalse(_verify_submission(state, "Unsupported answer", [])[0])
             state.settings = replace(state.settings, provider="openai")
             with self.assertRaisesRegex(RuntimeError, "provider unavailable"):

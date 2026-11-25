@@ -8,7 +8,39 @@ os.environ["LANGFUSE_TRACING_ENABLED"] = "false"
 
 from collections import Counter
 
-from app.agent import AgentSettings, AgentState, _bare_name, _book_short, _candidate_others, _compact, _connection_pairs, _covered_stages, _event_verb, _final, _finish, _int, _looks_like_abstention, _name_score, _normalize_question, _parse_text_tool, _rank_facts, _relation_role, _resolve_id, _scene_member_rows, _scene_payload, _speech_excerpt, _synthesis_rows, _tool_read_scene, _tool_scene_moment, _tool_specs, _tool_submit_answer, _true_account_queries, _true_scene_rank, _is_moment_question, _moment_core, _WHAT_HAPPENED, run_agent
+from app.agent.state import AgentSettings
+from app.agent.state import AgentState
+from app.agent.tools.accounts import _bare_name
+from app.context.citations import _book_short
+from app.agent.tools.accounts import _candidate_others
+from app.context.conversation import _compact
+from app.retrieval.entities import _connection_pairs
+from app.agent.tools.coverage import _covered_stages
+from app.agent.tools.accounts import _event_verb
+from app.agent.submission import _final
+from app.agent.submission import _finish
+from app.agent.protocol import _int
+from app.agent.submission import _looks_like_abstention
+from app.retrieval.entities import _name_score
+from app.agent.prechecks import _normalize_question
+from app.agent.protocol import _parse_text_tool
+from app.retrieval.entities import _rank_facts
+from app.agent.tools.accounts import _relation_role
+from app.retrieval.passages import _resolve_id
+from app.retrieval.passages import _scene_member_rows
+from app.agent.tools.scenes import _scene_payload
+from app.agent.prechecks import _speech_excerpt
+from app.agent.submission import _synthesis_rows
+from app.agent.tools.scenes import _tool_read_scene
+from app.agent.tools.scenes import _tool_scene_moment
+from app.agent.schemas import _tool_specs
+from app.agent.tools.submission import _tool_submit_answer
+from app.agent.tools.accounts import _true_account_queries
+from app.agent.tools.accounts import _true_scene_rank
+from app.agent.prechecks import _is_moment_question
+from app.agent.tools.scenes import _moment_core
+from app.agent.tools.coverage import _WHAT_HAPPENED
+from app.agent.runner import run_agent
 from app.pipelines.config import ResolvedPipelineConfig
 
 
@@ -154,7 +186,7 @@ class QuestionNormalization(unittest.TestCase):
     def test_replaces_a_misspelled_name_with_the_books_full_name(self):
         agent = state()
         agent.question = "How did Mikhail first know about Salander?"
-        with patch("app.agent._name_pairs", return_value=({"Mikael": ("Mikael Blomkvist", 87, 367)},
+        with patch("app.agent.prechecks._name_pairs", return_value=({"Mikael": ("Mikael Blomkvist", 87, 367)},
                                                           Counter({"Mikael": 367, "Salander": 770}))):
             normalized, notes = _normalize_question(agent)
         self.assertEqual(normalized, "How did Mikael Blomkvist first know about Salander?")
@@ -163,7 +195,7 @@ class QuestionNormalization(unittest.TestCase):
     def test_leaves_names_the_books_use(self):
         agent = state()
         agent.question = "What did Salander do?"
-        with patch("app.agent._name_pairs", return_value=({}, Counter({"Salander": 770}))):
+        with patch("app.agent.prechecks._name_pairs", return_value=({}, Counter({"Salander": 770}))):
             normalized, notes = _normalize_question(agent)
         self.assertEqual(normalized, "What did Salander do?")
         self.assertEqual(notes, [])
@@ -179,7 +211,7 @@ class AbstentionRecovery(unittest.TestCase):
         agent = state()
         agent.evidence = {"a1b2c3d4": {"id": "a1b2c3d4-0000-0000-0000-000000000000", "text": "the report"}}
         agent.order = ["a1b2c3d4"]
-        with patch("app.agent._synthesize", return_value=("He learned about her from the report [a1b2c3d4].", ["a1b2c3d4"])):
+        with patch("app.agent.submission._synthesize", return_value=("He learned about her from the report [a1b2c3d4].", ["a1b2c3d4"])):
             result = _finish(agent, "The provided passages do not contain information.", [], stopped="content")
         self.assertEqual(result["answer"], "He learned about her from the report [E1].")
         self.assertEqual(result["stopped"], "content+synthesis")
@@ -199,7 +231,7 @@ class SceneReading(unittest.TestCase):
 
     def test_members_are_returned_in_reading_order(self):
         by_id = {row["id"]: row for row in self.rows}
-        with patch("app.agent._row_index", return_value=(by_id, self.rows)):
+        with patch("app.retrieval.passages._row_index", return_value=(by_id, self.rows)):
             ordered = _scene_member_rows("test", [row["id"] for row in self.rows])
         self.assertEqual([row["text"] for row in ordered], ["first", "second", "third"])
 
@@ -207,7 +239,7 @@ class SceneReading(unittest.TestCase):
         members = [row["id"] for row in self.rows]
         by_id = {row["id"]: row for row in self.rows}
         agent = state()
-        with patch("app.agent._row_index", return_value=(by_id, self.rows)):
+        with patch("app.retrieval.passages._row_index", return_value=(by_id, self.rows)):
             payload = _scene_payload(agent, self.Point(members), 4.2, full=False)
         self.assertEqual(payload["scene_id"], "abcdef12")
         self.assertEqual(len(payload["passages"]), 3)
@@ -219,7 +251,7 @@ class SceneReading(unittest.TestCase):
         members = [row["id"] for row in self.rows]
         by_id = {row["id"]: row for row in self.rows}
         agent = state()
-        with patch("app.agent._row_index", return_value=(by_id, self.rows)):
+        with patch("app.retrieval.passages._row_index", return_value=(by_id, self.rows)):
             payload = _scene_payload(agent, self.Point(members), 4.2, full=True)
         self.assertTrue(payload["passages"])
         self.assertEqual(payload["more_passages"], 0)
@@ -227,8 +259,8 @@ class SceneReading(unittest.TestCase):
     def test_read_scene_remembers_what_it_returns(self):
         agent = state()
         by_id = {row["id"]: row for row in self.rows}
-        with patch("app.agent._scene_lookup", return_value=(self.Point([row["id"] for row in self.rows]), "")), \
-                patch("app.agent._row_index", return_value=(by_id, self.rows)):
+        with patch("app.agent.tools.scenes._scene_lookup", return_value=(self.Point([row["id"] for row in self.rows]), "")), \
+                patch("app.retrieval.passages._row_index", return_value=(by_id, self.rows)):
             payload = _tool_read_scene(agent, {"scene_id": "abcdef12"})
         self.assertEqual(payload["scene_id"], "abcdef12")
         self.assertEqual(len(payload["passages"]), 3)
@@ -310,7 +342,7 @@ class MomentHelpers(unittest.TestCase):
         agent.evidence = {"90239c47": {"id": "90239c47-0000-0000-0000-000000000000",
                                        "text": "She muttered Kalle Fucking Blomkvist."}}
         agent.order = ["90239c47"]
-        with patch("app.agent._synthesize") as synthesize:
+        with patch("app.agent.submission._synthesize") as synthesize:
             result = _finish(agent, "She muttered: Kalle Fucking Blomkvist [90239c47].", ["90239c47"], stopped="content")
         synthesize.assert_not_called()
         self.assertIn("Kalle Fucking Blomkvist", result["answer"])
@@ -321,7 +353,7 @@ class MomentHelpers(unittest.TestCase):
                           for index in range(8)}
         agent.order = list(agent.evidence)
         agent.focus = ["00000007"]
-        with patch("app.agent._reranker") as reranker:
+        with patch("app.agent.submission._reranker") as reranker:
             reranker.return_value.predict.return_value = [0.0] * 7
             rows = _synthesis_rows(agent, limit=3)
         self.assertEqual(rows[0]["id"], "00000007-0000-0000-0000-000000000000")
@@ -342,13 +374,13 @@ class Coverage(unittest.TestCase):
         agent.question = "What happened to Salander in the abandoned factory?"
         agent.evidence = {"a1b2c3d4": {"id": "a1b2c3d4-0000-0000-0000-000000000000", "text": "She found a body."}}
         agent.order = ["a1b2c3d4"]
-        with patch("app.agent._coverage_hint", return_value={"people_involved": ["ronald niedermann"]}):
+        with patch("app.agent.tools.coverage._coverage_hint", return_value={"people_involved": ["ronald niedermann"]}):
             payload, stop = _tool_submit_answer(agent, {"answer": "She finds a body in the water [a1b2c3d4].",
                                                         "passage_ids": ["a1b2c3d4"]})
         self.assertFalse(stop)
         self.assertIn("one stage", payload["error"])
         self.assertEqual(payload["people_involved"], ["ronald niedermann"])
-        with patch("app.agent._coverage_hint", return_value={}):
+        with patch("app.agent.tools.coverage._coverage_hint", return_value={}):
             payload, stop = _tool_submit_answer(agent, {"answer": "She finds a body in the water [a1b2c3d4].",
                                                         "passage_ids": ["a1b2c3d4"]})
         self.assertTrue(stop)  # checked once, then the answer is accepted
@@ -356,10 +388,10 @@ class Coverage(unittest.TestCase):
     def test_moment_tool_returns_the_chosen_scene(self):
         agent = state()
         row = {"id": "a1b2c3d4-0000-0000-0000-000000000000", "text": "Kalle Fucking Blomkvist."}
-        with patch("app.agent._moment_scene_hits",
+        with patch("app.agent.tools.scenes._moment_scene_hits",
                    return_value=([row | {"scene_summary": "the kitchen"}], "Salander saw him in the kitchen")), \
-                patch("app.agent._scene_points", return_value=([], "")), \
-                patch("app.agent._alias_variants", return_value=[]):
+                patch("app.agent.tools.scenes._scene_points", return_value=([], "")), \
+                patch("app.agent.tools.scenes._alias_variants", return_value=[]):
             payload = _tool_scene_moment(agent, {})
         self.assertEqual(payload["moment"], "Salander saw him in the kitchen")
         self.assertEqual(payload["passages"][0]["id"], "a1b2c3d4")
@@ -369,14 +401,14 @@ class Coverage(unittest.TestCase):
 class IdsAndHelpers(unittest.TestCase):
     def test_resolves_a_unique_prefix(self):
         row = {"id": "abcdef12-3456-7890-abcd-ef1234567890", "text": "x"}
-        with patch("app.agent._row_index", return_value=({row["id"]: row}, [row])):
+        with patch("app.retrieval.passages._row_index", return_value=({row["id"]: row}, [row])):
             self.assertIs(_resolve_id("test", "abcdef12")[0], row)
             self.assertIsNone(_resolve_id("test", "abcde")[0])  # too short to guess
             self.assertIn("no passage", _resolve_id("test", "ffffffff")[1])
 
     def test_reports_an_ambiguous_prefix(self):
         rows = [{"id": "abcdef12-0000-0000-0000-000000000001"}, {"id": "abcdef12-0000-0000-0000-000000000002"}]
-        with patch("app.agent._row_index", return_value=({row["id"]: row for row in rows}, rows)):
+        with patch("app.retrieval.passages._row_index", return_value=({row["id"]: row for row in rows}, rows)):
             row, error = _resolve_id("test", "abcdef12")
             self.assertIsNone(row)
             self.assertIn("ambiguous", error)
@@ -408,14 +440,14 @@ if __name__ == "__main__":
 
 class ForcedAnswerConversationHandoff(unittest.TestCase):
     def test_handoff_keeps_latest_tool_result(self):
-        from app.agent import _forced_answer
+        from app.agent.submission import _forced_answer
         agent = state()
         agent.evidence = {"a1b2c3d4": {"id": "a1b2c3d4-0000-0000-0000-000000000000", "text": "Evidence"}}
         agent.order = ["a1b2c3d4"]
         messages = [{"role": "system", "content": "system"},
                     {"role": "user", "content": "question"},
                     {"role": "tool", "tool_call_id": "call1", "content": "LATEST RESULT [a1b2c3d4]"}]
-        with patch("app.agent._tracked_agent_chat", return_value={"message": {"content": "Answer [a1b2c3d4]"}}) as chat:
+        with patch("app.agent.submission._tracked_agent_chat", return_value={"message": {"content": "Answer [a1b2c3d4]"}}) as chat:
             _forced_answer(agent, messages)
         supplied = chat.call_args.args[1]
         self.assertTrue(any("LATEST RESULT" in (message.get("content") or "") for message in supplied))

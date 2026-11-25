@@ -9,7 +9,9 @@ from typing import Any, Mapping
 
 from app.corpus_config import corpus_config, corpus_id
 from app.corpus_profiles import profile_identity, prompt_identity
-from app.agent import AgentSettings, instruction_fingerprint, tool_names
+from app.agent.state import AgentSettings
+from app.agent.instructions import instruction_fingerprint
+from app.agent.schemas import tool_names
 from app.identity import canonical_json
 from app.pipelines.catalog import PipelineCatalog, load_catalog
 from app.pipelines.config import ResolvedPipelineConfig
@@ -103,7 +105,7 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
                     if key not in {"tools", "instruction_fingerprint", "conversation_handoff_fingerprint"}}
     agent_settings = AgentSettings(**agent_values)
     expected_handoff = block["agent"].get("conversation_handoff_fingerprint")
-    actual_handoff = hashlib.sha256((Path(__file__).resolve().parents[1] / "agent_final_handoff.py").read_bytes()).hexdigest()
+    actual_handoff = hashlib.sha256((Path(__file__).resolve().parents[1] / "context" / "agent_final_handoff.py").read_bytes()).hexdigest()
     if expected_handoff != actual_handoff:
         raise ValueError(f"{version}: conversation handoff differs from its pinned fingerprint")
     if agent_provider is not None:

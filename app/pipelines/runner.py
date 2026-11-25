@@ -5,7 +5,7 @@ import time
 from typing import Any, Callable
 
 from app.corpus_profiles import agent_prompt
-from app.agent import run_agent
+from app.agent.runner import run_agent
 from app.pipelines.resolver import ResolvedRun
 
 
