@@ -1,4 +1,4 @@
-"""Reusable corpus-agnostic RAG answer pipeline shared by HTTP and experiments."""
+"""Shared retrieval and query-transformation tools for the v2.16 agent."""
 from __future__ import annotations
 
 import contextvars
@@ -6,7 +6,6 @@ import json
 import math
 import os
 import re
-import time
 from types import SimpleNamespace
 from collections import Counter, defaultdict
 from concurrent.futures import ThreadPoolExecutor
@@ -24,17 +23,15 @@ try:
     from .resolved_config import ResolvedPipelineConfig
     from .observability import observation as _observe, update as _update
     from .intermediate_cache import cache_value as _cache_value
-    from .prompt_templates import PROMPT_HASHES, PROMPT_TEMPLATES
-    from .entities import entity_cards_path, entity_events_path
-    from .scenes import context_collection, scene_collection
+    from .prompt_templates import PROMPT_TEMPLATES
+    from .scenes import scene_collection
 except ImportError:
     from corpus_profiles import load_profile, profile_prompt
     from resolved_config import ResolvedPipelineConfig
     from observability import observation as _observe, update as _update
     from intermediate_cache import cache_value as _cache_value
-    from prompt_templates import PROMPT_HASHES, PROMPT_TEMPLATES
-    from entities import entity_cards_path, entity_events_path
-    from scenes import context_collection, scene_collection
+    from prompt_templates import PROMPT_TEMPLATES
+    from scenes import scene_collection
 
 
 def qdrant_client() -> QdrantClient:
@@ -141,69 +138,6 @@ def _ollama(messages: list[dict[str, str]], model: str, budgets: tuple[int, ...]
         raise RuntimeError(f"Ollama request failed or returned empty content: {last_error or 'empty response'}")
 
 
-_WORD = r"[^\W\d_]+"
-
-
-@lru_cache(maxsize=8)
-def _word_counts(collection: str) -> tuple[Counter, Counter]:
-    """How often each word occurs in the indexed passages (case-folded), and how often it is written in lower case."""
-    words: Counter = Counter()
-    lower: Counter = Counter()
-    offset = None
-    while True:
-        points, offset = qdrant_client().scroll(collection_name=collection, limit=1000, offset=offset, with_payload=["text"])
-        for point in points:
-            for word in re.findall(_WORD, (point.payload or {}).get("text", "")):
-                words[word.casefold()] += 1
-                lower[word] += word.islower()
-        if offset is None:
-            break
-    return words, lower
-
-
-def _english_share(question: str, collection: str) -> float:
-    """Share of the question's words, names left out, that the (English) books use at least twice.
-
-    Names (words the books write capitalised more often than not) are the same in every language, so they say nothing
-    about the question's language; a word the books never use counts against English.
-    """
-    words, lower = _word_counts(collection)
-    common = [word.casefold() for word in re.findall(_WORD, question)]
-    common = [word for word in common if lower[word] and lower[word] >= words[word] - lower[word] or not words[word]]
-    return sum(lower[word] >= 2 for word in common) / len(common) if common else 1.0
-
-
-def _translate(question: str, config: ResolvedPipelineConfig, prompt_bundle: dict[str, Any] | None = None) -> str | None:
-    """The question in English when it is asked in another language, otherwise None.
-
-    Names are kept as written, except translated forms of the novels' own names, which become the English edition's.
-    """
-    prompts = {name: {"id": value.get("id"), "version": value.get("version")}
-               for name, value in (prompt_bundle or {}).items()}
-
-    def translate() -> str | None:
-        messages = (prompt_bundle["rag-query-translation"]["client"].compile(question=question) if prompt_bundle else [
-            {"role": "system", "content": profile_prompt("query_translation_system", PROMPT_TEMPLATES["query_translation_system"])}, {"role": "user", "content": question}])
-        reply = _ollama(messages, config.generation_model.name, config.generation.output_budgets, config.generation.temperature, config.generation.context_length,
-                        prompt=prompt_bundle["rag-query-translation"]["client"] if prompt_bundle else None, name="English translation generation")
-        fields = {key.strip().upper(): value.strip().strip('"') for key, _, value in (line.partition(":") for line in reply.splitlines())}
-        # Asked to judge the language first, the model leaves English questions alone; their wording is never replaced.
-        english = fields.get("ENGLISH", "")
-        translated = (None if fields.get("LANGUAGE", "english").casefold().strip(" .") == "english" or english.casefold() == question.strip().casefold()
-                      else english or None)
-        return translated
-
-    with _observe("query translation", input=question) as obs:
-        translated = _cache_value("query", "translation", {
-            "query": question, "prompt_assets": prompts, "model": config.generation_model.name,
-            "model_revision": config.generation_model.revision,
-            "temperature": config.generation.temperature, "context_length": config.generation.context_length,
-            "output_budgets": list(config.generation.output_budgets),
-        }, input={"query": question, "operation": "translation"}, compute=translate)
-        _update(obs, output=translated)
-    return translated
-
-
 def _transform(question: str, config: ResolvedPipelineConfig, prompt_bundle: dict[str, Any] | None = None) -> tuple[str | None, list[str], str | None]:
     mode = config.retrieval_mode
     prompts = {name: {"id": value.get("id"), "version": value.get("version")}
@@ -277,17 +211,6 @@ def _transform(question: str, config: ResolvedPipelineConfig, prompt_bundle: dic
     return done.get("hypothetical"), done.get("alternatives", []), done.get("corrected")
 
 
-def _rrf(rankings: list[list[Any]], limit: int, k: int) -> list[dict[str, Any]]:
-    fused: dict[str, dict[str, Any]] = {}
-    for ranking in rankings:
-        for rank, point in enumerate(ranking, 1):
-            key = str(point.id)
-            row = fused.setdefault(key, dict(point.payload or {}) | {"id": key, "rrf_score": 0.0, "retrieval_ranks": []})
-            row["rrf_score"] += 1 / (k + rank)
-            row["retrieval_ranks"].append(rank)
-    return sorted(fused.values(), key=lambda row: row["rrf_score"], reverse=True)[:limit]
-
-
 def _name_word_pattern() -> str:
     return load_profile().name_word_pattern
 
@@ -338,43 +261,8 @@ def _keyword_index(collection: str) -> tuple[list[dict[str, Any]], list[Counter]
     return rows, [Counter(row_words) for row_words in words], [len(row_words) for row_words in words], Counter(word for row_words in words for word in set(row_words))
 
 
-@lru_cache(maxsize=4)
-def _previous_passages(collection: str) -> dict[str, dict[str, Any]]:
-    """The passage before each passage in its EPUB section, by id."""
-    sections: dict[tuple, list[dict[str, Any]]] = defaultdict(list)
-    for row in _keyword_index(collection)[0]:
-        sections[(row.get("book_file"), row.get("section"))].append(row)
-    previous: dict[str, dict[str, Any]] = {}
-    for rows in sections.values():
-        rows.sort(key=lambda row: (row.get("paragraph", 0), row.get("part", 0)))
-        previous.update((row["id"], before) for before, row in zip(rows, rows[1:]))
-    return previous
-
-
-def _with_previous_passage(row: dict[str, Any], collection: str) -> dict[str, Any]:
-    """The passage joined with the one before it, so words it matched come with what they refer back to."""
-    before = _previous_passages(collection).get(row["id"])
-    if not before:
-        return row
-    return row | {"paragraph": before.get("paragraph"), "part": before.get("part"), "page": before.get("page") or row.get("page"),
-                  "text": f"{before['text']}\n{row['text']}", "joined_previous": before["id"]}
-
-
-def _rare_question_words(question: str, collection: str, share: float) -> set[str]:
-    """The question's content words, names aside, that occur in fewer than ``share`` of the passages."""
-    rows, _, _, frequency = _keyword_index(collection)
-    names = {word for name in re.findall(rf"(?<!^)\b{_name_word_pattern()}", question.strip()) for word in _keywords(name)}
-    return {word for word in _keywords(question) if len(word) > 1 and word not in names and 0 < frequency[word] < share * len(rows)}
-
-
-def _sentence_holds(text: str, words: set[str]) -> bool:
-    return any(words <= set(_keywords(sentence)) for sentence in re.split(r"(?<=[.!?”])\s+", text))
-
-
 # Other names of a person, from the entity cards /index builds (app/entities.py).
-_OTHER_NAME = re.compile(r"identity|alias|nickname|handle\b|pseudonym|name on|nameplate|cover name|false name|other name|code ?name", re.I)
 _ANCHOR_SKIP = frozenset("what who how when where why which did does is was according for in the a".split())
-_TITLES = frozenset("mr mr. mrs mrs. ms ms. miss dr dr. herr fru fröken fräulein frau madame monsieur sir lady".split())
 
 
 @lru_cache(maxsize=1)
@@ -404,380 +292,8 @@ def _entity_anchors(question: str, data: dict[str, Any]) -> set[str]:
     return found
 
 
-def _is_other_name(edge: dict[str, Any]) -> bool:
-    """An edge from a name the person goes by: a proper name whose mentions were typed as one (alias, handle, …)."""
-    name = edge["text"].split(" — ")[0]
-    return (all(word[:1].isupper() or not word[:1].isalpha() for word in name.split())
-            and any(_OTHER_NAME.search(kind) for kind in edge.get("types", [])))
-
-
-def _entity_name_hits(question: str, config: ResolvedPipelineConfig, collection: str, qdrant: QdrantClient,
-                      evidence: list[dict[str, Any]], limit: int = 6) -> list[dict[str, Any]]:
-    """When the question's best match among the links into a person it names is another name of that person (a false
-    identity, nickname, handle, name on a door), the passages stating that person's other names: the matched one
-    first, then the most often stated. Questions about a set of names ("her fake identity") are answered by several
-    passages that never use the question's words and say "she", which only the merged links connect. Nothing is added
-    when the evidence already names the best match: retrieval found it, and more names would only crowd the answer."""
-    path = entity_cards_path(collection, config)
-    if not config.entity_names or not path.exists():
-        return []
-    data = _entity_cards(str(path))
-    anchors = _entity_anchors(question, data)
-    linked = [edge for edge in data["edges"] if edge["to"] in anchors]
-    if not linked:
-        return []
-    reranker = _reranker(config.reranker_model.name, config.reranker_model.revision)
-    ranked = sorted(zip((float(score) for score in reranker.predict([(question, edge["text"]) for edge in linked], show_progress_bar=False)), linked),
-                    key=lambda pair: -pair[0])
-    floor = config.low_confidence_score if config.low_confidence_score is not None else -math.inf
-    if ranked[0][0] < floor or not _is_other_name(ranked[0][1]):
-        return []
-    if any(name.lower() in row["text"].lower() for name in ranked[0][1]["names"] for row in evidence):
-        return []
-    present = {row["id"] for row in evidence}
-    # Someone linked to the person as a person in a way that is not a name ("friend of", "contact of") is another
-    # person, not one of their names, even where a window calls them a nickname.
-    others = {edge["from"] for edge in linked if edge.get("types", [""])[0] == "person"
-              and not re.search(r"name|identity|alias|nickname|handle|persona|pseudonym", edge["relation"], re.I)}
-    own = {word for anchor in anchors for word in anchor.split()}
-    group: dict[str, list[dict[str, Any]]] = {}
-    for _, edge in ranked:
-        if _is_other_name(edge) and edge["from"] not in others and not set(edge["from"].split()) <= own | _TITLES:  # "Fröken Salander" is her own name
-            group.setdefault(edge["from"], []).append(edge)
-    first = ranked[0][1]["from"]
-    rows = []
-    # Besides the best match, a name must be linked to the person in at least two windows: one window's guess is noise.
-    group = {entity: edges for entity, edges in group.items() if entity == first or sum(edge["count"] for edge in edges) >= 2}
-    for entity, edges in sorted(group.items(), key=lambda item: (item[0] != first, -sum(edge["count"] for edge in item[1])))[:limit]:
-        names = {name.lower() for edge in edges for name in edge["names"]}
-        points = [point for point in qdrant.retrieve(collection, ids=sorted({m for edge in edges for m in edge["members"]}), with_payload=True)
-                  if str(point.id) not in present and any(name in point.payload["text"].lower() for name in names)]
-        if not points:
-            continue
-        statement = edges[0]["text"].split(":")[0]
-        score, point = max(zip(reranker.predict([(statement, point.payload["text"]) for point in points], show_progress_bar=False), points),
-                           key=lambda pair: pair[0])
-        rows.append(dict(point.payload or {}) | {"id": str(point.id), "entity_hit": True, "entity": entity, "entity_score": float(score),
-                                                 "entity_link": statement})
-    if rows:
-        for row, score in zip(rows, reranker.predict([(question, row["text"]) for row in rows], show_progress_bar=False)):
-            row["rerank_score"] = float(score)
-    return rows
-
-
 # Entity matrix: rows are entities, columns kinds of link (the edge's type: nickname, vehicle, tattoo, ...), cells edges.
 # "in the book(s)" and similar only scope the question; the words below say nothing about which rows or cells.
-_SCOPE = re.compile(r"\b(?:in|of|from|throughout|across)\s+(?:the\s+|this\s+|these\s+|all\s+(?:the\s+)?)?(?:books?|novels?|stor(?:y|ies)|trilogy|series)\b", re.I)
-_MATRIX_SKIP = frozenset("any there used use uses have has had get got".split())
-
-
-@lru_cache(maxsize=2)
-def _entity_columns(path: str, model: str, revision: str | None) -> tuple[list[str], Any]:
-    labels = sorted({kind for edge in _entity_cards(path)["edges"] for kind in edge.get("types", []) if kind})
-    return labels, _embedder(model, revision).encode(labels, normalize_embeddings=True, show_progress_bar=False)
-
-
-def _entity_family(key: str, cards: dict[str, Any]) -> set[str]:
-    """The entity's full name (the most mentioned multi-word name containing all its words) and every entity named by
-    words of it: Blomkvist, Mikael and Mikael Blomkvist are one person split by the merge."""
-    words = set(key.split())
-    longer = [other for other in cards if len(other.split()) > 1 and words <= set(other.split())]
-    full = max(longer, key=lambda other: cards[other]["mentions"]) if longer else key
-    return {other for other in cards if set(other.split()) <= set(full.split())} | {key}
-
-
-def _entity_matrix_hits(question: str, config: ResolvedPipelineConfig, collection: str, qdrant: QdrantClient,
-                        evidence: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Passages for the cells of the entity matrix the question asks about, from any end.
-
-    The question's words pick the columns (a phrase as close as ``entity_matrix_similarity`` to a kind of link:
-    "nicknames" → nickname, "car" → vehicle, "fake identity" → false identity). Entities it names restrict the cells to
-    those with that entity (or another name of it) at either end; the words left over ("police officers", "dragon")
-    are scored against every fact of each end; with neither, the cells most often stated come first. Each of the best
-    cells, one per name, adds the passage that states it with a ``Link:`` line, since such passages often say "she".
-    Nothing is added when the evidence already names the best cell, or when no cell is a confident match."""
-    path = entity_cards_path(collection, config)
-    if not path.exists():
-        return []
-    data = _entity_cards(str(path))
-    cards = {card["key"]: card for card in data["cards"]}
-    asked = _SCOPE.sub(" ", question)
-    content = [word for word in re.findall(r"[A-Za-zÅÄÖåäöé][\w-]*", asked)
-               if word.lower() not in _KEYWORD_STOPWORDS and word.lower() not in _MATRIX_SKIP]
-    phrases = sorted(set(content) | {f"{first} {second}" for first, second in zip(content, content[1:])})
-    if not phrases:
-        return []
-    labels, label_vectors = _entity_columns(str(path), config.embedding_model.name, config.embedding_model.revision)
-    embedder = _embedder(config.embedding_model.name, config.embedding_model.revision)
-    similarity = embedder.encode(phrases, normalize_embeddings=True, show_progress_bar=False) @ label_vectors.T
-    best = float(similarity.max())
-    columns, used, column_phrase = set(), set(), ""
-    for column, label in enumerate(labels):
-        # Near ties are kept ("book" and "book series"); a weaker match is another word of the question.
-        if similarity[:, column].max() >= max(config.entity_matrix_similarity, best - 0.05):
-            columns.add(label)
-            phrase = phrases[int(similarity[:, column].argmax())]
-            used |= set(phrase.split())
-            column_phrase = column_phrase or phrase
-    if not columns:
-        return []
-    anchors = _entity_anchors(question, data)
-    named = set().union(*(_entity_family(anchor, cards) for anchor in anchors)) if anchors else set()
-    anchor_words = {word for anchor in anchors for word in anchor.split()}
-    residual = " ".join(word for word in content if word not in used and not word[:1].isupper()
-                        and re.sub(r"[’']s$", "", word).lower() not in anchor_words)
-    families: dict[str, set[str]] = {}
-
-    def family(key: str) -> set[str]:
-        if key not in families:
-            families[key] = _entity_family(key, cards) if key in cards else {key}
-        return families[key]
-
-    def full_name(key: str) -> str:
-        return max(family(key), key=lambda other: (len(other.split()), cards.get(other, {}).get("mentions", 0)))
-
-    def misread(edge: dict[str, Any]) -> bool:
-        """Not a link between two entities: a cell from part of the other end's own name (Curt → Curt Andersson,
-        Fröken Salander); a one-word name that is part of another person's full name (Andersson → Curt Andersson as a
-        "nickname" of Bublanski); or one window's claim about someone the books otherwise treat as a person of their
-        own (Dragan Armansky as a "nickname" of Bublanski)."""
-        first, second = set(edge["from"].split()), set(edge["to"].split())
-        if first <= second | _TITLES or second <= first | _TITLES or edge["from"] in family(edge["to"]):
-            return True
-        owner = full_name(edge["from"])
-        person = lambda key: cards.get(key, {}).get("types", [""])[:1] == ["person"]
-        if edge["count"] < 2 and person(edge["from"]) and cards[edge["from"]]["mentions"] >= 20:
-            return True
-        return (len(first) == 1 and len(owner.split()) > 1 and person(owner)
-                and not set(owner.split()) & set(full_name(edge["to"]).split()))
-
-    cells = [edge for edge in data["edges"] if columns & set(edge.get("types", []))
-             and (not named or edge["from"] in named or edge["to"] in named)]
-    cells = [edge for edge in cells if not misread(edge)]
-    if not cells:
-        return []
-    reranker = _reranker(config.reranker_model.name, config.reranker_model.revision)
-    floor = config.low_confidence_score if config.low_confidence_score is not None else -math.inf
-    if named:
-        scores = [float(score) for score in reranker.predict([(question, edge["text"].split(":")[0]) for edge in cells], show_progress_bar=False)]
-    elif residual:
-        # The left-over words describe one end ("police officers" a person, "dragon" the tattoo itself), alone or
-        # together with the column's word ("dragon tattoo"); each end is scored by its facts that best match either.
-        queries = list(dict.fromkeys([residual, f"{residual} {column_phrase}"]))
-        query_vectors = embedder.encode(queries, normalize_embeddings=True, show_progress_bar=False)
-        vectors = data.setdefault("fact_vectors", {})
-        near: dict[str, tuple[float, list[tuple[str, str]]]] = {}
-        for key in {key for edge in cells for key in (edge["from"], edge["to"])}:
-            best_similarity, pairs = -1.0, []
-            for other in family(key) & set(cards):
-                if other not in vectors:
-                    facts = cards[other].get("facts", [])
-                    vectors[other] = (facts, embedder.encode(facts, normalize_embeddings=True, show_progress_bar=False, batch_size=128) if facts else None)
-                facts, matrix = vectors[other]
-                if facts:
-                    for query, vector in zip(queries, query_vectors):
-                        closeness = matrix @ vector
-                        best_similarity = max(best_similarity, float(closeness.max()))
-                        pairs += [(query, facts[index]) for index in closeness.argsort()[::-1][:8]]
-            near[key] = (best_similarity, pairs)
-        # Only the ends whose facts come closest are scored by the cross-encoder; the rest cannot match.
-        ends = dict.fromkeys(near, -math.inf)
-        for key in sorted(near, key=lambda key: -near[key][0])[:20]:
-            if near[key][1]:
-                ends[key] = float(max(reranker.predict(near[key][1], show_progress_bar=False, batch_size=128)))
-        scores = [max(ends[edge["from"]], ends[edge["to"]]) for edge in cells]
-    else:
-        # The whole column: a cell stated in two windows is a fact of the books, one window's may be a misreading.
-        scores = [float(edge["count"]) for edge in cells]
-        floor = 2.0
-    # Cells stated in two or more windows first: one window's link may be a misreading.
-    ranked = sorted(zip(scores, cells), key=lambda pair: (pair[1]["count"] < 2, -pair[0], -pair[1]["count"]))
-    if max(scores) < floor:
-        return []
-    ranked = [pair for pair in ranked if pair[0] >= floor]
-    flat = lambda text: " ".join(text.split()).casefold()
-    # Retrieval already found the answer when the evidence names the best cell or, for a question about a named
-    # entity ("What car does Blomkvist drive?"), any confident cell of it.
-    if any(flat(name) in flat(row["text"]) for _, edge in (ranked if named else ranked[:1]) for name in edge["names"] for row in evidence):
-        return []
-    present = {row["id"] for row in evidence}
-    rows, seen = [], set()
-    for score, edge in ranked:
-        if len(rows) >= config.entity_matrix_max_hits:
-            break
-        if edge["from"] in seen:
-            continue
-        seen.add(edge["from"])
-        names = {name.lower() for name in edge["names"]}
-        points = [point for point in qdrant.retrieve(collection, ids=edge["members"], with_payload=True)
-                  if str(point.id) not in present and any(name in point.payload["text"].lower() for name in names)]
-        if not points:
-            continue
-        statement = edge["text"].split(":")[0]
-        _, point = max(zip(reranker.predict([(statement, point.payload["text"]) for point in points], show_progress_bar=False), points),
-                       key=lambda pair: pair[0])
-        present.add(str(point.id))
-        rows.append(dict(point.payload or {}) | {"id": str(point.id), "entity_hit": True, "entity": edge["from"], "entity_score": score,
-                                                 "entity_link": statement})
-    if rows:
-        for row, score in zip(rows, reranker.predict([(question, row["text"]) for row in rows], show_progress_bar=False)):
-            row["rerank_score"] = float(score)
-    return rows
-
-
-def _entity_key(name: str, data: dict[str, Any]) -> str | None:
-    """The entity card a name refers to: its own, its alias, or the most mentioned card containing the name's words."""
-    key = re.sub(r"[’']s$", "", name.strip()).casefold()
-    key = data["alias"].get(key, key)
-    if key in data["mentions"]:
-        return key
-    words = set(key.split())
-    matches = [other for other in data["mentions"] if words and words <= set(other.split())]
-    return max(matches, key=data["mentions"].get) if matches else None
-
-
-@lru_cache(maxsize=2)
-def _entity_graph(path: str, events_path: str, collection: str) -> tuple[dict[Any, int], list[str], list[dict[str, Any]], Any]:
-    """The entity cards and events as one graph. Nodes are passages, entities and events; an entity is joined to each
-    passage of the windows that mention it and to the entities its links point to (weighted by the windows stating the
-    link), an event to the people it is between and to the passages of its window, and each passage to the next one
-    of its EPUB section. Returns the node index, the passage ids (the first nodes), the events (keyed ("event", i)) and
-    the column-normalised transition matrix that Personalized PageRank walks."""
-    import json
-    import numpy as np
-    import scipy.sparse as sparse
-    data = _entity_cards(path)
-    with open(events_path, encoding="utf-8") as handle:
-        events = json.load(handle)
-    passages = [row["id"] for row in _keyword_index(collection)[0]]
-    index: dict[Any, int] = {pid: i for i, pid in enumerate(passages)}
-    for card in data["cards"]:
-        index.setdefault(card["key"], len(index))
-    for number in range(len(events)):
-        index[("event", number)] = len(index)
-    rows, columns, weights = [], [], []
-
-    def join(first: int, second: int, weight: float) -> None:
-        rows.extend((first, second))
-        columns.extend((second, first))
-        weights.extend((weight, weight))
-
-    for card in data["cards"]:
-        for member in card["members"]:
-            if member in index:
-                join(index[card["key"]], index[member], 1.0)
-    for edge in data["edges"]:
-        if edge["from"] in index and edge["to"] in index:
-            join(index[edge["from"]], index[edge["to"]], float(edge["count"]))
-    for number, event in enumerate(events):
-        node = index[("event", number)]
-        for member in event["members"]:
-            if member in index:
-                join(node, index[member], 1.0)
-        for name in event["people"]:
-            key = _entity_key(name, data)
-            if key:
-                join(node, index[key], 1.0)
-    for pid, before in _previous_passages(collection).items():
-        join(index[before["id"]], index[pid], 1.0)
-    adjacency = sparse.csr_matrix((weights, (rows, columns)), shape=(len(index), len(index)))
-    degree = np.asarray(adjacency.sum(axis=1)).ravel()
-    degree[degree == 0] = 1
-    return index, passages, events, (sparse.diags(1 / degree) @ adjacency).T.tocsr()
-
-
-def _entity_graph_events(question: str, config: ResolvedPipelineConfig, collection: str, evidence: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Every event, ranked by Personalized PageRank from the entities the question names (each weighted by 1/sqrt of its
-    passages, so the main characters do not spread over every book) and from the evidence: the events the graph ties
-    most closely to both come first."""
-    import numpy as np
-    path, events_path = entity_cards_path(collection, config), entity_events_path(collection, config)
-    if not path.exists() or not events_path.exists():
-        return []
-    data = _entity_cards(str(path))
-    index, passages, events, walk = _entity_graph(str(path), str(events_path), collection)
-    members = {card["key"]: len(card["members"]) for card in data["cards"]}
-    seed = np.zeros(walk.shape[0])
-    for anchor in _entity_anchors(question, data):
-        seed[index[anchor]] += 1 / math.sqrt(max(1, members[anchor]))
-    for row in evidence:
-        if row["id"] in index:
-            seed[index[row["id"]]] += 0.1
-    if not seed.any():
-        return []
-    seed /= seed.sum()
-    rank = seed.copy()
-    for _ in range(30):
-        rank = (1 - config.entity_graph_damping) * seed + config.entity_graph_damping * (walk @ rank)
-    first = len(passages) + len(data["cards"])
-    return [events[i] for i in np.argsort(-rank[first:])]
-
-
-def _entity_graph_hits(question: str, config: ResolvedPipelineConfig, collection: str, qdrant: QdrantClient,
-                       evidence: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Passages stating the events the entity graph ties to the question, after the usual evidence.
-
-    A passage that calls the person "my father" or "him" shares no words with the question, and the cross-encoder
-    scores it far below passages that do; the events read from its window with the text before it name the people
-    ("Harriet Vanger killed Gottfried Vanger by holding him under the water with an oar"). The best
-    ``entity_graph_pool`` events by graph rank are scored against the question, and up to ``entity_graph_max_hits``
-    that score at least ``low_confidence_score`` and are stated by a passage not already in the evidence add that
-    passage with the event as its ``Link:`` line."""
-    present = {row["id"] for row in evidence}
-    pool = [event for event in _entity_graph_events(question, config, collection, evidence)
-            if not set(event["members"]) <= present][:config.entity_graph_pool]
-    if not pool or not config.entity_graph_max_hits:
-        return []
-    reranker = _reranker(config.reranker_model.name, config.reranker_model.revision)
-    floor = config.low_confidence_score if config.low_confidence_score is not None else -math.inf
-    scored = sorted(((float(score), event) for score, event in zip(reranker.predict([(question, event["fact"]) for event in pool], show_progress_bar=False), pool)
-                     if score >= floor), key=lambda pair: -pair[0])
-    rows: list[dict[str, Any]] = []
-    for score, event in scored:
-        if len(rows) >= config.entity_graph_max_hits:
-            break
-        points = [point for point in qdrant.retrieve(collection, ids=event["members"], with_payload=True) if str(point.id) not in present]
-        if not points:
-            continue
-        _, point = max(zip(reranker.predict([(event["fact"], point.payload["text"]) for point in points], show_progress_bar=False), points),
-                       key=lambda pair: pair[0])
-        present.add(str(point.id))
-        rows.append(dict(point.payload or {}) | {"id": str(point.id), "entity_graph_hit": True, "entity_score": score, "entity_link": event["fact"]})
-    if rows:
-        for row, score in zip(rows, reranker.predict([(question, row["text"]) for row in rows], show_progress_bar=False)):
-            row["rerank_score"] = float(score)
-    return rows
-
-
-def _entity_graph_facts(question: str, config: ResolvedPipelineConfig, collection: str, qdrant: QdrantClient,
-                        evidence: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """The ``entity_graph_facts`` events the question matches best among the ``entity_graph_pool`` the graph ties
-    most closely to it, each as one short evidence line placed at the passage that states it.
-
-    The answer to "How did Gottfried really die?" is an event the cross-encoder ranks below the official story it
-    contradicts ("Gottfried died in a banal way after getting drunk"), so no score rule picks it; given the events
-    themselves, a few sentences each, the answer model can weigh them as it weighs passages."""
-    pool = _entity_graph_events(question, config, collection, evidence)[:config.entity_graph_pool]
-    if not pool:
-        return []
-    reranker = _reranker(config.reranker_model.name, config.reranker_model.revision)
-    scored = sorted(zip((float(score) for score in reranker.predict([(question, event["fact"]) for event in pool], show_progress_bar=False)), pool),
-                    key=lambda pair: -pair[0])
-    best: dict[str, tuple[float, dict[str, Any]]] = {}
-    for score, event in scored:
-        best.setdefault(event["fact"].casefold(), (score, event))
-    chosen = sorted(best.values(), key=lambda pair: -pair[0])[:config.entity_graph_facts]
-    points = {str(point.id): point for point in qdrant.retrieve(collection, ids=sorted({m for _, event in chosen for m in event["members"]}), with_payload=True)}
-    rows = []
-    for score, event in chosen:
-        window = [points[m] for m in event["members"] if m in points]
-        if not window:
-            continue
-        _, point = max(zip(reranker.predict([(event["fact"], point.payload["text"]) for point in window], show_progress_bar=False), window),
-                       key=lambda pair: pair[0])
-        rows.append(dict(point.payload or {}) | {"id": f"event:{point.id}:{len(rows)}", "passage_id": str(point.id), "text": event["fact"],
-                                                 "graph_fact": True, "rerank_score": score})
-    return rows
 
 
 def _keyword_search(query: str, collection: str, limit: int, k1: float = 1.2, b: float = 0.75) -> list[dict[str, Any]]:
@@ -823,63 +339,6 @@ def _complete_names(question: str, collection: str, min_count: int = 20, min_sha
         "query": question, "collection": collection, "min_count": min_count,
         "min_share": min_share, "min_other_ratio": min_other_ratio,
     }, input={"query": question, "operation": "name_completion"}, compute=complete)
-
-
-def _scene_hits(question: str, config: ResolvedPipelineConfig, collection: str, qdrant: QdrantClient,
-                evidence: list[dict[str, Any]], present: set[str]) -> list[dict[str, Any]]:
-    """Passages of the scene whose summary best matches the question, when it beats every scene the evidence already
-    comes from by more than scene_margin and is a confident match.
-
-    Summaries and passages are not scored on the same scale (a summary names everyone and states what happens), so
-    the bar is set by the scenes that hold the current evidence, not by the passages themselves.
-    """
-    name = scene_collection(collection, config)
-    vector = _encode_query(question, config.embedding_model.name, config.embedding_model.revision)
-    found = _query_points_cached(qdrant, name, vector, config.scene_search_hits, question)
-    covering, _ = qdrant.scroll(collection_name=name, limit=1000, with_payload=True, scroll_filter=models.Filter(
-        must=[models.FieldCondition(key="members", match=models.MatchAny(any=[row["id"] for row in evidence]))]))
-    scenes = list({str(point.id): point for point in [*found, *covering]}.values())
-    scores = {str(point.id): float(score) for point, score in zip(scenes, _reranker(config.reranker_model.name, config.reranker_model.revision).predict(
-        [(question, point.payload["summary"]) for point in scenes], show_progress_bar=False))}
-    best = max(found, key=lambda point: scores[str(point.id)])
-    covered = max((scores[str(point.id)] for point in covering), default=-math.inf)
-    floor = config.low_confidence_score if config.low_confidence_score is not None else -math.inf
-    if scores[str(best.id)] <= max(covered + config.scene_margin, floor):
-        return []
-    members = [member for member in best.payload["members"] if member not in present]
-    rows = [dict(point.payload or {}) | {"id": str(point.id), "scene_hit": True, "scene_summary": best.payload["summary"],
-                                          "scene_score": scores[str(best.id)]}
-            for point in qdrant.retrieve(collection_name=collection, ids=members, with_payload=True)]
-    rows.sort(key=lambda row: members.index(row["id"]))
-    for row, score in zip(rows, _reranker(config.reranker_model.name, config.reranker_model.revision).predict(
-            [(question, row["text"]) for row in rows], show_progress_bar=False)):
-        row["rerank_score"] = float(score)
-    return rows
-
-
-def _context_hits(question: str, config: ResolvedPipelineConfig, collection: str, qdrant: QdrantClient, vectors: list[list[float]],
-                  queries: list[str],
-                  candidates: list[dict[str, Any]], present: set[str]) -> list[dict[str, Any]]:
-    """Passages found with their scene's summary in front, which the fused candidates and the usual evidence lack,
-    when they rank among the scene_context_rank best of all of them reranked that way and are confident matches.
-
-    The summary says who is there and what happens, so a passage that names neither (a line of dialogue, the line a
-    chapter ends on) can match a question that describes the moment. Every row is reranked with its summary in front,
-    the fused candidates too, so a scene that matches lifts its passages on one scale.
-    """
-    name = context_collection(collection, config)
-    found = _rrf([_query_points_cached(qdrant, name, vector, config.candidate_count, query)
-                  for vector, query in zip(vectors, queries)], config.candidate_count, config.rrf_constant)
-    fused = {row["id"] for row in candidates}
-    contexts = {str(point.id): (point.payload or {}).get("context")
-                for point in qdrant.retrieve(collection_name=name, ids=list(fused), with_payload=["context"])}
-    rows = [row | {"context": contexts.get(row["id"])} for row in candidates] + [row for row in found if row["id"] not in fused]
-    scores = _reranker(config.reranker_model.name, config.reranker_model.revision).predict(
-        [(question, f"{row['context']}\n{row['text']}" if row.get("context") else row["text"]) for row in rows], show_progress_bar=False)
-    best = sorted(zip(rows, (float(score) for score in scores)), key=lambda pair: pair[1], reverse=True)[:config.scene_context_rank]
-    floor = config.low_confidence_score if config.low_confidence_score is not None else -math.inf
-    return [row | {"scene_context_hit": True, "rerank_score": score, "context_score": score}
-            for row, score in best if row["id"] not in present and score > floor][:config.scene_context_max_hits]
 
 
 def _prompted(prompt_bundle: dict[str, Any] | None, asset: str, system: str, user: str, config: ResolvedPipelineConfig, name: str,
@@ -953,14 +412,3 @@ def _moment_scene_hits(question: str, config: ResolvedPipelineConfig, collection
             [(question, row["text"]) for row in rows], show_progress_bar=False)):
         row["rerank_score"] = float(score)
     return rows, moment
-
-
-def _format_evidence(rows: list[dict[str, Any]]) -> str:
-    return "\n\n".join(
-        f"[E{i}] Book: {row.get('book')} | Chapter: {row.get('chapter') or 'unavailable'} | Paragraph: {row.get('paragraph', 'unavailable')} | Page: {row.get('page') or 'unavailable'}\n"
-        # A passage found through the entity index says "she"; the link it was found by says who and how.
-        + (f"Link: {row['entity_link']}\n" if row.get("entity_link") else "")
-        # An event the entity graph found is one sentence about the passage at this place, not the passage itself.
-        + (f"Event: {row['text']}" if row.get("graph_fact") else f"Passage: {row['text']}")
-        for i, row in enumerate(rows, 1)
-    )

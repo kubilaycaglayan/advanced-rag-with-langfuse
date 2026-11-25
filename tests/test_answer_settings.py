@@ -64,15 +64,6 @@ class KeywordSearchChecks(unittest.TestCase):
             with self.assertRaises(ValueError):
                 ResolvedPipelineConfig.from_mapping(bad)
 
-    def test_rare_question_words_leave_out_names_and_common_words(self):
-        texts = ["Salander ran.", "Salander slept.", "Salander had a fake identity.", "The identity of Salander.", "She ran.", "He ran."]
-        client = MagicMock()
-        client.scroll.return_value = ([MagicMock(id=f"p{i}", payload={"text": t}) for i, t in enumerate(texts)], None)
-        with patch.object(pipeline, "qdrant_client", return_value=client):
-            # "salander" is a name, "ran" is in half the passages, "lost" is in none.
-            self.assertEqual(pipeline._rare_question_words("Why ran Salander's fake identity lost?", "c", 0.4), {"fake", "identity"})
-        self.assertTrue(pipeline._sentence_holds("She drove. The fake identity was lost.", {"fake", "identity"}))
-        self.assertFalse(pipeline._sentence_holds("It was fake. Her identity was lost.", {"fake", "identity"}))
 
     def test_rare_exact_words_rank_first(self):
         texts = ["She thought: no compromises.", "He made a compromise.", "No time to lose, she said.", "The house was quiet."]
@@ -84,31 +75,8 @@ class KeywordSearchChecks(unittest.TestCase):
         self.assertEqual([row["id"] for row in hits], ["p0", "p1", "p2"])
         self.assertGreater(hits[0]["keyword_score"], hits[1]["keyword_score"])
 
-    def test_admitted_passage_is_joined_with_the_one_before_it(self):
-        payloads = [{"text": "Giannini asked for acquittal.", "book_file": "b", "section": "s", "paragraph": 14, "part": 1},
-                    {"text": "No compromises.", "book_file": "b", "section": "s", "paragraph": 22, "part": 1},
-                    {"text": "Elsewhere.", "book_file": "b", "section": "t", "paragraph": 1, "part": 1}]
-        client = MagicMock()
-        client.scroll.return_value = ([MagicMock(id=f"p{i}", payload=p) for i, p in enumerate(payloads)], None)
-        pipeline._previous_passages.cache_clear()
-        with patch.object(pipeline, "qdrant_client", return_value=client):
-            joined = pipeline._with_previous_passage({"id": "p1", "text": "No compromises.", "paragraph": 22, "rerank_score": 1.9}, "c")
-            # The first passage of a section has nothing before it.
-            first = pipeline._with_previous_passage({"id": "p2", "text": "Elsewhere.", "paragraph": 1}, "c")
-        pipeline._previous_passages.cache_clear()
-        self.assertEqual((joined["text"], joined["paragraph"], joined["rerank_score"], joined["joined_previous"]),
-                         ("Giannini asked for acquittal.\nNo compromises.", 14, 1.9, "p0"))
-        self.assertEqual(first["text"], "Elsewhere.")
 
 
-class LowConfidenceSettingChecks(unittest.TestCase):
-    def test_defaults_and_validation(self):
-        config = ResolvedPipelineConfig()
-        self.assertEqual((config.top_k, config.answer_thinking, config.low_confidence_score, config.low_confidence_top_k), (10, False, 2.0, 15))
-        self.assertIsNone(ResolvedPipelineConfig.from_mapping({"low_confidence_score": None}).low_confidence_score)
-        for bad in ({"low_confidence_score": "high"}, {"low_confidence_score": float("nan")}, {"low_confidence_top_k": 0}, {"low_confidence_top_k": 31}):
-            with self.assertRaises(ValueError):
-                ResolvedPipelineConfig.from_mapping(bad)
 
 
 
@@ -132,33 +100,7 @@ class SceneSearchChecks(unittest.TestCase):
             with self.assertRaises(ValueError):
                 ResolvedPipelineConfig.from_mapping(bad)
 
-    def _hits(self, scene_scores, evidence=("p1",), present=("p1",), **settings):
-        # Scenes s0..s2 hold passages p0..p8 three at a time; s0 holds the evidence passage p1.
-        scenes = [MagicMock(id=f"s{i}", payload={"members": [f"p{3 * i + j}" for j in range(3)], "summary": f"sum{i}"}) for i in range(3)]
-        client = MagicMock()
-        client.query_points.return_value = MagicMock(points=scenes)
-        client.scroll.side_effect = lambda **kw: ([s for s in scenes if set(s.payload["members"]) & set(kw["scroll_filter"].must[0].match.any)], None)
-        client.retrieve.side_effect = lambda collection_name, ids, with_payload: [MagicMock(id=i, payload={"text": f"t{i}"}) for i in reversed(ids)]
-        reranker = MagicMock()
-        reranker.predict.side_effect = lambda pairs, show_progress_bar: [scene_scores.get(text, 0.0) for _, text in pairs]
-        embedder = MagicMock()
-        embedder.encode.return_value = MagicMock(tolist=lambda: [0.0])
-        config = ResolvedPipelineConfig(**{"scene_margin": 1.0} | settings)
-        with patch.object(pipeline, "_embedder", return_value=embedder), patch.object(pipeline, "_reranker", return_value=reranker):
-            rows = pipeline._scene_hits("q", config, "c", client, [{"id": i} for i in evidence], set(present))
-        return [row["id"] for row in rows]
 
-    def test_scene_admitted_only_when_it_beats_the_scenes_holding_the_evidence(self):
-        # s1 beats s0 (the scene of the evidence) by more than the margin: its passages are added in reading order.
-        self.assertEqual(self._hits({"sum0": 3.0, "sum1": 4.5, "sum2": 1.0}), ["p3", "p4", "p5"])
-        # Not by more than the margin, or the evidence's own scene is the best: nothing is added.
-        self.assertEqual(self._hits({"sum0": 3.6, "sum1": 4.5}), [])
-        self.assertEqual(self._hits({"sum0": 5.0, "sum1": 4.5}), [])
-        # A scene that is not a confident match is not added even if nothing covers the evidence.
-        self.assertEqual(self._hits({"sum1": 1.5}, evidence=("p9",)), [])
-        self.assertEqual(self._hits({"sum1": 2.5}, evidence=("p9",)), ["p3", "p4", "p5"])
-        # Passages already in the evidence are not repeated.
-        self.assertEqual(self._hits({"sum0": 3.0, "sum1": 4.5}, present=("p1", "p4")), ["p3", "p5"])
 
 
 class MomentSceneChecks(unittest.TestCase):
@@ -168,6 +110,7 @@ class MomentSceneChecks(unittest.TestCase):
         for bad in ({"scene_moment": "yes"},):
             with self.assertRaises(ValueError):
                 ResolvedPipelineConfig.from_mapping(bad)
+
 
     def _hits(self, replies, evidence=("p20",), present=("p20",)):
         # Windows of three passages, stride two, in one section: s0 = p0..p2, s1 = p2..p4, s2 = p4..p6. The search returns
@@ -189,6 +132,7 @@ class MomentSceneChecks(unittest.TestCase):
             rows, moment = pipeline._moment_scene_hits("q", config, "c", client, [{"id": i} for i in evidence], set(present))
         return [row["id"] for row in rows], moment, prompts
 
+
     def test_chosen_window_and_the_window_that_continues_it_are_added_in_reading_order(self):
         ids, moment, prompts = self._hits(["MOMENT: X first met Y at home\nDETAIL: her shirt", "2"])
         self.assertEqual(moment, "X first met Y at home")
@@ -206,74 +150,6 @@ class MomentSceneChecks(unittest.TestCase):
         self.assertEqual(self._hits(["MOMENT: X met Y", "1"], present=("p20", "p1"))[0], ["p0", "p2", "p3", "p4"])
 
 
-class SceneContextChecks(unittest.TestCase):
-    def test_setting_is_validated(self):
-        config = ResolvedPipelineConfig()
-        self.assertEqual((config.scene_context, config.scene_context_rank, config.scene_context_max_hits, config.scene_context_sentences), (True, 3, 2, 2))
-        self.assertFalse(ResolvedPipelineConfig.from_mapping({"scene_context": False}).scene_context)
-        for bad in ({"scene_context": "yes"}, {"scene_context_rank": 0},
-                    {"scene_context_rank": True}, {"scene_context_max_hits": 0}, {"scene_context_max_hits": 11},
-                    {"scene_context_sentences": 0}):
-            with self.assertRaises(ValueError):
-                ResolvedPipelineConfig.from_mapping(bad)
-
-    def test_each_passage_takes_the_summary_of_the_window_it_sits_nearest_the_middle_of(self):
-        from app import scenes
-        contexts = scenes.passage_contexts([(["p0", "p1", "p2"], "s0"), (["p2", "p3", "p4"], "s1"), (["p4", "p5"], "s2")])
-        self.assertEqual(contexts, {"p0": "s0", "p1": "s0", "p2": "s0", "p3": "s1", "p4": "s2", "p5": "s2"})
-
-    def test_context_keeps_the_summary_sentences_nearest_the_passage_in_summary_order(self):
-        import numpy as np
-        from app import scenes
-        axis = {"gun": 0, "bench": 1, "car": 2}
-        encoder = MagicMock()
-        encoder.encode.side_effect = lambda texts, **kw: np.array([[1.0 if word in text else 0.0 for word in axis] for text in texts])
-        contexts = {"p": "He drives a car. She lies on a bench. He takes the gun."}
-        self.assertEqual(scenes.focused_contexts(contexts, {"p": "the gun on the bench"}, 2, encoder), {"p": "She lies on a bench. He takes the gun."})
-        self.assertEqual(scenes.focused_contexts(contexts, {"p": "the car"}, 1, encoder), {"p": "He drives a car."})
-
-    def _hits(self, scores, present=("f0",), **settings):
-        # Fused candidates f0, f1; the contextual search finds f1 (already fused), n0 and n1. Every row is reranked with its
-        # summary in front ("ctx-<id>").
-        candidates = [{"id": "f0", "text": "tf0", "rerank_score": 1.0}, {"id": "f1", "text": "tf1", "rerank_score": 0.5}]
-        found = lambda i: MagicMock(id=i, payload={"text": f"t{i}", "context": f"ctx-{i}"})
-        client = MagicMock()
-        client.query_points.return_value = MagicMock(points=[found("f1"), found("n0"), found("n1")])
-        client.retrieve.side_effect = lambda collection_name, ids, with_payload: [MagicMock(id=i, payload={"context": f"ctx-{i}"}) for i in ids]
-        reranker = MagicMock()
-        reranker.predict.side_effect = lambda pairs, show_progress_bar: [scores.get(text.split("\n")[0], 0.0) for _, text in pairs]
-        config = ResolvedPipelineConfig(**{"scene_context": True} | settings)
-        with patch.object(pipeline, "_reranker", return_value=reranker):
-            rows = pipeline._context_hits("q", config, "c", client, [[0.0], [0.0]], ["q", "q"],
-                                          candidates, set(present))
-        return [row["id"] for row in rows]
-
-    def test_passages_ranking_among_the_best_with_their_summary_are_added(self):
-        # n0 ranks first with its summary in front and is a confident match.
-        self.assertEqual(self._hits({"ctx-n0": 5.0, "ctx-f0": 4.0}), ["n0"])
-        # A fused candidate outside the usual evidence can be added too; one in it is not repeated.
-        self.assertEqual(self._hits({"ctx-f1": 5.0, "ctx-f0": 4.0}), ["f1"])
-        self.assertEqual(self._hits({"ctx-f0": 5.0}), [])
-        # Not among the best scene_context_rank, or not a confident match: nothing is added.
-        self.assertEqual(self._hits({"ctx-n0": 3.0, "ctx-f0": 5.0, "ctx-f1": 4.0}, present=("f0", "f1"), scene_context_rank=2), [])
-        self.assertEqual(self._hits({"ctx-n0": 1.5}), [])
-        # At most scene_context_max_hits.
-        self.assertEqual(self._hits({"ctx-n0": 5.0, "ctx-n1": 4.0}, scene_context_max_hits=1), ["n0"])
-
-
-class ThinkingFallbackChecks(unittest.TestCase):
-    def test_empty_reasoning_answer_retries_without_thinking(self):
-        calls = []
-
-        def post(url, json, timeout=None, **kwargs):
-            calls.append(json["think"])
-            response = MagicMock()
-            response.json.return_value = {"message": {"content": "" if json["think"] else "Answer [E1]."}}
-            return response
-
-        with patch.object(pipeline.requests, "post", side_effect=post):
-            self.assertEqual(pipeline._ollama([{"role": "user", "content": "q"}], "m", (10, 20), think=True), "Answer [E1].")
-        self.assertEqual(calls, [True, True, False])
 
 class StreamingChecks(unittest.TestCase):
     def test_streams_only_answer_content_and_records_usage(self):
