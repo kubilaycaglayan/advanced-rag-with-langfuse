@@ -1,5 +1,5 @@
 {
-  "source_verified_at": "19c6738280ba4ca31ee0da29fd7f77b32f4ac890",
+  "source_verified_at": "fab32914e75055c02dd819de9d51053ece82682b",
   "baseline_revision": "7febbf7",
   "ui_revision": "33cb103b31b0ce12bf6e9488b19aa406a0a3f5a6",
   "checks": {
@@ -664,6 +664,10 @@
     {
       "path": "data/millennium/comparisons/2026-11-25-organization/repeats/millennium/executions/f9c01596-abdf-4d44-afb4-175aa59dcf95/results.json",
       "sha256": "e45cadb3708c0a7e124f29cc7f95ac7677350a1b87de0e86047899c3a880e175"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/checks/backend-whitespace-final.log",
+      "sha256": "cb0bf1e56fb4ea4fd5cb92f67ac2d9215d340becc8c7841f1f1de1e910b86fd1"
     }
   ],
   "baseline_worktree_state": "clean"
