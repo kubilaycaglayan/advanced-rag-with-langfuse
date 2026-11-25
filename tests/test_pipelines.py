@@ -18,8 +18,9 @@ from app.agent.runner import run_agent
 from app.agent.schemas import tool_names
 from app.pipelines.catalog import CATALOG, RELEASES, fingerprint, load_catalog
 from app.pipelines.resolver import resolve
-from app import experiments as experiments_module
-from app.experiment_store import enqueue, initialize
+from app.experiments import execution as experiments_module
+from app.experiments.store import enqueue
+from app.storage import initialize
 
 
 class PipelineVersions(TestCase):

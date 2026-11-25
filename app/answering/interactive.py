@@ -1,6 +1,8 @@
 """answering / interactive responsibilities."""
 from __future__ import annotations
 
+from app.answering.cache_identity import _answer_cache_identity
+
 from app.api.schemas import AskRequest
 from app.cache import answers as answer_cache
 from app.cache.intermediate import scope_for as intermediate_cache_scope
@@ -12,7 +14,7 @@ from app.observability import observation
 from app.observability import record_cache_lookup
 from app.observability import trace_scope
 from app.observability import update as update_observation
-from app.pipelines.runner import run as run_resolved_pipeline
+from app.answering.execution import execute_question as run_resolved_pipeline
 from fastapi import HTTPException
 from langfuse import get_client
 from typing import Any
@@ -21,16 +23,6 @@ import time
 
 
 
-def _answer_cache_identity(question: str, prepared: dict[str, Any]) -> dict[str, Any]:
-    resolved = prepared["resolved"]
-    return answer_cache.identity(
-        project_id=langfuse_project(), corpus_id=resolved.corpus_id,
-        pipeline_version=resolved.version, pipeline_fingerprint=resolved.fingerprint,
-        pipeline_id=resolved.pipeline_id, corpus_checksum=resolved.corpus_checksum,
-        profile_id=resolved.profile_id, profile_identity=resolved.profile_identity,
-        prompt_identity=resolved.prompt_identity, collection=prepared["collection"],
-        question=question, config=resolved.config.manifest(),
-        agent_settings=(resolved.agent_settings.__dict__ if resolved.agent_settings else None))
 
 
 
@@ -44,7 +36,7 @@ def _run_ask(request: AskRequest, prepared: dict[str, Any], *, on_trace=None, on
     cache_layers = answer_cache.normalize_layers(request.cache_layers)
     cache_enabled = ("answer" in cache_layers and request.cache_mode != "bypass"
                      and langfuse_enabled())
-    cache_scope = _answer_cache_identity(request.question, prepared) if cache_enabled else None
+    cache_scope = _answer_cache_identity(request.question, prepared["resolved"], prepared["collection"]) if cache_enabled else None
     cache_started = time.perf_counter()
     cached_result, cache_status, cache_source_trace_id = None, "bypassed", None
     if cache_enabled and request.cache_mode == "use":

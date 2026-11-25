@@ -126,7 +126,7 @@ class InteractiveAskContract(TestCase):
              patch("app.answering.interactive.observation", return_value=nullcontext(None)), \
              patch("app.answering.interactive.update_observation"), \
              patch("app.answering.interactive.get_client", return_value=client), \
-             patch("app.pipelines.runner.run_agent", return_value=agent_result) as agent:
+             patch("app.answering.execution.run_agent", return_value=agent_result) as agent:
             result = ask(AskRequest(question="Who?", cache_mode="bypass"))
         self.assertEqual(result["engine"], "agent")
         self.assertEqual(result["mode"], "agent")

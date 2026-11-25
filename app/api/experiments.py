@@ -7,9 +7,9 @@ from app.corpus_config import langfuse_dataset_name
 from app.corpus_config import langfuse_project
 from app.corpus_profiles import langfuse_enabled
 from app.evaluation.specs import CORRECTNESS_SPECS
-from app.experiment_store import get_execution
-from app.experiments import submit
-from app.experiments import submit_retry
+from app.experiments.store import get_execution
+from app.experiments.queue import submit
+from app.experiments.queue import submit_retry
 from app.pipelines.resolver import resolve
 from fastapi import HTTPException
 from fastapi import Header

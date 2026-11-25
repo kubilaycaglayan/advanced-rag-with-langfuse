@@ -1,61 +1,53 @@
-"""Pinned hosted-dataset experiment execution and durable single-worker queue."""
+"""experiments / execution responsibilities."""
 from __future__ import annotations
 
-import argparse
-import hashlib
+from app.answering.cache_identity import _answer_cache_identity
+from app.cache import answers as answer_cache
+from app.cache.intermediate import scope_for as intermediate_cache_scope
+from app.cache.intermediate import use_cache as use_intermediate_cache
+from app.corpus_config import corpus_config
+from app.corpus_config import corpus_data_dir
+from app.corpus_config import langfuse_project
+from app.evaluation.judges import citation_support
+from app.evaluation.judges import correctness
+from app.evaluation.judges import is_explicit_abstention
+from app.evaluation.specs import CORRECTNESS_SPECS
+from app.evaluation.specs import DEFAULT_CORRECTNESS
+from app.evaluation.specs import evaluator_manifest
+from app.experiments.datasets import _dataset_for
+from app.experiments.datasets import _item_question
+from app.experiments.datasets import _item_session
+from app.experiments.metadata import _fingerprints
+from app.experiments.metadata import _jsonable
+from app.experiments.metadata import pack_experiment_metadata
+from app.experiments.store import get_execution
+from app.experiments.store import update_execution
+from app.experiments.telemetry import _client
+from app.experiments.telemetry import _flush_client
+from app.experiments.telemetry import _verify_trace_upload
+from app.identity import dataset_snapshot
+from app.indexing.passages import build_index
+from app.observability import observation
+from app.observability import pack_scope_attributes
+from app.observability import record_cache_lookup
+from app.observability import use_client
+from app.pipelines.resolver import resolve
+from app.answering.execution import execute_question as run_resolved_pipeline
+from app.prompt_assets import ManagedJudgePrompt
+from app.prompt_assets import load_managed_evaluators
+from functools import partial
+from langfuse import Langfuse
+from langfuse import propagate_attributes
+from typing import Any
 import json
-import os
-import queue
 import re
 import threading
 import time
-import uuid
-from functools import partial
-from datetime import datetime, timezone
-from pathlib import Path
-from typing import Any
 
-from langfuse import Langfuse, propagate_attributes
-from opentelemetry import trace as otel_trace_api
 
-from app.cache import answers as answer_cache
-from app.corpus_config import corpus_config, corpus_data_dir, langfuse_project, langfuse_dataset_name
-from app.corpus_profiles import profile_identity, prompt_identity
-from app.evaluation.judges import citation_support, correctness, is_explicit_abstention
-from app.experiment_store import enqueue, get_execution, initialize, mark_interrupted, pending_jobs, update_execution
-from app.identity import canonical_json, dataset_snapshot, evaluator_identity, question_label, question_session_id, source_manifest
-from app.indexing.passages import build_index, corpus_paths
-from app.cache.intermediate import scope_for as intermediate_cache_scope, use_cache as use_intermediate_cache
-from app.evaluation.specs import CORRECTNESS_SPECS, DEFAULT_CORRECTNESS, JUDGE_MODELS, evaluator_manifest
-from app.observability import observation, pack_scope_attributes, record_cache_lookup, use_client
-from app.prompt_assets import ManagedJudgePrompt, load_managed_evaluators
-from app.pipelines.config import ResolvedPipelineConfig, resolve_ollama_model
-from app.pipelines.resolver import ResolvedRun, resolve
-from app.pipelines.catalog import load_catalog
-from app.pipelines.runner import run as run_resolved_pipeline
 
-_jobs: queue.Queue[str] = queue.Queue()
-_worker: threading.Thread | None = None
 _active_lock = threading.Lock()
 
-
-def _item_question(item: Any) -> Any:
-    return item.input.get("question") if isinstance(item.input, dict) else item.input
-
-
-def _item_session(dataset_name: str, item: Any) -> str:
-    return question_session_id(dataset_name, item.id, item.metadata, _item_question(item))
-
-
-def _answer_cache_identity(question: str, resolved: ResolvedRun, collection: str) -> dict[str, Any]:
-    return answer_cache.identity(
-        project_id=langfuse_project(), corpus_id=resolved.corpus_id,
-        pipeline_version=resolved.version, pipeline_fingerprint=resolved.fingerprint,
-        pipeline_id=resolved.pipeline_id, corpus_checksum=resolved.corpus_checksum,
-        profile_id=resolved.profile_id, profile_identity=resolved.profile_identity,
-        prompt_identity=resolved.prompt_identity, collection=collection, question=str(question),
-        config=resolved.config.manifest(),
-        agent_settings=(resolved.agent_settings.__dict__ if resolved.agent_settings else None))
 
 
 def _cached_output_with_timing(payload: dict[str, Any], source_trace_id: str | None,
@@ -69,195 +61,10 @@ def _cached_output_with_timing(payload: dict[str, Any], source_trace_id: str | N
     return output
 
 
-class ExperimentLangfuse(Langfuse):
-    """Scope the SDK's entire item tree, including root and judges, to one question.
-
-    The question tag also reaches the item's scores: score charts filter on their trace's tags.
-
-    This adapter targets the pinned Langfuse 4.17 SDK. Its item hook is covered by
-    a regression test and the live observation/session acceptance check.
-    """
-    async def _process_experiment_item(self, item: Any, *args: Any, **kwargs: Any) -> Any:
-        session = _item_session(item.dataset_name, item)
-        tags = [f"question:{question_label(item.dataset_name, item.id, item.metadata)}"]
-        with propagate_attributes(session_id=session, tags=tags, environment="sdk-experiment"):
-            return await super()._process_experiment_item(item, *args, **kwargs)
-
-
-_EXPERIMENT_PROPAGATED_METADATA = frozenset({
-    "execution_id", "pipeline_id", "pipeline_version", "pipeline_derived", "evaluator_id",
-    "dataset_version", "variant_label", "snapshot_sha256", "correctness_evaluator",
-    "answer_cache_mode", "agent_provider", "agent_model", "agent_reasoning_effort",
-    "agent_think", "agent_context_length",
-})
-
-
-def pack_experiment_metadata(metadata: dict[str, Any]) -> tuple[dict[str, Any], str]:
-    """Propagate join keys and preserve the complete metadata as one observation attribute."""
-    propagated = {key: value for key, value in metadata.items() if key in _EXPERIMENT_PROPAGATED_METADATA}
-    return propagated, json.dumps(metadata, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
-
-
-def _client() -> Langfuse:
-    return ExperimentLangfuse(environment="sdk-experiment")
-
 
 def _get(obj: Any, key: str, default: Any = None) -> Any:
     return obj.get(key, default) if isinstance(obj, dict) else getattr(obj, key, default)
 
-
-def _jsonable(value: Any) -> Any:
-    if hasattr(value, "model_dump"):
-        return value.model_dump(mode="json")
-    if hasattr(value, "isoformat"):
-        return value.isoformat()
-    if isinstance(value, dict):
-        return {str(k): _jsonable(v) for k, v in value.items()}
-    if isinstance(value, (list, tuple)):
-        return [_jsonable(v) for v in value]
-    if hasattr(value, "__dict__"):
-        return {k: _jsonable(v) for k, v in vars(value).items() if not k.startswith("_")}
-    return value
-
-
-
-
-def _fingerprints(config: ResolvedPipelineConfig, managed_evaluators: dict[str, Any],
-                  correctness_name: str, resolved: ResolvedRun) -> tuple[dict[str, Any], dict[str, Any], str]:
-    repo_root = Path(__file__).resolve().parents[1]
-    sources = source_manifest(str(repo_root))
-    corpus_files = corpus_paths()
-    corpus_manifest = [{"path": path.name, "sha256": hashlib.sha256(path.read_bytes()).hexdigest()} for path in corpus_files]
-    corpus_checksum = hashlib.sha256(canonical_json(corpus_manifest).encode()).hexdigest()
-    enriched = config.manifest()
-    enriched["prompt_hashes"] = {}
-    enriched["generation_model"] = config.generation_model.__dict__
-    enriched["embedding_model"] = {"name": config.embedding_model.name, "revision": config.embedding_model.revision}
-    enriched["reranker_model"] = {"name": config.reranker_model.name, "revision": config.reranker_model.revision}
-    enriched["corpus_checksum"] = corpus_checksum
-    enriched["corpus_id"] = resolved.corpus_id
-    enriched["profile_identity"] = profile_identity()
-    enriched["prompt_identity"] = prompt_identity()
-    pipeline = {**resolved.version_fields, "fingerprint": resolved.fingerprint,
-                 "git_revision": sources["git_revision"], "dirty": sources["dirty"],
-                 "source_fingerprint": sources["source_fingerprint"], "resolved_config": enriched,
-                 "corpus_checksum": corpus_checksum}
-    pipeline["source_manifest"] = sources
-    pipeline["corpus_manifest"] = corpus_manifest
-    pipeline["agent_settings"] = resolved.agent_settings.__dict__
-    evaluator_model_name = os.getenv("EVALUATOR_MODEL", "qwen3:8b")
-    evaluator_endpoint = os.getenv("EVALUATOR_OLLAMA_URL") or os.getenv("OLLAMA_URL", "http://127.0.0.1:11434")
-    try:
-        evaluator_model = resolve_ollama_model(evaluator_model_name, evaluator_endpoint).__dict__
-    except Exception:
-        evaluator_model = {"name": evaluator_model_name, "digest": None}
-    if correctness_name in JUDGE_MODELS:
-        executor, judge_model, _ = JUDGE_MODELS[correctness_name]
-        evaluator_model = {"name": judge_model, "digest": None, "executor": executor}
-    evaluator_prompt = canonical_json({"specs": evaluator_manifest(), "managed": managed_evaluators,
-                                       "prompts": {}})
-    evaluator_code = hashlib.sha256((Path(__file__).resolve().parent / "evaluation" / "judges.py").read_bytes()).hexdigest()
-    evaluator = evaluator_identity(model=evaluator_model, settings={"temperature": 0, "stream": False, "format": "json"},
-                                   rubric=evaluator_prompt, prompt=evaluator_prompt, code_version=f"evaluation.py:{evaluator_code}")
-    return pipeline, {"evaluator_id": evaluator, "managed_evaluators": managed_evaluators,
-                      "model": evaluator_model, "specs": evaluator_manifest(),
-                      "settings": {"temperature": 0, "stream": False, "format": "json"},
-                      "code_fingerprint": evaluator_code}, corpus_checksum
-
-
-def _flush_client(client: Langfuse, *, timeout_seconds: float = 30.0) -> dict[str, Any]:
-    """Flush SDK queues without shutting down the process-wide shared manager."""
-    result: dict[str, Any] = {"completed": False, "error": None}
-
-    def cleanup() -> None:
-        resources = getattr(client, "_resources", None)
-        if resources is None:
-            result["error"] = "Langfuse client has no initialized resources"
-            result["completed"] = True
-            return
-        deadline = time.monotonic() + timeout_seconds
-        try:
-            provider = getattr(resources, "tracer_provider", None)
-            if provider is not None and not isinstance(provider, otel_trace_api.ProxyTracerProvider):
-                provider_timeout = max(1000, int(min(timeout_seconds, 10.0) * 1000))
-                if not provider.force_flush(timeout_millis=provider_timeout):
-                    result["error"] = "Langfuse trace exporter flush timed out"
-                    result["completed"] = True
-                    return
-        except Exception as exc:
-            result["error"] = f"Langfuse trace exporter flush failed: {type(exc).__name__}: {exc}"
-            result["completed"] = True
-            return
-        for queue_name in ("_score_ingestion_queue", "_media_upload_queue"):
-            queue = getattr(resources, queue_name, None)
-            while queue is not None and queue.unfinished_tasks and time.monotonic() < deadline:
-                time.sleep(0.05)
-            if queue is not None and queue.unfinished_tasks:
-                result["error"] = f"Langfuse {queue_name.removeprefix('_').removesuffix('_queue')} queue has {queue.unfinished_tasks} pending task(s)"
-                result["completed"] = True
-                return
-        result["completed"] = True
-
-    thread = threading.Thread(target=cleanup, name="langfuse-bounded-cleanup", daemon=True)
-    thread.start()
-    thread.join(timeout_seconds + 2)
-    if thread.is_alive():
-        result["error"] = f"Langfuse flush exceeded {timeout_seconds:g}s"
-    return result
-
-
-def _verify_trace_upload(client: Langfuse, trace_id: str | None, *, attempts: int = 5) -> str | None:
-    """Confirm the item task reached Langfuse; exporter flush alone can hide HTTP failures."""
-    if not trace_id:
-        return "Langfuse experiment item did not return a trace ID"
-    last_error = "Langfuse observations API did not return experiment-item-task"
-    for attempt in range(attempts):
-        try:
-            cursor = None
-            seen_cursors: set[str] = set()
-            while True:
-                page = client.api.observations.get_many(trace_id=trace_id, limit=100, cursor=cursor)
-                if any(observation.name == "experiment-item-task" for observation in page.data or []):
-                    return None
-                next_cursor = page.meta.cursor if page.meta else None
-                if not next_cursor or next_cursor in seen_cursors:
-                    break
-                seen_cursors.add(next_cursor)
-                cursor = next_cursor
-        except Exception as exc:
-            last_error = f"Langfuse observations lookup failed: {type(exc).__name__}: {exc}"
-        if attempt + 1 < attempts:
-            time.sleep(0.5)
-    return f"trace {trace_id}: {last_error}"
-
-
-def _dataset_for(payload: dict[str, Any], client: Langfuse) -> tuple[Any, datetime]:
-    name = langfuse_dataset_name(payload.get("dataset_name") or os.getenv("DATASET_NAME"))
-    supplied_version = payload.get("dataset_version")
-    version = datetime.fromisoformat(supplied_version.replace("Z", "+00:00")) if supplied_version else None
-    if version is not None and version.utcoffset() is None:
-        raise ValueError("dataset_version must be an ISO-8601 timezone-aware timestamp")
-    if version is None:
-        latest = client.get_dataset(name)
-        # SDK 4.17 does not expose the resolved "latest" item snapshot timestamp.
-        # Pin the dataset's server update timestamp and refetch through its historical
-        # version adapter before materializing any experiment items.
-        timestamps = [latest.updated_at]
-        timestamps.extend(item.updated_at for item in latest.items if getattr(item, "updated_at", None) is not None)
-        version = max(timestamps)
-        if version.utcoffset() is None:
-            version = version.replace(tzinfo=timezone.utc)
-    dataset = client.get_dataset(name, version=version)
-    if payload.get("dataset_id") and payload["dataset_id"] != dataset.id:
-        raise ValueError("trigger dataset_id does not match dataset_name")
-    projects = getattr(client.api.projects.get(), "data", []) or []
-    matches = [project for project in projects if project.name == langfuse_project() and project.id == dataset.project_id]
-    if len(matches) != 1:
-        raise RuntimeError(f"dataset does not belong to configured Langfuse project {langfuse_project()!r}")
-    resolved_version = dataset.version or version
-    if resolved_version.utcoffset() is None:
-        resolved_version = resolved_version.replace(tzinfo=timezone.utc)
-    return dataset, resolved_version.astimezone(timezone.utc)
 
 
 def execute_execution(execution_id: str) -> dict[str, Any]:
@@ -551,80 +358,3 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
         if client is not None and not client_cleanup_attempted:
             _flush_client(client)
 
-
-def submit(payload: dict[str, Any], *, idempotency_key: str | None = None) -> tuple[dict[str, Any], bool]:
-    execution_id = str(uuid.uuid4())
-    row, created = enqueue(execution_id, payload, idempotency_key)
-    if created:
-        _jobs.put(execution_id)
-    return row, created
-
-
-def submit_retry(execution_id: str, *, idempotency_key: str | None = None) -> tuple[dict[str, Any], bool]:
-    """Queue a deliberate, linked retry of a failed or partial execution."""
-    source = get_execution(execution_id)
-    if source is None:
-        raise KeyError(execution_id)
-    if source["status"] not in {"failed", "partial"}:
-        raise ValueError(f"only failed or partial executions can be retried (status={source['status']})")
-    payload = json.loads(source["payload_json"])
-    if "pipeline" not in payload:
-        raise ValueError("pre-migration executions cannot be retried")
-    payload["retry_of_execution_id"] = execution_id
-    return submit(payload, idempotency_key=idempotency_key)
-
-
-def _worker_loop() -> None:
-    while True:
-        execution_id = _jobs.get()
-        try:
-            execute_execution(execution_id)
-        finally:
-            _jobs.task_done()
-
-
-def start_worker() -> None:
-    global _worker
-    initialize()
-    mark_interrupted()
-    for row in pending_jobs():
-        _jobs.put(row["execution_id"])
-    if _worker is None or not _worker.is_alive():
-        _worker = threading.Thread(target=_worker_loop, name="experiment-worker", daemon=True)
-        _worker.start()
-
-
-def cli() -> int:
-    parser = argparse.ArgumentParser(description="Run Millennium RAG against a pinned Langfuse dataset version")
-    parser.add_argument("--dataset", default=os.getenv("DATASET_NAME", "QA.csv"))
-    parser.add_argument("--dataset-version", help="ISO-8601 UTC dataset version timestamp")
-    parser.add_argument("--variant", default=None)
-    parser.add_argument("--pipeline", default=None)
-    parser.add_argument("--cache-mode", choices=("use", "bypass", "refresh"), default="refresh",
-                        help="cache mode; experiments refresh by default without reading cached answers")
-    parser.add_argument("--cache-layer", action="append", dest="cache_layers", choices=sorted(answer_cache.LAYERS),
-                        help="cache layer to use; repeatable, defaults to all supported layers")
-    settings_group = parser.add_mutually_exclusive_group()
-    settings_group.add_argument("--settings", type=Path, help="JSON settings overrides file")
-    settings_group.add_argument("--config", type=Path, help="alias for --settings")
-    parser.add_argument("--item-id", action="append", dest="item_ids")
-    parser.add_argument("--correctness-evaluator", choices=sorted(CORRECTNESS_SPECS), default=DEFAULT_CORRECTNESS)
-    args = parser.parse_args()
-    settings_file = args.settings or args.config
-    default_pipeline = load_catalog().default
-    selected_pipeline = args.pipeline or default_pipeline
-    payload = {"dataset_name": args.dataset, "dataset_version": args.dataset_version,
-               "pipeline": selected_pipeline, "variant_label": args.variant or selected_pipeline,
-               "settings": json.loads(settings_file.read_text()) if settings_file else {},
-               "item_ids": args.item_ids,
-               "cache_mode": args.cache_mode, "cache_layers": args.cache_layers,
-               "correctness_evaluator": args.correctness_evaluator}
-    initialize()
-    row, _ = enqueue(str(uuid.uuid4()), payload, None)
-    result = execute_execution(row["execution_id"])
-    print(json.dumps(result, indent=2, ensure_ascii=False))
-    return 0 if result["status"] == "completed" else 1
-
-
-if __name__ == "__main__":
-    raise SystemExit(cli())

@@ -16,15 +16,20 @@ from langfuse.api import NotFoundError
 
 from app.identity import question_label, question_session_id
 from app.pipelines.config import ResolvedPipelineConfig
-from app.experiment_store import enqueue, get_execution, initialize, mark_interrupted, update_execution
+from app.experiments.store import enqueue
+from app.experiments.store import get_execution
+from app.storage import initialize
+from app.experiments.store import mark_interrupted
+from app.experiments.store import update_execution
 from app.seed_dataset import _seed_dataset
 from app.evaluation.judges import FALLBACK_FACTS, _judge, _opencode_chat, _codex_chat, _langfuse_usage, answer_facts, fact_score
 from app.evaluation.specs import ANSWER_CORRECTNESS_V1, ANSWER_CORRECTNESS_V2, ANSWER_CORRECTNESS_V3, ANSWER_CORRECTNESS_CODEX_V1
 from app.indexing.passages import index_identity
-from app.experiments import _flush_client, submit_retry
+from app.experiments.telemetry import _flush_client
+from app.experiments.queue import submit_retry
 from app.api.experiments import _custom_payload
 from app.evaluation.judges import correctness, citation_support, is_explicit_abstention
-from app import experiments as experiments_module
+from app.experiments import execution as experiments_module
 
 
 class FakeClient:
@@ -331,7 +336,7 @@ class Stage3Checks(unittest.TestCase):
             update_execution("execution-1", status="running", started=True)
             self.assertEqual(mark_interrupted(), 1)
             self.assertEqual(get_execution("execution-1")["status"], "failed")
-            with patch("app.experiments._jobs.put"):
+            with patch("app.experiments.queue._jobs.put"):
                 retry, retry_created = submit_retry("execution-1")
             self.assertTrue(retry_created)
             self.assertEqual(json.loads(retry["payload_json"])["retry_of_execution_id"], "execution-1")

@@ -14,7 +14,8 @@ os.environ["LANGFUSE_TRACING_ENABLED"] = "false"
 from app.retrieval.queries import transform_query
 from app.prompt_assets import ManagedJudgePrompt, _evaluator_definitions, load_managed_evaluators
 from app.pipelines.config import ResolvedPipelineConfig
-from app.experiments import ExperimentLangfuse, pack_experiment_metadata
+from app.experiments.telemetry import ExperimentLangfuse
+from app.experiments.metadata import pack_experiment_metadata
 
 
 class WorkflowChecks(unittest.TestCase):
@@ -136,7 +137,7 @@ class WorkflowChecks(unittest.TestCase):
         client = object.__new__(ExperimentLangfuse)
         item = SimpleNamespace(dataset_id='dataset', dataset_name='QA.csv', id='item', metadata={'source_row': 2},
                                input={'question': 'Did Salander and Mikael have affair?'})
-        with patch('app.experiments.propagate_attributes', side_effect=propagate), \
+        with patch('app.experiments.telemetry.propagate_attributes', side_effect=propagate), \
              patch('langfuse.Langfuse._process_experiment_item', new=AsyncMock(side_effect=process)):
             self.assertEqual(asyncio.run(client._process_experiment_item(item)), 'entire SDK tree')
         self.assertEqual(active, [])

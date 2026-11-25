@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 from app.corpus_config import corpus_config
-from app.experiment_store import initialize
-from app.experiments import start_worker
+from app.storage import initialize
+from app.experiments.queue import start_worker
 from app.pipelines.catalog import load_catalog
 from fastapi import FastAPI
 from app.api.questions import router as questions_router

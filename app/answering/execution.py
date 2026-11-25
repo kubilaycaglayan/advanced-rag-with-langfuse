@@ -9,7 +9,7 @@ from app.agent.runner import run_agent
 from app.pipelines.resolver import ResolvedRun
 
 
-def run(question: str, resolved: ResolvedRun, collection: str,
+def execute_question(question: str, resolved: ResolvedRun, collection: str,
         on_token: Callable[[str], None] | None = None, on_status: Callable[[str], None] | None = None) -> dict[str, Any]:
     def on_event(event: dict[str, Any]) -> None:
         if on_status and event.get("type") == "tool":

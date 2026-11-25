@@ -15,7 +15,9 @@ from qdrant_client import QdrantClient, models
 from sentence_transformers import SentenceTransformer
 
 from app.corpus_config import corpus_config, corpus_id
-from app.experiment_store import get_index_manifest, get_ready_manifest, save_index_manifest
+from app.indexing.manifests import get_index_manifest
+from app.indexing.manifests import get_ready_manifest
+from app.indexing.manifests import save_index_manifest
 from app.identity import canonical_json
 from app.pipelines.config import ResolvedPipelineConfig
 from app.indexing.entities import build_entity_cards, entity_cards_path
