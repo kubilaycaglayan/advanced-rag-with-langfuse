@@ -10,10 +10,8 @@ from typing import Any
 
 try:
     from .identity import canonical_json
-    from .resolved_config import ResolvedPipelineConfig
 except ImportError:
     from identity import canonical_json
-    from resolved_config import ResolvedPipelineConfig
 
 ROOT = Path(__file__).resolve().parents[1]
 CATALOG = ROOT / "pipelines.md"
@@ -21,7 +19,6 @@ RELEASES = ROOT / "pipelines.sha256"
 FINGERPRINT_KEYS = ("id", "engine", "flow", "agent", "settings", "prompts", "index", "models")
 VERSION_KEYS = set(FINGERPRINT_KEYS) | {"status", "notes", "code"}
 MODEL_KEYS = {"embedding_model", "reranker_model", "generation_model", "scene_summary_model"}
-IDENTITY_KEYS = {"corpus_checksum", "prompt_hashes"}
 PIPELINE_SETTINGS = {"retrieval_mode", "hyde", "expansion_count", "name_completion", "scene_search_hits",
                "scene_window", "scene_stride", "passage_chars", "min_passage_chars", "passage_overlap",
                "generation", "parallel_transformations", "scene_thinking"}
@@ -49,12 +46,12 @@ class PipelineCatalog:
     def check_fingerprints(self) -> None:
         for version, digest in self.releases.items():
             block = self.versions.get(version)
-            if block is None or block["status"] == "draft":
-                raise ValueError(f"fingerprint line names missing or draft version {version}")
+            if block is None:
+                raise ValueError(f"fingerprint line names missing version {version}")
             if fingerprint(block) != digest:
                 raise ValueError(f"{version}: publish a new version; a released version is immutable")
         for version, block in self.versions.items():
-            if block["status"] in {"released", "retired"} and version not in self.releases:
+            if version not in self.releases:
                 raise ValueError(f"{version}: released version has no fingerprint")
 
 
@@ -104,17 +101,16 @@ def load_catalog(path: Path = CATALOG, releases_path: Path = RELEASES) -> Pipeli
             raise ValueError(f"{version}: invalid settings/prompts/index/models")
         if set(block["index"]) != {"collection", "corpus_checksum"}:
             raise ValueError(f"{version}: index needs collection and corpus_checksum")
-        if ((block["index"]["collection"] is None) != (block["index"]["corpus_checksum"] is None)
-                or any(value is not None and not isinstance(value, str) for value in block["index"].values())):
-            raise ValueError(f"{version}: generic indexes must leave collection and corpus_checksum unset together")
+        if any(value is not None for value in block["index"].values()):
+            raise ValueError(f"{version}: index identity must resolve against the active corpus")
         required_settings = PIPELINE_SETTINGS
         if set(block["settings"]) != required_settings:
             raise ValueError(f"{version}: settings must match engine settings; missing={sorted(required_settings - set(block['settings']))}, extra={sorted(set(block['settings']) - required_settings)}")
         if set(block["models"]) != MODEL_KEYS:
             raise ValueError(f"{version}: models must list generation, embedding, reranker, and scene summary")
-        if block["engine"] == "agent" and block["prompts"]:
+        if block["prompts"]:
             raise ValueError(f"{version}: agent must not pin managed RAG prompts")
-        if block["engine"] == "agent" and (not isinstance(block["agent"], dict) or
+        if (not isinstance(block["agent"], dict) or
                 not AGENT_KEYS <= set(block["agent"]) or
                 set(block["agent"]) - AGENT_KEYS - AGENT_OPTIONAL_KEYS):
             raise ValueError(f"{version}: agent settings required")
@@ -137,7 +133,7 @@ def write_fingerprints(path: Path = CATALOG, releases_path: Path = RELEASES) -> 
     source = path.read_text(encoding="utf-8")
     blocks = [json.loads(value) for value in re.findall(r"```json\s*\n(.*?)\n```", source, re.DOTALL)[1:]]
     releases_path.write_text("".join(f"{block['id']} {fingerprint(block)}\n" for block in blocks
-                                     if block["status"] in {"released", "retired"}), encoding="utf-8")
+                                     if block["status"] == "released"), encoding="utf-8")
 
 
 if __name__ == "__main__":

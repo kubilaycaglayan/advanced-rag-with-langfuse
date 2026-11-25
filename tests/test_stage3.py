@@ -14,7 +14,7 @@ from unittest.mock import patch
 os.environ["LANGFUSE_TRACING_ENABLED"] = "false"
 from langfuse.api import NotFoundError
 
-from app.identity import pipeline_identity, question_label, question_session_id
+from app.identity import question_label, question_session_id
 from app.resolved_config import ResolvedPipelineConfig
 from app.experiment_store import enqueue, get_execution, initialize, mark_interrupted, update_execution
 from app.seed_dataset import _seed_dataset
@@ -79,12 +79,6 @@ class Stage3Checks(unittest.TestCase):
         self.assertFalse(client.shutdown_called)
 
 
-    def test_identity_is_stable_and_changes_with_config(self):
-        a = pipeline_identity(git_revision="r", dirty=True, source_fingerprint="s", resolved_config={"x": 1}, corpus_checksum="c")
-        b = pipeline_identity(git_revision="r", dirty=True, source_fingerprint="s", resolved_config={"x": 1}, corpus_checksum="c")
-        c = pipeline_identity(git_revision="r", dirty=True, source_fingerprint="s", resolved_config={"x": 2}, corpus_checksum="c")
-        self.assertEqual(a["pipeline_id"], b["pipeline_id"])
-        self.assertNotEqual(a["pipeline_id"], c["pipeline_id"])
 
     def test_question_sessions_are_readable_and_stable(self):
         meta = {"source_row": 2}
@@ -375,7 +369,6 @@ class Stage3Checks(unittest.TestCase):
             with patch.object(experiments_module, "_client", return_value=FakeLangfuse()), \
                  patch.object(experiments_module, "_dataset_for", return_value=(dataset, datetime(2026, 1, 1, tzinfo=timezone.utc))), \
                  patch.object(experiments_module, "load_managed_evaluators", return_value=managed), \
-                 patch.object(experiments_module, "resolve_pipeline_model_identities", side_effect=lambda config: config), \
                  patch.object(experiments_module, "build_index", return_value={"collection": "millennium_books_a7ebc5a988df037cd2ee"}), \
                  patch.object(experiments_module, "_verify_trace_upload", return_value=None), \
                  patch.object(experiments_module, "_fingerprints", return_value=(pipeline, evaluator, "checksum")):

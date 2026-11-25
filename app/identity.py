@@ -112,23 +112,6 @@ def dataset_snapshot(
     }
 
 
-def pipeline_identity(
-    *,
-    git_revision: str,
-    dirty: bool,
-    source_fingerprint: str,
-    resolved_config: Mapping[str, Any],
-    corpus_checksum: str,
-) -> dict[str, Any]:
-    manifest = {
-        "git_revision": git_revision,
-        "dirty": dirty,
-        "source_fingerprint": source_fingerprint,
-        "resolved_config": resolved_config,
-        "corpus_checksum": corpus_checksum,
-    }
-    full_hash = hashlib.sha256(canonical_json(manifest).encode("utf-8")).hexdigest()
-    return {"pipeline_id": f"pipeline-{full_hash[:16]}", "sha256": full_hash, **manifest}
 
 
 def evaluator_identity(

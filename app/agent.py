@@ -1,23 +1,7 @@
-"""Agentic question answering over the retrieval instruments the pipeline already has.
+"""v2.16 agentic question answering over shared retrieval tools.
 
-This is the experiment behind ``docs/experiments/2026-10-19-agentic-rag.md``: instead of running the fixed
-sequence (rewrites -> dense search -> RRF -> rerank -> wide/keyword/scene/entity paths -> answer), a local model
-chooses which instrument to use, reads what it finds, and writes the answer from the passages it gathered.
-
-The tools wrap existing code, they do not reimplement it:
-
-* ``semantic_search``  dense search over the passage index + the cross-encoder (pipeline's core retrieval)
-* ``keyword_search``   BM25 over the same passages (pipeline's ``_keyword_search``)
-* ``expand_query``     HyDE, alternative phrasings and grammar correction (pipeline's ``_transform``)
-* ``search_scenes``    the scene-summary index (``scenes.scene_collection``)
-* ``entity_card``      entity cards: a person's other names, facts and links (``entities.entity_cards_path``)
-* ``find_names``       the books' name vocabulary, for misspellings and bare first names
-* ``read_passage``     a passage plus its neighbours (reading context, not an index)
-* ``read_chapter``     consecutive passages of a chapter, for browsing a narrative
-* ``submit_answer``    ends the loop
-
-Every tool returns compact JSON with 8-character passage ids; ``submit_answer`` takes the ids the answer relies on
-and the collected passages are labelled ``[E1]``... in that order.
+Both Ollama and OpenAI choose tools, inspect source passages, and produce cited
+answers. Query expansion and scene selection use the local generation model.
 """
 from __future__ import annotations
 

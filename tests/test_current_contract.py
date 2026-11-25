@@ -59,3 +59,61 @@ class CurrentContract(TestCase):
                      "entity_graph", "keyword_margin", "query_translation", "answer_thinking"):
             with self.subTest(name=name), self.assertRaisesRegex(ValueError, "unknown config"):
                 ResolvedPipelineConfig.from_mapping({name: True})
+
+    def test_handoff_tampering_is_rejected(self):
+        from unittest.mock import patch
+        original = Path.read_bytes
+        def read(path):
+            return b"changed handoff" if path.name == "agent_final_handoff.py" else original(path)
+        with patch.object(Path, "read_bytes", read):
+            with self.assertRaisesRegex(ValueError, "conversation handoff differs"):
+                resolve()
+
+    def test_all_budget_exits_use_conversation_handoff(self):
+        from contextlib import ExitStack, nullcontext
+        from dataclasses import replace
+        from unittest.mock import patch
+        from app.agent import run_agent
+        base = resolve()
+        for reason in ("timeout", "tool_budget", "turn_budget"):
+            settings = replace(base.agent_settings, initial_scene_probe=False, min_tool_calls=0,
+                               max_turns=1, max_tool_calls=1 if reason == "tool_budget" else 16,
+                               timeout_seconds=0 if reason == "timeout" else 900)
+            with self.subTest(reason=reason), ExitStack() as stack:
+                for name in ("_connection_precheck", "_true_account_precheck", "_sequence_precheck",
+                             "_moment_precheck", "_premise_probe"):
+                    stack.enter_context(patch("app.agent." + name, return_value=None))
+                stack.enter_context(patch("app.agent._normalize_question", side_effect=lambda state: (state.question, [])))
+                stack.enter_context(patch("app.agent.observation", return_value=nullcontext(None)))
+                stack.enter_context(patch("app.agent.update_observation"))
+                stack.enter_context(patch("app.agent._run_tool", return_value=({"hits": [], "marker": "latest tool result"}, False)))
+                stack.enter_context(patch("app.agent._finish", return_value={"answer": "answer"}))
+                def chat(state, messages, tools, purpose):
+                    if tools is None:
+                        self.assertIn("Do not call tools.", messages[-1]["content"])
+                        if reason != "timeout":
+                            self.assertTrue(any("latest tool result" in str(message) for message in messages))
+                        return {"message": {"content": "answer"}}
+                    return {"message": {"tool_calls": [{"id": "call", "function": {
+                        "name": "semantic_search", "arguments": {"query": "question"}}}]}}
+                model = stack.enter_context(patch("app.agent._tracked_agent_chat", side_effect=chat))
+                run_agent("Question?", "fixture", base.config, settings=settings)
+                self.assertEqual(model.call_args.args[3], "forced answer")
+                self.assertIsNone(model.call_args.args[2])
+
+    def test_current_identity_and_source_fingerprints_track_changes(self):
+        import tempfile
+        from app.identity import source_manifest
+        self.assertEqual(resolve().pipeline_id, resolve("v2.16").pipeline_id)
+        self.assertNotEqual(resolve().pipeline_id,
+                            resolve(overrides={"agent_provider": "openai"}).pipeline_id)
+        self.assertNotEqual(resolve().pipeline_id,
+                            resolve(overrides={"passage_chars": 600}).pipeline_id)
+        with tempfile.TemporaryDirectory() as directory:
+            code = Path(directory) / "app/example.py"
+            code.parent.mkdir()
+            code.write_text("first source")
+            first = source_manifest(directory)
+            code.write_text("changed source")
+            second = source_manifest(directory)
+        self.assertNotEqual(first["source_fingerprint"], second["source_fingerprint"])
