@@ -18,40 +18,22 @@ from typing import Any
 from langfuse import Langfuse, propagate_attributes
 from opentelemetry import trace as otel_trace_api
 
-try:
-    from . import answer_cache
-    from .corpus_config import corpus_config, corpus_data_dir, langfuse_project, langfuse_dataset_name
-    from .corpus_profiles import profile_identity, prompt_identity
-    from .evaluation import citation_support, correctness, is_explicit_abstention
-    from .experiment_store import (enqueue, get_execution, initialize, mark_interrupted,
-                                   pending_jobs, update_execution)
-    from .identity import canonical_json, dataset_snapshot, evaluator_identity, question_label, question_session_id, source_manifest
-    from .indexer import build_index, corpus_paths
-    from .intermediate_cache import scope_for as intermediate_cache_scope, use_cache as use_intermediate_cache
-    from .evaluator_specs import CORRECTNESS_SPECS, DEFAULT_CORRECTNESS, JUDGE_MODELS, evaluator_manifest
-    from .observability import observation, pack_scope_attributes, record_cache_lookup, use_client
-    from .prompt_assets import ManagedJudgePrompt, load_managed_evaluators
-    from .resolved_config import ResolvedPipelineConfig, resolve_ollama_model
-    from .pipeline_resolver import ResolvedRun, resolve
-    from .pipeline_catalog import load_catalog
-    from .pipeline_runner import run as run_resolved_pipeline
-except ImportError:
-    import answer_cache
-    from corpus_config import corpus_config, corpus_data_dir, langfuse_project, langfuse_dataset_name
-    from corpus_profiles import profile_identity, prompt_identity
-    from evaluation import citation_support, correctness, is_explicit_abstention
-    from experiment_store import (enqueue, get_execution, initialize, mark_interrupted,
-                                  pending_jobs, update_execution)
-    from identity import canonical_json, dataset_snapshot, evaluator_identity, question_label, question_session_id, source_manifest
-    from indexer import build_index, corpus_paths
-    from intermediate_cache import scope_for as intermediate_cache_scope, use_cache as use_intermediate_cache
-    from evaluator_specs import CORRECTNESS_SPECS, DEFAULT_CORRECTNESS, JUDGE_MODELS, evaluator_manifest
-    from observability import observation, pack_scope_attributes, record_cache_lookup, use_client
-    from prompt_assets import ManagedJudgePrompt, load_managed_evaluators
-    from resolved_config import ResolvedPipelineConfig, resolve_ollama_model
-    from pipeline_resolver import ResolvedRun, resolve
-    from pipeline_catalog import load_catalog
-    from pipeline_runner import run as run_resolved_pipeline
+from . import answer_cache
+from .corpus_config import corpus_config, corpus_data_dir, langfuse_project, langfuse_dataset_name
+from .corpus_profiles import profile_identity, prompt_identity
+from .evaluation import citation_support, correctness, is_explicit_abstention
+from .experiment_store import (enqueue, get_execution, initialize, mark_interrupted,
+                               pending_jobs, update_execution)
+from .identity import canonical_json, dataset_snapshot, evaluator_identity, question_label, question_session_id, source_manifest
+from .indexer import build_index, corpus_paths
+from .intermediate_cache import scope_for as intermediate_cache_scope, use_cache as use_intermediate_cache
+from .evaluator_specs import CORRECTNESS_SPECS, DEFAULT_CORRECTNESS, JUDGE_MODELS, evaluator_manifest
+from .observability import observation, pack_scope_attributes, record_cache_lookup, use_client
+from .prompt_assets import ManagedJudgePrompt, load_managed_evaluators
+from .resolved_config import ResolvedPipelineConfig, resolve_ollama_model
+from .pipeline_resolver import ResolvedRun, resolve
+from .pipeline_catalog import load_catalog
+from .pipeline_runner import run as run_resolved_pipeline
 
 _jobs: queue.Queue[str] = queue.Queue()
 _worker: threading.Thread | None = None

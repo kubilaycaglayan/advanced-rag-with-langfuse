@@ -8,10 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-try:
-    from .identity import canonical_json
-except ImportError:
-    from identity import canonical_json
+from .identity import canonical_json
 
 ROOT = Path(__file__).resolve().parents[1]
 CATALOG = ROOT / "pipelines.md"

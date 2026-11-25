@@ -26,18 +26,11 @@ from typing import Any
 import requests
 from qdrant_client import QdrantClient, models
 
-try:
-    from .corpus_config import corpus_file_path
-    from .corpus_profiles import load_profile, profile_prompt
-    from .identity import canonical_json
-    from .prompt_templates import PROMPT_TEMPLATES
-    from .resolved_config import ResolvedPipelineConfig
-except ImportError:
-    from corpus_config import corpus_file_path
-    from corpus_profiles import load_profile, profile_prompt
-    from identity import canonical_json
-    from prompt_templates import PROMPT_TEMPLATES
-    from resolved_config import ResolvedPipelineConfig
+from .corpus_config import corpus_file_path
+from .corpus_profiles import load_profile, profile_prompt
+from .identity import canonical_json
+from .prompt_templates import PROMPT_TEMPLATES
+from .resolved_config import ResolvedPipelineConfig
 
 
 def summary_model(config: ResolvedPipelineConfig) -> str:

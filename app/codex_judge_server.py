@@ -8,10 +8,7 @@ import subprocess
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-try:
-    from .evaluation import _codex_chat
-except ImportError:
-    from evaluation import _codex_chat
+from .evaluation import _codex_chat
 
 
 class Handler(BaseHTTPRequestHandler):

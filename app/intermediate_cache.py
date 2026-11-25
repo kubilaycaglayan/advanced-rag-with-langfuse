@@ -10,14 +10,9 @@ import time
 from typing import Any, Callable, Iterator
 from urllib.parse import quote
 
-try:
-    from .answer_cache import _redis_client
-    from .identity import canonical_json
-    from .observability import observation, update
-except ImportError:
-    from answer_cache import _redis_client
-    from identity import canonical_json
-    from observability import observation, update
+from .answer_cache import _redis_client
+from .identity import canonical_json
+from .observability import observation, update
 
 logger = logging.getLogger(__name__)
 ROOT = "pipeline-cache:v1"

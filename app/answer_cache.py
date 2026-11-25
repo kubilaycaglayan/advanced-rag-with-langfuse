@@ -11,10 +11,7 @@ from functools import lru_cache
 from typing import Any
 from urllib.parse import quote
 
-try:
-    from .identity import canonical_json
-except ImportError:
-    from identity import canonical_json
+from .identity import canonical_json
 
 logger = logging.getLogger(__name__)
 CACHE_FORMAT = 1

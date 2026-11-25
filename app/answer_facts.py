@@ -13,10 +13,7 @@ from typing import Any
 
 from langfuse import Langfuse
 
-try:
-    from .corpus_config import corpus_config
-except ImportError:
-    from corpus_config import corpus_config
+from .corpus_config import corpus_config
 
 FACTS_PATH = corpus_config().answer_facts
 

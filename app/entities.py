@@ -22,20 +22,12 @@ from typing import Any
 import requests
 from qdrant_client import QdrantClient
 
-try:
-    from .corpus_config import corpus_dir_path, corpus_file_path
-    from .corpus_profiles import profile_prompt
-    from .identity import canonical_json
-    from .prompt_templates import PROMPT_TEMPLATES
-    from .resolved_config import ResolvedPipelineConfig
-    from .scenes import passages_in_order, scene_windows, summary_model
-except ImportError:
-    from corpus_config import corpus_dir_path, corpus_file_path
-    from corpus_profiles import profile_prompt
-    from identity import canonical_json
-    from prompt_templates import PROMPT_TEMPLATES
-    from resolved_config import ResolvedPipelineConfig
-    from scenes import passages_in_order, scene_windows, summary_model
+from .corpus_config import corpus_dir_path, corpus_file_path
+from .corpus_profiles import profile_prompt
+from .identity import canonical_json
+from .prompt_templates import PROMPT_TEMPLATES
+from .resolved_config import ResolvedPipelineConfig
+from .scenes import passages_in_order, scene_windows, summary_model
 
 ENTITY_WINDOW = 6
 

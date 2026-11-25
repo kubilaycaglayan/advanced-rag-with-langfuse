@@ -14,15 +14,9 @@ from typing import Any
 from langfuse import Langfuse
 from langfuse.api import NotFoundError
 
-try:
-    from .corpus_config import corpus_config, corpus_data_dir, langfuse_dataset_name, langfuse_project
-except ImportError:
-    from corpus_config import corpus_config, corpus_data_dir, langfuse_dataset_name, langfuse_project
+from .corpus_config import corpus_config, corpus_data_dir, langfuse_dataset_name, langfuse_project
 
-try:
-    from .identity import canonical_json, normalize_question, seed_row_key, seeded_item_id
-except ImportError:
-    from identity import canonical_json, normalize_question, seed_row_key, seeded_item_id
+from .identity import canonical_json, normalize_question, seed_row_key, seeded_item_id
 
 
 def read_seed(path: Path) -> tuple[list[dict[str, Any]], str]:

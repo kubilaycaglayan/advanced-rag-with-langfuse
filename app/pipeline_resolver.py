@@ -7,20 +7,12 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping
 
-try:
-    from .corpus_config import corpus_config, corpus_id
-    from .corpus_profiles import profile_identity, prompt_identity
-    from .agent import AgentSettings, instruction_fingerprint, tool_names
-    from .identity import canonical_json
-    from .pipeline_catalog import PipelineCatalog, load_catalog
-    from .resolved_config import ResolvedPipelineConfig
-except ImportError:
-    from corpus_config import corpus_config, corpus_id
-    from corpus_profiles import profile_identity, prompt_identity
-    from agent import AgentSettings, instruction_fingerprint, tool_names
-    from identity import canonical_json
-    from pipeline_catalog import PipelineCatalog, load_catalog
-    from resolved_config import ResolvedPipelineConfig
+from .corpus_config import corpus_config, corpus_id
+from .corpus_profiles import profile_identity, prompt_identity
+from .agent import AgentSettings, instruction_fingerprint, tool_names
+from .identity import canonical_json
+from .pipeline_catalog import PipelineCatalog, load_catalog
+from .resolved_config import ResolvedPipelineConfig
 
 IDENTITY_KEYS = {"corpus_checksum", "prompt_hashes", "engine", "pipeline", "agent", "index", "prompts", "models"}
 

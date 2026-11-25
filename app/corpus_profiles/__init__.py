@@ -8,12 +8,8 @@ from pathlib import Path
 from dataclasses import dataclass
 from typing import Any
 
-try:
-    from ..corpus_config import corpus_config
-    from ..identity import canonical_json
-except ImportError:
-    from corpus_config import corpus_config
-    from identity import canonical_json
+from ..corpus_config import corpus_config
+from ..identity import canonical_json
 
 
 @dataclass(frozen=True)

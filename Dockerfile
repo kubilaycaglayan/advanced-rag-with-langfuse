@@ -12,4 +12,4 @@ COPY tests/ /workspace/tests/
 COPY corpora/millennium/corpus.yaml corpora/millennium/QA.csv corpora/millennium/answer-facts.json /workspace/corpora/millennium/
 COPY Dockerfile compose.yaml .dockerignore /workspace/
 EXPOSE 8000
-CMD ["uvicorn", "main:app", "--app-dir", "app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

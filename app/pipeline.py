@@ -18,20 +18,12 @@ from sentence_transformers import CrossEncoder, SentenceTransformer
 
 from qdrant_client import models
 
-try:
-    from .corpus_profiles import load_profile, profile_prompt
-    from .resolved_config import ResolvedPipelineConfig
-    from .observability import observation as _observe, update as _update
-    from .intermediate_cache import cache_value as _cache_value
-    from .prompt_templates import PROMPT_TEMPLATES
-    from .scenes import scene_collection
-except ImportError:
-    from corpus_profiles import load_profile, profile_prompt
-    from resolved_config import ResolvedPipelineConfig
-    from observability import observation as _observe, update as _update
-    from intermediate_cache import cache_value as _cache_value
-    from prompt_templates import PROMPT_TEMPLATES
-    from scenes import scene_collection
+from .corpus_profiles import load_profile, profile_prompt
+from .resolved_config import ResolvedPipelineConfig
+from .observability import observation as _observe, update as _update
+from .intermediate_cache import cache_value as _cache_value
+from .prompt_templates import PROMPT_TEMPLATES
+from .scenes import scene_collection
 
 
 def qdrant_client() -> QdrantClient:

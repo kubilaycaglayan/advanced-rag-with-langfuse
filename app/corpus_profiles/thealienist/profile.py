@@ -1,7 +1,4 @@
-try:
-    from .. import CorpusProfile
-except ImportError:
-    from corpus_profiles import CorpusProfile
+from .. import CorpusProfile
 
 PROFILE = CorpusProfile(
     id="thealienist",

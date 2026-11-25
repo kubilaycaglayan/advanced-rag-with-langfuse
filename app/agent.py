@@ -8,6 +8,7 @@ from __future__ import annotations
 import ast
 import difflib
 import hashlib
+import inspect
 import json
 import logging
 import os
@@ -22,30 +23,17 @@ import requests
 
 logger = logging.getLogger(__name__)
 
-try:
-    from .agent_final_handoff import conversation_final_messages
-    from .entities import _cache_path as entity_cache_path, entity_cards_path
-    from .evaluation import is_explicit_abstention
-    from .observability import observation, update as update_observation
-    from .corpus_profiles import agent_synthesis_prompt, profile_tool_specs
-    from .intermediate_cache import cache_value as _cache_value
-    from .pipeline import (_encode_query, _entity_cards, _keyword_index, _keyword_search, _entity_anchors, _keywords,
-                           _moment_scene_hits, _name_pairs, _passage_position, _query_points_cached,
-                           _reranker, _transform, qdrant_client)
-    from .resolved_config import ResolvedPipelineConfig
-    from .scenes import scene_collection
-except ImportError:  # running from app/ inside the container
-    from agent_final_handoff import conversation_final_messages
-    from entities import _cache_path as entity_cache_path, entity_cards_path
-    from evaluation import is_explicit_abstention
-    from observability import observation, update as update_observation
-    from corpus_profiles import agent_synthesis_prompt, profile_tool_specs
-    from intermediate_cache import cache_value as _cache_value
-    from pipeline import (_encode_query, _entity_cards, _keyword_index, _keyword_search, _entity_anchors, _keywords,
-                         _moment_scene_hits, _name_pairs, _passage_position, _query_points_cached,
-                         _reranker, _transform, qdrant_client)
-    from resolved_config import ResolvedPipelineConfig
-    from scenes import scene_collection
+from .agent_final_handoff import conversation_final_messages
+from .entities import _cache_path as entity_cache_path, entity_cards_path
+from .evaluation import is_explicit_abstention
+from .observability import observation, update as update_observation
+from .corpus_profiles import agent_synthesis_prompt, profile_tool_specs
+from .intermediate_cache import cache_value as _cache_value
+from .pipeline import (_encode_query, _entity_cards, _keyword_index, _keyword_search, _entity_anchors, _keywords,
+                       _moment_scene_hits, _name_pairs, _passage_position, _query_points_cached,
+                       _reranker, _transform, qdrant_client)
+from .resolved_config import ResolvedPipelineConfig
+from .scenes import scene_collection
 
 
 SYSTEM_PROMPT = """You answer questions about Stieg Larsson's Millennium trilogy using a search index of the three books: The Girl with the Dragon Tattoo, The Girl Who Played with Fire and The Girl Who Kicked the Hornet's Nest.
@@ -1476,8 +1464,11 @@ def instruction_manifest() -> dict[str, Any]:
         from .prompt_templates import PROMPT_TEMPLATES
     except ImportError:
         from prompt_templates import PROMPT_TEMPLATES
-    tree = ast.parse(Path(__file__).read_text(encoding="utf-8"))
-    functions = {node.name: node for node in tree.body if isinstance(node, ast.FunctionDef)}
+    functions = {
+        name: next(node for node in ast.parse(inspect.getsource(globals()[name])).body
+                   if isinstance(node, ast.FunctionDef))
+        for name in INSTRUCTION_BUILDERS
+    }
     return {
         "format": 1,
         "system": SYSTEM_PROMPT,

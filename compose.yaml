@@ -46,7 +46,7 @@ services:
       CORPUS_ID: ${CORPUS_ID:-millennium}
       CORPUS_ROOT: /corpora/${CORPUS_ID:-millennium}
       HF_HOME: /model-cache
-    command: ["uvicorn", "main:app", "--app-dir", "app", "--host", "127.0.0.1", "--port", "8001"]
+    command: ["uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8001"]
     volumes:
       - ./corpora/${CORPUS_ID:-millennium}:/corpora/${CORPUS_ID:-millennium}:ro
       - ./data:/data

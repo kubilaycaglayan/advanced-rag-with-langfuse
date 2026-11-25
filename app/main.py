@@ -23,36 +23,20 @@ from langfuse import Langfuse, get_client
 from pydantic import BaseModel, Field, IPvAnyAddress
 from qdrant_client import QdrantClient
 
-try:
-    from . import answer_cache
-    from .corpus_config import corpus_config, corpus_data_dir, langfuse_project, langfuse_dataset_name
-    from .corpus_profiles import langfuse_enabled, langfuse_tracing_required
-    from .evaluator_specs import CORRECTNESS_SPECS
-    from .experiment_store import get_execution, initialize
-    from .frontend_rate_limit import reserve_request
-    from .experiments import start_worker, submit, submit_retry
-    from .indexer import build_index, validate_index
-    from .intermediate_cache import scope_for as intermediate_cache_scope, use_cache as use_intermediate_cache
-    from .observability import observation, record_cache_lookup, trace_scope, update as update_observation
-    from .pipeline_catalog import load_catalog
-    from .pipeline_resolver import resolve
-    from .pipeline_runner import run as run_resolved_pipeline
-    from .resolved_config import ResolvedPipelineConfig, resolve_pipeline_model_identities
-except ImportError:
-    import answer_cache
-    from corpus_config import corpus_config, corpus_data_dir, langfuse_project, langfuse_dataset_name
-    from corpus_profiles import langfuse_enabled, langfuse_tracing_required
-    from evaluator_specs import CORRECTNESS_SPECS
-    from experiment_store import get_execution, initialize
-    from frontend_rate_limit import reserve_request
-    from experiments import start_worker, submit, submit_retry
-    from indexer import build_index, validate_index
-    from intermediate_cache import scope_for as intermediate_cache_scope, use_cache as use_intermediate_cache
-    from observability import observation, record_cache_lookup, trace_scope, update as update_observation
-    from pipeline_catalog import load_catalog
-    from pipeline_resolver import resolve
-    from pipeline_runner import run as run_resolved_pipeline
-    from resolved_config import ResolvedPipelineConfig, resolve_pipeline_model_identities
+from . import answer_cache
+from .corpus_config import corpus_config, corpus_data_dir, langfuse_project, langfuse_dataset_name
+from .corpus_profiles import langfuse_enabled, langfuse_tracing_required
+from .evaluator_specs import CORRECTNESS_SPECS
+from .experiment_store import get_execution, initialize
+from .frontend_rate_limit import reserve_request
+from .experiments import start_worker, submit, submit_retry
+from .indexer import build_index, validate_index
+from .intermediate_cache import scope_for as intermediate_cache_scope, use_cache as use_intermediate_cache
+from .observability import observation, record_cache_lookup, trace_scope, update as update_observation
+from .pipeline_catalog import load_catalog
+from .pipeline_resolver import resolve
+from .pipeline_runner import run as run_resolved_pipeline
+from .resolved_config import ResolvedPipelineConfig, resolve_pipeline_model_identities
 
 app = FastAPI(title=f"{corpus_config().title} RAG Experiment Runner", version="0.2.0")
 logger = logging.getLogger(__name__)

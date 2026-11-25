@@ -11,14 +11,9 @@ from typing import Any
 import requests
 from requests.auth import HTTPBasicAuth
 
-try:
-    from .corpus_config import corpus_config, corpus_id, langfuse_evaluator_prefix
-    from .evaluator_specs import (ANSWER_CORRECTNESS_V2, CITATION_SUPPORT_V1,
-                                  EVALUATOR_SPECS, FACT_SPECS, JUDGE_MODELS)
-except ImportError:
-    from corpus_config import corpus_config, corpus_id, langfuse_evaluator_prefix
-    from evaluator_specs import (ANSWER_CORRECTNESS_V2, CITATION_SUPPORT_V1,
-                                 EVALUATOR_SPECS, FACT_SPECS, JUDGE_MODELS)
+from .corpus_config import corpus_config, corpus_id, langfuse_evaluator_prefix
+from .evaluator_specs import (ANSWER_CORRECTNESS_V2, CITATION_SUPPORT_V1,
+                              EVALUATOR_SPECS, FACT_SPECS, JUDGE_MODELS)
 
 
 logger = logging.getLogger(__name__)
@@ -109,7 +104,7 @@ def load_managed_evaluators() -> dict[str, dict[str, Any]]:
     for expected in _evaluator_definitions():
         actual = next((row for row in rows if row.get("name") == expected["name"]), None)
         if not actual:
-            raise RuntimeError(f"managed evaluator {expected['name']!r} is missing; run `python app/prompt_assets.py --create-missing`")
+            raise RuntimeError(f"managed evaluator {expected['name']!r} is missing; run `python -m app.prompt_assets --create-missing`")
         if actual.get("type") != "llm_as_judge":
             raise RuntimeError(f"managed evaluator {expected['name']!r} must be LLM-as-a-judge")
         output = actual.get("outputDefinition") or {}

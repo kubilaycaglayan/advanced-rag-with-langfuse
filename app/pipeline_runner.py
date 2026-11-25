@@ -4,14 +4,9 @@ from __future__ import annotations
 import time
 from typing import Any, Callable
 
-try:
-    from .corpus_profiles import agent_prompt
-    from .agent import run_agent
-    from .pipeline_resolver import ResolvedRun
-except ImportError:
-    from corpus_profiles import agent_prompt
-    from agent import run_agent
-    from pipeline_resolver import ResolvedRun
+from .corpus_profiles import agent_prompt
+from .agent import run_agent
+from .pipeline_resolver import ResolvedRun
 
 
 def run(question: str, resolved: ResolvedRun, collection: str,
