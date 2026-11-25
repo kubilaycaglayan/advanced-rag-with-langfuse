@@ -172,8 +172,7 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
             if agent_effort not in {"none", "low", "medium", "high", "xhigh", "max"}:
                 raise ValueError("agent_reasoning_effort must be none, low, medium, high, xhigh, or max")
             agent_settings = AgentSettings(**{**agent_settings.__dict__, "reasoning_effort": agent_effort})
-        graph_search_enabled = "graph_search" in block["agent"]["tools"]
-        if block["agent"]["tools"] != tool_names(include_graph_search=graph_search_enabled):
+        if block["agent"]["tools"] != tool_names():
             raise ValueError(f"{version}: agent tool catalog differs from released version")
         expected_instructions = block["agent"]["instruction_fingerprint"]
         actual_instructions = instruction_fingerprint()

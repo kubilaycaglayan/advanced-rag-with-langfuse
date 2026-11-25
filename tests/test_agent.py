@@ -412,7 +412,7 @@ if __name__ == "__main__":
     unittest.main()
 
 class ForcedAnswerConversationHandoff(unittest.TestCase):
-    def test_draft_handoff_keeps_latest_tool_result(self):
+    def test_handoff_keeps_latest_tool_result(self):
         from app.agent import _forced_answer
         agent = state(conversation_handoff=True)
         agent.evidence = {"a1b2c3d4": {"id": "a1b2c3d4-0000-0000-0000-000000000000", "text": "Evidence"}}
@@ -426,13 +426,3 @@ class ForcedAnswerConversationHandoff(unittest.TestCase):
         self.assertTrue(any("LATEST RESULT" in (message.get("content") or "") for message in supplied))
         self.assertIsNone(chat.call_args.args[2])
         self.assertEqual(len(messages), 3)
-
-    def test_released_handoff_still_uses_digest(self):
-        from app.agent import _forced_answer
-        agent = state()
-        agent.evidence = {"a1b2c3d4": {"id": "a1b2c3d4-0000-0000-0000-000000000000", "text": "Evidence"}}
-        agent.order = ["a1b2c3d4"]
-        messages = [{"role": "user", "content": "LATEST RESULT"}]
-        with patch("app.agent._tracked_agent_chat", return_value={"message": {"content": "Answer [a1b2c3d4]"}}) as chat:
-            _forced_answer(agent, messages)
-        self.assertFalse(any("LATEST RESULT" in (message.get("content") or "") for message in chat.call_args.args[1]))

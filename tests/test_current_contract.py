@@ -48,5 +48,5 @@ class CurrentContract(TestCase):
                 "Submit a supported answer with passage IDs, or say the evidence is insufficient.",
                 "Changed inline instruction."))):
             self.assertNotEqual(instruction_fingerprint(), baseline)
-        with patch("app.agent.ENTITY_CARD_DRAFT_PROMPT", "unused draft changed"):
+        with patch("app.agent.ENTITY_CARD_DRAFT_PROMPT", "unused draft changed", create=True):
             self.assertEqual(instruction_fingerprint(), baseline)
