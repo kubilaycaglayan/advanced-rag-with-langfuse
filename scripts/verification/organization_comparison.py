@@ -37,7 +37,12 @@ def main():
         contracts["providers"][provider] = {"pipeline_id": resolved.pipeline_id,
             "settings": resolved.agent_settings.__dict__, "index": resolved.index,
             "config": resolved.config.manifest()}
-    (output / f"{args.phase}-contracts.json").write_text(json.dumps(contracts, indent=2, default=str))
+    contract_path = output / f"{args.phase}-contracts.json"
+    if contract_path.exists():
+        if json.loads(contract_path.read_text()) != json.loads(json.dumps(contracts, default=str)):
+            raise RuntimeError(f"Refusing to overwrite different recorded contracts: {contract_path}")
+    else:
+        contract_path.write_text(json.dumps(contracts, indent=2, default=str))
     initialize()
     for name, dataset in manifest["datasets"].items():
         for provider in ("ollama", "openai"):
