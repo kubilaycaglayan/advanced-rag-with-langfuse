@@ -9,9 +9,7 @@ import sqlite3
 import threading
 
 
-
 _local = threading.local()
-
 
 
 def db_path() -> Path:
@@ -20,13 +18,11 @@ def db_path() -> Path:
     return path
 
 
-
 def connect() -> sqlite3.Connection:
     connection = sqlite3.connect(db_path(), timeout=30)
     connection.row_factory = sqlite3.Row
     connection.execute("PRAGMA journal_mode=WAL")
     return connection
-
 
 
 def initialize() -> None:
@@ -47,7 +43,6 @@ def initialize() -> None:
           PRIMARY KEY(collection_name, fingerprint)
         );
         """)
-
 
 
 def now() -> str:

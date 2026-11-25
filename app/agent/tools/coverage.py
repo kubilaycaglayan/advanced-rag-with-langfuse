@@ -20,7 +20,6 @@ _WHAT_HAPPENED = re.compile(r"\bwhat (?:happened|happens|went on|occurred|took p
                             r"\bdescribe (?:the )?(?:events?|incident|confrontation|attack)\b", re.I)
 
 
-
 _STAGE_WORDS = {
     "arrival": frozenset("arrive arrived arrives went go goes drove drive enter enters entered reach reached came come "
                          "travel travelled traveled".split()),
@@ -33,11 +32,9 @@ _STAGE_WORDS = {
 }
 
 
-
 def _covered_stages(text: str) -> set[str]:
     words = set(re.findall(r"[a-z']+", (text or "").casefold()))
     return {stage for stage, vocabulary in _STAGE_WORDS.items() if words & vocabulary}
-
 
 
 def _is_person_key(collection: str, key: str) -> bool:
@@ -45,7 +42,6 @@ def _is_person_key(collection: str, key: str) -> bool:
     words = name_pairs(collection)[1]
     known = {word.casefold(): count for word, count in words.items()}
     return any(known.get(word.casefold(), 0) >= 20 for word in key.split())
-
 
 
 def _person_neighbours(collection: str, data: dict[str, Any], key: str, limit: int = 4) -> list[str]:
@@ -67,7 +63,6 @@ def _person_neighbours(collection: str, data: dict[str, Any], key: str, limit: i
         found[other] = found.get(other, 0) + 1
     ordered = sorted(found, key=lambda name: (found[name], cards[name].get("mentions", 0)), reverse=True)
     return ordered[:limit]
-
 
 
 def _coverage_people(state: AgentState, answer: str) -> list[str]:
@@ -107,7 +102,6 @@ def _coverage_people(state: AgentState, answer: str) -> list[str]:
     return ordered[:3]
 
 
-
 def _scene_chapter(state: AgentState, point: Any) -> tuple:
     """The book and section a scene lives in: scenes of one event share them, so a later scene can be found from it."""
     members = point.payload.get("members") or []
@@ -118,7 +112,6 @@ def _scene_chapter(state: AgentState, point: Any) -> tuple:
     if not row:
         return ()
     return row.get("book_file"), row.get("section")
-
 
 
 def _coverage_hint(state: AgentState, answer: str) -> dict[str, Any]:
@@ -163,7 +156,6 @@ def _coverage_hint(state: AgentState, answer: str) -> dict[str, Any]:
             state.focus_on(scene_rows)
             summary["scene_passages"] = [_scene_member(row, 400) for row in scene_rows]
     return {"people_involved": people, **summary}
-
 
 
 def _coverage_gap(state: AgentState, answer: str) -> dict[str, Any] | None:

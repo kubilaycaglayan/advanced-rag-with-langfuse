@@ -54,10 +54,7 @@ def agent_prompt() -> str:
 
 def prompt_identity() -> str:
     profile = load_profile()
-    try:
-        from app.prompt_templates import PROMPT_TEMPLATES
-    except ImportError:
-        from prompt_templates import PROMPT_TEMPLATES
+    from app.prompt_templates import PROMPT_TEMPLATES
     templates = {**PROMPT_TEMPLATES, **(profile.prompt_overrides or {})}
     material = {"agent_prompt": agent_prompt(), "templates": templates}
     return hashlib.sha256(canonical_json(material).encode("utf-8")).hexdigest()

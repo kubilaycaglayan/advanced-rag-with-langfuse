@@ -58,7 +58,6 @@ def _tool_specs() -> list[dict[str, Any]]:
     ])
 
 
-
 def tool_names() -> list[str]:
     return [spec["function"]["name"] for spec in _tool_specs()]
 

@@ -17,10 +17,8 @@ import os
 import re
 
 
-
 def qdrant_client() -> QdrantClient:
     return QdrantClient(url=os.getenv("QDRANT_URL", "http://127.0.0.1:6333"), timeout=30)
-
 
 
 def query_points_cached(qdrant: QdrantClient, collection: str, vector: list[float], limit: int,
@@ -37,10 +35,8 @@ def query_points_cached(qdrant: QdrantClient, collection: str, vector: list[floa
     return [SimpleNamespace(id=row["id"], payload=row["payload"], score=row["score"]) for row in records]
 
 
-
 def _name_word_pattern() -> str:
     return load_profile().name_word_pattern
-
 
 
 @lru_cache(maxsize=8)
@@ -65,17 +61,14 @@ def name_pairs(collection: str) -> tuple[dict[str, tuple[str, int, int]], Counte
     return {word: (*names.most_common(1)[0], sum(names.values())) for word, names in by_word.items()}, words
 
 
-
 _KEYWORD_STOPWORDS = frozenset("a an the of to in on and or is was were be been are did does do how what who whom why when where which "
                                "that this with for by at from as her his she he it its their they them".split())
-
 
 
 def keywords(text: str) -> list[str]:
     """Content words, lowercased, with a plural -s dropped so "compromises" also matches "compromise"."""
     return [word[:-1] if len(word) > 3 and word.endswith("s") and not word.endswith(("ss", "us", "is")) else word
             for word in re.findall(r"\w+", text.lower()) if word not in _KEYWORD_STOPWORDS]
-
 
 
 @lru_cache(maxsize=4)
@@ -92,9 +85,7 @@ def keyword_index(collection: str) -> tuple[list[dict[str, Any]], list[Counter],
     return rows, [Counter(row_words) for row_words in words], [len(row_words) for row_words in words], Counter(word for row_words in words for word in set(row_words))
 
 
-
 _ANCHOR_SKIP = frozenset("what who how when where why which did does is was according for in the a".split())
-
 
 
 @lru_cache(maxsize=1)
@@ -104,7 +95,6 @@ def entity_cards(path: str) -> dict[str, Any]:
         data = json.load(handle)
     data["mentions"] = {card["key"]: card["mentions"] for card in data["cards"]}
     return data
-
 
 
 def entity_anchors(question: str, data: dict[str, Any]) -> set[str]:
@@ -123,7 +113,6 @@ def entity_anchors(question: str, data: dict[str, Any]) -> set[str]:
         if matches:
             found.add(max(matches, key=data["mentions"].get))
     return found
-
 
 
 def keyword_search(query: str, collection: str, limit: int, k1: float = 1.2, b: float = 0.75) -> list[Passage]:
@@ -145,8 +134,7 @@ def keyword_search(query: str, collection: str, limit: int, k1: float = 1.2, b: 
                         input={"query": query, "collection": collection, "limit": limit}, compute=search)
 
 
-
-def _complete_names(question: str, collection: str, min_count: int = 20, min_share: float = 0.5, min_other_ratio: float = 3.0) -> str:
+def complete_names(question: str, collection: str, min_count: int = 20, min_share: float = 0.5, min_other_ratio: float = 3.0) -> str:
     """Expand a bare name the books rarely use for that character to the full name (Mikael -> Mikael Blomkvist).
 
     A word is completed only when one two-word name dominates its pairings and the books use the
@@ -170,7 +158,6 @@ def _complete_names(question: str, collection: str, min_count: int = 20, min_sha
         "query": question, "collection": collection, "min_count": min_count,
         "min_share": min_share, "min_other_ratio": min_other_ratio,
     }, input={"query": question, "operation": "name_completion"}, compute=complete)
-
 
 
 def passage_position(payload: dict[str, Any]) -> tuple:

@@ -14,9 +14,7 @@ from app.api.experiments import router as experiments_router
 from app.api.health import router as health_router
 
 
-
 app = FastAPI(title=f"{corpus_config().title} RAG Experiment Runner", version="0.2.0")
-
 
 
 @app.on_event("startup")
@@ -24,8 +22,6 @@ def startup() -> None:
     load_catalog()
     initialize()
     start_worker()
-
-
 
 
 app.include_router(questions_router)

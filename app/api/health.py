@@ -10,7 +10,6 @@ import os
 router = APIRouter()
 
 
-
 @router.get("/health")
 def health() -> dict[str, Any]:
     try:

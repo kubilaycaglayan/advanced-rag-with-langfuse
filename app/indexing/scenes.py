@@ -257,12 +257,8 @@ def repair_cache(collection: str, config: ResolvedPipelineConfig, qdrant: Qdrant
 
 
 if __name__ == "__main__":
-    try:
-        from app.indexing.passages import build_index, index_identity
-        from app.pipelines.config import resolve_pipeline_model_identities
-    except ImportError:
-        from indexer import build_index, index_identity
-        from resolved_config import resolve_pipeline_model_identities
+    from app.indexing.passages import build_index, index_identity
+    from app.pipelines.config import resolve_pipeline_model_identities
     parser = argparse.ArgumentParser(description="Check and repair names in cached scene summaries, then rebuild the scene index")
     parser.add_argument("--config", type=Path, help="JSON resolved pipeline config")
     args = parser.parse_args()

@@ -1,7 +1,7 @@
 """answering / interactive responsibilities."""
 from __future__ import annotations
 
-from app.answering.cache_identity import _answer_cache_identity
+from app.answering.cache_identity import answer_cache_identity
 
 from app.api.schemas import AskRequest
 from app.cache import answers as answer_cache
@@ -22,10 +22,6 @@ import hashlib
 import time
 
 
-
-
-
-
 def _run_ask(request: AskRequest, prepared: dict[str, Any], *, on_trace=None, on_token=None, on_status=None) -> dict[str, Any]:
     """Answer one question inside its Langfuse trace (the same trace whether or not the answer is streamed)."""
     pipeline_id = prepared["pipeline_id"]
@@ -36,7 +32,7 @@ def _run_ask(request: AskRequest, prepared: dict[str, Any], *, on_trace=None, on
     cache_layers = answer_cache.normalize_layers(request.cache_layers)
     cache_enabled = ("answer" in cache_layers and request.cache_mode != "bypass"
                      and langfuse_enabled())
-    cache_scope = _answer_cache_identity(request.question, prepared["resolved"], prepared["collection"]) if cache_enabled else None
+    cache_scope = answer_cache_identity(request.question, prepared["resolved"], prepared["collection"]) if cache_enabled else None
     cache_started = time.perf_counter()
     cached_result, cache_status, cache_source_trace_id = None, "bypassed", None
     if cache_enabled and request.cache_mode == "use":

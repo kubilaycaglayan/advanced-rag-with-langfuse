@@ -7,7 +7,6 @@ from app.storage import now
 from typing import Any
 
 
-
 def save_index_manifest(*, collection: str, fingerprint: str, config: dict[str, Any], corpus: dict[str, Any],
                         splitter_fingerprint: str, embedding_identity: str, vector_settings: dict[str, Any],
                         expected: int, actual: int, state: str) -> None:
@@ -23,7 +22,6 @@ def save_index_manifest(*, collection: str, fingerprint: str, config: dict[str, 
          embedding_identity, canonical_json(vector_settings), expected, actual, state, stamp, stamp))
 
 
-
 def get_ready_manifest(collection: str, fingerprint: str | None = None) -> dict[str, Any] | None:
     with connect() as db:
         if fingerprint:
@@ -31,7 +29,6 @@ def get_ready_manifest(collection: str, fingerprint: str | None = None) -> dict[
         else:
             row = db.execute("SELECT * FROM index_manifests WHERE collection_name=? AND state='ready' ORDER BY updated_at DESC LIMIT 1", (collection,)).fetchone()
         return dict(row) if row else None
-
 
 
 def get_index_manifest(collection: str, fingerprint: str) -> dict[str, Any] | None:

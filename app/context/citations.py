@@ -16,14 +16,12 @@ def _book_short(book: str | None) -> str:
     return book
 
 
-
 def _passage(row: dict[str, Any], chars: int) -> dict[str, Any]:
     text = (row.get("text") or "").replace("\n", " ")
     return {"id": str(row["id"])[:8], "book": _book_short(row.get("book")), "chapter": row.get("chapter"),
             "paragraph": row.get("paragraph"),
             "score": round(float(row["score"]), 3) if row.get("score") is not None else None,
             "text": text[:chars] + ("…" if len(text) > chars else "")}
-
 
 
 def _scene_member(row: dict[str, Any], chars: int) -> dict[str, Any]:

@@ -19,9 +19,7 @@ import re
 _RELATION_WORDS = re.compile(r"\b(daughter|son|father|mother|sister|brother|wife|husband|spouse|married|child|sibling)\b", re.I)
 
 
-
 _DEATH_WORDS = re.compile(r"\b(died?|death|dead|deceased)\b", re.I)
-
 
 
 _EVENT_WORDS = re.compile(r"\b(died?|death|dead|killed|murder\w*|drown\w*|shot|strangl\w*|poison\w*|hang\w*|burn\w*|"
@@ -29,15 +27,12 @@ _EVENT_WORDS = re.compile(r"\b(died?|death|dead|killed|murder\w*|drown\w*|shot|s
                           r"nail gun|factory|brickworks)\b", re.I)
 
 
-
 _REVEAL_CUES = re.compile(r"\b(kill\w*|murder\w*|drown\w*|shot|strangl\w*|stab\w*|poison\w*|held (?:him|her) under|"
                           r"push\w*|confess\w*|admit\w*|reveal\w*|attack\w*|fight\w*|nail gun|pinned|pinning)\b", re.I)
 
 
-
 _OFFICIAL_CUES = re.compile(r"\b(accident\w*|officially|believed|supposed\w*|rumou?r\w*|assumed|presumed|allegedly|"
                             r"fell|falling|slipped|rowing boat)\b", re.I)
-
 
 
 _INVERSE_ROLE = {"daughter": "parent", "son": "parent", "father": "child", "mother": "child",
@@ -45,17 +40,14 @@ _INVERSE_ROLE = {"daughter": "parent", "son": "parent", "father": "child", "moth
                  "married": "spouse", "child": "parent", "sibling": "sibling"}
 
 
-
 _GENDERED_ROLE = {"parent": ("mother", "father"), "child": ("daughter", "son"), "sibling": ("sister", "brother"),
                   "spouse": ("wife", "husband")}
-
 
 
 def _bare_name(name: str) -> str:
     """The first name, which is what a sentence-shaped query uses ('Harriet', 'Salander')."""
     words = [word for word in re.split(r"\s+", (name or "").strip()) if word]
     return words[0] if words else ""
-
 
 
 def _pronoun(data: dict[str, Any], key: str) -> str:
@@ -73,7 +65,6 @@ def _pronoun(data: dict[str, Any], key: str) -> str:
         female = len(re.findall(r"\b(she|her|hers|daughter|mother|sister|wife|girl|woman)\b", lowered))
         male = len(re.findall(r"\b(he|him|his|son|father|brother|husband|boy|man)\b", lowered))
     return "her" if female > male else "his"
-
 
 
 def _relation_role(data: dict[str, Any], person: str, other: str) -> str:
@@ -101,7 +92,6 @@ def _relation_role(data: dict[str, Any], person: str, other: str) -> str:
     return ""
 
 
-
 def _event_verb(state: AgentState, args: dict[str, Any]) -> str:
     """The event words to search with: the tool argument, or the verb in the question, with 'died' widened to 'killed'."""
     event = str(args.get("event") or "").strip()
@@ -111,7 +101,6 @@ def _event_verb(state: AgentState, args: dict[str, Any]) -> str:
     if _DEATH_WORDS.search(event) and not re.search(r"drown|shot|strangl|poison|hang|burn|stab|beat|murder|kill", event, re.I):
         return "killed"
     return event
-
 
 
 def _candidate_others(state: AgentState, person: str, data: dict[str, Any]) -> list[str]:
@@ -144,7 +133,6 @@ def _candidate_others(state: AgentState, person: str, data: dict[str, Any]) -> l
     return ordered[:1]
 
 
-
 def _true_scene_rank(scene: tuple[Any, float]) -> tuple[int, bool, float]:
     """Prefer the scene that reveals what happened over the one that repeats the official account.
 
@@ -155,7 +143,6 @@ def _true_scene_rank(scene: tuple[Any, float]) -> tuple[int, bool, float]:
     reveal = bool(_REVEAL_CUES.search(summary))
     official = bool(_OFFICIAL_CUES.search(summary))
     return (1 if reveal and not official else 0), reveal, scene[1]
-
 
 
 def _true_account_queries(person: str, other: str, verb: str, role: str, pronoun: str) -> list[str]:
@@ -178,7 +165,6 @@ def _true_account_queries(person: str, other: str, verb: str, role: str, pronoun
     queries.append(f"{other_first} {verb} {person_first}")
     queries.append(f"{other_first} {person_first} {verb}")
     return list(dict.fromkeys(query.strip() for query in queries if query.strip()))
-
 
 
 def _tool_true_account(state: AgentState, args: dict[str, Any]) -> dict[str, Any]:

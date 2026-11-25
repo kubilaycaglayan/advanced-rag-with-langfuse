@@ -29,7 +29,6 @@ def _tool_read_passage(state: AgentState, args: dict[str, Any]) -> dict[str, Any
             "neighbours": [_passage(item, 500) for item in window if item["id"] != row["id"]]}
 
 
-
 def _tool_read_chapter(state: AgentState, args: dict[str, Any]) -> dict[str, Any]:
     book = str(args.get("book") or "").strip()
     chapter = str(args.get("chapter") or "").strip()

@@ -13,14 +13,12 @@ def _clip(payload: Any, limit: int = 9000) -> str:
     return text[:limit] + "…"
 
 
-
 def _int(args: dict[str, Any], key: str, default: int, low: int = 1, high: int = 12) -> int:
     try:
         value = int(args.get(key, default))
     except (TypeError, ValueError):
         return default
     return max(low, min(high, value))
-
 
 
 def _parse_text_tool(content: str) -> tuple[str, dict[str, Any]] | None:

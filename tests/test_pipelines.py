@@ -64,7 +64,7 @@ class PipelineVersions(TestCase):
 
     def test_agent_declared_steps_have_instrumentation(self):
         source = Path(__file__).resolve().parents[1] / "app"
-        tree = ast.Module(body=[node for path in source.rglob("*.py")
+        tree = ast.Module(body=[node for path in [*(source / "agent").rglob("*.py"), source / "models" / "agent.py"]
                                 for node in ast.parse(path.read_text()).body], type_ignores=[])
         spans = {node.args[0].value for node in ast.walk(tree) if isinstance(node, ast.Call)
                  and isinstance(node.func, ast.Name) and node.func.id == "observation"

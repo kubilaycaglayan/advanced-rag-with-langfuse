@@ -13,7 +13,6 @@ from typing import Any
 import contextvars
 
 
-
 def transform_query(question: str, config: ResolvedPipelineConfig) -> tuple[str | None, list[str], str | None]:
     mode = config.retrieval_mode
 
@@ -82,8 +81,7 @@ def transform_query(question: str, config: ResolvedPipelineConfig) -> tuple[str 
     return done.get("hypothetical"), done.get("alternatives", []), done.get("corrected")
 
 
-
-def _prompted(system: str, user: str, config: ResolvedPipelineConfig, name: str) -> str:
+def prompted(system: str, user: str, config: ResolvedPipelineConfig, name: str) -> str:
     """One generation-model request using the active corpus's local template."""
     messages = [{"role": "system", "content": profile_prompt(system, PROMPT_TEMPLATES[system])},
                 {"role": "user", "content": user}]

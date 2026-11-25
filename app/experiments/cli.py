@@ -15,7 +15,6 @@ import os
 import uuid
 
 
-
 def cli() -> int:
     parser = argparse.ArgumentParser(description="Run Millennium RAG against a pinned Langfuse dataset version")
     parser.add_argument("--dataset", default=os.getenv("DATASET_NAME", "QA.csv"))

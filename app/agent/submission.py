@@ -67,10 +67,8 @@ def _verify_submission(state: AgentState, answer: str, ids: list[str], extra_ids
         return False, f"verifier failed: {type(exc).__name__}"
 
 
-
 def _answer_key(answer: str) -> str:
     return re.sub(r"\s+", " ", re.sub(r"\[[0-9a-fA-F]{8}\]", "", answer)).strip().casefold()
-
 
 
 def _direct_premise_resolution(state: AgentState) -> tuple[str, list[str]] | None:
@@ -92,7 +90,6 @@ def _direct_premise_resolution(state: AgentState) -> tuple[str, list[str]] | Non
     return None
 
 
-
 def _search_progress_hint(state: AgentState, name: str, args: dict[str, Any], payload: dict[str, Any]) -> str | None:
     if name not in {"semantic_search", "keyword_search", "search_scenes"}:
         return None
@@ -108,7 +105,6 @@ def _search_progress_hint(state: AgentState, name: str, args: dict[str, Any], pa
     return None
 
 
-
 _ABSTAIN = re.compile(
     r"\b(insufficient|cannot determine|no factual claims|could not find|not found in|"
     r"(?:do not|does not|don't) (?:contain|describe|state|mention|say|provide)|"
@@ -116,10 +112,8 @@ _ABSTAIN = re.compile(
     r"not possible to answer|cannot be answered|(?:do not|does not|don't) answer|no answer)\b", re.I)
 
 
-
 def _looks_like_abstention(answer: str) -> bool:
     return is_explicit_abstention(answer) or bool(_ABSTAIN.search(answer or ""))
-
 
 
 def _synthesis_rows(state: AgentState, limit: int = 10) -> list[dict[str, Any]]:
@@ -176,7 +170,6 @@ def _synthesis_rows(state: AgentState, limit: int = 10) -> list[dict[str, Any]]:
     return kept + ranked
 
 
-
 def _synthesize(state: AgentState) -> tuple[str, list[str]] | None:
     """One clean answer request over the collected evidence, when the loop's answer abstained despite evidence."""
     rows = _synthesis_rows(state)
@@ -200,7 +193,6 @@ def _synthesize(state: AgentState) -> tuple[str, list[str]] | None:
     if not content or not ids:
         return None
     return content, list(dict.fromkeys(ids))
-
 
 
 def _finish(state: AgentState, answer: str, ids: list[str], *, stopped: str,
@@ -236,7 +228,6 @@ def _finish(state: AgentState, answer: str, ids: list[str], *, stopped: str,
     return _final(state, answer, ids, stopped=stopped, raw_answer=raw_answer)
 
 
-
 def _forced_answer(state: AgentState, messages: list[dict[str, Any]]) -> dict[str, Any]:
     final_messages = conversation_final_messages(messages, _compact)
     reply = _tracked_agent_chat(state, final_messages, None, "forced answer")
@@ -244,7 +235,6 @@ def _forced_answer(state: AgentState, messages: list[dict[str, Any]]) -> dict[st
     content = (message.get("content") or "").strip()
     ids = [short.casefold() for short in re.findall(r"\[([0-9a-fA-F]{8})\]", content) if short.casefold() in state.evidence]
     return _finish(state, content, list(dict.fromkeys(short.casefold() for short in ids)), stopped="budget")
-
 
 
 def _final(state: AgentState, answer: str, ids: list[str], *, stopped: str, raw_answer: str | None = None) -> dict[str, Any]:

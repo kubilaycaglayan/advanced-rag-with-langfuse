@@ -7,8 +7,7 @@ from app.pipelines.resolver import ResolvedRun
 from typing import Any
 
 
-
-def _answer_cache_identity(question: str, resolved: ResolvedRun, collection: str) -> dict[str, Any]:
+def answer_cache_identity(question: str, resolved: ResolvedRun, collection: str) -> dict[str, Any]:
     return answer_cache.identity(
         project_id=langfuse_project(), corpus_id=resolved.corpus_id,
         pipeline_version=resolved.version, pipeline_fingerprint=resolved.fingerprint,

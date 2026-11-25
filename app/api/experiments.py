@@ -25,7 +25,6 @@ import time
 router = APIRouter()
 
 
-
 def _custom_payload(incoming: dict[str, Any]) -> dict[str, Any]:
     custom = incoming.get("customPayload", incoming.get("custom_payload", incoming.get("payload", {})))
     if isinstance(custom, str):
@@ -36,7 +35,6 @@ def _custom_payload(incoming: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(custom, dict):
         raise HTTPException(status_code=400, detail="custom payload must be an object")
     return dict(custom)
-
 
 
 def _verify_signature(raw_body: bytes, signature: str | None) -> None:
@@ -60,7 +58,6 @@ def _verify_signature(raw_body: bytes, signature: str | None) -> None:
         valid = False
     if not valid:
         raise HTTPException(status_code=401, detail="invalid x-langfuse-signature")
-
 
 
 @router.post("/experiments/run", status_code=202)
@@ -146,7 +143,6 @@ async def trigger_experiment(request: Request,
             "status_url": f"/experiments/{row['execution_id']}", "created": created}
 
 
-
 @router.get("/experiments/{execution_id}")
 def experiment_status(execution_id: str) -> dict[str, Any]:
     row = get_execution(execution_id)
@@ -170,7 +166,6 @@ def experiment_status(execution_id: str) -> dict[str, Any]:
             "experiment_id": result.get("experiment_id") if result else None,
             "dataset_run_url": result.get("dataset_run_url") if result else None,
             "error": row.get("error"), "result": result}
-
 
 
 @router.post("/experiments/{execution_id}/retry", status_code=202)

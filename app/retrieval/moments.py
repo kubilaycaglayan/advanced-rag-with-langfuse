@@ -7,15 +7,14 @@ from app.models.retrieval import reranker
 from app.observability import observation as _observe
 from app.observability import update as _update
 from app.pipelines.config import ResolvedPipelineConfig
-from app.retrieval.queries import _prompted
-from app.retrieval.search import _complete_names
+from app.retrieval.queries import prompted
+from app.retrieval.search import complete_names
 from app.retrieval.search import passage_position
 from app.retrieval.search import query_points_cached
 from qdrant_client import QdrantClient
 from qdrant_client import models
 from typing import Any
 import re
-
 
 
 def moment_scene_hits(question: str, config: ResolvedPipelineConfig, collection: str, qdrant: QdrantClient,
@@ -32,7 +31,7 @@ def moment_scene_hits(question: str, config: ResolvedPipelineConfig, collection:
     is added when the question names no moment, no summary shows it, or the evidence already holds a passage of it.
     """
     with _observe("moment description", input=question) as obs:
-        reply = _prompted("scene_moment_system", question, config, "moment description")
+        reply = prompted("scene_moment_system", question, config, "moment description")
         # The reply also states the detail asked for (DETAIL: ...); asking for it separately keeps it out of the moment.
         moment = next((line.partition(":")[2].strip().strip('"') for line in reply.splitlines()
                        if line.strip().upper().startswith("MOMENT:")), "")
@@ -40,7 +39,7 @@ def moment_scene_hits(question: str, config: ResolvedPipelineConfig, collection:
             moment = ""
         # Summaries name people the way the books do, so a bare first name is completed as in retrieval.
         if moment and config.name_completion:
-            moment = _complete_names(moment, collection)
+            moment = complete_names(moment, collection)
         _update(obs, output=moment or None)
     if not moment:
         return [], moment
@@ -55,7 +54,7 @@ def moment_scene_hits(question: str, config: ResolvedPipelineConfig, collection:
     listing = "\n\n".join(f"[{n}] {first[scene.payload['members'][0]].get('book')}, {first[scene.payload['members'][0]].get('chapter') or 'chapter unknown'}: "
                           f"{scene.payload['summary']}" for n, scene in enumerate(found, 1))
     with _observe("moment scene choice", input={"moment": moment, "scenes": listing}) as obs:
-        reply = _prompted("scene_select_system", f"Moment: {moment}\n\nScenes:\n{listing}", config,
+        reply = prompted("scene_select_system", f"Moment: {moment}\n\nScenes:\n{listing}", config,
                           "moment scene choice")
         number = re.fullmatch(r"\W*(\d+)\W*", reply)
         chosen = found[int(number[1]) - 1] if number and 1 <= int(number[1]) <= len(found) else None

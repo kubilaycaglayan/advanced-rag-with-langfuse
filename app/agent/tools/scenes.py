@@ -39,7 +39,6 @@ def _scene_payload(state: "AgentState", point: Any, score: float, *, full: bool,
             "more_passages": max(0, len(rows) - len(shown)) if full else 0}
 
 
-
 def _tool_scene_search(state: AgentState, args: dict[str, Any]) -> dict[str, Any]:
     query = str(args.get("query") or "").strip()
     people = args.get("people") or []
@@ -62,7 +61,6 @@ def _tool_scene_search(state: AgentState, args: dict[str, Any]) -> dict[str, Any
             "note": "pass a scene_id to read_scene for every member passage in reading order"}
 
 
-
 def _initial_scene_probe(state: AgentState) -> tuple[dict[str, Any] | None, str]:
     """Offer the best scene's source passages before the agent chooses any tools."""
     ranked, error = _scene_points(state, state.question, 1)
@@ -72,13 +70,11 @@ def _initial_scene_probe(state: AgentState) -> tuple[dict[str, Any] | None, str]
     return _scene_payload(state, point, score, full=True, query=state.question), ""
 
 
-
 def _initial_scene_message(scene: dict[str, Any]) -> str:
     lines = ["Automatic scene search found a possible lead. Check its source passages against the question; "
              "cite only passages that state the answer, and search further if needed."]
     lines.extend(f"[{row['id']}] {row['text']}" for row in scene["passages"])
     return "\n\n".join(lines)
-
 
 
 def _tool_read_scene(state: AgentState, args: dict[str, Any]) -> dict[str, Any]:
@@ -93,7 +89,6 @@ def _tool_read_scene(state: AgentState, args: dict[str, Any]) -> dict[str, Any]:
             "passages": [_scene_member(row, 500) for row in rows[:6]],
             "more_passages": max(0, len(rows) - 6),
             "note": "these passages are evidence; cite the ones the answer relies on"}
-
 
 
 def _alias_variants(state: AgentState, moment: str) -> list[str]:
@@ -130,7 +125,6 @@ def _alias_variants(state: AgentState, moment: str) -> list[str]:
     return list(dict.fromkeys(variants))[:5]
 
 
-
 def _moment_core(moment: str) -> str:
     """The event without the detail clause: scene summaries match 'Salander saw Blomkvist in the kitchen', not the
     question's whole 'when she was severely wounded' tail."""
@@ -138,7 +132,6 @@ def _moment_core(moment: str) -> str:
     core = core.split(" and ")[0]
     core = core.strip(" ,.;:—-")
     return core if len(core.split()) >= 4 else ""
-
 
 
 def _tool_scene_moment(state: AgentState, args: dict[str, Any]) -> dict[str, Any]:

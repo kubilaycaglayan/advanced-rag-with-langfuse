@@ -22,7 +22,6 @@ import threading
 router = APIRouter()
 
 
-
 def _prepare_ask(request: AskRequest) -> dict[str, Any]:
     """Check the rate limit and resolve the configuration and index for one question."""
     if not request.question.strip():
@@ -59,7 +58,6 @@ def _prepare_ask(request: AskRequest) -> dict[str, Any]:
             "pipeline_id": resolved.pipeline_id, "resolved": resolved}
 
 
-
 @router.post("/ask")
 def ask(request: AskRequest) -> dict[str, Any]:
     slot = _reserve_ask_slot()
@@ -74,7 +72,6 @@ def ask(request: AskRequest) -> dict[str, Any]:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
     finally:
         slot.close()
-
 
 
 @router.post("/ask/stream")

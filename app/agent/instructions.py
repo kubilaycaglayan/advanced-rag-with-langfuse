@@ -28,12 +28,10 @@ INSTRUCTION_BUILDERS = (
 )
 
 
-
 INSTRUCTION_TEMPLATES = (
     "hyde_system", "grammar_system", "query_expansion_system",
     "scene_moment_system", "scene_select_system",
 )
-
 
 
 def instruction_manifest() -> dict[str, Any]:
@@ -43,10 +41,7 @@ def instruction_manifest() -> dict[str, Any]:
     message construction cannot silently evade the released instruction boundary.
     Corpus overrides are recorded independently through prompt/profile identities.
     """
-    try:
-        from app.prompt_templates import PROMPT_TEMPLATES
-    except ImportError:
-        from prompt_templates import PROMPT_TEMPLATES
+    from app.prompt_templates import PROMPT_TEMPLATES
     functions = {
         name: next(node for node in ast.parse(inspect.getsource(globals()[name])).body
                    if isinstance(node, ast.FunctionDef))
@@ -66,7 +61,6 @@ def instruction_manifest() -> dict[str, Any]:
             for name in INSTRUCTION_BUILDERS
         },
     }
-
 
 
 def instruction_fingerprint() -> str:

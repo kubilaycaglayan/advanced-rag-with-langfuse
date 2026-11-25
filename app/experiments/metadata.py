@@ -19,7 +19,6 @@ import json
 import os
 
 
-
 _EXPERIMENT_PROPAGATED_METADATA = frozenset({
     "execution_id", "pipeline_id", "pipeline_version", "pipeline_derived", "evaluator_id",
     "dataset_version", "variant_label", "snapshot_sha256", "correctness_evaluator",
@@ -28,12 +27,10 @@ _EXPERIMENT_PROPAGATED_METADATA = frozenset({
 })
 
 
-
 def pack_experiment_metadata(metadata: dict[str, Any]) -> tuple[dict[str, Any], str]:
     """Propagate join keys and preserve the complete metadata as one observation attribute."""
     propagated = {key: value for key, value in metadata.items() if key in _EXPERIMENT_PROPAGATED_METADATA}
     return propagated, json.dumps(metadata, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
-
 
 
 def _jsonable(value: Any) -> Any:
@@ -48,7 +45,6 @@ def _jsonable(value: Any) -> Any:
     if hasattr(value, "__dict__"):
         return {k: _jsonable(v) for k, v in vars(value).items() if not k.startswith("_")}
     return value
-
 
 
 def _fingerprints(config: ResolvedPipelineConfig, managed_evaluators: dict[str, Any],

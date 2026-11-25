@@ -24,11 +24,9 @@ def name_hints(collection: str, text: str) -> dict[str, list[str]]:
     return hints
 
 
-
 def display_name(key: str) -> str:
     """A card key as a name the answer can use ('gottfried vanger' -> 'Gottfried Vanger')."""
     return " ".join(word[:1].upper() + word[1:] for word in (key or "").split())
-
 
 
 def resolve_entity(data: dict[str, Any], name: str) -> str | None:
@@ -47,7 +45,6 @@ def resolve_entity(data: dict[str, Any], name: str) -> str | None:
     return None
 
 
-
 def name_score(text: str, key: str) -> int:
     """2 when the full name is in the text, 1 when one of its longer words is, 0 otherwise."""
     low = (text or "").casefold()
@@ -56,10 +53,8 @@ def name_score(text: str, key: str) -> int:
     return 1 if any(re.search(rf"\b{re.escape(word)}\b", low) for word in key.split() if len(word) >= 4) else 0
 
 
-
 _LINK_WORDS = frozenset("""wrote write written gave give given sent send met meet told tell showed show paid pay helped help
 saved save hired hire employed employed introduced recommends recommended report letter file document married""".split())
-
 
 
 @lru_cache(maxsize=2)
@@ -80,7 +75,6 @@ def fact_sources(path: str) -> dict[str, list[str]]:
                 if fact and members:
                     sources.setdefault(fact, members)
     return sources
-
 
 
 def connection_pairs(data: dict[str, Any], first: str, second: str) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
@@ -122,14 +116,12 @@ def connection_pairs(data: dict[str, Any], first: str, second: str) -> tuple[lis
             sorted(edges.values(), key=lambda row: (-row["score"], not row["direct"], row["relation"] or "")))
 
 
-
 def rank_facts(facts: list[str], about: str, limit: int = 8) -> list[str]:
     """Facts most related to ``about``; original order on ties, so an empty about keeps the card order."""
     words = {word for word in keywords(about or "") if len(word) >= 3}
     scored = [(sum(1 for word in words if word in keywords(fact)), -index, fact)
               for index, fact in enumerate(facts)]
     return [fact for score, _, fact in sorted(scored, reverse=True)[:limit]]
-
 
 
 def person_full_name(collection: str, name: str) -> str:

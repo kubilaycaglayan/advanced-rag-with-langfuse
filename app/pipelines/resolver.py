@@ -158,10 +158,7 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
     actual_instructions = instruction_fingerprint()
     if selected_id == "millennium" and expected_instructions != actual_instructions:
         raise ValueError(f"{version}: agent instructions differ from released version; publish a new version")
-    try:
-        from app.indexing.passages import index_identity
-    except ImportError:
-        from indexer import index_identity
+    from app.indexing.passages import index_identity
     expected_collection = index_identity(config)[0]
     if collection is not None and collection != expected_collection:
         raise ValueError(f"{version}: collection must be {expected_collection!r}, got {collection!r}")

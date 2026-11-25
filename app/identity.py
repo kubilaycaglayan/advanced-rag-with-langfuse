@@ -112,8 +112,6 @@ def dataset_snapshot(
     }
 
 
-
-
 def evaluator_identity(
     *,
     model: Mapping[str, Any],

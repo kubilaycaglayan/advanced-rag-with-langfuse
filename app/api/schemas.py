@@ -7,7 +7,6 @@ from pydantic import IPvAnyAddress
 from typing import Any
 
 
-
 class AskRequest(BaseModel):
     model_config = {"extra": "forbid"}
     question: str = Field(min_length=1)
@@ -26,13 +25,11 @@ class AskRequest(BaseModel):
     cache_layers: list[str] | None = None
 
 
-
 class IndexRequest(BaseModel):
     config: dict[str, Any] = Field(default_factory=dict)
     pipeline: str | None = None
     settings: Any = None
     explicit_rebuild: bool = False
-
 
 
 class CacheFeedbackRequest(BaseModel):

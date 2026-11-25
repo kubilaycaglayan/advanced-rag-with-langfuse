@@ -31,7 +31,6 @@ def _semantic_rows(state: "AgentState", query: str, k: int) -> list[dict[str, An
     return sorted(rows, key=lambda row: row["score"], reverse=True)[:k]
 
 
-
 def _scene_points(state: "AgentState", query: str, k: int) -> tuple[list[tuple[Any, float]], str]:
     """Scene search: points and rerank scores, or an error string when the scene index is missing."""
     config = state.config
@@ -50,7 +49,6 @@ def _scene_points(state: "AgentState", query: str, k: int) -> tuple[list[tuple[A
     return ranked[:k], ""
 
 
-
 def _tool_semantic_search(state: AgentState, args: dict[str, Any]) -> dict[str, Any]:
     query = str(args.get("query") or "").strip()
     if not query:
@@ -62,7 +60,6 @@ def _tool_semantic_search(state: AgentState, args: dict[str, Any]) -> dict[str, 
     state.remember(rows, query=query)
     return {"query": query, "hits": [_passage(row, state.settings.snippet_chars) for row in rows],
             "name_hints": name_hints(state.collection, query)}
-
 
 
 def _tool_keyword_search(state: AgentState, args: dict[str, Any]) -> dict[str, Any]:
@@ -78,7 +75,6 @@ def _tool_keyword_search(state: AgentState, args: dict[str, Any]) -> dict[str, A
     state.remember(rows, query=query)
     return {"query": query, "hits": [_passage(row, state.settings.snippet_chars) for row in rows],
             "name_hints": name_hints(state.collection, query)}
-
 
 
 def _tool_expand_query(state: AgentState, args: dict[str, Any]) -> dict[str, Any]:

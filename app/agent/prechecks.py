@@ -28,7 +28,6 @@ _CONNECTION_CUE = re.compile(r"\b(know|knew|known|learn|learned|learnt|meet|met|
                               r"connect\w*|affair|marry|married|hire|hired|gave|given|tell|told)\b", re.I)
 
 
-
 def _normalize_question(state: AgentState) -> tuple[str, list[dict[str, str]]]:
     """Replace a name the books do not use with the closest book name (Mikhail -> Mikael Blomkvist)."""
     pairs, words = name_pairs(state.collection)
@@ -42,7 +41,6 @@ def _normalize_question(state: AgentState) -> tuple[str, list[dict[str, str]]]:
             normalized = re.sub(rf"\b{token}\b", full, normalized, count=1)
             notes.append({"from": token, "to": full})
     return normalized, notes
-
 
 
 def _connection_precheck(state: AgentState) -> dict[str, Any] | None:
@@ -72,7 +70,6 @@ def _connection_precheck(state: AgentState) -> dict[str, Any] | None:
             "edges": [{key: value for key, value in edge.items() if key != "members"} for edge in edges[:2]]}
 
 
-
 def _precheck_message(check: dict[str, Any]) -> str:
     lines = [f"Connection facts from the entity cards about {check['person_a']} and {check['person_b']} "
              f"(not evidence by themselves; read the passages):"]
@@ -81,10 +78,8 @@ def _precheck_message(check: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-
 _DEATH_QUESTION = re.compile(r"\bhow\b.{0,100}\b(?:died?|death|dead|drown\w*|killed|murder\w*)\b|"
                              r"\bwhat happened to\b.{0,100}\b(?:died?|killed|murder\w*|drown\w*)\b", re.I)
-
 
 
 def _true_account_precheck(state: AgentState) -> dict[str, Any] | None:
@@ -109,7 +104,6 @@ def _true_account_precheck(state: AgentState) -> dict[str, Any] | None:
     return payload
 
 
-
 def _true_account_message(payload: dict[str, Any]) -> str:
     lines = [f"True-account search for {payload['person']} ({payload['event']})"
              + (f" with {', '.join(payload['other_people'])}" if payload.get("other_people") else "")
@@ -127,32 +121,25 @@ def _true_account_message(payload: dict[str, Any]) -> str:
     return "\n\n".join(lines)
 
 
-
 _MOMENT_DETAIL_QUESTION = re.compile(
     r"\bwhat\b.{0,120}\b(?:say|said|says|tell|told|reply|answer|mutter|whisper|shout|"
     r"wear|wore|wearing|notice|noticed|see|saw|hear|heard|hold|held)\b", re.I)
 
 
-
 _MOMENT_TIME = re.compile(r"\b(when|while|as|moment|first time|first met)\b", re.I)
-
 
 
 _SPEECH_CUES = re.compile(r"\b(say|said|says|tell|told|mutter\w*|whisper\w*|reply|replied|answer\w*|shout\w*)\b", re.I)
 
 
-
 _SPEECH_STRONG = re.compile(r"\b(mutter\w*|whisper\w*|murmur\w*|shout\w*|reply|replied|muttered)\b", re.I)
-
 
 
 _QUOTE_VERBS = re.compile(r"\b(mutter\w*|whisper\w*|murmur\w*|shout\w*)\b", re.I)
 
 
-
 def _is_moment_question(question: str) -> bool:
     return bool(_MOMENT_DETAIL_QUESTION.search(question) and _MOMENT_TIME.search(question))
-
 
 
 def _speech_excerpt(text: str) -> str:
@@ -166,7 +153,6 @@ def _speech_excerpt(text: str) -> str:
         start = boundary + 2
     end = min(len(text), match.end() + 320)
     return text[start:end].strip()
-
 
 
 def _moment_precheck(state: AgentState) -> dict[str, Any] | None:
@@ -230,7 +216,6 @@ def _moment_precheck(state: AgentState) -> dict[str, Any] | None:
             "speech": {"id": excerpt_id, "text": excerpt} if excerpt else None}
 
 
-
 def _moment_message(check: dict[str, Any]) -> str:
     lines = [f"Moment search for {check['question']!r}: {check.get('moment')}. These passages are evidence; a scene "
              "summary is not. Read the passages that state the detail before answering."]
@@ -249,7 +234,6 @@ def _moment_message(check: dict[str, Any]) -> str:
     return "\n\n".join(lines)
 
 
-
 def _sequence_precheck(state: AgentState) -> dict[str, Any] | None:
     """For a what-happened question, put the later scenes of the same event in front of the model before it starts.
 
@@ -264,7 +248,6 @@ def _sequence_precheck(state: AgentState) -> dict[str, Any] | None:
     return hint
 
 
-
 def _sequence_message(check: dict[str, Any]) -> str:
     lines = ["Sequence search: a what happened answer covers arrival, discovery, confrontation and outcome. The "
              "first search usually finds arrival and discovery; these are later scenes of the same event, all in the "
@@ -276,7 +259,6 @@ def _sequence_message(check: dict[str, Any]) -> str:
     for scene in (check.get("later_scenes") or [])[:6]:
         lines.append(f"scene [{scene['scene_id']}] {scene.get('summary', '')[:260]}")
     return "\n\n".join(lines)
-
 
 
 def _premise_probe(state: AgentState) -> str | None:

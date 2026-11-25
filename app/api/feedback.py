@@ -2,14 +2,15 @@
 from __future__ import annotations
 
 from fastapi import APIRouter
-from app.api.logging import logger
+import logging
 from app.api.schemas import CacheFeedbackRequest
 from app.cache import answers as answer_cache
 from fastapi import HTTPException
 from typing import Any
 
-router = APIRouter()
+logger = logging.getLogger(__name__)
 
+router = APIRouter()
 
 
 @router.post("/cache/feedback")

@@ -30,7 +30,6 @@ class AgentSettings:
         return AgentSettings(**{**self.__dict__, "model": model})
 
 
-
 @dataclass
 class AgentState(EvidenceState):
     question: str

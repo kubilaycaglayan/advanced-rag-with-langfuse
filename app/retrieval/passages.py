@@ -11,7 +11,6 @@ def passage_index(collection: str) -> tuple[dict[str, dict[str, Any]], list[dict
     return {row["id"]: row for row in rows}, rows
 
 
-
 def resolve_passage_id(collection: str, wanted: str) -> tuple[dict[str, Any] | None, str]:
     """Resolve a full or 8-character id; return (row, error)."""
     wanted = (wanted or "").strip().strip("[]")
@@ -24,7 +23,6 @@ def resolve_passage_id(collection: str, wanted: str) -> tuple[dict[str, Any] | N
     if len(matches) > 1:
         return None, f"id {wanted!r} is ambiguous ({len(matches)} passages)"
     return None, f"no passage with id {wanted!r}"
-
 
 
 def scene_member_rows(collection: str, members: list[str]) -> list[dict[str, Any]]:

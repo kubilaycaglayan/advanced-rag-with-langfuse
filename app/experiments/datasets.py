@@ -11,15 +11,12 @@ from typing import Any
 import os
 
 
-
 def _item_question(item: Any) -> Any:
     return item.input.get("question") if isinstance(item.input, dict) else item.input
 
 
-
 def _item_session(dataset_name: str, item: Any) -> str:
     return question_session_id(dataset_name, item.id, item.metadata, _item_question(item))
-
 
 
 def _dataset_for(payload: dict[str, Any], client: Langfuse) -> tuple[Any, datetime]:

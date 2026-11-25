@@ -1,7 +1,7 @@
 """experiments / execution responsibilities."""
 from __future__ import annotations
 
-from app.answering.cache_identity import _answer_cache_identity
+from app.answering.cache_identity import answer_cache_identity
 from app.cache import answers as answer_cache
 from app.cache.intermediate import scope_for as intermediate_cache_scope
 from app.cache.intermediate import use_cache as use_intermediate_cache
@@ -45,9 +45,7 @@ import threading
 import time
 
 
-
 _active_lock = threading.Lock()
-
 
 
 def _cached_output_with_timing(payload: dict[str, Any], source_trace_id: str | None,
@@ -61,10 +59,8 @@ def _cached_output_with_timing(payload: dict[str, Any], source_trace_id: str | N
     return output
 
 
-
 def _get(obj: Any, key: str, default: Any = None) -> Any:
     return obj.get(key, default) if isinstance(obj, dict) else getattr(obj, key, default)
-
 
 
 def execute_execution(execution_id: str) -> dict[str, Any]:
@@ -135,7 +131,7 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
         def task(*, item: Any, **kwargs: Any) -> dict[str, Any]:
             question = _item_question(item)
             session = _item_session(dataset.name, item)
-            cache_scope = _answer_cache_identity(str(question), resolved, collection) if cache_enabled else None
+            cache_scope = answer_cache_identity(str(question), resolved, collection) if cache_enabled else None
             if cache_scope is not None:
                 cache_scopes[item.id] = cache_scope
             cached_output, cache_status, cache_source = None, "bypassed", None

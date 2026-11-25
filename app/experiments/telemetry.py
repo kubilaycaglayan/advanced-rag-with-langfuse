@@ -13,7 +13,6 @@ import threading
 import time
 
 
-
 class ExperimentLangfuse(Langfuse):
     """Scope the SDK's entire item tree, including root and judges, to one question.
 
@@ -29,10 +28,8 @@ class ExperimentLangfuse(Langfuse):
             return await super()._process_experiment_item(item, *args, **kwargs)
 
 
-
 def _client() -> Langfuse:
     return ExperimentLangfuse(environment="sdk-experiment")
-
 
 
 def _flush_client(client: Langfuse, *, timeout_seconds: float = 30.0) -> dict[str, Any]:
@@ -74,7 +71,6 @@ def _flush_client(client: Langfuse, *, timeout_seconds: float = 30.0) -> dict[st
     if thread.is_alive():
         result["error"] = f"Langfuse flush exceeded {timeout_seconds:g}s"
     return result
-
 
 
 def _verify_trace_upload(client: Langfuse, trace_id: str | None, *, attempts: int = 5) -> str | None:

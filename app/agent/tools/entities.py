@@ -46,7 +46,6 @@ def _tool_find_connections(state: AgentState, args: dict[str, Any]) -> dict[str,
             "note": "facts carry passage_ids when the source window is known; read_passage opens one, search_scenes with both names finds their scene"}
 
 
-
 def _tool_entity_card(state: AgentState, args: dict[str, Any]) -> dict[str, Any]:
     name = str(args.get("name") or "").strip()
     if not name:
@@ -79,7 +78,6 @@ def _tool_entity_card(state: AgentState, args: dict[str, Any]) -> dict[str, Any]
     return {"name": key, "mentions": card.get("mentions"), "facts": rank_facts(card.get("facts", []), about),
             "links": links[:10], "passage_ids": [str(row["id"])[:8] for row in rows[:6]],
             "note": "passage_ids are the passages the card was extracted from"}
-
 
 
 def _tool_find_names(state: AgentState, args: dict[str, Any]) -> dict[str, Any]:

@@ -16,7 +16,6 @@ import requests
 logger = logging.getLogger(__name__)
 
 
-
 def _ollama_chat(messages: list[dict[str, Any]], tools: list[dict[str, Any]] | None, settings: AgentSettings) -> dict[str, Any]:
     base = os.getenv("OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/")
     payload: dict[str, Any] = {"model": settings.model, "messages": messages, "stream": False,
@@ -29,7 +28,6 @@ def _ollama_chat(messages: list[dict[str, Any]], tools: list[dict[str, Any]] | N
     response = requests.post(base + "/api/chat", json=payload, timeout=(10, 900))
     response.raise_for_status()
     return response.json()
-
 
 
 def _agent_chat(messages: list[dict[str, Any]], tools: list[dict[str, Any]] | None,
@@ -168,7 +166,6 @@ def _agent_chat(messages: list[dict[str, Any]], tools: list[dict[str, Any]] | No
                                "reasoning_tokens": completion_details.get("reasoning_tokens", 0)}}
 
 
-
 def _record_agent_usage(state: AgentState, reply: dict[str, Any], purpose: str) -> dict[str, Any]:
     usage = reply.get("provider_usage") or {
         "provider": state.settings.provider, "model": state.settings.model,
@@ -206,7 +203,6 @@ def _record_agent_usage(state: AgentState, reply: dict[str, Any], purpose: str) 
                     purpose, usage.get("model"), prompt, completion, cached,
                     int(usage.get("reasoning_tokens") or 0), cost)
     return detail
-
 
 
 def _tracked_agent_chat(state: AgentState, messages: list[dict[str, Any]],

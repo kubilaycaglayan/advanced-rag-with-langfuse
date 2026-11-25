@@ -14,13 +14,10 @@ import threading
 import uuid
 
 
-
 _jobs: queue.Queue[str] = queue.Queue()
 
 
-
 _worker: threading.Thread | None = None
-
 
 
 def submit(payload: dict[str, Any], *, idempotency_key: str | None = None) -> tuple[dict[str, Any], bool]:
@@ -29,7 +26,6 @@ def submit(payload: dict[str, Any], *, idempotency_key: str | None = None) -> tu
     if created:
         _jobs.put(execution_id)
     return row, created
-
 
 
 def submit_retry(execution_id: str, *, idempotency_key: str | None = None) -> tuple[dict[str, Any], bool]:
@@ -46,7 +42,6 @@ def submit_retry(execution_id: str, *, idempotency_key: str | None = None) -> tu
     return submit(payload, idempotency_key=idempotency_key)
 
 
-
 def _worker_loop() -> None:
     while True:
         execution_id = _jobs.get()
@@ -54,7 +49,6 @@ def _worker_loop() -> None:
             execute_execution(execution_id)
         finally:
             _jobs.task_done()
-
 
 
 def start_worker() -> None:

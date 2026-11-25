@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter
-from app.api.logging import logger
+import logging
 from fastapi import HTTPException
 from fastapi import Request
 from fastapi.responses import Response
@@ -14,8 +14,9 @@ import json
 import os
 import requests
 
-router = APIRouter()
+logger = logging.getLogger(__name__)
 
+router = APIRouter()
 
 
 @router.api_route("/langfuse-ollama/v1/{path:path}", methods=["GET", "POST"])

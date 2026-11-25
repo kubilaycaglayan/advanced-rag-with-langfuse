@@ -2,8 +2,6 @@
 from __future__ import annotations
 
 
-
-
 SYSTEM_PROMPT = """You answer questions about Stieg Larsson's Millennium trilogy using a search index of the three books: The Girl with the Dragon Tattoo, The Girl Who Played with Fire and The Girl Who Kicked the Hornet's Nest.
 
 Work in small steps and use the tools. Do not answer from memory or outside knowledge: every claim must come from passages you retrieved.
@@ -36,7 +34,6 @@ When the books first describe a death, a crime or a disappearance one way, look 
 A "what happened at a place" question is a sequence, not one find: cover arrival, discovery, confrontation and outcome. After the first hit, open the scene or search again with the person who was confronted there; do not stop at the first body or clue.
 Questions of the form "how did X know/learn about Y", "how did X and Y meet" or "what connects X and Y" are answered by the event that first brought them together: a document one wrote about the other, a person who introduced them, a meeting. If the passages show X reading or receiving something Y wrote, or someone telling X about Y, that is the answer even if the words "learned" or "knew" never appear. State it plainly instead of saying the books do not say.
 You have a limited number of tool calls (about 16). Do not repeat a search that returned the same passages. Prefer four to eight calls over one long one."""
-
 
 
 _SYNTHESIS_SYSTEM = """You answer a question about Stieg Larsson's Millennium trilogy from the evidence passages given.

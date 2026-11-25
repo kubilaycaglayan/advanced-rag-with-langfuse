@@ -12,7 +12,6 @@ import errno
 import fcntl
 
 
-
 def _require_langfuse_project_access() -> None:
     if not langfuse_tracing_required():
         return
@@ -27,7 +26,6 @@ def _require_langfuse_project_access() -> None:
         raise
     except Exception as exc:
         raise HTTPException(status_code=503, detail="Langfuse project access could not be verified") from exc
-
 
 
 def _reserve_ask_slot() -> BinaryIO:

@@ -47,10 +47,7 @@ def use_client(client: Any) -> Iterator[None]:
 def trace_scope(**attributes: Any) -> Iterator[None]:
     """Attach Langfuse trace attributes when configured; otherwise keep the request local."""
     try:
-        try:
-            from app.corpus_profiles import langfuse_enabled
-        except ImportError:
-            from corpus_profiles import langfuse_enabled
+        from app.corpus_profiles import langfuse_enabled
         if not langfuse_enabled():
             yield
             return
@@ -77,10 +74,7 @@ def trace_scope(**attributes: Any) -> Iterator[None]:
 def observation(name: str, *, as_type: str = "span", input: Any = None,
                 model: str | None = None, prompt: Any = None, metadata: dict[str, Any] | None = None) -> Iterator[Any | None]:
     try:
-        try:
-            from app.corpus_profiles import langfuse_enabled
-        except ImportError:
-            from corpus_profiles import langfuse_enabled
+        from app.corpus_profiles import langfuse_enabled
         if not langfuse_enabled():
             context = nullcontext(None)
         else:

@@ -13,7 +13,6 @@ from typing import Any
 router = APIRouter()
 
 
-
 @router.post("/index")
 def index(request: IndexRequest) -> dict[str, Any]:
     try:

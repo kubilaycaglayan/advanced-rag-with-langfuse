@@ -7,7 +7,6 @@ import os
 import requests
 
 
-
 def local_generate(messages: list[dict[str, str]], model: str, budgets: tuple[int, ...],
             temperature: float = 0, context_length: int = 8192, *,
             name: str = "answer generation") -> str:

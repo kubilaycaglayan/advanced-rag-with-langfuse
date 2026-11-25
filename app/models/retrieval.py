@@ -8,11 +8,9 @@ from sentence_transformers import SentenceTransformer
 from typing import Any
 
 
-
 @lru_cache(maxsize=4)
 def embedder(name: str, revision: str | None = None) -> SentenceTransformer:
     return SentenceTransformer(name, device="cpu", revision=revision)
-
 
 
 @lru_cache(maxsize=4)
@@ -31,7 +29,6 @@ def reranker(name: str, revision: str | None = None) -> Any:
             return np.asarray(values)
 
     return CachedCrossEncoder()
-
 
 
 def encode_query(text: str, model: str, revision: str | None = None) -> list[float]:
