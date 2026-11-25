@@ -106,14 +106,11 @@ Only v2.16 is supported. Historical definitions remain in Git history.
     "num_predict": 1600,
     "think": false,
     "snippet_chars": 300,
-    "instruction_fingerprint": "8509364e19da56c20f5df1215a2884a76e05763e1fceeb9b778c86fd7436cebc",
-    "query_aware_reranking": true,
+    "instruction_fingerprint": "e45b61a77dea658e04f29a7327294072d8416f3398877bd5c9676b6dea9fbc1e",
     "provider": "ollama",
     "scene_candidate_count": 30,
     "initial_scene_probe": true,
-    "progress_control": true,
     "premise_early_stop": false,
-    "conversation_handoff": true,
     "conversation_handoff_fingerprint": "c418d9c241c3e7c049465c1de926ca911c810af96a2082e8077bce0c4b4123e6"
   },
   "settings": {

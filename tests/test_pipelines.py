@@ -47,7 +47,6 @@ class PipelineVersions(TestCase):
                  lambda: resolve("v2.16", {"corpus_checksum": "x"}),
                  lambda: resolve("v2.16", {"expansion_count": "three"}),
                  lambda: resolve("v2.16", engine="fixed"),
-                 lambda: resolve("v2.16", prompt_label="production"),
                  lambda: resolve("v2.16", collection="wrong")]
         for call in cases:
             with self.subTest(call=call), self.assertRaises(ValueError):
@@ -82,7 +81,7 @@ class PipelineVersions(TestCase):
              patch("app.agent._moment_precheck", return_value=None), \
              patch("app.agent._ollama_chat", return_value={"message": {"content": "No passage found", "tool_calls": []}}):
             result = run_agent("Who?", "fixture", resolve("v2.16").config,
-                               settings=AgentSettings(model="qwen3.6:35b", max_turns=1, min_tool_calls=0))
+                               settings=AgentSettings(model="qwen3.6:35b", max_turns=1, min_tool_calls=0, initial_scene_probe=False))
         self.assertEqual(result["stopped"], "budget")
         for name in ("connection pre-check", "true account pre-check", "sequence pre-check",
                      "moment pre-check", "no tool nudge", "forced answer"):

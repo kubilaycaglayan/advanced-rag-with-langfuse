@@ -63,7 +63,7 @@ def corpus_checksum() -> str:
 
 def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = None, *,
             catalog: PipelineCatalog | None = None, engine: str | None = None,
-            prompt_label: str | None = None, collection: str | None = None) -> ResolvedRun:
+            collection: str | None = None) -> ResolvedRun:
     catalog = catalog or load_catalog()
     if pipeline is not None and (not isinstance(pipeline, str) or not pipeline):
         raise ValueError("pipeline must be a non-empty version id")
@@ -73,8 +73,6 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
     version = block["id"]
     if engine is not None and engine != block["engine"]:
         raise ValueError(f"engine {engine!r} disagrees with pipeline {version}")
-    if prompt_label is not None:
-        raise ValueError("prompt_label is no longer supported")
     if overrides is None:
         overrides = {}
     if not isinstance(overrides, Mapping):
@@ -90,11 +88,8 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
     agent_context_length = overrides.get("agent_context_length")
     scene_candidate_count = overrides.get("scene_candidate_count")
     premise_early_stop = overrides.get("premise_early_stop")
-    allowed = set(block["settings"]) | (MODEL_KEYS if block["engine"] == "fixed" else set())
+    allowed = set(block["settings"])
     if block["engine"] == "agent":
-        # These are supported AgentSettings overrides for released and draft
-        # agent pipelines. Keep them as derived-run settings rather than
-        # requiring each new version to repeat the same allowlist.
         allowed.update({"agent_provider", "agent_model", "agent_think", "agent_context_length",
                         "automatic_scene_search", "scene_candidate_count", "premise_early_stop"})
     if (block["engine"] == "agent" and
@@ -123,11 +118,10 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
         agent_values = {key: value for key, value in block["agent"].items()
                         if key not in {"tools", "instruction_fingerprint", "conversation_handoff_fingerprint"}}
         agent_settings = AgentSettings(**agent_values)
-        if agent_settings.conversation_handoff:
-            expected_handoff = block["agent"].get("conversation_handoff_fingerprint")
-            actual_handoff = hashlib.sha256(Path(__file__).with_name("agent_final_handoff.py").read_bytes()).hexdigest()
-            if expected_handoff != actual_handoff:
-                raise ValueError(f"{version}: conversation handoff differs from its pinned fingerprint")
+        expected_handoff = block["agent"].get("conversation_handoff_fingerprint")
+        actual_handoff = hashlib.sha256(Path(__file__).with_name("agent_final_handoff.py").read_bytes()).hexdigest()
+        if expected_handoff != actual_handoff:
+            raise ValueError(f"{version}: conversation handoff differs from its pinned fingerprint")
         if agent_provider is not None:
             if agent_provider not in ("ollama", "openai"):
                 raise ValueError("agent_provider must be ollama or openai")
@@ -193,7 +187,7 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
     released_fingerprint = catalog.releases.get(version) or fingerprint(block)
     digest = hashlib.sha256(canonical_json({"id": version, "fingerprint": released_fingerprint,
                                             "overrides": overrides}).encode()).hexdigest()[:8]
-    prefix = "draft" if block["status"] == "draft" else "derived" if overrides else "pipeline"
+    prefix = "derived" if overrides else "pipeline"
     selected_corpus = corpus_config()
     return ResolvedRun(version, block["status"], block["engine"], config, agent_settings,
                        dict(block["prompts"]), {**block["index"], "collection": expected_collection},

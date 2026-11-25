@@ -414,7 +414,7 @@ if __name__ == "__main__":
 class ForcedAnswerConversationHandoff(unittest.TestCase):
     def test_handoff_keeps_latest_tool_result(self):
         from app.agent import _forced_answer
-        agent = state(conversation_handoff=True)
+        agent = state()
         agent.evidence = {"a1b2c3d4": {"id": "a1b2c3d4-0000-0000-0000-000000000000", "text": "Evidence"}}
         agent.order = ["a1b2c3d4"]
         messages = [{"role": "system", "content": "system"},

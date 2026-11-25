@@ -27,7 +27,7 @@ PIPELINE_SETTINGS = {"retrieval_mode", "hyde", "expansion_count", "name_completi
                "generation", "parallel_transformations", "scene_thinking"}
 AGENT_KEYS = {"model", "tools", "max_turns", "max_tool_calls", "min_tool_calls", "timeout_seconds",
               "context_length", "num_predict", "think", "snippet_chars", "instruction_fingerprint"}
-AGENT_OPTIONAL_KEYS = {"query_aware_reranking", "scene_candidate_count", "initial_scene_probe", "provider", "progress_control", "premise_early_stop", "conversation_handoff", "conversation_handoff_fingerprint"}
+AGENT_OPTIONAL_KEYS = {"scene_candidate_count", "initial_scene_probe", "provider", "premise_early_stop", "conversation_handoff_fingerprint"}
 
 
 def fingerprint(block: dict[str, Any]) -> str:

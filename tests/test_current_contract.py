@@ -12,7 +12,8 @@ class CurrentContract(TestCase):
     def test_current_defaults_and_model_visible_contract(self):
         fixture = json.loads((Path(__file__).parent / "fixtures/v2_16_contract.json").read_text())
         current = resolve()
-        self.assertEqual(current.agent_settings.__dict__, fixture["agent"])
+        self.assertEqual(current.agent_settings.__dict__,
+                         {key: fixture["agent"][key] for key in current.agent_settings.__dict__})
         self.assertEqual(current.config.manifest(),
                          {key: fixture["settings"][key] for key in current.config.manifest()})
         self.assertEqual(SYSTEM_PROMPT, fixture["system_prompt"])
