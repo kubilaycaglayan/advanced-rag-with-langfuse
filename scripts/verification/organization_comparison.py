@@ -41,9 +41,12 @@ def main():
     for name, dataset in manifest["datasets"].items():
         for provider in ("ollama", "openai"):
             target = output / f"{args.phase}-{name.replace(' ', '-')}-{provider}.json"
-            if target.exists():
+            if target.exists() and json.loads(target.read_text()).get("status") == "completed":
                 print(f"Already recorded: {target}", flush=True)
                 continue
+            if target.exists():
+                previous = json.loads(target.read_text())
+                target.rename(target.with_name(target.stem + "-failed-" + previous["execution_id"] + ".json"))
             payload = {"dataset_name": name, "dataset_version": dataset["version"],
                 "dataset_id": dataset["id"], "pipeline": "v2.16",
                 "settings": {"agent_provider": provider}, "cache_mode": "bypass",
