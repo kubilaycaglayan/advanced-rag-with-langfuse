@@ -48,22 +48,6 @@ class KeywordSearchChecks(unittest.TestCase):
     def tearDown(self):
         pipeline._keyword_index.cache_clear()
 
-    def test_validation(self):
-        config = ResolvedPipelineConfig()
-        self.assertEqual((config.keyword_hits, config.keyword_margin, config.keyword_max_hits), (30, 4.0, 5))
-        self.assertIsNone(ResolvedPipelineConfig.from_mapping({"keyword_margin": None}).keyword_margin)
-        for bad in ({"keyword_hits": -1}, {"keyword_hits": 201}, {"keyword_hits": True}, {"keyword_margin": -1}, {"keyword_margin": "x"},
-                    {"keyword_margin": float("nan")}, {"keyword_margin": True}, {"keyword_max_hits": -1}, {"keyword_max_hits": 31}):
-            with self.assertRaises(ValueError):
-                ResolvedPipelineConfig.from_mapping(bad)
-
-    def test_rare_share_validation(self):
-        self.assertIsNone(ResolvedPipelineConfig().keyword_rare_share)
-        self.assertEqual(ResolvedPipelineConfig.from_mapping({"keyword_rare_share": 0.01}).keyword_rare_share, 0.01)
-        for bad in ({"keyword_rare_share": 0}, {"keyword_rare_share": 1.5}, {"keyword_rare_share": True}, {"keyword_rare_share": "x"}):
-            with self.assertRaises(ValueError):
-                ResolvedPipelineConfig.from_mapping(bad)
-
 
     def test_rare_exact_words_rank_first(self):
         texts = ["She thought: no compromises.", "He made a compromise.", "No time to lose, she said.", "The house was quiet."]
@@ -76,16 +60,10 @@ class KeywordSearchChecks(unittest.TestCase):
         self.assertGreater(hits[0]["keyword_score"], hits[1]["keyword_score"])
 
 
-
-
-
-
-
 class SceneSearchChecks(unittest.TestCase):
     def test_validation(self):
         config = ResolvedPipelineConfig()
-        self.assertEqual((config.scene_margin, config.scene_window, config.scene_stride, config.scene_search_hits), (1.0, 6, 3, 10))
-        self.assertIsNone(ResolvedPipelineConfig.from_mapping({"scene_margin": None}).scene_margin)
+        self.assertEqual((config.scene_window, config.scene_stride, config.scene_search_hits), (6, 3, 10))
         from app import scenes
         self.assertEqual(scenes.summary_model(config), "gemma4:26b")
         self.assertFalse(config.scene_thinking)
@@ -95,21 +73,12 @@ class SceneSearchChecks(unittest.TestCase):
         # null: the generation model writes the summaries, as before the setting existed.
         self.assertEqual(scenes.summary_model(ResolvedPipelineConfig.from_mapping({"scene_summary_model": None})), "qwen3:8b")
         self.assertNotEqual(scenes.scene_collection("c", config), scenes.scene_collection("c", ResolvedPipelineConfig.from_mapping({"scene_summary_model": None})))
-        for bad in ({"scene_margin": -1}, {"scene_margin": "x"}, {"scene_margin": True}, {"scene_margin": float("nan")},
-                    {"scene_window": 0}, {"scene_stride": 7}, {"scene_window": 21, "scene_stride": 3}, {"scene_search_hits": 0}):
+        for bad in ({"scene_window": 0}, {"scene_stride": 7}, {"scene_window": 21, "scene_stride": 3}, {"scene_search_hits": 0}):
             with self.assertRaises(ValueError):
                 ResolvedPipelineConfig.from_mapping(bad)
-
-
 
 
 class MomentSceneChecks(unittest.TestCase):
-    def test_setting_is_validated(self):
-        self.assertTrue(ResolvedPipelineConfig().scene_moment)
-        self.assertFalse(ResolvedPipelineConfig.from_mapping({"scene_moment": False}).scene_moment)
-        for bad in ({"scene_moment": "yes"},):
-            with self.assertRaises(ValueError):
-                ResolvedPipelineConfig.from_mapping(bad)
 
 
     def _hits(self, replies, evidence=("p20",), present=("p20",)):
@@ -126,7 +95,7 @@ class MomentSceneChecks(unittest.TestCase):
         embedder = MagicMock()
         embedder.encode.return_value = MagicMock(tolist=lambda: [0.0])
         prompts = []
-        config = ResolvedPipelineConfig(scene_moment=True, name_completion=False)
+        config = ResolvedPipelineConfig(name_completion=False)
         with patch.object(pipeline, "_embedder", return_value=embedder), patch.object(pipeline, "_reranker", return_value=reranker), \
                 patch.object(pipeline, "_ollama", side_effect=lambda messages, *a, **k: prompts.append(messages[-1]["content"]) or replies.pop(0)):
             rows, moment = pipeline._moment_scene_hits("q", config, "c", client, [{"id": i} for i in evidence], set(present))
@@ -148,7 +117,6 @@ class MomentSceneChecks(unittest.TestCase):
         self.assertEqual(self._hits(["MOMENT: X met Y", "1"], evidence=("p3",), present=("p3",))[0], [])
         # Passages already present elsewhere are not repeated.
         self.assertEqual(self._hits(["MOMENT: X met Y", "1"], present=("p20", "p1"))[0], ["p0", "p2", "p3", "p4"])
-
 
 
 class StreamingChecks(unittest.TestCase):

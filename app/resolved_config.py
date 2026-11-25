@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, fields
 from dataclasses import replace
 from functools import lru_cache
 import json
@@ -54,167 +54,57 @@ class EvaluatorSettings:
 @dataclass(frozen=True)
 class ResolvedPipelineConfig:
     retrieval_mode: str = "full"
-    candidate_count: int = 30
-    top_k: int = 10
     passage_chars: int = 1200
     embedding_model: ModelIdentity = ModelIdentity("sentence-transformers/multi-qa-MiniLM-L6-cos-v1")
     reranker_model: ModelIdentity = ModelIdentity("cross-encoder/ms-marco-MiniLM-L-6-v2")
     generation_model: ModelIdentity = ModelIdentity("qwen3:8b")
     generation: GenerationSettings = GenerationSettings()
-    rrf_constant: int = 60
     min_passage_chars: int = 400
     passage_overlap: int = 0
     expansion_count: int = 3
     hyde: bool = True
     parallel_transformations: bool = False
-    answer_thinking: bool = False
     name_completion: bool = True
-    name_completion_hits: int = 300
-    query_translation: bool = True
-    english_word_share: float | None = 0.6
-    low_confidence_score: float | None = 2.0
-    low_confidence_top_k: int = 15
-    wide_candidate_count: int = 100
-    wide_trigger_score: float | None = 3.5
-    wide_override_margin: float | None = 2.0
-    wide_max_hits: int = 3
-    keyword_hits: int = 30
-    keyword_margin: float | None = 4.0
-    keyword_max_hits: int = 5
-    keyword_rare_share: float | None = None
-    scene_margin: float | None = 1.0
     scene_window: int = 6
     scene_stride: int = 3
     scene_search_hits: int = 10
     scene_summary_model: ModelIdentity | None = ModelIdentity("gemma4:26b")
     scene_thinking: bool = False
-    scene_moment: bool = True
-    scene_context: bool = True
-    scene_context_rank: int = 3
-    scene_context_max_hits: int = 2
-    scene_context_sentences: int = 2
-    entity_names: bool = True
-    entity_matrix: bool = True
-    entity_matrix_similarity: float = 0.75
-    entity_matrix_max_hits: int = 8
-    entity_graph: bool = False
-    entity_graph_damping: float = 0.5
-    entity_graph_pool: int = 30
-    entity_graph_max_hits: int = 2
-    entity_graph_facts: int = 0
     corpus_checksum: str = ""
     prompt_hashes: Mapping[str, str] | None = None
 
     def __post_init__(self) -> None:
-        if not isinstance(self.embedding_model, ModelIdentity) or not isinstance(self.reranker_model, ModelIdentity) or not isinstance(self.generation_model, ModelIdentity):
-            raise ValueError("embedding_model, reranker_model, and generation_model must be model identities")
+        for name in ("embedding_model", "reranker_model", "generation_model"):
+            if not isinstance(getattr(self, name), ModelIdentity):
+                raise ValueError(f"{name} must be a model identity")
         if self.scene_summary_model is not None and not isinstance(self.scene_summary_model, ModelIdentity):
             raise ValueError("scene_summary_model must be a model identity or null")
         if not isinstance(self.generation, GenerationSettings):
             raise ValueError("generation must be GenerationSettings")
-        for name, number in (("candidate_count", self.candidate_count), ("top_k", self.top_k), ("passage_chars", self.passage_chars), ("rrf_constant", self.rrf_constant),
-                             ("min_passage_chars", self.min_passage_chars), ("passage_overlap", self.passage_overlap), ("expansion_count", self.expansion_count),
-                             ("low_confidence_top_k", self.low_confidence_top_k), ("wide_candidate_count", self.wide_candidate_count), ("wide_max_hits", self.wide_max_hits), ("keyword_hits", self.keyword_hits), ("keyword_max_hits", self.keyword_max_hits), ("name_completion_hits", self.name_completion_hits),
-                             ("scene_window", self.scene_window), ("scene_stride", self.scene_stride), ("scene_search_hits", self.scene_search_hits)):
-            if isinstance(number, bool) or not isinstance(number, int):
+        bounds = {
+            "passage_chars": (1, None), "min_passage_chars": (0, None),
+            "passage_overlap": (0, 5), "expansion_count": (1, 10),
+            "scene_window": (1, 20), "scene_stride": (1, self.scene_window),
+            "scene_search_hits": (1, 100),
+        }
+        for name, (low, high) in bounds.items():
+            value = getattr(self, name)
+            if isinstance(value, bool) or not isinstance(value, int):
                 raise ValueError(f"{name} must be an integer")
-        if not isinstance(self.retrieval_mode, str):
-            raise ValueError("retrieval_mode must be a string")
-        if not isinstance(self.scene_thinking, bool):
-            raise ValueError("scene_thinking must be a boolean")
-        if not isinstance(self.scene_moment, bool):
-            raise ValueError("scene_moment must be a boolean")
-        if not isinstance(self.scene_context, bool):
-            raise ValueError("scene_context must be a boolean")
-        if isinstance(self.scene_context_rank, bool) or not isinstance(self.scene_context_rank, int) or not 1 <= self.scene_context_rank <= 50:
-            raise ValueError("scene_context_rank must be between 1 and 50")
-        if isinstance(self.scene_context_max_hits, bool) or not isinstance(self.scene_context_max_hits, int) or not 1 <= self.scene_context_max_hits <= 10:
-            raise ValueError("scene_context_max_hits must be between 1 and 10")
-        if isinstance(self.scene_context_sentences, bool) or not isinstance(self.scene_context_sentences, int) or not 1 <= self.scene_context_sentences <= 20:
-            raise ValueError("scene_context_sentences must be between 1 and 20")
-        if not isinstance(self.entity_names, bool):
-            raise ValueError("entity_names must be a boolean")
-        if not isinstance(self.entity_matrix, bool):
-            raise ValueError("entity_matrix must be a boolean")
-        if isinstance(self.entity_matrix_similarity, bool) or not isinstance(self.entity_matrix_similarity, (int, float)) or not 0 < self.entity_matrix_similarity <= 1:
-            raise ValueError("entity_matrix_similarity must be a number in (0, 1]")
-        if isinstance(self.entity_matrix_max_hits, bool) or not isinstance(self.entity_matrix_max_hits, int) or not 1 <= self.entity_matrix_max_hits <= 20:
-            raise ValueError("entity_matrix_max_hits must be between 1 and 20")
-        if not isinstance(self.entity_graph, bool):
-            raise ValueError("entity_graph must be a boolean")
-        if isinstance(self.entity_graph_damping, bool) or not isinstance(self.entity_graph_damping, (int, float)) or not 0 < self.entity_graph_damping < 1:
-            raise ValueError("entity_graph_damping must be a number in (0, 1)")
-        if isinstance(self.entity_graph_pool, bool) or not isinstance(self.entity_graph_pool, int) or not 1 <= self.entity_graph_pool <= 200:
-            raise ValueError("entity_graph_pool must be between 1 and 200")
-        if isinstance(self.entity_graph_max_hits, bool) or not isinstance(self.entity_graph_max_hits, int) or not 0 <= self.entity_graph_max_hits <= 10:
-            raise ValueError("entity_graph_max_hits must be between 0 and 10")
-        if isinstance(self.entity_graph_facts, bool) or not isinstance(self.entity_graph_facts, int) or not 0 <= self.entity_graph_facts <= 30:
-            raise ValueError("entity_graph_facts must be between 0 and 30")
-        if not isinstance(self.hyde, bool):
-            raise ValueError("hyde must be a boolean")
-        if not isinstance(self.parallel_transformations, bool):
-            raise ValueError("parallel_transformations must be a boolean")
-        if not isinstance(self.query_translation, bool):
-            raise ValueError("query_translation must be a boolean")
-        if self.english_word_share is not None and (isinstance(self.english_word_share, bool) or not isinstance(self.english_word_share, (int, float))
-                                                    or not 0 <= self.english_word_share <= 1):
-            raise ValueError("english_word_share must be a number between 0 and 1 or null")
-        if not isinstance(self.answer_thinking, bool) or not isinstance(self.name_completion, bool):
-            raise ValueError("answer_thinking and name_completion must be booleans")
-        if self.low_confidence_score is not None and (isinstance(self.low_confidence_score, bool) or not isinstance(self.low_confidence_score, (int, float))
-                                                      or not math.isfinite(self.low_confidence_score)):
-            raise ValueError("low_confidence_score must be a finite number or null")
-        if self.wide_trigger_score is not None and (isinstance(self.wide_trigger_score, bool) or not isinstance(self.wide_trigger_score, (int, float))
-                                                    or not math.isfinite(self.wide_trigger_score)):
-            raise ValueError("wide_trigger_score must be a finite number or null")
-        if self.wide_override_margin is not None and (isinstance(self.wide_override_margin, bool) or not isinstance(self.wide_override_margin, (int, float))
-                                                      or not math.isfinite(self.wide_override_margin) or self.wide_override_margin < 0):
-            raise ValueError("wide_override_margin must be a non-negative finite number or null")
-        if self.keyword_margin is not None and (isinstance(self.keyword_margin, bool) or not isinstance(self.keyword_margin, (int, float))
-                                                or not math.isfinite(self.keyword_margin) or self.keyword_margin < 0):
-            raise ValueError("keyword_margin must be a non-negative finite number or null")
-        if self.keyword_rare_share is not None and (isinstance(self.keyword_rare_share, bool) or not isinstance(self.keyword_rare_share, (int, float))
-                                                    or not 0 < self.keyword_rare_share <= 1):
-            raise ValueError("keyword_rare_share must be a number in (0, 1] or null")
-        if self.scene_margin is not None and (isinstance(self.scene_margin, bool) or not isinstance(self.scene_margin, (int, float))
-                                              or not math.isfinite(self.scene_margin) or self.scene_margin < 0):
-            raise ValueError("scene_margin must be a non-negative finite number or null")
-        if not 1 <= self.scene_stride <= self.scene_window <= 20:
-            raise ValueError("scene_window must be between 1 and 20 and scene_stride between 1 and scene_window")
-        if not 1 <= self.scene_search_hits <= 100:
-            raise ValueError("scene_search_hits must be between 1 and 100")
-        if not isinstance(self.corpus_checksum, str):
-            raise ValueError("corpus_checksum must be a string")
-        if self.prompt_hashes is not None and (not isinstance(self.prompt_hashes, Mapping) or not all(isinstance(k, str) and isinstance(v, str) for k, v in self.prompt_hashes.items())):
-            raise ValueError("prompt_hashes must map strings to strings")
-        if self.retrieval_mode not in {"baseline", "hyde", "query_expansion", "hyde_query_expansion", "full"}:
-            raise ValueError(f"unsupported retrieval mode: {self.retrieval_mode}")
-        if not 1 <= self.candidate_count <= 100:
-            raise ValueError("candidate_count must be between 1 and 100")
-        if not 1 <= self.top_k <= self.candidate_count:
-            raise ValueError("top_k must be between 1 and candidate_count")
-        if not 1 <= self.low_confidence_top_k <= self.candidate_count:
-            raise ValueError("low_confidence_top_k must be between 1 and candidate_count")
-        if not 0 <= self.wide_candidate_count <= 200:
-            raise ValueError("wide_candidate_count must be between 0 and 200")
-        if not 0 <= self.name_completion_hits <= 1000:
-            raise ValueError("name_completion_hits must be between 0 and 1000")
-        if not 0 <= self.wide_max_hits <= 30:
-            raise ValueError("wide_max_hits must be between 0 and 30")
-        if not 0 <= self.keyword_hits <= 200:
-            raise ValueError("keyword_hits must be between 0 and 200")
-        if not 0 <= self.keyword_max_hits <= 30:
-            raise ValueError("keyword_max_hits must be between 0 and 30")
-        if self.passage_chars < 1 or self.rrf_constant < 1:
-            raise ValueError("passage_chars and rrf_constant must be positive")
-        if self.min_passage_chars < 0:
-            raise ValueError("min_passage_chars must not be negative")
-        if not 0 <= self.passage_overlap <= 5:
-            raise ValueError("passage_overlap must be between 0 and 5")
+            if value < low or (high is not None and value > high):
+                raise ValueError(f"{name} is out of range")
         if self.passage_overlap and not self.min_passage_chars:
             raise ValueError("passage_overlap requires min_passage_chars (paragraph merging)")
-        if not 1 <= self.expansion_count <= 10:
-            raise ValueError("expansion_count must be between 1 and 10")
+        for name in ("hyde", "parallel_transformations", "name_completion", "scene_thinking"):
+            if not isinstance(getattr(self, name), bool):
+                raise ValueError(f"{name} must be a boolean")
+        if self.retrieval_mode not in {"baseline", "hyde", "query_expansion", "hyde_query_expansion", "full"}:
+            raise ValueError(f"unsupported retrieval mode: {self.retrieval_mode}")
+        if not isinstance(self.corpus_checksum, str):
+            raise ValueError("corpus_checksum must be a string")
+        if self.prompt_hashes is not None and (not isinstance(self.prompt_hashes, Mapping)
+                or not all(isinstance(k, str) and isinstance(v, str) for k, v in self.prompt_hashes.items())):
+            raise ValueError("prompt_hashes must map strings to strings")
 
     def manifest(self) -> dict[str, Any]:
         value = asdict(self)
@@ -228,8 +118,6 @@ class ResolvedPipelineConfig:
         value = dict(value or {})
         defaults: dict[str, Any] = {
             "retrieval_mode": "full",
-            "candidate_count": 30,
-            "top_k": 10,
         }
         if use_environment:
             defaults.update({
@@ -241,11 +129,7 @@ class ResolvedPipelineConfig:
             })
         defaults.update(value)
         value = defaults
-        allowed = {"retrieval_mode", "candidate_count", "top_k", "passage_chars", "embedding_model", "reranker_model", "generation_model", "generation", "rrf_constant",
-                   "min_passage_chars", "passage_overlap", "expansion_count", "hyde", "parallel_transformations", "answer_thinking", "name_completion", "name_completion_hits", "query_translation", "english_word_share",
-                   "low_confidence_score", "low_confidence_top_k", "wide_candidate_count", "wide_trigger_score", "wide_override_margin", "wide_max_hits",
-                   "keyword_hits", "keyword_margin", "keyword_max_hits", "keyword_rare_share",
-                   "scene_margin", "scene_window", "scene_stride", "scene_search_hits", "scene_summary_model", "scene_thinking", "scene_moment", "scene_context", "scene_context_rank", "scene_context_max_hits", "scene_context_sentences", "entity_names", "entity_matrix", "entity_matrix_similarity", "entity_matrix_max_hits", "entity_graph", "entity_graph_damping", "entity_graph_pool", "entity_graph_max_hits", "entity_graph_facts", "corpus_checksum", "prompt_hashes"}
+        allowed = {field.name for field in fields(cls)}
         unknown = set(value) - allowed
         if unknown:
             raise ValueError(f"unknown config fields: {', '.join(sorted(unknown))}")

@@ -19,15 +19,15 @@ try:
     from .experiment_store import get_index_manifest, get_ready_manifest, save_index_manifest
     from .identity import canonical_json
     from .resolved_config import ResolvedPipelineConfig
-    from .entities import build_entity_cards, build_entity_events, entity_cards_path, entity_events_path
-    from .scenes import build_context_index, build_scene_index, context_collection, scene_collection
+    from .entities import build_entity_cards, entity_cards_path
+    from .scenes import build_scene_index, scene_collection
 except ImportError:
     from corpus_config import corpus_config, corpus_id
     from experiment_store import get_index_manifest, get_ready_manifest, save_index_manifest
     from identity import canonical_json
     from resolved_config import ResolvedPipelineConfig
-    from entities import build_entity_cards, build_entity_events, entity_cards_path, entity_events_path
-    from scenes import build_context_index, build_scene_index, context_collection, scene_collection
+    from entities import build_entity_cards, entity_cards_path
+    from scenes import build_scene_index, scene_collection
 
 SPLITTER_VERSION = "sentence-word-splitter-v1"
 
@@ -234,15 +234,9 @@ def index_identity(config: ResolvedPipelineConfig) -> tuple[str, str, dict[str, 
 def build_index(config: ResolvedPipelineConfig, qdrant: QdrantClient | None = None, *, explicit_rebuild: bool = False) -> dict[str, Any]:
     qdrant = qdrant or QdrantClient(url=os.getenv("QDRANT_URL", "http://127.0.0.1:6333"), timeout=30)
     result = _build_passage_index(config, qdrant, explicit_rebuild=explicit_rebuild)
-    if config.scene_margin is not None:
-        encoder = SentenceTransformer(config.embedding_model.name, device="cpu", revision=config.embedding_model.revision)
-        result["scenes"] = build_scene_index(result["collection"], config, qdrant, encoder)
-        if config.scene_context:
-            result["scene_context"] = build_context_index(result["collection"], config, qdrant, encoder)
-    if config.entity_names or config.entity_matrix or config.entity_graph:
-        result["entities"] = build_entity_cards(result["collection"], config, qdrant)
-    if config.entity_graph:
-        result["entity_events"] = build_entity_events(result["collection"], config, qdrant)
+    encoder = SentenceTransformer(config.embedding_model.name, device="cpu", revision=config.embedding_model.revision)
+    result["scenes"] = build_scene_index(result["collection"], config, qdrant, encoder)
+    result["entities"] = build_entity_cards(result["collection"], config, qdrant)
     return result
 
 
@@ -314,12 +308,8 @@ def validate_index(collection: str, config: ResolvedPipelineConfig, qdrant: Qdra
     count = qdrant.count(collection_name=collection, exact=True).count
     if count != row["actual_point_count"] or count != row["expected_point_count"]:
         raise RuntimeError(f"index point count mismatch: expected={row['expected_point_count']} actual={count}")
-    if config.scene_margin is not None and not qdrant.collection_exists(scene_collection(collection, config)):
+    if not qdrant.collection_exists(scene_collection(collection, config)):
         raise RuntimeError(f"scene search is on but the scene index for {collection!r} is not built")
-    if config.scene_context and config.scene_margin is not None and not qdrant.collection_exists(context_collection(collection, config)):
-        raise RuntimeError(f"scene context is on but the scene context index for {collection!r} is not built")
-    if (config.entity_names or config.entity_matrix or config.entity_graph) and not entity_cards_path(collection, config).exists():
+    if not entity_cards_path(collection, config).exists():
         raise RuntimeError(f"entity cards are on but the entity cards for {collection!r} are not built")
-    if config.entity_graph and not entity_events_path(collection, config).exists():
-        raise RuntimeError(f"the entity graph is on but the entity events for {collection!r} are not built")
     return row

@@ -13,7 +13,8 @@ class CurrentContract(TestCase):
         fixture = json.loads((Path(__file__).parent / "fixtures/v2_16_contract.json").read_text())
         current = resolve()
         self.assertEqual(current.agent_settings.__dict__, fixture["agent"])
-        self.assertEqual(current.config.manifest(), fixture["settings"])
+        self.assertEqual(current.config.manifest(),
+                         {key: fixture["settings"][key] for key in current.config.manifest()})
         self.assertEqual(SYSTEM_PROMPT, fixture["system_prompt"])
         self.assertEqual(_tool_specs(), fixture["tools"])
         for name, text in PROMPT_TEMPLATES.items():
@@ -50,3 +51,10 @@ class CurrentContract(TestCase):
             self.assertNotEqual(instruction_fingerprint(), baseline)
         with patch("app.agent.ENTITY_CARD_DRAFT_PROMPT", "unused draft changed", create=True):
             self.assertEqual(instruction_fingerprint(), baseline)
+
+    def test_fixed_only_configuration_is_rejected(self):
+        from app.resolved_config import ResolvedPipelineConfig
+        for name in ("candidate_count", "top_k", "rrf_constant", "scene_context",
+                     "entity_graph", "keyword_margin", "query_translation", "answer_thinking"):
+            with self.subTest(name=name), self.assertRaisesRegex(ValueError, "unknown config"):
+                ResolvedPipelineConfig.from_mapping({name: True})

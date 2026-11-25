@@ -78,12 +78,13 @@ class CorpusChecks(unittest.TestCase):
                 self.assertEqual(resolved.profile_id, "millennium")
                 self.assertTrue(resolved.index["collection"].startswith("one-book_books_"))
 
-                config = ResolvedPipelineConfig(scene_margin=None, scene_context=False,
-                                                entity_names=False, entity_matrix=False, entity_graph=False)
+                config = ResolvedPipelineConfig()
                 qdrant = _Qdrant()
                 row = {"book": "Test", "book_file": "book.epub", "section": "chapter.xhtml",
                        "paragraph": 1, "part": 1, "text": "A paragraph from one book."}
-                with patch.object(indexer, "_passages", return_value=[row]), \
+                with patch.object(indexer, "build_scene_index", return_value={}), \
+                     patch.object(indexer, "build_entity_cards", return_value={}), \
+                     patch.object(indexer, "_passages", return_value=[row]), \
                      patch.object(indexer, "get_ready_manifest", return_value=None), \
                      patch.object(indexer, "get_index_manifest", return_value=None), \
                      patch.object(indexer, "save_index_manifest"), \
