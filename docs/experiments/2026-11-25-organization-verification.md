@@ -4,7 +4,10 @@ Implementation is in progress. This report records evidence as it becomes availa
 
 Baseline backend: 7febbf7. Baseline UI: 33cb103b31b0ce12bf6e9488b19aa406a0a3f5a6.
 The initial worktree was clean. Python baseline: 172 tests passed. Express baseline:
-14 tests passed. Unchanged UI baseline: 22 tests passed.
+14 tests passed. Unchanged UI baseline: 22 tests passed. The production static UI
+build passed. Contract identities, index inputs, entity-card checksum, and log
+hashes are recorded in `2026-11-25-organization-baseline.json`. Existing passage
+and scene collections and entity cards passed index validation without building.
 
 The pinned sample is recorded in `2026-11-25-organization-comparison.json`.
 It includes the known difficult shooting question, a false murder premise,

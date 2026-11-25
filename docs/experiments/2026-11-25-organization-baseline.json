@@ -151,5 +151,43 @@
       "artifact": "data/millennium/comparisons/2026-11-25-organization/frontend-build-baseline.log",
       "sha256": "b6858e27109f9c5018981425d1e373364b0e85f7b2034fb4c8ee5b9e1a4ccab7"
     }
+  },
+  "indexes": {
+    "passage_collection": "millennium_books_a7ebc5a988df037cd2ee",
+    "fingerprint": "a7ebc5a988df037cd2ee9337133a16423f1562e3edfeeaf1a56e6eab95a3888b",
+    "manifest": {
+      "corpus": {
+        "The Girl Who Kicked the Hornet's Nest -- Stieg Larsson -- Millennium Trilogy #3, 2010 -- Random House, Inc_ -- a9a1c0e6f4b8fd47fa0771ff9463bc34 -- Anna\u2019s Archive.epub": "f1110c1d66aadf25607d395564515f285c473204c2595248c42819ddd7d9b968",
+        "The Girl Who Played with Fire _ A Lisbeth Salander Novel -- Larsson, Stieg -- Millennium trilogy, bk_ 2, New York, 2009 -- Alfred A_ Knopf -- isbn13 9780307272300 -- 078fc916144df1e3707c069bbf984d06 -- Anna\u2019s Archive.epub": "1b736491ddd876a2111b8518f84ae28ed56d57cc50da6482be755e3cb826abe1",
+        "The Girl with the Dragon Tattoo -- Larsson, Stieg -- Millennium book, 1st Vintage Crime_Black Lizard mass-market -- Random House, Incorporated -- isbn13 9780307455352 -- f10e68d0e06407c85b6ba58f6f49d618 -- Anna\u2019s Archive.epub": "9e95a66dd59ab9cd6679cd910e243fb8fb121b3878a9259c66de295d37ff76a6"
+      },
+      "corpus_checksum": "d773267eede096b57107971b56b003de1af646057bc1d430d9c335683515636c",
+      "passage_chars": 1200,
+      "splitter": "sentence-word-splitter-v1",
+      "splitter_fingerprint": "e2470c8ea1eb87151bf8702b5fefed060a3ed2c65dda9d60f9a40ded33a74d08",
+      "embedding_model": {
+        "name": "sentence-transformers/multi-qa-MiniLM-L6-cos-v1",
+        "digest": null,
+        "revision": "b207367332321f8e44f96e224ef15bc607f4dbf0"
+      },
+      "vector_settings": {
+        "distance": "cosine",
+        "normalized": true
+      },
+      "merge": {
+        "min_passage_chars": 400,
+        "passage_overlap": 0,
+        "merge_fingerprint": "a3c5c8e6d42bafc3e8ba2ac31166b3a933e498366b0672efdd86c82e06f6f35c"
+      }
+    },
+    "corpus": {
+      "The Girl Who Kicked the Hornet's Nest -- Stieg Larsson -- Millennium Trilogy #3, 2010 -- Random House, Inc_ -- a9a1c0e6f4b8fd47fa0771ff9463bc34 -- Anna\u2019s Archive.epub": "f1110c1d66aadf25607d395564515f285c473204c2595248c42819ddd7d9b968",
+      "The Girl Who Played with Fire _ A Lisbeth Salander Novel -- Larsson, Stieg -- Millennium trilogy, bk_ 2, New York, 2009 -- Alfred A_ Knopf -- isbn13 9780307272300 -- 078fc916144df1e3707c069bbf984d06 -- Anna\u2019s Archive.epub": "1b736491ddd876a2111b8518f84ae28ed56d57cc50da6482be755e3cb826abe1",
+      "The Girl with the Dragon Tattoo -- Larsson, Stieg -- Millennium book, 1st Vintage Crime_Black Lizard mass-market -- Random House, Incorporated -- isbn13 9780307455352 -- f10e68d0e06407c85b6ba58f6f49d618 -- Anna\u2019s Archive.epub": "9e95a66dd59ab9cd6679cd910e243fb8fb121b3878a9259c66de295d37ff76a6"
+    },
+    "scene_collection": "millennium_books_a7ebc5a988df037cd2ee_scenes_3c3187c02de5",
+    "entity_cards_filename": "millennium_books_a7ebc5a988df037cd2ee_entities_4fd376280ebc.json",
+    "entity_cards_sha256": "507c38f4d9bae8bb6715ee1e49ebfe670d6480c6bdfe1d4f218e79da5f48d2eb",
+    "point_count": 5522
   }
 }
