@@ -44,14 +44,6 @@ class GenerationSettings:
 
 
 @dataclass(frozen=True)
-class EvaluatorSettings:
-    model: ModelIdentity = ModelIdentity("qwen3:8b")
-    temperature: float = 0.0
-    stream: bool = False
-    response_format: str = "json"
-
-
-@dataclass(frozen=True)
 class ResolvedPipelineConfig:
     retrieval_mode: str = "full"
     passage_chars: int = 1200

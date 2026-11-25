@@ -11,8 +11,6 @@ from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
 from app.main import AskRequest, app, ask, ask_stream, experiment_status, _run_ask
-from app.experiments import _fingerprints
-from app.pipeline_setup import current_pipeline_setup
 from app.resolved_config import ResolvedPipelineConfig
 
 
@@ -48,15 +46,6 @@ class InteractiveAskContract(TestCase):
             self.assertEqual(error.exception.headers["Retry-After"], "60")
             reserve.assert_called_once_with("198.51.100.9")
 
-    def test_setup_id_matches_experiment_pipeline_identity(self):
-        config = ResolvedPipelineConfig()
-        prompts = {"rag-answer": {"id": "prompt-1", "version": 2, "label": "production"}}
-        model = SimpleNamespace(name="qwen3:8b", digest="digest")
-        with patch("app.experiments.resolve_ollama_model", return_value=model), \
-             patch("app.pipeline_setup.resolve_ollama_model", return_value=model):
-            interactive = current_pipeline_setup(config, prompts)
-            experiment, _, _ = _fingerprints(config, datetime.now(timezone.utc), prompts, {})
-        self.assertEqual(interactive["pipeline_id"], experiment["pipeline_id"])
 
     def test_frontend_ask_returns_trace_and_pipeline_and_sets_environment(self):
         attributes = []

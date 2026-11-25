@@ -25,7 +25,6 @@ from app.experiments import _flush_client, submit_retry
 from app.main import _custom_payload
 from app.evaluation import correctness, citation_support, is_explicit_abstention
 from app import experiments as experiments_module
-from app.experiments import _evaluator_prompt_manifest
 
 
 class FakeClient:
@@ -79,17 +78,6 @@ class Stage3Checks(unittest.TestCase):
         self.assertIn("score_ingestion queue has 1 pending", result["error"])
         self.assertFalse(client.shutdown_called)
 
-    def test_evaluator_fingerprint_uses_prompt_versions_not_labels(self):
-        prompts = {
-            "rag-answer": {"id": "answer", "version": 4, "label": "staging"},
-            "rag-eval-answer_correctness_v1": {"id": "judge", "version": 1, "label": "staging"},
-        }
-        manifest = _evaluator_prompt_manifest(prompts)
-        self.assertEqual(manifest, {"rag-eval-answer_correctness_v1": {"id": "judge", "version": 1}})
-        prompts["rag-eval-answer_correctness_v1"]["label"] = "production"
-        self.assertEqual(_evaluator_prompt_manifest(prompts), manifest)
-        prompts["rag-eval-answer_correctness_v1"]["version"] = 2
-        self.assertNotEqual(_evaluator_prompt_manifest(prompts), manifest)
 
     def test_identity_is_stable_and_changes_with_config(self):
         a = pipeline_identity(git_revision="r", dirty=True, source_fingerprint="s", resolved_config={"x": 1}, corpus_checksum="c")

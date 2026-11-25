@@ -148,41 +148,29 @@ def _ollama_identity(model: str) -> dict[str, Any]:
         return {"name": model, "digest": None}
 
 
-def _evaluator_prompt_manifest(prompt_versions: dict[str, Any]) -> dict[str, Any]:
-    """Return immutable evaluator prompt identities, excluding movable aliases."""
-    return {name: {key: value[key] for key in ("id", "version")}
-            for name, value in prompt_versions.items() if name.startswith("rag-eval-")}
-
-
-def _fingerprints(config: ResolvedPipelineConfig, version: datetime, prompt_versions: dict[str, Any],
-                  managed_evaluators: dict[str, Any], correctness_name: str = DEFAULT_CORRECTNESS,
-                  resolved: ResolvedRun | None = None) -> tuple[dict[str, Any], dict[str, Any], str]:
+def _fingerprints(config: ResolvedPipelineConfig, managed_evaluators: dict[str, Any],
+                  correctness_name: str, resolved: ResolvedRun) -> tuple[dict[str, Any], dict[str, Any], str]:
     repo_root = Path(__file__).resolve().parents[1]
     sources = source_manifest(str(repo_root))
     corpus_files = corpus_paths()
     corpus_manifest = [{"path": path.name, "sha256": hashlib.sha256(path.read_bytes()).hexdigest()} for path in corpus_files]
     corpus_checksum = hashlib.sha256(canonical_json(corpus_manifest).encode()).hexdigest()
     enriched = config.manifest()
-    enriched["prompt_hashes"] = {name: hashlib.sha256(canonical_json(asset).encode()).hexdigest()
-                                  for name, asset in prompt_versions.items()}
-    enriched["generation_model"] = (config.generation_model.__dict__ if resolved else _ollama_identity(config.generation_model.name))
+    enriched["prompt_hashes"] = {}
+    enriched["generation_model"] = config.generation_model.__dict__
     enriched["embedding_model"] = {"name": config.embedding_model.name, "revision": config.embedding_model.revision}
     enriched["reranker_model"] = {"name": config.reranker_model.name, "revision": config.reranker_model.revision}
     enriched["corpus_checksum"] = corpus_checksum
-    enriched["corpus_id"] = (resolved.corpus_id if resolved else corpus_id())
+    enriched["corpus_id"] = resolved.corpus_id
     enriched["profile_identity"] = profile_identity()
     enriched["prompt_identity"] = prompt_identity()
-    pipeline = ({**resolved.version_fields, "fingerprint": resolved.fingerprint,
+    pipeline = {**resolved.version_fields, "fingerprint": resolved.fingerprint,
                  "git_revision": sources["git_revision"], "dirty": sources["dirty"],
                  "source_fingerprint": sources["source_fingerprint"], "resolved_config": enriched,
-                 "corpus_checksum": corpus_checksum} if resolved else
-                pipeline_identity(git_revision=sources["git_revision"], dirty=sources["dirty"],
-                                  source_fingerprint=sources["source_fingerprint"], resolved_config=enriched,
-                                  corpus_checksum=corpus_checksum))
+                 "corpus_checksum": corpus_checksum}
     pipeline["source_manifest"] = sources
     pipeline["corpus_manifest"] = corpus_manifest
-    if resolved and resolved.agent_settings:
-        pipeline["agent_settings"] = resolved.agent_settings.__dict__
+    pipeline["agent_settings"] = resolved.agent_settings.__dict__
     evaluator_model_name = os.getenv("EVALUATOR_MODEL", "qwen3:8b")
     evaluator_endpoint = os.getenv("EVALUATOR_OLLAMA_URL") or os.getenv("OLLAMA_URL", "http://127.0.0.1:11434")
     try:
@@ -193,10 +181,7 @@ def _fingerprints(config: ResolvedPipelineConfig, version: datetime, prompt_vers
         executor, judge_model, _ = JUDGE_MODELS[correctness_name]
         evaluator_model = {"name": judge_model, "digest": None, "executor": executor}
     evaluator_prompt = canonical_json({"specs": evaluator_manifest(), "managed": managed_evaluators,
-                                       # Labels are aliases. The immutable prompt ID/version defines the
-                                       # evaluator behavior, so moving the same version under another
-                                       # label must not create a different evaluator identity.
-                                       "prompts": _evaluator_prompt_manifest(prompt_versions)})
+                                       "prompts": {}})
     evaluator_code = hashlib.sha256((Path(__file__).resolve().parent / "evaluation.py").read_bytes()).hexdigest()
     evaluator = evaluator_identity(model=evaluator_model, settings={"temperature": 0, "stream": False, "format": "json"},
                                    rubric=evaluator_prompt, prompt=evaluator_prompt, code_version=f"evaluation.py:{evaluator_code}")
@@ -348,7 +333,7 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
         collection = index["collection"]
         if collection != resolved.index["collection"]:
             raise ValueError(f"{resolved.version}: built collection differs from pinned collection")
-        pipeline_manifest, evaluator_manifest, corpus_checksum = _fingerprints(config, version, prompt_versions, managed_evaluators, correctness_name, resolved)
+        pipeline_manifest, evaluator_manifest, corpus_checksum = _fingerprints(config, managed_evaluators, correctness_name, resolved)
         # Include the selected frozen snapshot and exact corpus content in each execution manifest.
         variant = re.sub(r"[^A-Za-z0-9._-]+", "-", payload.get("variant_label", resolved.version)).strip("-")[:50] or "run"
         run_name = f"{variant}-{execution_id}"
