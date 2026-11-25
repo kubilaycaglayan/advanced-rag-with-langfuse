@@ -1,7 +1,7 @@
 # Backend and Express server code organization refactor
 
 Date: 2026-11-25
-Status: Implementation committed; final regression experiments and end-to-end verification are in progress.
+Status: Complete. See `docs/experiments/2026-11-25-organization-verification.md` for checks, comparisons, investigated differences, and limitations.
 
 ## Objective and agreed decisions
 

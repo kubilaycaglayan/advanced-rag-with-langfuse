@@ -1,0 +1,670 @@
+{
+  "source_verified_at": "19c6738280ba4ca31ee0da29fd7f77b32f4ac890",
+  "baseline_revision": "7febbf7",
+  "ui_revision": "33cb103b31b0ce12bf6e9488b19aa406a0a3f5a6",
+  "checks": {
+    "python_tests": 172,
+    "express_tests": 14,
+    "ui_tests": 22,
+    "ui_build": "passed",
+    "frontend_image_build": "passed",
+    "application_imports": 99,
+    "openapi_matches_original": true,
+    "instructions_settings_schemas_pipeline_identities_match": true,
+    "millennium_existing_indexes_validate": true,
+    "alienist_existing_indexes_validate": true,
+    "index_rebuilds": 0,
+    "steps_skipped_for_reindexing": [],
+    "development_proxy": "passed",
+    "browser_stream_feedback_trace_ownership": "passed",
+    "ollama_api": "passed",
+    "ui_submodule_unchanged": true,
+    "catalog_unchanged": true,
+    "protected_handoff_bytes_unchanged": true,
+    "original_failure_diagnostic_preserved": true,
+    "temporary_verification_servers_stopped": true
+  },
+  "initial_comparison": {
+    "attempts": 48,
+    "successful_answers": 44,
+    "preserved_item_failures": 4,
+    "new_failures": 0,
+    "evaluation_failures": 0,
+    "telemetry_failures": 0,
+    "observed_metric_declines": [
+      {
+        "dataset": "set3",
+        "provider": "openai",
+        "item_id": "cf527045-31e2-56b5-a91d-1fb1f13fdd71",
+        "metric": "answer_correctness_v2",
+        "baseline": 0.975,
+        "final": 0.95
+      },
+      {
+        "dataset": "set3",
+        "provider": "openai",
+        "item_id": "cf527045-31e2-56b5-a91d-1fb1f13fdd71",
+        "metric": "citation_support_v1",
+        "baseline": 1.0,
+        "final": 0.5
+      },
+      {
+        "dataset": "set3",
+        "provider": "openai",
+        "item_id": "63be7c48-978b-5327-b7b3-7961e60dfc22",
+        "metric": "answer_correctness_v2",
+        "baseline": 1.0,
+        "final": 0.95
+      },
+      {
+        "dataset": "right-set-3",
+        "provider": "openai",
+        "item_id": "58f31047-d68c-5735-9bdc-26c7320f23a9",
+        "metric": "citation_support_v1",
+        "baseline": 1.0,
+        "final": 0.5
+      }
+    ],
+    "investigated_questions": 3
+  },
+  "targeted_repeat_attempts": 6,
+  "live_provider_checks": 2,
+  "existing_browser_error": [
+    "Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+  ],
+  "artifacts": [
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/baseline-Additional-Questions-ollama-failed-2c17894b-6e11-4a0a-b4f7-88fe6c171551.json",
+      "sha256": "a611bd3264c58cc887ce32d1cc9232036440b0d8ad66a9f24e2ed7aadd32e74b"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/baseline-Additional-Questions-ollama.json",
+      "sha256": "3eb75e524914122ad2ca5f93c223a59f4869c8b20d58aa04081f932e0a123360"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/baseline-Additional-Questions-openai-failed-dc7d45d1-b9c9-466f-aff3-02b82b306c25.json",
+      "sha256": "68bcdbc51350862b62811077bb6d62c4206a56304a53750e95cb0b14d7ecea52"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/baseline-Additional-Questions-openai.json",
+      "sha256": "460f7416f2908c92e5511d18ff52d82836f0df6795b2bf4814e8ac3e2c63788f"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/baseline-QA.csv-ollama-failed-9bb5f9cf-05ba-41b5-8d01-6434aa348756.json",
+      "sha256": "4c59f667b0b92ea2dcac5d5c429a59f3d5a147c46f679e5e25c328daff59eaaa"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/baseline-QA.csv-ollama.json",
+      "sha256": "3f894a37a1c1d7999279056f88b63bacead0f3d13d4a5326584c804d4b393d27"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/baseline-QA.csv-openai-failed-f7f0d445-a789-4565-a113-bc8bf2999e8f.json",
+      "sha256": "ebe83267c54032b317cf5bb6ba1248ff94aab266e706452c9acddb2e43b5a4ca"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/baseline-QA.csv-openai.json",
+      "sha256": "32214f3dd936c9a71f13355e0d1bcf002bfee6fe412ed9d049b7fc9e03928736"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/baseline-contracts.json",
+      "sha256": "56549b0213117c53c502d48df02d50210bb096b85fa8b7432677cf086219cfe0"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/baseline-repeat-right-set-3-openai.json",
+      "sha256": "b216d9c640a0883313d548625c815be1b34fe54c5459071b5f7706ab9feb137d"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/baseline-repeat-set3-openai.json",
+      "sha256": "f3a19aeb2ea4e491e10a4e74efe00136b97407b63909bd689438d4739614e471"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/baseline-right-set-3-ollama-failed-4d82b3a3-e979-456f-8c98-c0b1babc0109.json",
+      "sha256": "d4932fc448481ac01c2e0888ef975e53c80ac95ee605c567830616215227fe52"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/baseline-right-set-3-ollama.json",
+      "sha256": "d687eb286aaa38c9127c52987babb70cc8cb0cc7effdb2ff4647f2d32d1c4338"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/baseline-right-set-3-openai-failed-8de78d58-9cd6-4948-b140-c50fe4183d4b.json",
+      "sha256": "89f85c5e9e2858050bd00b08d6868d120be9638257e91d60c66bf593ddf44c34"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/baseline-right-set-3-openai.json",
+      "sha256": "fc79d9f463b5da3e9cfd29fbbd8bf07042c177504fadd645c91b8d82a3f61fd1"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/baseline-set3-ollama-failed-21e17910-ce59-457d-8dc4-d5b27b942274.json",
+      "sha256": "3adc6e6f3f066550db630883a6a03073fe0060ef3b03f91ac7340cb7f27e26fa"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/baseline-set3-ollama.json",
+      "sha256": "78323b09ce804c981773930616b123c16e909f82d15d7bb12b28cafe24b9512b"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/baseline-set3-openai-failed-6911f4ba-5938-4e53-8b05-37fa67acfff6.json",
+      "sha256": "d9637ba3af6498f5db682359d7f7a164c7cda5aaa8c256ee1a170f040ed3e1e6"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/baseline-set3-openai.json",
+      "sha256": "675a96bb8e8a3ec80b2c221badfd695f902b429b9f1ec8ef6356e6ea9bacd495"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/checks/agent-structure-final.json",
+      "sha256": "e3bafda4704f13f4bd7e4deed1a45c38506c83574cb744935db15fec1a59f29e"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/checks/alienist-final.log",
+      "sha256": "3fda27d9d46e1da4a118c3d663caf20c22bc87aa673b4049a6667c3ce1d95804"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/checks/alienist-index-final.log",
+      "sha256": "60f0241a4063f3195d3418b66a90019fc044014ba536b5f6dfbc8254bca4ce52"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/checks/api-e2e.log",
+      "sha256": "ceaf5ed8f37622cbcb40401eabecc5461365a0c8acf7469ef377dabda75074c2"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/checks/backend-final.log",
+      "sha256": "33e754450c41305dfb4b3e2e7c0331ebb838f02606f3895fdc4d1b7402e26ded"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/checks/browser-e2e.json",
+      "sha256": "f07f20c21e65f8ac9dbd2ab09bf05099d6736b6f45bb838b532cdfdfb6e81e17"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/checks/browser-e2e.log",
+      "sha256": "4713ca3b373e72999303cf10f8aab3791c492749feb257fdd1c6141d0101b6eb"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/checks/cli-final.log",
+      "sha256": "307d5d5211e241708180bc07eb543792ae6973faa03b31e037ee0837ded4dba0"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/checks/comparison-final.log",
+      "sha256": "12ce82cfc876c49ce6ff457bbe8106f185353b04e2fe1e9076058419131c2d72"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/checks/dependencies-final.json",
+      "sha256": "3eaa1ebf3f2abc224bb3124cda68c0ae6a2838866c696b2d9c6394b5e867ee78"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/checks/development-final.json",
+      "sha256": "a8153519162cb43445b1498ce0ff3fa285e252235a9252d2c74a03c6251e07e5"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/checks/diagnostic-final.log",
+      "sha256": "b975837ab86f79705f4e2c3187aad24177847103bd27078db4623799a6dccc3f"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/checks/evaluator-structure-final.json",
+      "sha256": "13ad99c70dfd5c78ed0a94c8297a274cb3cc5ce6dfd29c14a4cefe66c81c085a"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/checks/experiments-baseline-retry.log",
+      "sha256": "60604001c20b89054900953431c6df3023f390f003a22fbaaa5a19dc6dcd77ec"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/checks/experiments-final.log",
+      "sha256": "e873a5021e0eaa58d2280691da30550b8992373a5fc53fc0141accffba7be824"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/checks/frontend-baseline.log",
+      "sha256": "5d6855aefe9b55e8d0081d4b98ae7fa8aa38e0fe89f2f01cfc1cb257ae0bc51c"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/checks/frontend-build-baseline.log",
+      "sha256": "b6858e27109f9c5018981425d1e373364b0e85f7b2034fb4c8ee5b9e1a4ccab7"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/checks/frontend-build-final.log",
+      "sha256": "38d7843daa84d5f45521bc67354e20ece2ccafd64bc56ed158cce8cf113fd45c"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/checks/frontend-e2e.log",
+      "sha256": "b1573a5debb5bcc3b85257156c2a8df50e417b0d463c8b6583d7d7503793f927"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/checks/frontend-image-final.log",
+      "sha256": "1b07e89cb7e741baa5c62669376b5fc7cd1e648db77ea594d08ad75112f01d0e"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/checks/identity-final.log",
+      "sha256": "03e3ec2cbb12243fe5482d05d8c99f1d4178680b341425199372d1630dc30dc6"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/checks/imports-final.log",
+      "sha256": "ac653b439ef21a776ce5f875cdf44784de25c57aa6fa2992aa74bb01454a3b6e"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/checks/investigation-inputs.log",
+      "sha256": "8f62cf79a115e8f1cc8fc816e77ef366d9c27355604bad8275c4812d8111269b"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/checks/ollama-api-final.log",
+      "sha256": "4f8614abbe4618eada05f9973732c355e89391fc862668effc281c3c2935694e"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/checks/orchestration-structure-final.json",
+      "sha256": "af35b687edef4ea1d9da8fd296378ac114c73ab2a97e08e429ff087f4dd29ef2"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/checks/python-baseline.log",
+      "sha256": "6e144210dbf7183ddfce0378951b6004283f2571f7e2ecbd4c55bfdc5dd62745"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/checks/redis-e2e.log",
+      "sha256": "562ce00206e6034bbb86af2f4c390c6520cdfaf980062f5585cc0c64161162da"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/checks/repeats-baseline.log",
+      "sha256": "2f057a616841d33ca52eee2ea3564ea41316b4831d478de5946d602dfc3d77c3"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/checks/repeats-final.log",
+      "sha256": "5126403f8eb6fa21669d1dd7c37a97425966ce33ccd13b23fcc9aee2e2307b94"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/checks/server-check.log",
+      "sha256": "b66669eba22ac2dab5cddfc1062aad44a972745bbc67bddc08307ed1b8685b26"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/checks/startup-baseline.log",
+      "sha256": "6c6dea538aff1244aa38b9a627bf9c630fe5d0fc4b49234662330c28922d6c25"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/checks/ui-answer-final.png",
+      "sha256": "fd15f708fe488a66a05ac379e1f6e98a18d6bb45b1dc628532fc3637365fc580"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/checks/ui-baseline-errors.json",
+      "sha256": "0972d2dbd2c60d85ba92208e2988ebde09bcf9ebd421ca392078a624e8a00257"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/checks/ui-final.png",
+      "sha256": "cd3d3ec44be293f6e2b385c41c513e26bfd4c5f9eda2ec4b253bd7349f987e46"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/checks/ui-hydration-comparison.json",
+      "sha256": "f6024b1560eda59a927e41c253a9c84357f4c2b27bfd1daaf2c0965f7469266b"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/final-Additional-Questions-ollama.json",
+      "sha256": "c658338641dac10f6098229bf830cf5873a21d6ac9a389a6bac5f29dda673cfa"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/final-Additional-Questions-openai.json",
+      "sha256": "ebf3afd93ef47397cf67bfb35e967fbf2669494a7b1ea5efe0a701bb481dc332"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/final-QA.csv-ollama.json",
+      "sha256": "6f01a5176a3cc11b3300a451018d4be849ba9dfaf54f6fa7cf92a7b40559e887"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/final-QA.csv-openai.json",
+      "sha256": "9e648d03a17b2a511876312e4b9622ec8f70ff197e4ff915a3cb8a27f3828af1"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/final-contracts.json",
+      "sha256": "56549b0213117c53c502d48df02d50210bb096b85fa8b7432677cf086219cfe0"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/final-repeat-right-set-3-openai.json",
+      "sha256": "122f8cc6d61903a57b7b6afd424cd7c84661e0ade781df4fb880863ec6f80dec"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/final-repeat-set3-openai.json",
+      "sha256": "4cb47ee22e4369551a1fc28356167351f020c81427d49fa2719f755c7b4a100d"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/final-right-set-3-ollama.json",
+      "sha256": "5a56c680909487a84c8eb8e5a51f0948de93166f8d1abc1674f5529535bb220c"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/final-right-set-3-openai.json",
+      "sha256": "2e934650e26e38f6b9154986947589dbb48095f8624a4a2370140bebc46034f9"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/final-set3-ollama.json",
+      "sha256": "3fb586ebd35efb81c1add33cb75781dca2310aa3157cf77ed082f1b323592fb7"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/final-set3-openai.json",
+      "sha256": "818e1825156837d3abed73726746e3658ffb3b23e1ce7ae77ce1aa6fc18bb28b"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/first-model-inputs.json",
+      "sha256": "1a8d9a29dfe725030ec95fe2245d9325d2b17d1076c261b632407e909b581e3c"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/frontend-baseline.log",
+      "sha256": "5d6855aefe9b55e8d0081d4b98ae7fa8aa38e0fe89f2f01cfc1cb257ae0bc51c"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/frontend-build-baseline.log",
+      "sha256": "b6858e27109f9c5018981425d1e373364b0e85f7b2034fb4c8ee5b9e1a4ccab7"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/00bfe1a8-48f1-413c-8df2-34d2012c210b/manifest.json",
+      "sha256": "0a640e1887265fc20e9cb557fb84ec3dad1f5a1b73e7bd56243c95ff07241d21"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/00bfe1a8-48f1-413c-8df2-34d2012c210b/request.json",
+      "sha256": "10eb4f051bfdb914cb9a8f2c8c13a1140fa1712372a717acb6f517f0471c47bf"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/00bfe1a8-48f1-413c-8df2-34d2012c210b/results.json",
+      "sha256": "a228205acba4b62d4e3b2a2e4d650a4c18fb2011152e95faab9213e6c7cbc2a6"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/19a25d74-85bf-4d7d-9d83-c31811735135/manifest.json",
+      "sha256": "e1a76de525aed1c3890e12de900d54fa338941838a87d23d258f1725a743a145"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/19a25d74-85bf-4d7d-9d83-c31811735135/request.json",
+      "sha256": "0128975467279ae4a960903bdd1b50457f242cfeb688522520e5e7cdbaa49fe9"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/19a25d74-85bf-4d7d-9d83-c31811735135/results.json",
+      "sha256": "5dc06e3d0d32fc840b9c401f6f9f12523deb79c517c21758d3fa84effa0c616a"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/1e9ebee2-94d0-4d35-9466-56c8de29ea4e/manifest.json",
+      "sha256": "3e0955ec8c21b0e73d20792d5fd96033c887873dc87bc2ce877cf5679be4573b"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/1e9ebee2-94d0-4d35-9466-56c8de29ea4e/request.json",
+      "sha256": "1f25f85f503cee893bbb1f906b75e817c1665c0793a80964e698a8579de93be0"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/1e9ebee2-94d0-4d35-9466-56c8de29ea4e/results.json",
+      "sha256": "8ef23c3ffa3b1fd1ba8618a32501116fb4d0e6595096bc677470e36752d9e137"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/217d40a5-93ea-401d-a1b8-a0de04ed163e/manifest.json",
+      "sha256": "de5910a5e98563c03447be73da78595790b5e19592a4a2e78bd7a9e558bd9c77"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/217d40a5-93ea-401d-a1b8-a0de04ed163e/request.json",
+      "sha256": "5d677a3c513c8d9cab126e57f36431a5f602597122081b1ca426e21cc14a6e73"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/217d40a5-93ea-401d-a1b8-a0de04ed163e/results.json",
+      "sha256": "5fa9fafb698cf083ab36b79c8da0a92f724ec6330854cc3a5d0df54510ba0bbf"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/21e17910-ce59-457d-8dc4-d5b27b942274/request.json",
+      "sha256": "a5feca056b2513caf32a9ac67c4e432b88edf29862bc1725547c68c609f03913"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/21e17910-ce59-457d-8dc4-d5b27b942274/results.json",
+      "sha256": "b205f10b7c1a170328b6b4ffe13788a71da3b05da8e5963f612b4fb1458040a2"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/2c17894b-6e11-4a0a-b4f7-88fe6c171551/request.json",
+      "sha256": "de3e742721667b4549faf42e9fd2a52f82368ef84382faece0ab4620564c2713"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/2c17894b-6e11-4a0a-b4f7-88fe6c171551/results.json",
+      "sha256": "397b01aeff8a5e7f09aee9fc272df2d7b1a8580dfc0685051a3d7f42a9657caf"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/2c2051df-9663-4087-bee0-49d39bdab9bc/manifest.json",
+      "sha256": "efce2e892de7832ecf8a88ba34ffe0ba015bafa32862328407e0a81387b74228"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/2c2051df-9663-4087-bee0-49d39bdab9bc/request.json",
+      "sha256": "8734c645c03436244c65b1170784a8403a60874138e288561518b19ff8d90bec"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/2c2051df-9663-4087-bee0-49d39bdab9bc/results.json",
+      "sha256": "c2f067b807d018e09da7493c9bff6583a5cb7716503927f306e987ee17e94a80"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/2cbe6b5e-a9d3-4b64-9577-c76a577c1515/manifest.json",
+      "sha256": "96eb809fd9dc46bf39002cace60a159c686b267d0adb4bd04b5c1d6ff0ae5c90"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/2cbe6b5e-a9d3-4b64-9577-c76a577c1515/request.json",
+      "sha256": "90f4ce9e2b860fdee3b7737d69c7450d0a6cba1a81114f6217f484a753c05075"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/2cbe6b5e-a9d3-4b64-9577-c76a577c1515/results.json",
+      "sha256": "38d41eb9943e41f82323527b485c312a57db705f0dadd6c786f4bf53f969c09e"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/3c3a6fda-0411-45ff-810b-1b073f0edcf3/manifest.json",
+      "sha256": "cdd8899583ef0bf1d03530cc79c3677245faf788c46d2d2d00bc17ca6285a7e4"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/3c3a6fda-0411-45ff-810b-1b073f0edcf3/request.json",
+      "sha256": "0cfe3d133a1ee9a0d5f0d17ed4c589fd85ea9af8417bcf7edd1c298d7a832bda"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/3c3a6fda-0411-45ff-810b-1b073f0edcf3/results.json",
+      "sha256": "ef595dba647dcc4e9f39a1e737c10bad7a2f7467f1f2d1b1508d48aefdeb3f7a"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/4751e5c0-782a-4d57-8277-163d94cdca86/manifest.json",
+      "sha256": "5f5a04f66649fdd1c3884632f7255c502bd570130be1afb9280de391fba3176a"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/4751e5c0-782a-4d57-8277-163d94cdca86/request.json",
+      "sha256": "a07b87d57639e6f7ef2115625a94d310bba82d88c8c863326d9ad59559e9a24d"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/4751e5c0-782a-4d57-8277-163d94cdca86/results.json",
+      "sha256": "dc6b4d0eede8d113eb89dfc1fe0ecb020bd75a37d556f6c33a23cbbbaa26f603"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/4d82b3a3-e979-456f-8c98-c0b1babc0109/request.json",
+      "sha256": "8734c645c03436244c65b1170784a8403a60874138e288561518b19ff8d90bec"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/4d82b3a3-e979-456f-8c98-c0b1babc0109/results.json",
+      "sha256": "a4b2c9d93efd005c48ae2a057fcacd5340682aa00f78b907a698ee3dda4b96ae"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/6911f4ba-5938-4e53-8b05-37fa67acfff6/request.json",
+      "sha256": "03deaffaa31f1f42cb32382716592a0f0f746b762c2e945a6fa134dd2411aa61"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/6911f4ba-5938-4e53-8b05-37fa67acfff6/results.json",
+      "sha256": "8e2ef30eef1cfa4108ce62a2a84b5dcb99a4464a9a70ec91f4a488ab3a1ec166"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/7114e00e-4744-4d96-bd06-ee8629a6d419/manifest.json",
+      "sha256": "d78aae8fb6c41f4f983c135d141ba09ee05ea7b8d15a27e8465ca34093751554"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/7114e00e-4744-4d96-bd06-ee8629a6d419/request.json",
+      "sha256": "03deaffaa31f1f42cb32382716592a0f0f746b762c2e945a6fa134dd2411aa61"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/7114e00e-4744-4d96-bd06-ee8629a6d419/results.json",
+      "sha256": "ff95adb560cff2538a053c76feec2375ba0bc182eebc2b0ea8a8b8fe1d254239"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/773f9aeb-f9bf-451d-b0d5-34385a5dfb46/manifest.json",
+      "sha256": "f3b54689ecc8ff967ea330813b8e28e2f8000a0ca429b7e654a2856d6008d9d6"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/773f9aeb-f9bf-451d-b0d5-34385a5dfb46/request.json",
+      "sha256": "02295cbd702cf7c914bfba7c289effeebf3cff2baf3196369c3b7dbc3462f3e0"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/773f9aeb-f9bf-451d-b0d5-34385a5dfb46/results.json",
+      "sha256": "88016d364b8dae5112345e50c1927f1e80fb670af1b78d0aa2ee5ef1039da28b"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/82065c70-c47f-42fd-9c3b-e80f0edbd959/manifest.json",
+      "sha256": "bbd5b960d4e6ac01e8d6fd5dd2a4c44431aa7c5028032cdfc44f2d0a526f2536"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/82065c70-c47f-42fd-9c3b-e80f0edbd959/request.json",
+      "sha256": "187b523fa31e1faf6fa1d9545dd88fb8a04e3ca59238f348baed6935c171ef97"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/82065c70-c47f-42fd-9c3b-e80f0edbd959/results.json",
+      "sha256": "82b73d1803e2e7053c56014817b0d548a67023ee24ffb1852f65240d386c8331"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/8de78d58-9cd6-4948-b140-c50fe4183d4b/request.json",
+      "sha256": "0128975467279ae4a960903bdd1b50457f242cfeb688522520e5e7cdbaa49fe9"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/8de78d58-9cd6-4948-b140-c50fe4183d4b/results.json",
+      "sha256": "4433892220c4f0d7ddaec2e3c9bb830c58597d1bff7fff579f27c763d6b6f87c"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/939fb393-71c0-443f-ac59-e4d9038490c2/manifest.json",
+      "sha256": "1baa98fb572873f346b33bc727f934c442de64988c60501cf90cefd70ff7c0a4"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/939fb393-71c0-443f-ac59-e4d9038490c2/request.json",
+      "sha256": "de3e742721667b4549faf42e9fd2a52f82368ef84382faece0ab4620564c2713"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/939fb393-71c0-443f-ac59-e4d9038490c2/results.json",
+      "sha256": "d81625fc4ccd858058f3559ed125af717154483378152d8510b38882396a0c5e"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/9bb5f9cf-05ba-41b5-8d01-6434aa348756/request.json",
+      "sha256": "1f25f85f503cee893bbb1f906b75e817c1665c0793a80964e698a8579de93be0"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/9bb5f9cf-05ba-41b5-8d01-6434aa348756/results.json",
+      "sha256": "de4c1ae59adc8e9d8ce3e13ffe7c890e62800838fd428e695013ab1fa926b3d0"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/c1d83212-625e-4909-b50f-a0a4edc7a486/manifest.json",
+      "sha256": "6c4f63c1736a253a8a6c2dc4895c4dfdadf5422751f92eff9dc0b4f68d1f3883"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/c1d83212-625e-4909-b50f-a0a4edc7a486/request.json",
+      "sha256": "58834cbe9dbaeab1d4d7117f7524b5933656d9a58cda2d20e47c54ed45666b63"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/c1d83212-625e-4909-b50f-a0a4edc7a486/results.json",
+      "sha256": "a0f59476f19c16aa3afb65679a55170228f4ea1575bc2c69df131297230815ec"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/c839d776-2267-4e96-b6fc-74ab9b28da43/manifest.json",
+      "sha256": "0dae92acde09f92ac29d1a39bff8e7d2dfc4408362c3a522dd116d8f57f2a65b"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/c839d776-2267-4e96-b6fc-74ab9b28da43/request.json",
+      "sha256": "8e19b6285e415d25e552d0ee4ee5d0ae7d25de7ef9fadc56b5d0f561d1e1009b"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/c839d776-2267-4e96-b6fc-74ab9b28da43/results.json",
+      "sha256": "9ec4dc746c2435af5535916690ee303434676bc0463cdc478b0c2884a19c0f97"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/dc7d45d1-b9c9-466f-aff3-02b82b306c25/request.json",
+      "sha256": "187b523fa31e1faf6fa1d9545dd88fb8a04e3ca59238f348baed6935c171ef97"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/dc7d45d1-b9c9-466f-aff3-02b82b306c25/results.json",
+      "sha256": "01f6333a578b2d03b84429bfd6ced66372cee7d41d314ec318f06b23b71e2fc9"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/e686c894-bc40-4c19-b54f-ef0a969708de/manifest.json",
+      "sha256": "b5ed31796c253fbd41339778e92de05b85be722033c3e3169e02c0ab6e67cd62"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/e686c894-bc40-4c19-b54f-ef0a969708de/request.json",
+      "sha256": "25da86b1f9ccae2f900f6333b0e1c87390c0cc38c4d6dbb97ec429d8092c96e9"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/e686c894-bc40-4c19-b54f-ef0a969708de/results.json",
+      "sha256": "d66e7b85b78d8770f700c679ab2d24cd84619bf662009ddb239143508334fa49"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/ea7a23bf-3ac4-4835-9e68-f4f45f2df6b8/manifest.json",
+      "sha256": "933ba04a843212d55e2ff28c91be425c84013899c92fc66c07828d3a19b34e25"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/ea7a23bf-3ac4-4835-9e68-f4f45f2df6b8/request.json",
+      "sha256": "a5feca056b2513caf32a9ac67c4e432b88edf29862bc1725547c68c609f03913"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/ea7a23bf-3ac4-4835-9e68-f4f45f2df6b8/results.json",
+      "sha256": "40ae1f210a4f65ac2971dc226c7da083f8eaf92c5139ca873008fe9a6d3e2b94"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/f7f0d445-a789-4565-a113-bc8bf2999e8f/request.json",
+      "sha256": "a07b87d57639e6f7ef2115625a94d310bba82d88c8c863326d9ad59559e9a24d"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/millennium/executions/f7f0d445-a789-4565-a113-bc8bf2999e8f/results.json",
+      "sha256": "d8a4be1f15fad4ecb0b4b25efab8b677c57efc3bfa3f9a8d50427a1d04a6a748"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/ollama-api-final.json",
+      "sha256": "9784919ae6872df26dc62bbde166d40a031e550aeae330dc572c37ccdf15a89c"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/ollama-model-identities.json",
+      "sha256": "35fb66bc17c689bbc53802b39b20b9e1668c5fec1048e64f394101c2b79b8e1a"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/openapi-comparison.json",
+      "sha256": "87ddae7ff4a79f66c8363ddc1d33a2aff2dc28912962f44a272765eb19e37732"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/python-baseline.log",
+      "sha256": "6e144210dbf7183ddfce0378951b6004283f2571f7e2ecbd4c55bfdc5dd62745"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/repeats/millennium/executions/83c58557-ee32-4f32-90b2-cfa62c081649/manifest.json",
+      "sha256": "67ce7d68e769d87358ab143223d850b388f09e05d2736b287288229f03dc3838"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/repeats/millennium/executions/83c58557-ee32-4f32-90b2-cfa62c081649/request.json",
+      "sha256": "ec3abd68865de4d97032cacb3dc39ac26ffa2e925a41444b247316aa1e73e0dc"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/repeats/millennium/executions/83c58557-ee32-4f32-90b2-cfa62c081649/results.json",
+      "sha256": "25998ac59543078ccf23c9a8acf7322170475987538b4f1ddd30fa7e848a4408"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/repeats/millennium/executions/ba279383-738d-43ad-a207-2ac445427122/manifest.json",
+      "sha256": "ec5e445aa743bce3d899a12c984baff52b337ef2ae6e3ab7dd801e6867f0df27"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/repeats/millennium/executions/ba279383-738d-43ad-a207-2ac445427122/request.json",
+      "sha256": "79a3bd2836771f324789d7685e799ef0667aca44ce32944826f7b37c6b49364b"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/repeats/millennium/executions/ba279383-738d-43ad-a207-2ac445427122/results.json",
+      "sha256": "df77e2e49f560407639b9d45f0795c2928e45d5ffc2a41720c0f82b6157d319d"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/repeats/millennium/executions/cd69e79c-ae45-4d37-bf91-718e42922bdc/manifest.json",
+      "sha256": "5b46e5983106c0e3a21128d7c4af388c4defe5405edcde7a6f869e842e37921a"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/repeats/millennium/executions/cd69e79c-ae45-4d37-bf91-718e42922bdc/request.json",
+      "sha256": "3b8bdd0e4fb39a6d2c6eb0daae4b3ffbd9cbe87bb7a9a6a9e9536b03f61b9c37"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/repeats/millennium/executions/cd69e79c-ae45-4d37-bf91-718e42922bdc/results.json",
+      "sha256": "c8006d97c5561a6b2c5abefe2ae79b2eab1a726521bf8330d185428b22ad6dd0"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/repeats/millennium/executions/f9c01596-abdf-4d44-afb4-175aa59dcf95/manifest.json",
+      "sha256": "01313c874c51cb3a2918a0477f2005912992a53608874d847b3ed5ea5ac5c582"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/repeats/millennium/executions/f9c01596-abdf-4d44-afb4-175aa59dcf95/request.json",
+      "sha256": "83f295054674701e43fde7a582266fea4e931166b27f4a7747da293c06f69fbe"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-organization/repeats/millennium/executions/f9c01596-abdf-4d44-afb4-175aa59dcf95/results.json",
+      "sha256": "e45cadb3708c0a7e124f29cc7f95ac7677350a1b87de0e86047899c3a880e175"
+    }
+  ],
+  "baseline_worktree_state": "clean"
+}

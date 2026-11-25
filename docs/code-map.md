@@ -34,6 +34,7 @@ provenance. Conversation compaction and final handoff live in `context/`.
 | Passage formatting and conversation compaction | `app/context/citations.py`, `app/context/conversation.py` |
 | Protected final conversation handoff | `app/context/agent_final_handoff.py` |
 | Keyword/name indexes and search | `app/retrieval/search.py` |
+| Query prompt text and corpus overrides | `app/prompt_templates.py`, `app/corpus_profiles/` |
 | Query transformation and scene-moment selection | `app/retrieval/queries.py`, `app/retrieval/moments.py` |
 | Passage, scene, and entity lookup | `app/retrieval/passages.py`, `scenes.py`, `entities.py` |
 | Shared search payload type | `app/retrieval/types.py` |
@@ -53,6 +54,7 @@ provenance. Conversation compaction and final handoff live in `context/`.
 | Experiment metadata, fingerprints, and trace upload | `app/experiments/metadata.py`, `telemetry.py` |
 | Experiment command line | `app/experiments/cli.py`, `__main__.py` |
 | Shared SQLite connection and unchanged schema | `app/storage.py` |
+| Managed evaluator configuration | `app/prompt_assets.py`, corpus `quality-evaluators.json` |
 | Judges, evaluator definitions, metrics, and review | `app/evaluation/` |
 | Native evaluator installation and submission | `app/quality_evaluators/` |
 | Corpus configuration, assets, and overrides | `app/corpus_config.py`, `app/corpus_profiles/` |

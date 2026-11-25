@@ -740,3 +740,13 @@ both Ollama and OpenAI. The scene-moment tool passes seven positional arguments
 to a six-argument retrieval function. The organization refactor preserves this
 failure; fix and regression coverage belong to a separate behavior change.
 See `docs/experiments/2026-11-25-organization-verification.md` for run evidence.
+
+The unchanged UI also emits React error #418 when served by either the original
+or reorganized Express server with identical built assets and HTML. Investigate
+that UI issue separately; no UI source or pointer was changed here.
+
+The additional unscored Ollama father-question smoke check returned a `content`
+answer after four tool calls, without citations and with unsupported extra
+detail (trace `e20eab95334891480f2fff4eaad0f10a`). Review the direct-content answer
+path's grounding separately. This observation is recorded without changing the
+agent's behavior or treating a transport smoke check as a quality benchmark.
