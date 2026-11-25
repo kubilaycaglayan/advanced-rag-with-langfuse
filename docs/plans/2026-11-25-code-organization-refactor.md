@@ -1,7 +1,7 @@
 # Backend and Express server code organization refactor
 
 Date: 2026-11-25
-Status: Planned; implementation and baseline experiments have not started.
+Status: In progress; baseline tests passed and pinned baseline experiments are running. Application refactoring has not started.
 
 ## Objective and agreed decisions
 
@@ -15,6 +15,7 @@ Make the code easier for humans to navigate, read, and understand by organizing 
 - Record behavior improvements separately rather than implementing them as part of this refactor.
 - Preserve historical experiment results, manifests, scores, traces, and reports.
 - Deployment, pushing, and publication are outside this plan.
+- User approval: run the paid comparisons and commit frequently. Never rebuild indexes; skip any step that would require rebuilding, continue other work, and report the skipped step for acknowledgment in the final report.
 
 This follows the completed v2.16 maintenance cleanup. It is a separate organization refactor, not another historical-code removal pass.
 
