@@ -248,7 +248,7 @@ def index(request: IndexRequest) -> dict[str, Any]:
 
 
 def _prepare_ask(request: AskRequest) -> dict[str, Any]:
-    """Check the rate limit and resolve the configuration, index and prompts for one question."""
+    """Check the rate limit and resolve the configuration and index for one question."""
     if not request.question.strip():
         raise HTTPException(status_code=400, detail="question must not be blank")
     if (os.getenv("FRONTEND_RATE_LIMIT_ENABLED") == "true" and request.production and request.source == "frontend"
@@ -273,14 +273,13 @@ def _prepare_ask(request: AskRequest) -> dict[str, Any]:
                            collection=request.collection)
         collection = resolved.index["collection"]
         validate_index(collection, resolved.config)
-        bundle, prompts = {}, {}
     except HTTPException:
         raise
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
-    return {"config": resolved.config, "collection": collection, "bundle": bundle, "prompts": prompts,
+    return {"config": resolved.config, "collection": collection,
             "pipeline_id": resolved.pipeline_id, "resolved": resolved}
 
 
@@ -298,7 +297,7 @@ def _answer_cache_identity(question: str, prepared: dict[str, Any]) -> dict[str,
 
 def _run_ask(request: AskRequest, prepared: dict[str, Any], *, on_trace=None, on_token=None, on_status=None) -> dict[str, Any]:
     """Answer one question inside its Langfuse trace (the same trace whether or not the answer is streamed)."""
-    pipeline_id, prompts = prepared["pipeline_id"], prepared["prompts"]
+    pipeline_id = prepared["pipeline_id"]
     question_key = hashlib.sha256(" ".join(request.question.casefold().split()).encode()).hexdigest()[:24]
     session_id = ("question-" + question_key if langfuse_tracing_required()
                   else request.session_id or "interactive-" + question_key)
@@ -330,8 +329,6 @@ def _run_ask(request: AskRequest, prepared: dict[str, Any], *, on_trace=None, on
                                "agent_automatic_scene_search": agent_settings.initial_scene_probe,
                                "agent_scene_candidate_count": agent_settings.scene_candidate_count,
                                "agent_premise_early_stop": agent_settings.premise_early_stop})
-    trace_metadata.update({f"prompt_{name}": f"{asset['id']}@{asset['version']}:{asset['label']}"
-                           for name, asset in prompts.items()})
     root_metadata = {"clientIp": str(request.client_ip)} if request.source == "frontend" and request.client_ip else None
     with trace_scope(session_id=session_id, user_id=request.user_id, environment=environment, metadata=trace_metadata,
                      tags=[f"pipeline:{pipeline_id}"]), observation("rag ask", as_type="span",
@@ -375,7 +372,7 @@ def _run_ask(request: AskRequest, prepared: dict[str, Any], *, on_trace=None, on
         layer_scope = intermediate_cache_scope(prepared["resolved"], prepared["collection"], langfuse_project())
         with use_intermediate_cache(request.cache_mode, cache_layers, layer_scope):
             result = run_resolved_pipeline(request.question, prepared["resolved"], prepared["collection"], on_token=on_token, on_status=on_status)
-        result["prompts"] = prompts
+        result["prompts"] = {}
         result["session_id"] = session_id
         result["trace_id"] = trace_id
         result["pipeline_id"] = pipeline_id

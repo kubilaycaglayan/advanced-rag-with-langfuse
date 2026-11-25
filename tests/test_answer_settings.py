@@ -119,45 +119,6 @@ class MomentSceneChecks(unittest.TestCase):
         self.assertEqual(self._hits(["MOMENT: X met Y", "1"], present=("p20", "p1"))[0], ["p0", "p2", "p3", "p4"])
 
 
-class StreamingChecks(unittest.TestCase):
-    def test_streams_only_answer_content_and_records_usage(self):
-        lines = [
-            json.dumps({"message": {"thinking": "reasoning", "content": ""}, "done": False}),
-            json.dumps({"message": {"content": "Hello "}, "done": False}),
-            json.dumps({"message": {"content": "world"}, "done": True, "prompt_eval_count": 11, "eval_count": 2}),
-        ]
-        class Response:
-            def raise_for_status(self): pass
-            def iter_lines(self): return iter(lines)
-            def __enter__(self): return self
-            def __exit__(self, *exc): return False
-        sent, updates, tokens = [], [], []
-        with patch.object(pipeline.requests, "post", side_effect=lambda url, json, **kw: sent.append(json) or Response()), \
-             patch.object(pipeline, "_observe", return_value=nullcontext(None)), \
-             patch.object(pipeline, "_update", side_effect=lambda obs, **kw: updates.append(kw)):
-            text = pipeline._ollama([{"role": "user", "content": "q"}], "m", (10,), on_token=tokens.append)
-        self.assertEqual(text, "Hello world")
-        self.assertEqual(tokens, ["Hello ", "world"])
-        self.assertTrue(sent[0]["stream"])
-        self.assertEqual(updates[-1]["output"], "Hello world")
-        self.assertEqual(updates[-1]["usage_details"], {"input": 11, "output": 2})
-        self.assertEqual(updates[-1]["metadata"], {"thinking": "reasoning"})
-
-    def test_streamed_content_matches_non_streamed_stripping(self):
-        lines = [json.dumps({"message": {"content": piece}, "done": False}) for piece in ("  ", " Hello ", "world ")]
-        lines.append(json.dumps({"message": {"content": ""}, "done": True, "prompt_eval_count": 1, "eval_count": 2}))
-        class Response:
-            def raise_for_status(self): pass
-            def iter_lines(self): return iter(lines)
-            def __enter__(self): return self
-            def __exit__(self, *exc): return False
-        tokens = []
-        with patch.object(pipeline.requests, "post", return_value=Response()), \
-             patch.object(pipeline, "_observe", return_value=nullcontext(None)), \
-             patch.object(pipeline, "_update"):
-            text = pipeline._ollama([{"role": "user", "content": "q"}], "m", (10,), on_token=tokens.append)
-        self.assertEqual(text, "Hello world")
-        self.assertEqual("".join(tokens).strip(), text)
 
 
 if __name__ == "__main__":

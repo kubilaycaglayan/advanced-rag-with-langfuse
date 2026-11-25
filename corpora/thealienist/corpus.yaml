@@ -16,4 +16,3 @@ langfuse:
   evaluators:
     - answer_correctness_v2
     - citation_support_v1
-  prompt_label: production

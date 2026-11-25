@@ -303,7 +303,6 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
         config = resolved.config
         client = _client()
         dataset, version = _dataset_for(payload, client)
-        prompt_versions = {}
         correctness_name = payload.get("correctness_evaluator") or DEFAULT_CORRECTNESS
         if correctness_name not in CORRECTNESS_SPECS:
             raise ValueError(f"correctness_evaluator must be one of {sorted(CORRECTNESS_SPECS)}")
@@ -334,7 +333,7 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
         (corpus_data_dir() / "executions" / execution_id).mkdir(parents=True, exist_ok=True)
         manifest = {"execution_id": execution_id, "variant_label": variant, "dataset_snapshot": snapshot,
                     "pipeline": pipeline_manifest, "evaluator": evaluator_manifest,
-                    "prompts": prompt_versions,
+                    "prompts": {},
                     "index": index, "config": config.manifest(), "run_name": run_name,
                     "selected_item_ids": [item.id for item in items],
                     "answer_cache": {"mode": cache_mode, "layers": list(cache_layers)},
@@ -381,8 +380,6 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
                         trace_metadata["agent_automatic_scene_search"] = resolved.agent_settings.initial_scene_probe
                         trace_metadata["agent_scene_candidate_count"] = resolved.agent_settings.scene_candidate_count
                         trace_metadata["agent_premise_early_stop"] = resolved.agent_settings.premise_early_stop
-                    trace_metadata.update({f"prompt_{name}": f"{asset['id']}@{asset['version']}:{asset['label']}"
-                                           for name, asset in prompt_versions.items()})
                     trace_metadata.update({f"managed_eval_{name}": f"{asset['id']}@{asset['version']}"
                                            for name, asset in managed_evaluators.items()})
                     scope_attributes = pack_scope_attributes({
@@ -432,8 +429,6 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
                                                       else "ollama")
         experiment_metadata.update({f"config_{key}": value if isinstance(value, str) else json.dumps(value, sort_keys=True)
                                     for key, value in config.manifest().items() if key != "prompt_hashes"})
-        experiment_metadata.update({f"prompt_{name}": f"{asset['id']}@{asset['version']}:{asset['label']}"
-                                    for name, asset in prompt_versions.items()})
         experiment_metadata.update({f"managed_eval_{name}": f"{asset['id']}@{asset['version']}"
                                     for name, asset in managed_evaluators.items()})
         experiment_metadata, packed_experiment_metadata = pack_experiment_metadata(experiment_metadata)
@@ -551,7 +546,7 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
                           "telemetry_failure_count": len(telemetry_failures), "telemetry_errors": telemetry_failures,
                           "pipeline_id": pipeline_manifest["pipeline_id"], "pipeline_version": resolved.version,
                           "pipeline_derived": resolved.derived, "evaluator_id": evaluator_manifest["evaluator_id"],
-                          "managed_evaluators": managed_evaluators, "prompts": prompt_versions,
+                          "managed_evaluators": managed_evaluators, "prompts": {},
                           "experiment_id": result.experiment_id, "dataset_run_id": result.dataset_run_id,
                           "dataset_run_url": result.dataset_run_url, "item_results": item_results}
         artifact_path = execution_dir / "results.json"

@@ -117,3 +117,17 @@ class CurrentContract(TestCase):
             code.write_text("changed source")
             second = source_manifest(directory)
         self.assertNotEqual(first["source_fingerprint"], second["source_fingerprint"])
+
+    def test_local_transform_generation_retries_empty_output_and_records_usage(self):
+        from contextlib import nullcontext
+        from types import SimpleNamespace
+        from unittest.mock import patch
+        from app.pipeline import _ollama
+        replies = [{"message": {"content": ""}},
+                   {"message": {"content": " transformed query "}, "prompt_eval_count": 8, "eval_count": 4}]
+        responses = [SimpleNamespace(raise_for_status=lambda: None, json=lambda data=data: data) for data in replies]
+        with patch("app.pipeline.requests.post", side_effect=responses) as post,              patch("app.pipeline._observe", return_value=nullcontext(None)),              patch("app.pipeline._update") as update:
+            self.assertEqual(_ollama([{"role": "user", "content": "q"}], "local", (10, 20)), "transformed query")
+        self.assertEqual([call.kwargs["json"]["options"]["num_predict"] for call in post.call_args_list], [10, 20])
+        self.assertTrue(all(call.kwargs["json"]["think"] is False for call in post.call_args_list))
+        self.assertEqual(update.call_args.kwargs["usage_details"], {"input": 8, "output": 4})

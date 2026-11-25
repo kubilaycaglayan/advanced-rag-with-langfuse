@@ -19,4 +19,3 @@ langfuse:
   project: millenium
   default_dataset: QA.csv
   evaluator_prefix: millennium
-  prompt_label: production

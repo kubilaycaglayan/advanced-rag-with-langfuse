@@ -10,7 +10,7 @@ from types import SimpleNamespace
 from collections import Counter, defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from functools import lru_cache
-from typing import Any, Callable
+from typing import Any
 
 import requests
 from qdrant_client import QdrantClient
@@ -82,59 +82,35 @@ def _query_points_cached(qdrant: QdrantClient, collection: str, vector: list[flo
     return [SimpleNamespace(id=row["id"], payload=row["payload"], score=row["score"]) for row in records]
 
 
-def _ollama(messages: list[dict[str, str]], model: str, budgets: tuple[int, ...], temperature: float = 0, context_length: int = 8192, *, prompt: Any = None, name: str = "answer generation",
-            think: bool = False, on_token: Callable[[str], None] | None = None) -> str:
-    """One chat request; with ``on_token``, the reply is streamed and each piece of the answer (never the reasoning) is
-    passed to it as it arrives. The recorded generation is the same either way: the full reply and its token counts."""
+def _ollama(messages: list[dict[str, str]], model: str, budgets: tuple[int, ...],
+            temperature: float = 0, context_length: int = 8192, *,
+            name: str = "answer generation") -> str:
+    """Non-streaming local generation for query transformations and scene selection."""
     base = os.getenv("OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/")
     keep_alive: str | int = os.getenv("OLLAMA_KEEP_ALIVE", "-1")
     if keep_alive.lstrip("-").isdigit():
         keep_alive = int(keep_alive)
     last_error: Exception | None = None
-    with _observe(name, as_type="generation", input=messages, model=model, prompt=prompt) as obs:
+    with _observe(name, as_type="generation", input=messages, model=model) as obs:
         for budget in budgets:
             try:
                 response = requests.post(f"{base}/api/chat", json={
                     "model": model, "keep_alive": keep_alive, "messages": messages,
-                    "think": think, "stream": on_token is not None,
+                    "think": False, "stream": False,
                     "options": {"temperature": temperature, "num_ctx": context_length, "num_predict": budget},
-                }, timeout=(10, 900), stream=on_token is not None)
+                }, timeout=(10, 900), stream=False)
                 response.raise_for_status()
-                if on_token is None:
-                    data = response.json()
-                    message = data.get("message", {})
-                    text, thinking = message.get("content", "").strip(), message.get("thinking")
-                else:
-                    content: list[str] = []
-                    reasoning: list[str] = []
-                    data = {}
-                    with response:
-                        for line in response.iter_lines():
-                            if not line:
-                                continue
-                            data = json.loads(line)
-                            if data.get("error"):
-                                raise requests.RequestException(data["error"])
-                            message = data.get("message", {})
-                            reasoning.append(message.get("thinking") or "")
-                            piece = message.get("content") or ""
-                            if piece:
-                                # Leading whitespace is dropped as the non-streamed reply's strip() drops it.
-                                if not content and not piece.strip():
-                                    continue
-                                content.append(piece if content else piece.lstrip())
-                                on_token(content[-1])
-                    text, thinking = "".join(content).strip(), "".join(reasoning) or None
+                data = response.json()
+                message = data.get("message", {})
+                text, thinking = message.get("content", "").strip(), message.get("thinking")
                 if text:
-                    _update(obs, output=text, usage_details={"input": data.get("prompt_eval_count"), "output": data.get("eval_count")},
+                    _update(obs, output=text,
+                            usage_details={"input": data.get("prompt_eval_count"), "output": data.get("eval_count")},
                             **({"metadata": {"thinking": thinking}} if thinking else {}))
                     return text
             except requests.RequestException as exc:
                 last_error = exc
                 break
-        if think and last_error is None:
-            # Reasoning can fill the context window before any answer is written; answer directly instead.
-            return _ollama(messages, model, budgets[-1:], temperature, context_length, prompt=prompt, name=name, on_token=on_token)
         raise RuntimeError(f"Ollama request failed or returned empty content: {last_error or 'empty response'}")
 
 

@@ -22,8 +22,6 @@ class CorpusProfile:
     language: str
     name_pattern: str
     name_word_pattern: str
-    agent_context: str
-    translation_exception: str = ""
     chapter_reference_pattern: str = r"^\s*In Chapter \d+,\s*"
     prompt_overrides: dict[str, str] | None = None
     agent_prompt_name: str = "agent-system.txt"
@@ -31,7 +29,6 @@ class CorpusProfile:
     def identity(self) -> str:
         material = {"id": self.id, "language": self.language, "name_pattern": self.name_pattern,
                     "name_word_pattern": self.name_word_pattern,
-                    "agent_context": self.agent_context, "translation_exception": self.translation_exception,
                     "chapter_reference_pattern": self.chapter_reference_pattern,
                     "prompt_overrides": self.prompt_overrides or {},
                     "agent_prompt": (Path(__file__).parent / self.id / self.agent_prompt_name).read_text(encoding="utf-8")}

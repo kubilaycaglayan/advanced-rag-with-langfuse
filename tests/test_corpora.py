@@ -48,7 +48,7 @@ class CorpusChecks(unittest.TestCase):
         self.assertEqual(config.id, "millennium")
         self.assertEqual(len(list(config.books.glob("*.epub"))), 3)
         self.assertEqual(load_profile().id, "millennium")
-        self.assertIn("Stieg Larsson's Millennium novels", profile_prompt("query_translation_system", ""))
+        self.assertIn("Stieg Larsson's Millennium trilogy", agent_prompt())
         self.assertIn("Start with a search", agent_prompt())
 
     def _corpus(self, root: Path, corpus_id: str, books: dict[str, bytes]) -> None:
