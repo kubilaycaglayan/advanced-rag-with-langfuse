@@ -131,3 +131,54 @@ class CurrentContract(TestCase):
         self.assertEqual([call.kwargs["json"]["options"]["num_predict"] for call in post.call_args_list], [10, 20])
         self.assertTrue(all(call.kwargs["json"]["think"] is False for call in post.call_args_list))
         self.assertEqual(update.call_args.kwargs["usage_details"], {"input": 8, "output": 4})
+
+    def test_openai_errors_do_not_fall_back_to_local_model(self):
+        from types import SimpleNamespace
+        from unittest.mock import patch
+        from app.agent import _agent_chat
+        failure = SimpleNamespace(ok=False, status_code=503,
+                                  json=lambda: {"error": {"message": "provider unavailable"}})
+        for effort in ("none", "high"):
+            settings = resolve(overrides={"agent_provider": "openai",
+                                          "agent_reasoning_effort": effort}).agent_settings
+            with self.subTest(effort=effort), patch.dict("os.environ", {"OPENAI_API_KEY": "test-only"}),                  patch("app.agent.requests.post", return_value=failure),                  patch("app.agent._ollama_chat") as local:
+                with self.assertRaisesRegex(RuntimeError, "HTTP 503"):
+                    _agent_chat([{"role": "user", "content": "Question"}], None, settings)
+                local.assert_not_called()
+
+    def test_premise_early_stop_uses_direct_evidence_without_entering_tool_loop(self):
+        from contextlib import ExitStack, nullcontext
+        from dataclasses import replace
+        from unittest.mock import patch
+        from app.agent import run_agent
+        current = resolve(overrides={"premise_early_stop": True, "automatic_scene_search": False})
+        row = {"id": "a1b2c3d4-0000", "text": "Harriet said, I am alive.",
+               "book": "Book", "chapter": "Chapter", "paragraph": 1}
+        with ExitStack() as stack:
+            for name in ("_connection_precheck", "_true_account_precheck", "_sequence_precheck", "_moment_precheck"):
+                stack.enter_context(patch("app.agent." + name, return_value=None))
+            stack.enter_context(patch("app.agent._normalize_question", side_effect=lambda state: (state.question, [])))
+            stack.enter_context(patch("app.agent._semantic_rows", return_value=[row]))
+            stack.enter_context(patch("app.agent._verify_submission", return_value=(True, "supported")))
+            stack.enter_context(patch("app.agent.observation", return_value=nullcontext(None)))
+            stack.enter_context(patch("app.agent.update_observation"))
+            model = stack.enter_context(patch("app.agent._tracked_agent_chat"))
+            result = run_agent("Who killed Harriet?", "fixture", current.config, settings=current.agent_settings)
+        self.assertEqual(result["stopped"], "premise_resolved")
+        self.assertIn("No one killed Harriet", result["answer"])
+        model.assert_not_called()
+
+    def test_submission_verification_fails_closed(self):
+        from dataclasses import replace
+        from unittest.mock import patch
+        from app.agent import AgentState, _verify_submission
+        current = resolve()
+        state = AgentState(question="Question?", collection="fixture", config=current.config,
+                           settings=current.agent_settings, started=0)
+        with patch("app.agent._row_index", return_value=({}, [])),              patch("app.agent._tracked_agent_chat", return_value={"message": {"content": "malformed verdict"}}):
+            self.assertFalse(_verify_submission(state, "Unsupported answer", [])[0])
+        with patch("app.agent._row_index", return_value=({}, [])),              patch("app.agent._tracked_agent_chat", side_effect=RuntimeError("provider unavailable")):
+            self.assertFalse(_verify_submission(state, "Unsupported answer", [])[0])
+            state.settings = replace(state.settings, provider="openai")
+            with self.assertRaisesRegex(RuntimeError, "provider unavailable"):
+                _verify_submission(state, "Unsupported answer", [])
