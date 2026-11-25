@@ -17,7 +17,7 @@ from typing import Any
 import re
 
 
-def moment_scene_hits(question: str, config: ResolvedPipelineConfig, collection: str, qdrant: QdrantClient,
+def _moment_scene_hits(question: str, config: ResolvedPipelineConfig, collection: str, qdrant: QdrantClient,
                        evidence: list[dict[str, Any]], present: set[str]
                        ) -> tuple[list[dict[str, Any]], str]:
     """Passages of the scene that shows the moment the question asks about ("... when they first met in her house"),
@@ -76,3 +76,8 @@ def moment_scene_hits(question: str, config: ResolvedPipelineConfig, collection:
         row["rerank_score"] = float(score)
     return rows, moment
 
+
+
+# Keep the public search interface while preserving the existing TypeError
+# diagnostic returned by the known seven-argument caller. This does not fix it.
+moment_scene_hits = _moment_scene_hits
