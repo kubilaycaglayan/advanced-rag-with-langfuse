@@ -24,3 +24,10 @@ intermediate caches are bypassed. Artifacts are kept under
 User decisions: paid comparisons approved; frequent small commits; never rebuild
 indexes. Skip any step requiring a rebuild and report it for acknowledgment,
 without blocking unrelated refactoring. No deployment or UI changes are authorized.
+
+All eight baseline runs finished: 22 answers and two item failures. Both providers
+fail the detailed kitchen-bench question with the pre-existing error
+`TypeError: _moment_scene_hits() takes 6 positional arguments but 7 were given`.
+This unrelated bug is preserved and will be compared after refactoring. No
+evaluator or telemetry failures occurred. Baseline package startup passed on
+port 18019: health 200, invalid empty question 422, clean shutdown.

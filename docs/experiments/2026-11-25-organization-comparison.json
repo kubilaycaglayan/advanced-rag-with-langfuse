@@ -212,5 +212,191 @@
         }
       ]
     }
-  }
+  },
+  "baseline_runs": [
+    {
+      "execution_id": "939fb393-71c0-443f-ac59-e4d9038490c2",
+      "status": "partial",
+      "dataset_id": "cmv892lbn0005mj7u0q074bua",
+      "dataset_version": "2026-11-19T12:32:26.015000+00:00",
+      "dataset_snapshot_sha256": "0facc0d50124af0774b646bcf69e1a781d71364a333094711b93c6d390f5d2ad",
+      "completed_item_count": 3,
+      "failed_item_count": 1,
+      "evaluation_failure_count": 0,
+      "telemetry_failure_count": 0,
+      "scores": {
+        "answer_correctness_v2": {
+          "mean": 0.25,
+          "valid_count": 2
+        },
+        "citation_support_v1": {
+          "mean": 0.75,
+          "valid_count": 2
+        }
+      },
+      "dataset_run_url": "http://127.0.0.1:28420/project/millenium/datasets/cmv892lbn0005mj7u0q074bua/runs/ecc1fedfea7bc858",
+      "evaluator_id": "295243b34dfa38c45b70500cc29f6db589992d8b446470c543848a95bf822300"
+    },
+    {
+      "execution_id": "82065c70-c47f-42fd-9c3b-e80f0edbd959",
+      "status": "partial",
+      "dataset_id": "cmv892lbn0005mj7u0q074bua",
+      "dataset_version": "2026-11-19T12:32:26.015000+00:00",
+      "dataset_snapshot_sha256": "0facc0d50124af0774b646bcf69e1a781d71364a333094711b93c6d390f5d2ad",
+      "completed_item_count": 3,
+      "failed_item_count": 1,
+      "evaluation_failure_count": 0,
+      "telemetry_failure_count": 0,
+      "scores": {
+        "answer_correctness_v2": {
+          "mean": 0.49165000000000003,
+          "valid_count": 2
+        },
+        "citation_support_v1": {
+          "mean": 1.0,
+          "valid_count": 2
+        }
+      },
+      "dataset_run_url": "http://127.0.0.1:28420/project/millenium/datasets/cmv892lbn0005mj7u0q074bua/runs/ea3e56bfc36db015",
+      "evaluator_id": "295243b34dfa38c45b70500cc29f6db589992d8b446470c543848a95bf822300"
+    },
+    {
+      "execution_id": "1e9ebee2-94d0-4d35-9466-56c8de29ea4e",
+      "status": "completed",
+      "dataset_id": "cmv7zo6nw0007pa7t55mno068",
+      "dataset_version": "2026-11-13T12:31:57.064000+00:00",
+      "dataset_snapshot_sha256": "84eb7dbd060f45a6321061e42d887a2a174e212a4af490e9b18e6d7c3a35c279",
+      "completed_item_count": 3,
+      "failed_item_count": 0,
+      "evaluation_failure_count": 0,
+      "telemetry_failure_count": 0,
+      "scores": {
+        "answer_correctness_v2": {
+          "mean": 0.8166666666666668,
+          "valid_count": 3
+        },
+        "citation_support_v1": {
+          "mean": 0.3333333333333333,
+          "valid_count": 3
+        }
+      },
+      "dataset_run_url": "http://127.0.0.1:28420/project/millenium/datasets/cmv7zo6nw0007pa7t55mno068/runs/8a1721136b030fd2",
+      "evaluator_id": "295243b34dfa38c45b70500cc29f6db589992d8b446470c543848a95bf822300"
+    },
+    {
+      "execution_id": "4751e5c0-782a-4d57-8277-163d94cdca86",
+      "status": "completed",
+      "dataset_id": "cmv7zo6nw0007pa7t55mno068",
+      "dataset_version": "2026-11-13T12:31:57.064000+00:00",
+      "dataset_snapshot_sha256": "84eb7dbd060f45a6321061e42d887a2a174e212a4af490e9b18e6d7c3a35c279",
+      "completed_item_count": 3,
+      "failed_item_count": 0,
+      "evaluation_failure_count": 0,
+      "telemetry_failure_count": 0,
+      "scores": {
+        "answer_correctness_v2": {
+          "mean": 0.7833333333333333,
+          "valid_count": 3
+        },
+        "citation_support_v1": {
+          "mean": 0.5,
+          "valid_count": 3
+        }
+      },
+      "dataset_run_url": "http://127.0.0.1:28420/project/millenium/datasets/cmv7zo6nw0007pa7t55mno068/runs/de872505524e593b",
+      "evaluator_id": "295243b34dfa38c45b70500cc29f6db589992d8b446470c543848a95bf822300"
+    },
+    {
+      "execution_id": "2c2051df-9663-4087-bee0-49d39bdab9bc",
+      "status": "completed",
+      "dataset_id": "cmvcgsorw0005mj7tu0turtdo",
+      "dataset_version": "2026-10-21T07:06:28.123000+00:00",
+      "dataset_snapshot_sha256": "ed4d14e5b49ddd7e886ef8fc6b24fd796559f1316744696dde97b1003419b6e3",
+      "completed_item_count": 3,
+      "failed_item_count": 0,
+      "evaluation_failure_count": 0,
+      "telemetry_failure_count": 0,
+      "scores": {
+        "answer_correctness_v2": {
+          "mean": 0.9249999999999999,
+          "valid_count": 3
+        },
+        "citation_support_v1": {
+          "mean": 1.0,
+          "valid_count": 3
+        }
+      },
+      "dataset_run_url": "http://127.0.0.1:28420/project/millenium/datasets/cmvcgsorw0005mj7tu0turtdo/runs/3bed0e2aefc0dfc7",
+      "evaluator_id": "295243b34dfa38c45b70500cc29f6db589992d8b446470c543848a95bf822300"
+    },
+    {
+      "execution_id": "19a25d74-85bf-4d7d-9d83-c31811735135",
+      "status": "completed",
+      "dataset_id": "cmvcgsorw0005mj7tu0turtdo",
+      "dataset_version": "2026-10-21T07:06:28.123000+00:00",
+      "dataset_snapshot_sha256": "ed4d14e5b49ddd7e886ef8fc6b24fd796559f1316744696dde97b1003419b6e3",
+      "completed_item_count": 3,
+      "failed_item_count": 0,
+      "evaluation_failure_count": 0,
+      "telemetry_failure_count": 0,
+      "scores": {
+        "answer_correctness_v2": {
+          "mean": 0.8111,
+          "valid_count": 3
+        },
+        "citation_support_v1": {
+          "mean": 1.0,
+          "valid_count": 3
+        }
+      },
+      "dataset_run_url": "http://127.0.0.1:28420/project/millenium/datasets/cmvcgsorw0005mj7tu0turtdo/runs/40d5b21ad0fa370f",
+      "evaluator_id": "295243b34dfa38c45b70500cc29f6db589992d8b446470c543848a95bf822300"
+    },
+    {
+      "execution_id": "ea7a23bf-3ac4-4835-9e68-f4f45f2df6b8",
+      "status": "completed",
+      "dataset_id": "cmvcgm11i0003mj7tbjygxtlr",
+      "dataset_version": "2026-10-21T07:06:27.962000+00:00",
+      "dataset_snapshot_sha256": "96b7a01696cde3f8198f1d7de9ddcdf65f17738d7186ea955f928abf1c52f427",
+      "completed_item_count": 3,
+      "failed_item_count": 0,
+      "evaluation_failure_count": 0,
+      "telemetry_failure_count": 0,
+      "scores": {
+        "answer_correctness_v2": {
+          "mean": 0.6666666666666666,
+          "valid_count": 3
+        },
+        "citation_support_v1": {
+          "mean": 0.8333333333333334,
+          "valid_count": 3
+        }
+      },
+      "dataset_run_url": "http://127.0.0.1:28420/project/millenium/datasets/cmvcgm11i0003mj7tbjygxtlr/runs/43dc9f5227f5ed27",
+      "evaluator_id": "295243b34dfa38c45b70500cc29f6db589992d8b446470c543848a95bf822300"
+    },
+    {
+      "execution_id": "7114e00e-4744-4d96-bd06-ee8629a6d419",
+      "status": "completed",
+      "dataset_id": "cmvcgm11i0003mj7tbjygxtlr",
+      "dataset_version": "2026-10-21T07:06:27.962000+00:00",
+      "dataset_snapshot_sha256": "96b7a01696cde3f8198f1d7de9ddcdf65f17738d7186ea955f928abf1c52f427",
+      "completed_item_count": 3,
+      "failed_item_count": 0,
+      "evaluation_failure_count": 0,
+      "telemetry_failure_count": 0,
+      "scores": {
+        "answer_correctness_v2": {
+          "mean": 0.8250000000000001,
+          "valid_count": 3
+        },
+        "citation_support_v1": {
+          "mean": 0.8333333333333334,
+          "valid_count": 3
+        }
+      },
+      "dataset_run_url": "http://127.0.0.1:28420/project/millenium/datasets/cmvcgm11i0003mj7tbjygxtlr/runs/07553eac30c097d2",
+      "evaluator_id": "295243b34dfa38c45b70500cc29f6db589992d8b446470c543848a95bf822300"
+    }
+  ]
 }
