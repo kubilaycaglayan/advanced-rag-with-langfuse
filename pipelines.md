@@ -106,7 +106,7 @@ Only v2.16 is supported. Historical definitions remain in Git history.
     "num_predict": 1600,
     "think": false,
     "snippet_chars": 300,
-    "instruction_fingerprint": "dbc2b5623281cdf1583d940fe5e5e889b0638946aa9b3de3e183bad35c83ae94",
+    "instruction_fingerprint": "8509364e19da56c20f5df1215a2884a76e05763e1fceeb9b778c86fd7436cebc",
     "query_aware_reranking": true,
     "provider": "ollama",
     "scene_candidate_count": 30,
@@ -166,3 +166,13 @@ Only v2.16 is supported. Historical definitions remain in Git history.
   "notes": "Released based on v2.15. On timeout, turn budget, or tool budget, generate the answer from the compacted agent conversation instead of a separately selected evidence digest. Earlier tool results may still be compacted."
 }
 ```
+
+## Maintenance identity
+
+The November 2026 cleanup retains v2.16 behavior and migrates its instruction
+protection from all source-file string literals to an explicit instruction
+manifest: current system/synthesis prompts, tool schemas, transformation
+templates, and named message-building helpers. The instruction and catalog
+checksums change deliberately; historical manifests are not rewritten.
+Source fingerprints and Git revisions distinguish maintenance revisions.
+Conversation handoff retains its separate byte-level fingerprint.

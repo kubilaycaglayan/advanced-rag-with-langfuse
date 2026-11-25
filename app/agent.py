@@ -1518,15 +1518,50 @@ def tool_names(*, include_graph_search: bool = False) -> list[str]:
     return [spec["function"]["name"] for spec in _tool_specs(include_graph_search=include_graph_search)]
 
 
+# Explicit message-building boundary: obsolete draft prompts and unrelated source
+# literals do not participate. Inline templates remain protected alongside schemas.
+INSTRUCTION_BUILDERS = (
+    "_initial_scene_message", "_precheck_message", "_true_account_message",
+    "_moment_message", "_sequence_message", "_premise_probe",
+    "_verify_submission", "_search_progress_hint", "_synthesize", "run_agent",
+)
+INSTRUCTION_TEMPLATES = (
+    "hyde_system", "grammar_system", "query_expansion_system",
+    "scene_moment_system", "scene_select_system",
+)
+
+
+def instruction_manifest() -> dict[str, Any]:
+    """Current instructions, tool contracts, and inline message templates.
+
+    Helper literals conservatively include formatting and data keys, so edits to
+    message construction cannot silently evade the released instruction boundary.
+    Corpus overrides are recorded independently through prompt/profile identities.
+    """
+    try:
+        from .prompt_templates import PROMPT_TEMPLATES
+    except ImportError:
+        from prompt_templates import PROMPT_TEMPLATES
+    tree = ast.parse(Path(__file__).read_text(encoding="utf-8"))
+    functions = {node.name: node for node in tree.body if isinstance(node, ast.FunctionDef)}
+    return {
+        "format": 1,
+        "system": SYSTEM_PROMPT,
+        "synthesis": _SYNTHESIS_SYSTEM,
+        "tools": _tool_specs(),
+        "templates": {name: PROMPT_TEMPLATES[name] for name in INSTRUCTION_TEMPLATES},
+        "messages": {
+            name: [node.value for node in ast.walk(functions[name])
+                   if isinstance(node, ast.Constant) and isinstance(node.value, str)
+                   and not (isinstance(functions[name].body[0], ast.Expr)
+                            and node is functions[name].body[0].value)]
+            for name in INSTRUCTION_BUILDERS
+        },
+    }
+
+
 def instruction_fingerprint() -> str:
-    """Fingerprint literal instruction text, including inline messages and tool specs."""
-    source = Path(__file__).resolve().parent
-    literals: dict[str, list[str]] = {}
-    for filename in ("agent.py", "prompt_templates.py"):
-        tree = ast.parse((source / filename).read_text(encoding="utf-8"))
-        literals[filename] = [node.value for node in ast.walk(tree)
-                              if isinstance(node, ast.Constant) and isinstance(node.value, str)]
-    return hashlib.sha256(json.dumps(literals, ensure_ascii=False, sort_keys=True,
+    return hashlib.sha256(json.dumps(instruction_manifest(), ensure_ascii=False, sort_keys=True,
                                      separators=(",", ":")).encode()).hexdigest()
 
 

@@ -33,3 +33,20 @@ class CurrentContract(TestCase):
         self.assertFalse(local.agent_settings.initial_scene_probe)
         self.assertTrue(local.agent_settings.premise_early_stop)
         self.assertEqual(local.agent_settings.scene_candidate_count, 42)
+
+    def test_instruction_manifest_protects_messages_and_schemas(self):
+        import ast
+        from unittest.mock import patch
+        from app.agent import instruction_fingerprint
+        baseline = instruction_fingerprint()
+        with patch("app.agent.SYSTEM_PROMPT", "changed system instruction"):
+            self.assertNotEqual(instruction_fingerprint(), baseline)
+        with patch("app.agent._tool_specs", return_value=[]):
+            self.assertNotEqual(instruction_fingerprint(), baseline)
+        parse = ast.parse
+        with patch("app.agent.ast.parse", side_effect=lambda source: parse(source.replace(
+                "Submit a supported answer with passage IDs, or say the evidence is insufficient.",
+                "Changed inline instruction."))):
+            self.assertNotEqual(instruction_fingerprint(), baseline)
+        with patch("app.agent.ENTITY_CARD_DRAFT_PROMPT", "unused draft changed"):
+            self.assertEqual(instruction_fingerprint(), baseline)
