@@ -12,7 +12,7 @@ docker compose run --no-deps --rm -T \
   -e GIT_CONFIG_COUNT=1 \
   -e GIT_CONFIG_KEY_0=safe.directory \
   -e GIT_CONFIG_VALUE_0=/workspace \
-  app python -m app.experiments --dataset set3 --pipeline v2.4 --item-id ITEM_ID
+  app python -m app.experiments --dataset set3 --pipeline v2.16 --item-id ITEM_ID
 ```
 
 Replace the command after `app` as needed. This runs in a separate container and leaves the live app container untouched. Do not omit the Git mount or safe-directory variables for experiment runs; either omission causes the run to fail before answering a question.

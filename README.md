@@ -13,6 +13,10 @@ Tested but not optimized with *The Alienist* by Caleb Carr. <br/>
 
 **[🏆 Explore top-performing runs and metrics](docs/best-performing-versions.md)**
 
+The supported pipeline is **v2.16**, with local Ollama and OpenAI options. See the
+[technical guide](TECHNICAL_GUIDE.md) for configuration and experiment commands.
+Older pipeline execution is unsupported; historical results remain available.
+
 ## How it works
 
 The pipeline retrieves relevant passages from the books and uses them to generate answers with citations.

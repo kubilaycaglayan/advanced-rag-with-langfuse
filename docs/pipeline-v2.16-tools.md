@@ -1,4 +1,4 @@
-# Pipeline v2.12 tool list
+# Pipeline v2.16 tool list
 
 Which tools and automatic steps return content, their size, and which precision and recall techniques apply to each.
 
@@ -50,3 +50,6 @@ Which tools and automatic steps return content, their size, and which precision 
 **Primary rule:** per-tool recall is a diagnostic for search tools only. The main recall measure is **context recall** over the union of passages the generator received.
 
 **Primary rule:** P@K applies only to ranked passage lists (`semantic_search`, `keyword_search`). Other tools still get set precision, scene P@K, or fact precision where their output supports it.
+
+At the time, turn, or tool budget, v2.16 uses the compacted working conversation
+for its final answer without further tools. Both Ollama and OpenAI use this flow.

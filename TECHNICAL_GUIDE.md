@@ -1,178 +1,168 @@
-# Millennium RAG experiment setup
+# Millennium v2.16 technical guide
 
-## Current workflow
+## Supported workflow
 
-New runs default to `retrieval_mode: "full"`: search the original question, a HyDE hypothetical document, three distinct literary query alternatives, and a grammar-corrected question. Each query is embedded and searched separately; reciprocal rank fusion merges the candidates before cross-encoder reranking and evidence-grounded answer generation. Use an explicit `baseline`, `hyde`, `query_expansion`, or `hyde_query_expansion` config for component comparisons. Grammar correction is included in `full`.
+The only supported pipeline is **v2.16**. HTTP questions and dataset experiments
+share `app/pipeline_resolver.py` and `app/pipeline_runner.py`. Older pipeline
+versions and the fixed engine are unsupported. Git history contains their code.
 
-When Langfuse is enabled, the Millennium fixed pipeline uses `rag-answer`, `rag-hyde`, `rag-query-expansion`, and `rag-grammar-correction` from Langfuse **Prompts**. Save a new version and assign the `production` label (or pass a different `prompt_label`); each request fetches the selected label with the SDK cache disabled, pins the returned versions, and links generation observations to those prompts. When Langfuse is disabled or unavailable, local prompt templates and the selected corpus profile keep interactive answering available.
+The agent gathers evidence through 13 tools, runs connection/scene/true-account/
+sequence/moment/premise checks, verifies submissions, and synthesizes cited
+answers. On timeout, turn limit, or tool limit it answers from the compacted
+conversation without tools. See [the catalog](pipelines.md) and
+[tool reference](docs/pipeline-v2.16-tools.md).
 
-## Corpus selection and optional Langfuse
+The catalog defaults to local Ollama `qwen3.6:35b`. The Millennium frontend
+explicitly selects OpenAI `gpt-6-luna` with high reasoning effort. Both choices
+use v2.16. Query transformations still use the configured local generation
+model, and embeddings/reranking stay local.
 
-Set `CORPUS_ID` to the corpus folder name. The app reads its title, language, question sets, book path, answer-facts path, profile, and Langfuse settings from `corpora/<id>/corpus.yaml`; set `CORPUS_ROOT` only when that corpus directory is mounted elsewhere. Each corpus has a separate index collection and generated files under `data/<id>/`. The existing Millennium frontend and deployment live under `frontends/millennium/`.
+## Configuration
 
-For interactive answering and indexing, Langfuse is optional. Set `LANGFUSE_ENABLED=false`, or omit the Langfuse keys, to use local profile prompts and run without traces. Hosted dataset experiments and the Langfuse management scripts still need an enabled project and credentials. Millennium's Langfuse project, prompt label, evaluator prefix, and dataset names are in its corpus YAML.
+Supply `settings` to `POST /ask` or an experiment. Omit `pipeline` to follow
+the catalog default, or send `"pipeline":"v2.16"`.
 
-The judge definitions are edited in Langfuse **Evaluators**: `millennium-answer_correctness_v1`, `millennium-answer_correctness_v2`, `millennium-answer_correctness_v3` and `millennium-citation_support_v1`. Runs use `answer_correctness_v2` by default: the judge marks each of the item's `required_facts` and `supporting_details` (from the expected output; maintained in `corpora/millennium/answer-facts.json` and uploaded as a new dataset version with `python app/answer_facts.py --apply`) present, partial or missing, and the code scores required facts at 90% and details at 10%. Pass `correctness_evaluator: answer_correctness_v3` to use the fact-based judge executed through a local `opencode serve` (`deepseek-v4.1-flash-free`, variant `low`); pass `answer_correctness_v1` for the old single-score judge. v3 is a local-only evaluator: its Langfuse object stays active with the project's `ollama-local` connection as a registry placeholder, while the runner executes it through `opencode serve` based on `JUDGE_MODELS`. Do not assign a managed Langfuse rule to v3; that would run the placeholder model and duplicate the local score. Start `opencode serve` with `OPENCODE_JUDGE_URL` (default `http://127.0.0.1:4096`) before running v3. Design, rollback versions and trial results: `docs/plans/2026-10-19-answer-correctness-v2.md`. The runner pins their current definitions and uses their actual prompt messages and model names when calling local Ollama. It validates the numeric 0–1 contract and supported variables, without comparing editable rubric text to Python templates. The old `rag-eval-*` Prompt entries are retained for historical runs and are no longer the source of judge instructions. Native UI tests use the `ollama-local` model connection through the authenticated gateway. The experiment runner automatically executes both judges and uploads scores; additional automatic Langfuse rules are unnecessary and would duplicate evaluation.
+| Setting | Purpose |
+| --- | --- |
+| `agent_provider` | `ollama` or `openai` |
+| `agent_model` | Local Ollama model override |
+| `agent_think` | Local thinking toggle |
+| `agent_context_length` | Positive local context length |
+| `agent_reasoning_effort` | OpenAI: none, low, medium, high, xhigh, max |
+| `automatic_scene_search` | Enable/disable initial scene probe |
+| `scene_candidate_count` | Scene candidate pool, 1–100; default 30 |
+| `premise_early_stop` | Direct premise resolution; default false |
+| `retrieval_mode` | expand_query transformations: baseline, hyde, query_expansion, hyde_query_expansion, full |
+| `hyde` | Include hypothetical passage when the selected transformation mode supports it |
+| `expansion_count` | Number of alternative queries, 1–10; default 3 |
+| `parallel_transformations` | Run independent transformations concurrently |
+| `name_completion` | Name normalization used by current tools |
+| `scene_search_hits` | Candidate count for moment-scene selection |
+| `scene_window`, `scene_stride` | Scene index window/stride |
+| `scene_thinking` | Thinking for index-time summaries |
+| `passage_chars`, `min_passage_chars`, `passage_overlap` | Passage indexing configuration |
+| `generation` | Local transformation temperature, context_length, output_budgets |
 
-Every dataset item has a stable, readable session: its question number and the first 45 characters of the question in kebab case, e.g. `QA1-did-salander-and-mikael-have-affair`. The number is the item's CSV data row (`source_row` − 1); an item added in Langfuse can set its own with `{"label": "QA36"}` in its metadata, otherwise it is named after its item ID. Runs before 2026-10-15 used `qa-<dataset-id>-<item-id>` sessions; on 2026-10-15 those were renamed in place in Langfuse's ClickHouse (`events_full`, `events_core`) and tagged, with the original rows and the old-to-new mapping kept in the `session_rename_backup_20261015` database. Older execution records under `data/millennium/` still show the old session names. Each run trace is also tagged `question:QA1`, and its scores filter on that tag: a dashboard line chart of a score over time, filtered by trace tag `question:QA1`, shows how that question's score moved across runs. Open **Sessions** (widen the date range: the list filters by when a session was created), select a question session, and expand a run trace to see the root, all query transformations, six searches and their embedding observations, fusion, reranking, evidence formatting, answer generation, citation extraction, and both judges. Experiments and their scores use `sdk-experiment`; interactive requests use `default`. These are tracing environments, not retrieval variants. `/ask` accepts an optional `session_id`; otherwise it groups repeated normalized questions under a stable `interactive-...` session. The web UI groups questions into one session per client IP, `ui-<ip>` with dots as dashes (e.g. `ui-78-163-48-13`); an IPv6 client is named after the first four groups of its address (e.g. `ui-2a00-1d34-cf1e-9701`), because devices rotate the rest, and records the browser's random cookie ID as the trace's user ID; a browser may view and rate only traces with its own user ID. Older web UI traces were moved into their IP sessions on 2026-10-15 (backup tables `ui_events_full`/`ui_events_core` in `session_rename_backup_20261015`); traces recorded before client IPs were captured keep their `interactive-ui-<uuid>` session.
+A transformation mode is an option within v2.16, not a historical pipeline.
+For example, `baseline` disables expand_query rewrites; it does not select the
+removed fixed retrieval engine. Local-only settings are rejected for OpenAI.
+OpenAI failures do not silently fall back to Ollama.
 
-**Run an experiment on the latest pipeline:** in Langfuse open **Datasets → QA.csv → Run experiment** (remote), and use
-an empty payload:
+The old fixed-pipeline candidate counts, wide retrieval, RRF, low-confidence,
+entity-matrix, graph, context-index, answer-thinking, and prompt-label settings
+are removed. Unsupported settings and pipeline IDs fail explicitly.
 
-```json
-{}
-```
+## Corpus and indexing
 
-That always runs the deployed app's current pipeline with its default settings and the `production` prompts. Add only
-a name if you want one, e.g. `{"variant_label":"my-test"}`; any `config` or `prompt_label` makes it a variant instead.
+Set `CORPUS_ID` to the corpus folder name. Its `corpus.yaml` selects books,
+question sets, answer facts, language, behavior profile, and Langfuse project.
+`CORPUS_ROOT` supports a separately mounted corpus. Generated data stays under
+`data/<corpus-id>/`; collections are isolated by corpus and index identity.
 
-Or run `python app/experiments.py --dataset QA.csv --variant full-retrieval`; when `--pipeline` is omitted, the runner follows the catalog default (`v2.16`). To compare a baseline, explicitly pass a config file containing `{"retrieval_mode":"baseline"}`. Reference answers are provided only to the correctness judge, never to retrieval or answer generation.
+Indexing builds passage vectors, overlapping scene-summary vectors, and entity
+cards. BM25 uses an in-memory index of the same passages. Obsolete context and
+event-graph index builders are removed; existing stored collections/files are
+left untouched.
 
+`POST /index` builds an index; `POST /ask` validates it without rebuilding.
+Changing chunking or embedding identities requires a matching index. Incomplete
+indexes require an explicit rebuild. Existing other collections are retained.
 
-This repository root is the implementation target for the Langfuse hosted dataset experiment workflow. The plan and current preparation findings are in [the integration handoff](docs/plans/LANGFUSE_INTEGRATION_PLAN.md). The legacy repository is reference material only; the target project is implemented directly here.
+## Interactive API
 
-## Stage 1 setup
-
-Create a Python environment and install the SDK release verified against this machine's Langfuse instance:
-
-```bash
-python3 -m venv .venv
-. .venv/bin/activate
-python -m pip install -r app/requirements.txt
-cp -n .env.example .env
-```
-
-Set the project-scoped `LANGFUSE_PUBLIC_KEY` and `LANGFUSE_SECRET_KEY` in `.env`. Keep `.env` local. Langfuse should be reachable at `http://127.0.0.1:28420` from the host. The required hosted project is named `millenium`; the dataset is named `QA.csv`.
-
-Check project/dataset access without changing Langfuse, then seed the target-root CSV once:
-
-```bash
-set -a; . ./.env; set +a
-python app/seed_dataset.py --check-only
-python app/seed_dataset.py
-```
-
-The seed command validates all rows before it writes, assigns deterministic UUIDv5 item IDs, maps questions to `input.question` and references to `expected_output.answer`, and records the CSV checksum and row provenance. It saves its import mapping under `EXPERIMENT_DATA_DIR` (default `./data`). On a later invocation it verifies the original rows without updating them. If a dataset already contains items but has no local seed mapping, the command refuses by default; `--reconcile-existing` permits an explicit check of deterministic seed IDs and provenance and can finish a partial first import. Once the original mapping exists, added Langfuse items are allowed, while missing seeded items are reported and never recreated. Edit live QA cases in Langfuse after the initial import.
-
-The evaluator rubric specifications and typed configuration/identity helpers live in `app/evaluator_specs.py`, `app/resolved_config.py`, and `app/identity.py`. The four runtime prompts and four evaluator definitions (answer correctness v1, v2, v3 and citation support v1) are managed in Langfuse. The default prompt label is `production`; every execution fetches that label once, records immutable prompt IDs/versions, and uses the fetched templates for generation and judging. `EVALUATOR_MODEL` is separate from `GENERATION_MODEL` and defaults to `qwen3:8b`. `EVALUATOR_OLLAMA_URL` optionally selects a separate endpoint for local judge calls; if unset, evaluators use `OLLAMA_URL`. Set `OLLAMA_CONTEXT_LENGTH=8192` on the host Ollama service: the pipeline calls with `num_ctx: 8192` while judge calls use the default, and qwen3:8b reloads for about 2 s on every switch otherwise. With a uniform context the switches cost under 0.1 s.
-
-Reconcile the Langfuse asset catalog explicitly after deployment. A read-only run reports missing or mismatched assets. Creation is opt-in; updates create new versions only when explicitly requested:
-
-```bash
-set -a; . ./.env; set +a
-python app/prompt_assets.py
-python app/prompt_assets.py --create-missing
-python app/prompt_assets.py --create-new-versions
-python app/prompt_assets.py --label staging --create-missing
-```
-
-The runtime prompts are `rag-answer`, `rag-hyde`, `rag-query-expansion`, and `rag-grammar-correction`. Evaluator objects are `millennium-answer_correctness_v1`, `millennium-answer_correctness_v2`, `millennium-answer_correctness_v3` and `millennium-citation_support_v1`; their stable IDs and versions are resolved from the Langfuse v2 evaluator API before a run starts. Local Ollama executes the v1/v2/citation prompts; v3 runs through a local `opencode serve` because the free opencode tier only serves requests made from inside opencode. The project also has an `ollama-local` Langfuse LLM connection for Playground and other UI workflows, but this local evaluator path does not use it. v3's Langfuse object is active with the `ollama-local` connection as a registry placeholder; `JUDGE_MODELS` selects the real opencode execution. Preflight still accepts a paused opencode evaluator if that connection is removed. The evaluator objects remain the versioned canonical rubric/output/model definitions. Do not run managed evaluator rules in parallel with the local path, which would duplicate scores. Promote prompt labels in Langfuse deliberately; choose another label with `--prompt-label` for a CLI run or `prompt_label` in the trigger payload. Missing labels/assets, inactive evaluators, and incompatible score contracts fail preflight. Prompt and rubric edits are accepted.
-
-## Callback routing
-
-The current Langfuse Docker UI only accepts webhook URLs on ports 80 and 443 and blocks private destinations by default. In the local Langfuse deployment, `LANGFUSE_WEBHOOK_WHITELISTED_HOST=172.18.0.1` permits the bridge hostname, and the `langfuse-webhook-proxy` service binds only to `172.18.0.1:80` and forwards `POST /experiments/run` to the app on `127.0.0.1:8001`. Configure the dataset webhook URL as `http://172.18.0.1/experiments/run` and add `X-Experiment-Trigger-Token` with the same value as `EXPERIMENT_TRIGGER_TOKEN`. Keep request signing disabled unless `LANGFUSE_WEBHOOK_SECRET` is also set in the app environment. Langfuse sends `projectId`, `datasetName`, `datasetId`, and a `payload` value; version 4.59 sends that payload as a JSON string, which the handler decodes, while also accepting an object and `customPayload` for compatible callers. Payload fields are `variant_label`, `config`, optional `dataset_version`, `item_ids`, and `prompt_label`. The bridge address is deployment-specific and must be rechecked after network changes.
-
-## Stage 2 implementation
-
-The target app exposes `/ask`, `/index`, and the experiment API from `app/main.py`. Interactive calls and dataset tasks share `app/pipeline.py::run_pipeline(question, config)`. `/ask` defaults to full retrieval, 1200-character passages built by joining paragraphs to at least 400 characters, 30 fused candidates, and 10 evidence passages; when no reranked passage scores at least `low_confidence_score` (2.0), it uses `low_confidence_top_k` (15) passages and lets the answer model reason before answering. Each search also returns its top `wide_candidate_count` (100) hits; when the best fused candidate scores below `wide_trigger_score` (3.5), wider-pool passages that the cross-encoder scores above every fused candidate and above `low_confidence_score` are placed in front of the usual evidence (at most `wide_max_hits`, 3), which is otherwise unchanged. A strong fused candidate can be on topic without answering, so above that score a wider-pool passage is still admitted when it beats every fused candidate by more than `wide_override_margin` (2.0). When the question uses a bare name the books rarely use alone (e.g. "Mikael"), name completion searches the completed wording ("Mikael Blomkvist") as well; its hits join the wider pool, which is then scored against the completed wording and must also beat every fused candidate scored against it. Some answers are a whole scene of dialogue that never names the people involved, so no single passage matches the question; a second index holds LLM summaries of every window of `scene_window` (6) consecutive passages of one EPUB section, every `scene_stride` (3) passages. Unless the evidence is weak (the low-confidence path), the question is matched against these summaries, and the passages of the best-matching scene are added after the usual evidence when its summary beats every scene the top evidence already comes from by more than `scene_margin` (1.0) and scores above `low_confidence_score`. It requires the matching index to be ready and does not rebuild an index during a question request.
-
-Start the Docker services after setting `.env` and the trigger token:
+Local default:
 
 ```bash
-cp -n .env.example .env
-# Set Langfuse project keys and a long random EXPERIMENT_TRIGGER_TOKEN in .env.
-docker compose up --build -d
+curl -sS http://127.0.0.1:8001/ask -H 'Content-Type: application/json' \
+  -d '{"question":"Who tried to shoot Mikael?","pipeline":"v2.16","cache_mode":"bypass"}'
 ```
 
-Build the default index once. Each indexing configuration receives its own content-addressed Qdrant collection; the manifest and point counts are stored in `data/millennium/experiments.sqlite3`.
+OpenAI:
 
 ```bash
-curl -sS -X POST http://127.0.0.1:8001/index \
-  -H 'Content-Type: application/json' -d '{}'
+curl -sS http://127.0.0.1:8001/ask -H 'Content-Type: application/json' \
+  -d '{"question":"Who tried to shoot Mikael?","settings":{"agent_provider":"openai","agent_reasoning_effort":"high"},"cache_mode":"bypass"}'
 ```
 
-An interrupted or failed index is left incomplete and will not be silently reused. To explicitly rebuild that same index identity, pass `{"explicit_rebuild":true}` with the same `config` object. Existing other collections are retained.
+`POST /ask/stream` provides the streaming form. Responses include citations,
+pipeline identity, model/provider metadata, timings, and trace ID when tracing
+is enabled. Cache modes are use, bypass, and refresh; cache layers are
+request-scoped. Rate limiting and the shared interactive admission lock remain.
 
-Ask one interactive question through the shared pipeline:
+## Experiments and Langfuse
+
+Use the durable `app.experiments` runner. The temporary
+`run_agentic_experiment.py` bridge was removed.
+
+From the repository root, use a one-off container with Git mounted and the
+worktree marked safe:
 
 ```bash
-curl -sS -X POST http://127.0.0.1:8001/ask \
-  -H 'Content-Type: application/json' \
-  -d '{"question":"Did Salander and Mikael have affair?"}'
+docker compose run --no-deps --rm -T \
+  -v "$PWD:/workspace" \
+  -v "$(command -v git):/usr/local/bin/git:ro" \
+  -w /workspace \
+  -e GIT_CONFIG_COUNT=1 \
+  -e GIT_CONFIG_KEY_0=safe.directory \
+  -e GIT_CONFIG_VALUE_0=/workspace \
+  app python -m app.experiments --dataset QA.csv --pipeline v2.16 \
+  --item-id ITEM_ID --cache-mode bypass
 ```
 
-Interactive requests use the answer cache by default. Answer-cache matching ignores question capitalization while retaining the submitted wording in traces and answers. Cache controls are top-level request fields, separate from pipeline `settings`; use `cache_mode` (`use`, `bypass`, or `refresh`) and optionally `cache_layers` (currently `answer`). A cache hit has a fresh trace linked to the approved source trace. Only answers with correctness at least 0.90 or a user thumbs-up are reusable; citation-support scores do not affect that decision. If Redis is unavailable, the request runs without a cache hit.
+Use `--settings /workspace/path/to/settings.json` for provider or other
+overrides. Experiments refresh caches by default. CLI options also support
+dataset version, repeated item IDs, variant label, cache layers, and correctness
+evaluator selection. Reference answers go only to evaluators.
 
-Inspect or clear entries locally. Scoped clearing requires both project and corpus IDs; clearing all entries requires `--all`:
+Remote Langfuse dataset experiments use `POST /experiments/run` and
+`X-Experiment-Trigger-Token`. An empty custom payload selects v2.16 defaults.
+Payloads support pipeline, settings (config alias), variant_label,
+dataset_version, item_ids, correctness_evaluator, cache_mode, and cache_layers.
+The handler accepts object or JSON-string payloads. Queueing, idempotency,
+status inspection, retries, trace-upload verification, and failure categories
+remain supported. Deployment-specific webhook routing should be checked against
+the running deployment.
 
-```bash
-python -m app.answer_cache stats
-python -m app.answer_cache clear --project-id millenium --corpus-id millennium --pipeline-version v2.7 --question 'Who is Lisbeth Salander?'
-python -m app.answer_cache clear --all
-```
+Interactive tracing is optional: `LANGFUSE_ENABLED=false` disables it.
+Hosted experiments require the configured project and credentials.
+`OPENAI_API_KEY` is required for OpenAI. Keep credentials in local environment
+configuration; the frontend proxy keeps them out of browser code.
 
-Run all active items from the pinned QA dataset version through the CLI (on the host, activate the app environment and source `.env` first):
+Generation instructions come from local templates and corpus profiles.
+Historical Langfuse RAG prompt objects remain stored but are no longer loaded or
+reconciled. Langfuse **Evaluators** remain the versioned source of judge rubrics.
+Inspect them with `python -m app.prompt_assets`; explicit
+`--create-missing` and `--create-new-versions` flags retain evaluator management.
 
-```bash
-set -a; . ./.env; set +a
-python app/experiments.py --dataset QA.csv --variant baseline
-```
+Correctness evaluator versions are independent of pipeline versions and remain
+supported. The default is `answer_correctness_v2`; citation support remains
+`citation_support_v1`. See `app/evaluator_specs.py`,
+`app/quality_evaluators/README.md`, and `app/quality_metrics.py` for current
+contracts/executors. Do not duplicate scores with additional managed rules when
+the experiment runner already executes the same judges.
 
-Use a configuration JSON file to change one component, for example `{"passage_chars":600}`. To run one item, add `--item-id <Langfuse-dataset-item-id>`. To rerun a historical snapshot, pass its UTC timestamp with `--dataset-version '2026-10-14T10:00:00+00:00'`. To pin a non-default prompt environment label, add `--prompt-label staging`. Every invocation creates a new execution ID, run name, and execution directory under `data/millennium/executions/`; an item's session ID remains stable across runs. Pipeline identity incorporates the pinned prompt IDs/versions; evaluator identity incorporates the evaluator objects and judging prompt versions.
+Existing results, metrics, manifests, dataset history, and Langfuse trace links
+are preserved. Rescoring utilities remain available without historical pipeline
+execution. Historical setup and experiment evidence are retained in the
+[archived technical guide](docs/handoff/2026-11-25-pre-cleanup-technical-guide.md).
 
-The run config can vary `retrieval_mode` (`full`, `baseline`, `hyde`, `query_expansion`, or `hyde_query_expansion`), `candidate_count`, `top_k`, `passage_chars`, `min_passage_chars` (join consecutive paragraphs of one section until a passage reaches this length, never past `passage_chars`; a section's last passage shorter than this joins the passage before it, or takes that passage's last paragraphs when the two do not fit, so the line a chapter ends on keeps its context; default 400, set 0 to disable), `passage_overlap` (paragraphs repeated between joined passages; requires `min_passage_chars`), `expansion_count` (query alternatives; a `rag-query-expansion` version may reference `{{expansion_count}}`), `hyde` (default on; false drops only the hypothetical-document query and keeps every other step of the mode; removing it lowered QA.csv correctness 0.764 → 0.722 and cut mean latency by about 3–5 s), `parallel_transformations` (default off; when on, the HyDE, query-expansion and grammar requests run together in a thread pool, so `OLLAMA_NUM_PARALLEL` must allow concurrent requests; each rewrite keeps its Langfuse span under the question's trace), `low_confidence_score` (cross-encoder score below which the top reranked passage counts as weak evidence; null disables the low-confidence path) and `low_confidence_top_k` (evidence passages used, with reasoning, on that path), `wide_candidate_count` (per-search hits fused into a wider pool that is reranked against the question; 0 or a value no larger than `candidate_count` disables it) and `wide_trigger_score` (wider-pool passages are considered only when the best fused candidate scores below this; null always considers them; an admitted passage must beat every fused candidate and `low_confidence_score`, and is added in front of the usual evidence), `wide_override_margin` (above `wide_trigger_score`, a wider-pool passage is still admitted when it beats that bar by more than this; default 2.0, calibrated on QA.csv; null disables) and `wide_max_hits` (most wider-pool passages admitted; default 3, the most any QA.csv question admitted before the cap), `keyword_hits` (default 30, 0 = off; BM25 hits per question from an in-memory keyword index over the passages, stop words dropped and plural -s stemmed; they are reranked against the question and considered only when one beats every fused candidate by `keyword_margin`, default 4.0, calibrated on QA.csv and Additional Questions; then the hits that beat every fused candidate, at most `keyword_max_hits` (5), are added in front of the evidence in reading order, each joined with the passage before it), `scene_margin` (default 1.0, calibrated on QA.csv; null disables scene search), `scene_window` and `scene_stride` (passages per summarised window and the step between windows; `/index` builds the scene index once per passage index, with one summary-model call per window, about 1.7 hours with gemma4:26b for the three books on this machine; summaries are cached in `SCENE_SUMMARY_CACHE`, default `/data/millennium/scene-summaries.jsonl`) and `scene_search_hits` (summaries scored per question), `scene_moment` (default on: describe the moment a question asks about, search the scene summaries with it, let the generation model pick the scene and add it with the window that continues it; needs the scene index), `entity_names` (default on: `/index` builds entity cards once per passage index, one `scene_summary_model` call per non-overlapping window of 6 passages listing its people, other names of people, places, companies, vehicles, clothing and objects with the person each belongs to, about 2.8 hours with gemma4:26b for the three books; extractions are cached in `ENTITY_CACHE`, default `/data/millennium/entities.jsonl`, and the merged cards are written under `ENTITY_CARDS_DIR`, default `/data/millennium/entity-cards`; when the question names a person and its best match among the links into that person, reranked against the question and scoring at least `low_confidence_score`, is another name of that person not already in the evidence, the passages stating that person's other names are added in front of the evidence with a `Link:` line saying whose name each is), `scene_context` (default on, off when `scene_margin` is null since it needs the scene index: `/index` builds a second passage collection embedding each passage with its scene summary cut to the `scene_context_sentences` (2) sentences nearest the passage; per question, that collection is searched with the same queries, every row is reranked with its context in front, and up to `scene_context_max_hits` (2) passages not already in the evidence are added after the usual evidence, before scene passages, when they rank in the top `scene_context_rank` (3) and score above `low_confidence_score`; the later paths do not see them and the answer model sees only book text; on QA.csv it fixed two items and lowered two by answer drift, with no evidence lost), `entity_matrix` (default on; uses the same entity cards: the question's phrases pick kinds of link, edge types such as nickname, vehicle or tattoo, at MiniLM similarity of at least `entity_matrix_similarity`, default 0.75; named entities and their name variants restrict the links; the remaining words are scored against each end's facts, and with neither the links stated in the most windows come first; up to `entity_matrix_max_hits` (8) names add the passage that states them with a `Link:` line, unless the evidence already names the best one; it runs only when `entity_names` adds nothing), `entity_graph` (default off, rejected on 2026-10-18, see docs/IMPROVEMENTS.md: `/index` then also extracts events between people per entity window with the 4,000 characters before it, one `scene_summary_model` call per window, about 2.8 hours with gemma4:26b, cached in `ENTITY_EVENTS_CACHE`, default `/data/millennium/entity-events.jsonl`; per question, Personalized PageRank with damping `entity_graph_damping` (0.5) over passages, entity cards and events, seeded by the entities the question names and the evidence, ranks the events; of the best `entity_graph_pool` (30), up to `entity_graph_max_hits` (2) scoring at least `low_confidence_score` add the passage that states them after the usual evidence with a `Link:` line, and `entity_graph_facts` (default 0) adds that many best-matching events as one-line `Event:` evidence entries instead), `keyword_rare_share` (default null = off; a keyword hit with one sentence holding every rare non-name question word, each in fewer than this share of passages, is added at any score), `scene_thinking` (default off; when a scene is admitted, tell the answer model its passages are one continuous scene and let it reason first: more complete answers on QA.csv but no correctness gain, about 50 s more per such question), `scene_summary_model` (the Ollama model that writes the summaries; default `gemma4:26b`, null uses the generation model; it is unloaded after building and never used while answering; each new summary is checked for names its excerpt does not use and written again with the excerpt's names listed if needed), `query_translation` (default on, not used in `baseline` mode; `english_word_share`, default 0.6, skips the request when at least that share of the question's non-name words are ones the books use at least twice, `null` always asks; one generation request names the question's language and translates a non-English question into English, keeping names as written except translated forms of the novels' own names, which become the English edition's; the translation is searched alongside the question as asked and replaces it for the rewrites, name completion, reranking and scene search, while the answer model sees the question as asked; an English question is never reworded; prompt `rag-query-translation`), `answer_thinking` (let the generation model reason before writing the final answer; query transformations never think, and thinking tokens count against the output budgets); an empty reasoning answer is retried once without thinking), `name_completion` (default on; expand a bare first name or surname in the question to the two-word name the indexed passages predominantly use, when the passages use the other half of that name at least three times as often as the word itself, e.g. Mikael → Mikael Blomkvist; the completed question is searched separately, to `name_completion_hits` (300) hits since this one query does not enter fusion, and its hits join the wider pool, the wider pool is reranked against the completed question, and the admission bar also includes the best fused candidate scored against the completed question; fused candidates and the usual evidence keep their original-question scores; the answer model sees the completed question only when the evidence includes a passage that only the completed search found or one admitted through `wide_override_margin`, otherwise the question as asked), `rrf_constant`, the embedding/reranker/generation model identities, and generation temperature/context/output budgets. Managed prompt content is selected by Langfuse label and pinned per prompt version. Set `EVALUATOR_MODEL` to change the local Ollama judge model and optionally `EVALUATOR_OLLAMA_URL` to change its endpoint; reconcile the corresponding managed evaluator definition with `python app/prompt_assets.py --create-new-versions` before running, since preflight rejects model/config drift. For a controlled comparison, hold dataset snapshot, prompt/evaluator versions, models, and other config fields fixed and change one selected variable at a time.
+## Identity and verification
 
-The HTTP trigger accepts Langfuse's `datasetName`/`datasetId` and `customPayload` fields. Custom payload fields are `pipeline`, `variant_label`, `config`, optional `dataset_version`, `item_ids`, `prompt_label`, `cache_mode`, and `cache_layers`. Dataset runs refresh cache by default without reading cached answers: intermediate misses are stored, and generated answers are stored only when correctness is at least 0.90. Set `cache_mode` to `bypass` for an isolated run or `use` to allow answer-cache hits. Omit `pipeline` to use the released catalog default (`v2.16`); set it only to pin a specific version for a comparison:
+`pipelines.sha256` protects the catalog definition. The instruction manifest
+protects current system/synthesis prompts, tool schemas, transformation
+templates, and named message builders. Conversation handoff has a separate
+byte-level hash. Source fingerprints, Git revision, corpus/profile/prompt/model
+identities, and derived settings remain recorded.
 
-```json
-{
-  "datasetName": "QA.csv",
-  "datasetId": "<Langfuse dataset id>",
-  "customPayload": {
-    "variant_label": "passages-600",
-    "config": {"passage_chars": 600}
-  }
-}
-```
+The maintenance keeps the name v2.16 while deliberately migrating fingerprints.
+Historical manifests are not rewritten. Cache identities distinguish changed
+definitions and supported settings.
 
-The endpoint requires `X-Experiment-Trigger-Token`; configure the same `EXPERIMENT_TRIGGER_TOKEN` in Langfuse custom headers. If request signing is enabled, the endpoint validates the raw-body HMAC signature and timestamp using `LANGFUSE_WEBHOOK_SECRET`. It checks project/dataset access, queues the run, and returns `execution_id` and `status_url` without executing dataset items in the request. Poll `GET /experiments/{execution_id}` for state, item/scoring counts, manifest identifiers, and the Langfuse run URL. An optional `Idempotency-Key` makes transport retries return the existing execution.
+Run Python tests using the one-off container command above, replacing the final
+command with `python -m unittest discover -s tests -v`. Set
+`EXPERIMENT_DATA_DIR=/tmp/cleanup-unit-tests` in that container to isolate test
+locks/data from live requests. Frontend checks run from its directory:
+`npm test` and `npm run build`.
 
-Recover a failed or partial execution with an authenticated `POST /experiments/{execution_id}/retry`. It creates a new execution ID, copies the original dataset/config/prompt-label selection, and records `retry_of_execution_id`; it never reuses the old run identity. Running and completed executions cannot be retried through this endpoint.
-
-`/ask/stream` returns the same work as newline-delimited JSON: a `trace` event, `status` (`answering` or `thinking`), `token` events as the answer is written, and a final `done` carrying the same result `/ask` returns (or `error`). The pipeline runs in a copied context so its Langfuse trace is the same as `/ask`'s, and it finishes even if the browser disconnects. The Express frontend requests it when the browser accepts `application/x-ndjson` and forwards tokens to the UI.
-
-The single worker uses the Langfuse Python SDK's hosted-dataset experiment runner at concurrency 1. It pins a historical dataset snapshot before selecting item IDs, writes a canonical snapshot checksum, resolves Hugging Face model commit SHAs when available, records pipeline and evaluator identities separately, and stores per-item evidence, outputs, errors, scores, and rationales. RAG latency and evaluator latency are recorded separately. An interrupted running job is marked failed on worker startup; a retry creates a new execution.
-
-Experiment traces propagate a small set of searchable identifiers and model settings. The full experiment metadata is also recorded on the `experiment configuration` observation in its `extended_json` metadata field. This keeps the extended configuration available in Langfuse without propagating every setting as a separate OpenTelemetry attribute on every child span.
-
-### Historical acceptance status (before the full-retrieval workflow update)
-
-Acceptance checks are classified as mocked automated, live-service integration, or manual UI. The focused automated suite is `docker exec millenium-app-1 python -m unittest discover -s tests -v`.
-
-| Scenario | Category | Prerequisites | Outcome / evidence |
-| --- | --- | --- | --- |
-| Stable identity, config validation, seed idempotency without overwriting edits, index isolation, malformed judge retry, queued-job restart, Ollama errors, empty retrieval, invalid citation labels, failure categorization, explicit abstention N/A, Langfuse UI payload parsing | Mocked automated | Docker app image with pinned requirements | Passed; 17 tests. |
-| Langfuse prompt/evaluator catalog and strict production-label preflight | Live-service integration | Langfuse 4.59, project credentials | Passed; all five production prompts are present at version 1, and both evaluator objects are present at their canonical versions (the answer-correctness object is v3; the correctness *spec* used by new runs is v2). Read-only reconciliation: `python app/prompt_assets.py`. |
-| Three-item smoke experiment, stable sessions, trace tree, evaluator statuses, comparison linkage | Live-service integration | Langfuse, Qdrant, Ollama, model cache | Passed on the current build: execution `d11c7bd6-1684-4071-8afb-8369a56f688e` completed 3/3 with zero item, evaluation, or telemetry failures; each item trace was confirmed through the observations API. Two citation scores were explicitly not applicable and the run-level abstention count is 2. Evaluator objects are v3/v1. Evidence: `data/millennium/comparisons/stage3-final-smoke.json` and the Langfuse dataset run URL. |
-| 35-item baseline run and 35-item `passage_chars=600` comparison | Live-service integration | Same as smoke; full CPU/Ollama runtime | Completed with caveat: baseline execution `b6cc08f4-623a-45ad-9480-2e3b88d02110` completed 35/35 (answer correctness 0.500, n=35; citation support 0.817, n=30); 600 execution `1c27a075-bf27-4297-9cc7-ae6783d6b1c4` processed 35/35 but is partial because one citation judge response was invalid (answer correctness 0.486, n=35; citation support 0.783, n=30). Both used the same dataset version/snapshot, evaluator ID, models, prompts, and all config except `passage_chars`; pipeline IDs differ (`pipeline-97f7084e27982990` vs `pipeline-d1c00f94462bbe2c`) and index collections are isolated. The failing abstention item was rerun after fixing null-score abstention handling as `d4ea7df8-6426-4703-a533-b6920cc70a8a`: completed 1/1, zero evaluation/telemetry failures, citation status `not_applicable`. This recovery is diagnostic and does not overwrite the original comparison. Run URLs and per-item comparisons are recorded in `data/millennium/comparisons/stage3-passage-size.json`. |
-| Managed prompt version propagation | Live-service integration | Langfuse prompt write access; production and staging labels | Passed: production control `bf1223a8-643b-4b56-86a8-d1256cb62ddf` and one-item `rag-answer` v4 run `a061c0b4-5a82-4d01-ae26-d43ade61cecd` completed on the same dataset item. The other four prompts resolve to the same v1 IDs; pipeline ID changed and evaluator ID stayed fixed. Production remains on `rag-answer` v1. Evidence: `data/millennium/comparisons/stage3-prompt-version.json`. |
-| Unchanged-config repeat and stable question session | Live-service integration | Running app, Langfuse credentials, Ollama | Passed using two authenticated callback runs, `d528a62a-3f9d-4dea-8beb-763a74632de5` and `e5df72b8-4ee7-443c-8625-552da4e7312f`: both completed 1/1 with zero failures. Pipeline and evaluator IDs plus the item session ID remained stable; execution and experiment IDs changed. Duplicate delivery returned the original execution (`created: false`). Evidence: `data/millennium/comparisons/stage3-callback-repeat.json`. |
-| Callback endpoint acknowledgement, duplicate delivery, and background completion | Live-service integration | Running app, Langfuse credentials, trigger token | Passed after fixing the shared Langfuse resource lifecycle: callback execution `d528a62a-3f9d-4dea-8beb-763a74632de5` completed 1/1 with two scores and zero telemetry failures. Earlier callbacks exposed that shutting down the SDK singleton during request validation stopped the worker's score consumer; the fix keeps the process-wide consumer alive and flushes with a bounded wait. Authenticated retry `870166d0-7721-4641-b84b-aaa8db22d62a` also completed 1/1. |
-| Langfuse UI dataset trigger acknowledgement and completion | Manual UI | Langfuse UI, private-bridge allowlist/proxy, configured callback token | Passed 2026-10-14. The Langfuse dataset UI showed “Remote experiment triggered”; execution `0580dfdb-89c3-434d-8c77-e84e7c103424` completed 1/1 with zero item, evaluation, and telemetry failures on dataset `QA.csv` version `2026-10-14T14:52:28.730000+00:00`. Langfuse experiment `c738ff5c37805b41` is linked at `http://127.0.0.1:28420/project/millenium/datasets/cmv7zo6nw0007pa7t55mno068/runs/c738ff5c37805b41`. The real UI payload exposed and verified support for Langfuse's stringified JSON payload and project slug. Execution summary: `data/millennium/comparisons/stage3-ui-trigger.json`. |
-| Historical dataset pinning and unpinned edit visibility | Live-service integration | Dataset edits and retained Langfuse version history | Passed with temporary item `c813f13d-8d92-4d18-9433-8e735ba5613d`: the unpinned run included it at the later dataset version; the pinned historical attempt rejected it because it was absent from the original 35-item snapshot. The temporary item was deleted; current dataset is back to 35 items. Evidence: `data/millennium/comparisons/stage3-dataset-version.json`. |
-| Prompt/evaluator version change propagation, missing evaluator, label failures, unavailable evaluator model connection | Live-service integration | Ability to promote/create test versions and a controllable model connection | Prompt version propagation passed as above. Evaluator `answer_correctness_v1` v2 was recorded in a successful one-item run with the same pipeline and a new evaluator fingerprint; the canonical definition was restored as v3 afterward. Evidence: `data/millennium/comparisons/stage3-evaluator-version.json`. An unavailable prompt label failed clearly without fallback (`3adbbce0-088d-4de3-b1fd-13a012b4ede7`; `data/millennium/comparisons/stage3-missing-label.json`). With the managed-evaluator API returning no objects, preflight failed with a repair command and no dataset run was created (`b300cbff-ead4-402e-b95b-b88e5575b05a`; `data/millennium/comparisons/stage3-missing-evaluator.json`). The supported local evaluator path has a separate endpoint setting; its unavailable-endpoint case produced two evaluator errors and a partial run without generation or telemetry failure (`e7280d96-74c8-444a-abbb-effb5003f565`). A Langfuse-native `ollama-local` connection is registered for UI workflows, but this local execution path still calls Ollama directly. |
-| Failure matrix: unavailable Ollama, malformed judge JSON, empty retrieval, invalid citations, partial item failure, telemetry failure, duplicate trigger, worker restart | Mocked automated + live-service integration | Fault injection for each dependency; running queue worker | Passed for all listed cases. Live unavailable generation, evaluator outage, malformed judge JSON, empty retrieval, invalid citation labels, mixed-success item failure, failed trace export, duplicate callback delivery, and worker restart each produced the intended distinct status/artifact. The latest invalid-citation run (`e5ab78dd-efd9-419f-9806-9035c7601a4e`) also verified the deterministic zero score and its linked evaluator observation through the API (`data/millennium/comparisons/stage3-invalid-citation-regression.json`). Per-case execution IDs, errors, scores, and run links are in `data/millennium/comparisons/stage3-*.json`; the 17-test mocked suite covers failure categorization and worker queue lifecycle. |
-| Per-question comparison across experiments and session trace inspection | Live-service integration + manual UI | At least two runs on the same dataset version | API verified for item `02ad392b-b200-58ce-a96d-f7cd57a5a252`: its 1200 and 600 runs have distinct trace IDs, share the same session, and each expose 13 observations including retrieval, generation, evaluator spans, pipeline/evaluator IDs, dataset version, and managed prompt/evaluator versions. Per-item score/rationale comparisons are in `data/millennium/comparisons/stage3-passage-size.json`. The Langfuse UI comparison at `/project/millenium/experiments/results?baseline=d310a89546c94498&c=ae099e92677d1057` displays the 1200 and 600 runs side by side for each question; the first page showed 20 of 35 rows and summary averages. Screenshot: `data/millennium/comparisons/stage3-ui-passage-comparison.png`. |
-
-This checkout runs its app on host loopback port `8001` because port `8000` is already used by the reference app in this environment. Remote browser requests must use the frontend on port `43179`; the app API is not exposed remotely. The Langfuse UI callback proxy is restricted to the `172.18.0.1` Docker bridge address and forwards only the experiment POST path to `127.0.0.1:8001`. After network or deployment changes, verify the bridge and allowlist before enabling the trigger.
-
-## Inputs and reference material
-
-| Source | Target | Purpose / disposition |
-| --- | --- | --- |
-| Legacy RAG application's `app/main.py` and `tracing.py` | Reference only | Consult selected source behavior while implementing the API and tracing directly in this root project. |
-| Locally supplied book files (`*.epub`) | local `corpora/millennium/books/` | Three corpus inputs copied into the target for indexing; excluded from Git. Their checksums are in the local integration handoff plan. |
-| `corpora/millennium/QA.csv` | Used directly by `app/seed_dataset.py` | Authoritative 35-row seed; checksum is recorded in the handoff. |
-| Legacy notebooks, results, HTML, indexes, caches, `.env`, and unrelated files | Reference/excluded | Exploratory, generated, secret, or outside the runtime workflow. |
-
-Stage 1 preparation and Stage 2 implementation are complete. Stage 3 live runner behavior, failure handling, UI-originated trigger, and visual per-question comparison are verified as recorded above. The 35-item passage-size run remains partial due to one malformed citation judge response; its original result and one-item recovery are retained separately.
+The [cleanup plan](docs/plans/2026-11-25-v2.16-maintenance-cleanup.md) records
+scope and the verification checklist.
