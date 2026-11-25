@@ -1,0 +1,832 @@
+{
+  "baseline_revision": "a01031b",
+  "runtime_revision": "f1142c3",
+  "final_source_verified_at": "278b8b1",
+  "ui_baseline_revision": "d408c78",
+  "ui_cleanup_revision": "33cb103",
+  "checks": {
+    "python_tests": 172,
+    "frontend_server_tests": 14,
+    "frontend_ui_tests": 22,
+    "static_build": "passed",
+    "lovable_build": "passed",
+    "eslint": "passed with one existing Button fast-refresh warning"
+  },
+  "comparisons": [
+    {
+      "label": "baseline",
+      "provider": "ollama",
+      "question": "Did Salander and Mikael have affair?",
+      "item_id": "785e319a-89a1-5950-96cf-f99a23162a87",
+      "seconds": 44.99200281800586,
+      "answer": "Yes, Lisbeth Salander and Mikael Blomkvist had an affair. The books state that they slept together for half a year, which was initiated by Salander [E1]. Although the relationship ended abruptly when Salander cut off all contact with him, Blomkvist reflects on their time together as a romantic involvement, referring to himself as her \"ex-boyfriend\" and acknowledging that he missed her [E1]. During the events of the first book, they also share intimate moments, such as showering together and Salander sleeping in his bed, though she later ends the relationship [E2], [E3].",
+      "trace_id": "9dd6e19d0af122fc8b660e6ee61cd2fa",
+      "error": null,
+      "scores": {
+        "answer_correctness_v2": {
+          "name": "answer_correctness_v2",
+          "value": 0.9667,
+          "comment": "The answer confirms the affair (R1) but provides partial information for D1 and D3. D1 mentions the initiation by Salander, which is not in the reference answer, and D3 refers to the end of the relationship without specifying the exact event (seeing Mikael with Erika Berger).",
+          "metadata": {
+            "evaluator_model": "qwen3:8b",
+            "evaluator_version": 2,
+            "managed_evaluator_id": "cmvf5zbot0007mj7ti62igkpt",
+            "evaluator_latency_seconds": 9.2701,
+            "evaluator_id": null,
+            "fact_verdicts": {
+              "R1": "present",
+              "D1": "partial",
+              "D2": "present",
+              "D3": "partial"
+            }
+          }
+        },
+        "citation_support_v1": {
+          "name": "citation_support_v1",
+          "value": 1.0,
+          "comment": "The answer's factual claims are fully supported by the provided evidence. The claim that Salander and Mikael had an affair is supported by [E1], which states they slept together and the relationship lasted for half a year. The claim that the relationship ended abruptly when Salander cut off all contact is also supported by [E1]. The claim that Blomkvist refers to himself as her 'ex-boyfriend' and acknowledges missing her is supported by [E1]. The claim about sharing intimate moments like showering together and Salander sleeping in his bed is supported by [E3]. All claims are directly or indirectly entailed by the cited evidence.",
+          "metadata": {
+            "evaluator_model": "qwen3:8b",
+            "evaluator_version": 3,
+            "managed_evaluator_id": "cmv81kasl000dpa7t19ma0e3o",
+            "evaluator_latency_seconds": 5.0669,
+            "evaluator_id": null
+          }
+        }
+      },
+      "quality_metrics": {
+        "qm_precision_retrieval_at_5": 0.2,
+        "qm_precision_retrieval_set": 0.0882,
+        "qm_recall_retrieval_context": 0.5,
+        "qm_faithfulness_generation": 1.0,
+        "qm_relevancy_generation": 1.0
+      },
+      "quality_errors": [],
+      "quality_error": null
+    },
+    {
+      "label": "baseline",
+      "provider": "ollama",
+      "question": "Who tried to shoot Mikael?",
+      "item_id": "f59e5c80-b58e-5639-add4-ac587c7a368a",
+      "seconds": 34.7265523620008,
+      "answer": "Based on the evidence provided, **Miro Nikolich** tried to shoot Mikael Blomkvist.\n\nIn passage [E1], it is stated that \"Blomkvist had his middle finger between the trigger and the trigger guard as Miro Nikolich tried to keep shooting.\" Passage  further confirms this, noting that Blomkvist knew he was in \"mortal danger\" when Nikolich took a step back and yanked the gun towards him, and that shots went off during their struggle.",
+      "trace_id": "f2b963709d5b7216c63d625ba3ad8e6d",
+      "error": null,
+      "scores": {
+        "answer_correctness_v2": {
+          "name": "answer_correctness_v2",
+          "value": 0.5,
+          "comment": "The answer correctly identifies Miro Nikolich as the person who tried to shoot Mikael Blomkvist, which matches R2. However, it does not mention Martin Vanger or the rifle on Hedeby Island, which are part of R1, making R1 missing.",
+          "metadata": {
+            "evaluator_model": "qwen3:8b",
+            "evaluator_version": 2,
+            "managed_evaluator_id": "cmvf5zbot0007mj7ti62igkpt",
+            "evaluator_latency_seconds": 5.9988,
+            "evaluator_id": null,
+            "fact_verdicts": {
+              "R1": "missing",
+              "R2": "present"
+            }
+          }
+        },
+        "citation_support_v1": {
+          "name": "citation_support_v1",
+          "value": 1.0,
+          "comment": "The answer claims that Miro Nikolich tried to shoot Mikael Blomkvist. This is directly supported by the evidence in [E1], which states that 'Miro Nikolich tried to keep shooting' and describes the physical struggle between Blomkvist and Nikolich. The evidence also supports the claim that Nikolich was the aggressor attempting to shoot Blomkvist, including the description of the gun's mechanism and the physical actions taken by Nikolich. Therefore, all factual claims in the answer are appropriately supported by the cited evidence.",
+          "metadata": {
+            "evaluator_model": "qwen3:8b",
+            "evaluator_version": 3,
+            "managed_evaluator_id": "cmv81kasl000dpa7t19ma0e3o",
+            "evaluator_latency_seconds": 4.295,
+            "evaluator_id": null
+          }
+        }
+      },
+      "quality_metrics": {
+        "qm_precision_retrieval_at_5": 0.6,
+        "qm_precision_retrieval_set": 0.1304,
+        "qm_recall_retrieval_context": 0.6,
+        "qm_faithfulness_generation": null,
+        "qm_relevancy_generation": 1.0
+      },
+      "quality_errors": [],
+      "quality_error": null
+    },
+    {
+      "label": "baseline",
+      "provider": "openai",
+      "question": "Did Salander and Mikael have affair?",
+      "item_id": "785e319a-89a1-5950-96cf-f99a23162a87",
+      "seconds": 24.743615002997103,
+      "answer": "Yes. Salander and Blomkvist slept together; she initiated the affair, which lasted six months. [E1]",
+      "trace_id": "e904cd99d0f4b162a010ca6e381b4d20",
+      "error": null,
+      "scores": {
+        "answer_correctness_v2": {
+          "name": "answer_correctness_v2",
+          "value": 0.9333,
+          "comment": "The answer confirms the affair (R1) and its duration (D2), but does not mention the location (D1) or the reason for its end (D3).",
+          "metadata": {
+            "evaluator_model": "qwen3:8b",
+            "evaluator_version": 2,
+            "managed_evaluator_id": "cmvf5zbot0007mj7ti62igkpt",
+            "evaluator_latency_seconds": 9.2091,
+            "evaluator_id": null,
+            "fact_verdicts": {
+              "R1": "present",
+              "D1": "missing",
+              "D2": "present",
+              "D3": "missing"
+            }
+          }
+        },
+        "citation_support_v1": {
+          "name": "citation_support_v1",
+          "value": 1.0,
+          "comment": "The answer's factual claim that 'Salander and Blomkvist slept together; she initiated the affair, which lasted six months' is fully supported by the evidence in [E1]. The evidence explicitly states that 'Blomkvist and Salander had slept together. It had been at her initiative, and the relationship had lasted for half a year.' This directly supports all the factual claims made in the answer.",
+          "metadata": {
+            "evaluator_model": "qwen3:8b",
+            "evaluator_version": 3,
+            "managed_evaluator_id": "cmv81kasl000dpa7t19ma0e3o",
+            "evaluator_latency_seconds": 3.4715,
+            "evaluator_id": null
+          }
+        }
+      },
+      "quality_metrics": {
+        "qm_precision_retrieval_at_5": 0.3,
+        "qm_precision_retrieval_set": 0.1429,
+        "qm_recall_retrieval_context": 0.25,
+        "qm_faithfulness_generation": 1.0,
+        "qm_relevancy_generation": 1.0
+      },
+      "quality_errors": [],
+      "quality_error": null
+    },
+    {
+      "label": "baseline",
+      "provider": "openai",
+      "question": "Who tried to shoot Mikael?",
+      "item_id": "f59e5c80-b58e-5639-add4-ac587c7a368a",
+      "seconds": 27.755840559999342,
+      "answer": "Miro Nikolich tried to shoot Mikael Blomkvist, firing a sub-machine gun at him. [E1]",
+      "trace_id": "9087aa46922c760f7d6b674f9a13b0b6",
+      "error": null,
+      "scores": {
+        "answer_correctness_v2": {
+          "name": "answer_correctness_v2",
+          "value": 0.5,
+          "comment": "The answer provides information about Miro Nikolich trying to shoot Mikael Blomkvist with a sub-machine gun, which matches R2. However, it does not mention Martin Vanger shooting at Mikael with a rifle on Hedeby Island, which is required by R1.",
+          "metadata": {
+            "evaluator_model": "qwen3:8b",
+            "evaluator_version": 2,
+            "managed_evaluator_id": "cmvf5zbot0007mj7ti62igkpt",
+            "evaluator_latency_seconds": 6.4461,
+            "evaluator_id": null,
+            "fact_verdicts": {
+              "R1": "missing",
+              "R2": "present"
+            }
+          }
+        },
+        "citation_support_v1": {
+          "name": "citation_support_v1",
+          "value": 0.0,
+          "comment": "The answer claims that Miro Nikolich tried to shoot Mikael Blomkvist, firing a sub-machine gun at him. However, the provided evidence (E1) does not explicitly state that Miro Nikolich fired a sub-machine gun or that he tried to shoot Mikael Blomkvist. The evidence only describes an attack with a gun, but does not specify the type of weapon or the intent of the attacker. Therefore, the factual claims in the answer are not fully supported by the evidence.",
+          "metadata": {
+            "evaluator_model": "qwen3:8b",
+            "evaluator_version": 3,
+            "managed_evaluator_id": "cmv81kasl000dpa7t19ma0e3o",
+            "evaluator_latency_seconds": 4.0867,
+            "evaluator_id": null
+          }
+        }
+      },
+      "quality_metrics": {
+        "qm_precision_retrieval_at_5": 0.2667,
+        "qm_precision_retrieval_set": 0.0882,
+        "qm_recall_retrieval_context": 0.6,
+        "qm_faithfulness_generation": 1.0,
+        "qm_relevancy_generation": 1.0
+      },
+      "quality_errors": [],
+      "quality_error": null
+    },
+    {
+      "label": "cleaned",
+      "provider": "ollama",
+      "question": "Did Salander and Mikael have affair?",
+      "item_id": "785e319a-89a1-5950-96cf-f99a23162a87",
+      "seconds": 37.821115637008916,
+      "answer": "Yes, Lisbeth Salander and Mikael Blomkvist had an affair. In *The Girl with the Dragon Tattoo*, they engage in a sexual relationship while working together on the Vanger case, which continues into the epilogue where they have sex at the cabin [E1]. Later, in *The Girl Who Played with Fire*, it is revealed that their relationship lasted for half a year and was initiated by Salander before she ended it [E2].\n\npassage_ids: [\"6bd63a3f\", \"7a6f14bf\"]",
+      "trace_id": "d4a23175ff1707569d48160062be08ce",
+      "error": null,
+      "scores": {
+        "answer_correctness_v2": {
+          "name": "answer_correctness_v2",
+          "value": 1.0,
+          "comment": "The answer confirms the affair (R1), provides the start (D1), duration (D2), and end (D3) of the relationship, matching the reference answer.",
+          "metadata": {
+            "evaluator_model": "qwen3:8b",
+            "evaluator_version": 2,
+            "managed_evaluator_id": "cmvf5zbot0007mj7ti62igkpt",
+            "evaluator_latency_seconds": 10.1268,
+            "evaluator_id": null,
+            "fact_verdicts": {
+              "R1": "present",
+              "D1": "present",
+              "D2": "present",
+              "D3": "present"
+            }
+          }
+        },
+        "citation_support_v1": {
+          "name": "citation_support_v1",
+          "value": 1.0,
+          "comment": "The answer's factual claims are fully supported by the provided evidence. The claim that Salander and Mikael had an affair is supported by both E1 and E2. E1 describes their sexual relationship during the Vanger case and their intimate time at the cabin. E2 confirms that they had slept together, the relationship lasted for half a year, and it was initiated by Salander. All claims in the answer are directly supported by the labeled evidence.",
+          "metadata": {
+            "evaluator_model": "qwen3:8b",
+            "evaluator_version": 3,
+            "managed_evaluator_id": "cmv81kasl000dpa7t19ma0e3o",
+            "evaluator_latency_seconds": 3.9255,
+            "evaluator_id": null
+          }
+        }
+      },
+      "quality_metrics": {
+        "qm_precision_retrieval_at_5": 0.2,
+        "qm_precision_retrieval_set": 0.1148,
+        "qm_recall_retrieval_context": 0.5833,
+        "qm_faithfulness_generation": 1.0,
+        "qm_relevancy_generation": 1.0
+      },
+      "quality_errors": [],
+      "quality_error": null
+    },
+    {
+      "label": "cleaned",
+      "provider": "ollama",
+      "question": "Who tried to shoot Mikael?",
+      "item_id": "f59e5c80-b58e-5639-add4-ac587c7a368a",
+      "seconds": 30.90787900199939,
+      "answer": "Based on the evidence provided, **Miro Nikolich** tried to shoot Mikael Blomkvist.\n\nIn passage [E1], it is stated that \"Blomkvist had his middle finger between the trigger and the trigger guard as Miro Nikolich tried to keep shooting.\" Passage  further confirms this, noting that Blomkvist knew he was in \"mortal danger\" when Nikolich took a step back and yanked the gun towards him, and that shots went off during their struggle.\n\nWhile passage [E2] mentions that Paulsson arrested Blomkvist, it does not state that Paulsson tried to shoot him. Passage [E3] mentions Martin Vanger saying Blomkvist is going to die, but does not describe an active shooting attempt by Vanger in the provided text. The other passages discuss shootings of Dag Svensson and Mia Johansson, or police responses to those events, but do not identify anyone trying to shoot Mikael Blomkvist specifically.",
+      "trace_id": "19785c58265fae2c17a3ec23973e706a",
+      "error": null,
+      "scores": {
+        "answer_correctness_v2": {
+          "name": "answer_correctness_v2",
+          "value": 0.5,
+          "comment": "The answer correctly identifies Miro Nikolich as the person who tried to shoot Mikael Blomkvist, which matches the required fact R2. However, it does not mention Martin Vanger shooting at Mikael, which is required fact R1, hence R1 is marked as missing.",
+          "metadata": {
+            "evaluator_model": "qwen3:8b",
+            "evaluator_version": 2,
+            "managed_evaluator_id": "cmvf5zbot0007mj7ti62igkpt",
+            "evaluator_latency_seconds": 13.877,
+            "evaluator_id": null,
+            "fact_verdicts": {
+              "R1": "missing",
+              "R2": "present"
+            }
+          }
+        },
+        "citation_support_v1": {
+          "name": "citation_support_v1",
+          "value": 1.0,
+          "comment": "The answer correctly identifies Miro Nikolich as the person who tried to shoot Mikael Blomkvist, and this claim is fully supported by the evidence from [E1]. The passage explicitly states that Nikolich 'tried to keep shooting' and that Blomkvist was in 'mortal danger' during their struggle. Other passages ([E2], [E3]) do not contradict this claim and are irrelevant to the specific factual claim about who tried to shoot Mikael. Therefore, all factual claims in the answer are appropriately supported.",
+          "metadata": {
+            "evaluator_model": "qwen3:8b",
+            "evaluator_version": 3,
+            "managed_evaluator_id": "cmv81kasl000dpa7t19ma0e3o",
+            "evaluator_latency_seconds": 6.1599,
+            "evaluator_id": null
+          }
+        }
+      },
+      "quality_metrics": {
+        "qm_precision_retrieval_at_5": 0.6,
+        "qm_precision_retrieval_set": 0.125,
+        "qm_recall_retrieval_context": 0.6,
+        "qm_faithfulness_generation": null,
+        "qm_relevancy_generation": 1.0
+      },
+      "quality_errors": [],
+      "quality_error": null
+    },
+    {
+      "label": "cleaned",
+      "provider": "openai",
+      "question": "Did Salander and Mikael have affair?",
+      "item_id": "785e319a-89a1-5950-96cf-f99a23162a87",
+      "seconds": 30.435998328990536,
+      "answer": "Yes—they have a sexual relationship. Salander says she likes having sex with Mikael, and he says he likes it too. [E1] [E2]",
+      "trace_id": "88a06ccf928d487d96550b432639e261",
+      "error": null,
+      "scores": {
+        "answer_correctness_v2": {
+          "name": "answer_correctness_v2",
+          "value": 0.9,
+          "comment": "The answer confirms the existence of a sexual relationship (R1) but does not mention the start location (D1), duration (D2), or the reason for its end (D3).",
+          "metadata": {
+            "evaluator_model": "qwen3:8b",
+            "evaluator_version": 2,
+            "managed_evaluator_id": "cmvf5zbot0007mj7ti62igkpt",
+            "evaluator_latency_seconds": 7.2767,
+            "evaluator_id": null,
+            "fact_verdicts": {
+              "R1": "present",
+              "D1": "missing",
+              "D2": "missing",
+              "D3": "missing"
+            }
+          }
+        },
+        "citation_support_v1": {
+          "name": "citation_support_v1",
+          "value": 0.5,
+          "comment": "The answer claims that Salander and Mikael had an affair and that they have a sexual relationship. The cited evidence (E1 and E2) includes statements where Salander says she likes having sex with Mikael, and Mikael says he likes it too. However, these statements do not explicitly confirm an affair or a lasting relationship. The evidence supports the claim of a sexual relationship but does not provide direct evidence of an affair. Therefore, the support is incomplete, leading to a score of 0.5.",
+          "metadata": {
+            "evaluator_model": "qwen3:8b",
+            "evaluator_version": 3,
+            "managed_evaluator_id": "cmv81kasl000dpa7t19ma0e3o",
+            "evaluator_latency_seconds": 9.8047,
+            "evaluator_id": null
+          }
+        }
+      },
+      "quality_metrics": {
+        "qm_precision_retrieval_at_5": 0.0,
+        "qm_precision_retrieval_set": 0.0806,
+        "qm_recall_retrieval_context": 0.4167,
+        "qm_faithfulness_generation": 0.5,
+        "qm_relevancy_generation": 0.0
+      },
+      "quality_errors": [],
+      "quality_error": null
+    },
+    {
+      "label": "cleaned",
+      "provider": "openai",
+      "question": "Who tried to shoot Mikael?",
+      "item_id": "f59e5c80-b58e-5639-add4-ac587c7a368a",
+      "seconds": 13.269917482000892,
+      "answer": "Miro Nikolich tried to shoot Mikael Blomkvist, firing a sub-machine gun at him. [E1]",
+      "trace_id": "857301188ec3f38f782c44396fb6489c",
+      "error": null,
+      "scores": {
+        "answer_correctness_v2": {
+          "name": "answer_correctness_v2",
+          "value": 0.5,
+          "comment": "The answer provides information about Miro Nikolich trying to shoot Mikael Blomkvist with a sub-machine gun, which matches R2. However, it does not mention Martin Vanger shooting at Mikael with a rifle on Hedeby Island, which is required by R1.",
+          "metadata": {
+            "evaluator_model": "qwen3:8b",
+            "evaluator_version": 2,
+            "managed_evaluator_id": "cmvf5zbot0007mj7ti62igkpt",
+            "evaluator_latency_seconds": 6.6936,
+            "evaluator_id": null,
+            "fact_verdicts": {
+              "R1": "missing",
+              "R2": "present"
+            }
+          }
+        },
+        "citation_support_v1": {
+          "name": "citation_support_v1",
+          "value": 0.0,
+          "comment": "The answer claims that Miro Nikolich tried to shoot Mikael Blomkvist, firing a sub-machine gun at him. However, the provided evidence (E1) does not explicitly state that Miro Nikolich fired a sub-machine gun or that he tried to shoot Mikael Blomkvist. The evidence only describes an attack with a gun, but does not specify the type of weapon or the intent of the attacker. Therefore, the factual claims in the answer are not fully supported by the evidence.",
+          "metadata": {
+            "evaluator_model": "qwen3:8b",
+            "evaluator_version": 3,
+            "managed_evaluator_id": "cmv81kasl000dpa7t19ma0e3o",
+            "evaluator_latency_seconds": 4.0761,
+            "evaluator_id": null
+          }
+        }
+      },
+      "quality_metrics": {
+        "qm_precision_retrieval_at_5": 0.4,
+        "qm_precision_retrieval_set": 0.125,
+        "qm_recall_retrieval_context": 0.6,
+        "qm_faithfulness_generation": 1.0,
+        "qm_relevancy_generation": 1.0
+      },
+      "quality_errors": [],
+      "quality_error": null
+    }
+  ],
+  "paired_repeat": [
+    {
+      "label": "baseline-repeat",
+      "provider": "openai",
+      "question": "Did Salander and Mikael have affair?",
+      "item_id": "785e319a-89a1-5950-96cf-f99a23162a87",
+      "seconds": 20.874638669993146,
+      "answer": "Yes. Salander and Blomkvist slept together, and their affair lasted six months; it began at her initiative. [E1]",
+      "trace_id": "13610c34fd490ed427690cb1d1a61f32",
+      "error": null,
+      "scores": {
+        "answer_correctness_v2": {
+          "name": "answer_correctness_v2",
+          "value": 0.9333,
+          "comment": "The answer confirms the affair (R1) and its duration (D2), but does not mention the beginning in Hedeby (D1) or the ending due to seeing Mikael with Erika Berger (D3).",
+          "metadata": {
+            "evaluator_model": "qwen3:8b",
+            "evaluator_version": 2,
+            "managed_evaluator_id": "cmvf5zbot0007mj7ti62igkpt",
+            "evaluator_latency_seconds": 7.9077,
+            "evaluator_id": null,
+            "fact_verdicts": {
+              "R1": "present",
+              "D1": "missing",
+              "D2": "present",
+              "D3": "missing"
+            }
+          }
+        },
+        "citation_support_v1": {
+          "name": "citation_support_v1",
+          "value": 1.0,
+          "comment": "The answer's factual claims that Salander and Blomkvist slept together, their affair lasted six months, and it began at her initiative are all directly supported by the evidence in E1. The evidence explicitly states that they had slept together, the relationship lasted for half a year, and it was at her initiative. Therefore, all factual claims in the answer are appropriately supported.",
+          "metadata": {
+            "evaluator_model": "qwen3:8b",
+            "evaluator_version": 3,
+            "managed_evaluator_id": "cmv81kasl000dpa7t19ma0e3o",
+            "evaluator_latency_seconds": 3.2863,
+            "evaluator_id": null
+          }
+        }
+      },
+      "quality_metrics": {
+        "qm_precision_retrieval_at_5": 0.2,
+        "qm_precision_retrieval_set": 0.0645,
+        "qm_recall_retrieval_context": 0.1667,
+        "qm_faithfulness_generation": 1.0,
+        "qm_relevancy_generation": 1.0
+      },
+      "quality_errors": [],
+      "quality_error": null
+    },
+    {
+      "label": "cleaned-repeat",
+      "provider": "openai",
+      "question": "Did Salander and Mikael have affair?",
+      "item_id": "785e319a-89a1-5950-96cf-f99a23162a87",
+      "seconds": 23.60122311199666,
+      "answer": "Yes. They had sex, and their affair lasted about six months; Salander initiated it. [E1]",
+      "trace_id": "12469aa1c81c5c11d72aa25fe214a883",
+      "error": null,
+      "scores": {
+        "answer_correctness_v2": {
+          "name": "answer_correctness_v2",
+          "value": 0.9333,
+          "comment": "The answer confirms the affair and its duration but does not mention the location (Hedeby) or the reason for its end (Salander seeing Mikael with Erika Berger).",
+          "metadata": {
+            "evaluator_model": "qwen3:8b",
+            "evaluator_version": 2,
+            "managed_evaluator_id": "cmvf5zbot0007mj7ti62igkpt",
+            "evaluator_latency_seconds": 8.6534,
+            "evaluator_id": null,
+            "fact_verdicts": {
+              "R1": "present",
+              "D1": "missing",
+              "D2": "present",
+              "D3": "missing"
+            }
+          }
+        },
+        "citation_support_v1": {
+          "name": "citation_support_v1",
+          "value": 0.5,
+          "comment": "The answer claims that Salander and Mikael had an affair, that they had sex, and that the affair lasted about six months with Salander initiating it. The evidence (E1) states that Blomkvist and Salander had slept together, it was at her initiative, and the relationship lasted for half a year. While the evidence supports that they had sex and the affair lasted about six months, it does not explicitly mention that Mikael (Blomkvist) was involved in an affair with Salander, nor does it confirm that the affair was initiated by Salander. The evidence is partially supportive but lacks complete coverage of the factual claims made in the answer.",
+          "metadata": {
+            "evaluator_model": "qwen3:8b",
+            "evaluator_version": 3,
+            "managed_evaluator_id": "cmv81kasl000dpa7t19ma0e3o",
+            "evaluator_latency_seconds": 5.0536,
+            "evaluator_id": null
+          }
+        }
+      },
+      "quality_metrics": {
+        "qm_precision_retrieval_at_5": 0.2,
+        "qm_precision_retrieval_set": 0.1351,
+        "qm_recall_retrieval_context": 0.4167,
+        "qm_faithfulness_generation": 1.0,
+        "qm_relevancy_generation": 1.0
+      },
+      "quality_errors": [],
+      "quality_error": null
+    }
+  ],
+  "experiments": [
+    {
+      "execution_id": "85caa459-9654-4429-a7f6-323dee4042ed",
+      "status": "completed",
+      "pipeline_version": "v2.16",
+      "pipeline_id": "pipeline-v2.16-b904cd04",
+      "dataset_run_url": "http://127.0.0.1:28420/project/millenium/datasets/cmv7zo6nw0007pa7t55mno068/runs/4aa1027fa1282ed7",
+      "failed_item_count": 0,
+      "evaluation_failure_count": 0,
+      "telemetry_failure_count": 0,
+      "scores": {
+        "answer_correctness_v2": {
+          "mean": 0.9667,
+          "valid_count": 1
+        },
+        "citation_support_v1": {
+          "mean": 1.0,
+          "valid_count": 1
+        }
+      },
+      "agent_usage": {
+        "provider": "ollama",
+        "model": "qwen3.6:35b",
+        "reasoning_effort": "none",
+        "endpoint": "ollama",
+        "question_count": 1,
+        "calls": 4,
+        "prompt_tokens": 24980,
+        "completion_tokens": 836,
+        "total_tokens": 25816,
+        "cached_prompt_tokens": 0,
+        "reasoning_tokens": 0,
+        "estimated_cost_usd": 0.0
+      },
+      "source_revision": "7559a276e02cc8ad4c4dca9202b614de9783d8c3",
+      "source_dirty": false,
+      "index": {
+        "already_indexed": true,
+        "collection": "millennium_books_a7ebc5a988df037cd2ee",
+        "entities": {
+          "already_indexed": true,
+          "path": "/data/millennium/entity-cards/millennium_books_a7ebc5a988df037cd2ee_entities_4fd376280ebc.json"
+        },
+        "fingerprint": "a7ebc5a988df037cd2ee9337133a16423f1562e3edfeeaf1a56e6eab95a3888b",
+        "passages_indexed": 5522,
+        "scenes": {
+          "already_indexed": true,
+          "collection": "millennium_books_a7ebc5a988df037cd2ee_scenes_3c3187c02de5",
+          "scenes_indexed": 1786
+        }
+      }
+    },
+    {
+      "execution_id": "5e5a7a68-bf8d-468c-aa3b-5173a377b9ed",
+      "status": "completed",
+      "pipeline_version": "v2.16",
+      "pipeline_id": "derived-v2.16-22ea6403",
+      "dataset_run_url": "http://127.0.0.1:28420/project/millenium/datasets/cmv7zo6nw0007pa7t55mno068/runs/d7acbebc221be1a4",
+      "failed_item_count": 0,
+      "evaluation_failure_count": 0,
+      "telemetry_failure_count": 0,
+      "scores": {
+        "answer_correctness_v2": {
+          "mean": 0.9333,
+          "valid_count": 1
+        },
+        "citation_support_v1": {
+          "mean": 0.5,
+          "valid_count": 1
+        }
+      },
+      "agent_usage": {
+        "provider": "openai",
+        "model": "gpt-6-luna",
+        "reasoning_effort": "high",
+        "endpoint": "responses",
+        "question_count": 1,
+        "calls": 6,
+        "prompt_tokens": 26526,
+        "completion_tokens": 436,
+        "total_tokens": 26962,
+        "cached_prompt_tokens": 21025,
+        "reasoning_tokens": 154,
+        "estimated_cost_usd": 0.00097835
+      },
+      "source_revision": "278b8b1c564832f1cfb1cc937d3f49ed86f5da87",
+      "source_dirty": false,
+      "index": {
+        "already_indexed": true,
+        "collection": "millennium_books_a7ebc5a988df037cd2ee",
+        "entities": {
+          "already_indexed": true,
+          "path": "/data/millennium/entity-cards/millennium_books_a7ebc5a988df037cd2ee_entities_4fd376280ebc.json"
+        },
+        "fingerprint": "a7ebc5a988df037cd2ee9337133a16423f1562e3edfeeaf1a56e6eab95a3888b",
+        "passages_indexed": 5522,
+        "scenes": {
+          "already_indexed": true,
+          "collection": "millennium_books_a7ebc5a988df037cd2ee_scenes_3c3187c02de5",
+          "scenes_indexed": 1786
+        }
+      }
+    }
+  ],
+  "remote_submission": {
+    "http_status": 202,
+    "queue_status": "queued",
+    "pipeline": "v2.16",
+    "provider": "openai",
+    "isolated_store": true
+  },
+  "historical_record_read": {
+    "execution_id": "14551fd2-de71-447b-a53c-50567b1699f6",
+    "status": "completed",
+    "pipeline_version": "v1",
+    "dataset_run_url": "http://127.0.0.1:28420/project/millenium/datasets/cmv7zo6nw0007pa7t55mno068/runs/3487db09d6a2d40e"
+  },
+  "artifact_manifest": [
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/baseline-ollama.json",
+      "sha256": "078b58e60c9dc4c12309280ddb3b64473d12549e4c1ec844b76351cd49875ecc"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/baseline-ollama.log",
+      "sha256": "b642adeb905480af81b1fbdfd6662ca070a74b086d02fe4ea356ea8e1e544a57"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/baseline-openai.json",
+      "sha256": "a21dc5de9d58b63426488d6fb9ba85a2757d818649c795ea9d36643ecd96d09e"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/baseline-openai.log",
+      "sha256": "8c9ddc06ce63947426c5a301335aa4c481d7d536222dc9f1a1d11f10b0190c49"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/baseline-repeat-openai.json",
+      "sha256": "51142bd6aa7664a682b7e90466cd6664844bfd487bf6dfaeae77110ec5a49028"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/baseline-repeat-openai.log",
+      "sha256": "bc7a674f44c41c1d8e22261e828fe3727b9362dc0412e8471053b527a030f8c1"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/cleaned-ollama.json",
+      "sha256": "028f5244d1530fb4e6c400039bec3088d8859a94a96f55cfeb55b49e7b85403d"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/cleaned-ollama.log",
+      "sha256": "99c2506426e93546111e5997afe3ba845d89a11d517755a7e4ddf89b3ff67a25"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/cleaned-openai.json",
+      "sha256": "31f38ee2fe1b2c434479ff090b5f45d8cd1ce36c7f9854e61d51814f27af757d"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/cleaned-openai.log",
+      "sha256": "0a00a6bd366f20c22581411e5d8bc3342be152f0b55bc3e0445eefb7294c265f"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/cleaned-repeat-openai.json",
+      "sha256": "d991976932cba9b88538e0075a416bf06b34fa3f748982ed84898917abf313cf"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/cleaned-repeat-openai.log",
+      "sha256": "5c529065fe89de0104482e3113e03be2c43ff59295e713a08dc9100ab86f3e77"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/compare.py",
+      "sha256": "44e4d29a33daeebc7ad9d629d75732c6fc498b51c665e696e40539f29729c0c3"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/compare_repeat.py",
+      "sha256": "97f41455dda36c2811d2400f80a6aaff116d2637b1005ea48f85cb2afa20eded"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/comparison-repeat.json",
+      "sha256": "8aa2e82eec9b08ea051cf8f78ccb99e99ac7f8b23207f9c81515b92bc32c949b"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/comparison-repeat.log",
+      "sha256": "af046ba4406eb2359d0258e171c3dec5818cb2476df94a7eac3272aa30dda3c5"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/comparison.json",
+      "sha256": "2b121ee2cd605474f6530b1d8e74ec071ef49c6b0853df946a0d22ff864abdb8"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/comparison.log",
+      "sha256": "9ce7ec0fb20c6c21adb13bc4dd88ae61fdaaeb0000d199709f44263994abdccd"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/experiment-cli.log",
+      "sha256": "1fee9178d1133145897fad8126c9bbaffd7fbe8b6dc32af2307bdf34a1f66001"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/experiment-final-openai.log",
+      "sha256": "5616805754f80a9333513a052c140e53d36e60ad687a0de7712b220a8421e99f"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/historical-record.json",
+      "sha256": "71db4b9b101a3a78df0be1f61e158fe378994ae39a6ac518c6865e167c0e67e9"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/historical-record.log",
+      "sha256": "267abb83cd58e2f96e18d9f494c8e82bb29f98cd7820ba5b16f30b71f6755d8d"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/historical_record.py",
+      "sha256": "f539a2043e178958109170a87e6742446f4b8cb968d60e1e7427e1daf0e801db"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/instructions-before.json",
+      "sha256": "a6ac1699c9df087f64ee6ea6cf9383cd3a662738139f7f5de5c82feb339a99d4"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/live-transformations.json",
+      "sha256": "c9d7e212460859fe79032bec58b83cf5f193ff3967d56596926107f4e1d6037f"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/live-transformations.log",
+      "sha256": "09f040276d04225d218f0621f00ac48a2843665c4af6d659bad88d6ffd1c8c49"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/millenium-cleanup-agent.log",
+      "sha256": "a27d9b1487efac5700cb9abf1c4c93b32466d75fa926f5e60bdc1d7256400a1a"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/millenium-cleanup-baseline.log",
+      "sha256": "2abf914347b3bbde7379def894c6277deaeab8b8b4793ad34f12bae6701ecabf"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/millenium-cleanup-catalog.log",
+      "sha256": "640484bea7814da64c63264f8213641cb3b9dd949fb79cbf6c5c8234500caf31"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/millenium-cleanup-config.log",
+      "sha256": "0d2d33d3c0bf61e5a87d3937d5c29516fcfb5a15a18b1aa349f5bc13f1815175"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/millenium-cleanup-contract.log",
+      "sha256": "de427839ce304dedd8a4059ba33667853964e1dfa1f5c9ca237de610c44d52dc"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/millenium-cleanup-current.log",
+      "sha256": "7dd9dc4226b1570abb9e8cd8824b1fb1458af4bb0dff5bc1b81bbb585e144572"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/millenium-cleanup-entrypoints.log",
+      "sha256": "6e2e4c8957ffbd334b3811ea0a2035f7743fb15d8823ce56e17d2177e0051acf"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/millenium-cleanup-final-unit.log",
+      "sha256": "08c1b86c4dfab3fcaf7baefabb3b837dcf21fe5c6196d27887142d0484ba0b08"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/millenium-cleanup-fingerprint.log",
+      "sha256": "f2c877a869afb19cb2972a79af85d6792b931ed681a9e3af590264dfce4f8989"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/millenium-cleanup-fixed.log",
+      "sha256": "f2137267566514d791c3d57a826a14947473659407f79d04d2d31aecbeba8d38"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/millenium-cleanup-frontend-build.log",
+      "sha256": "8fdb4812d4e6d688cea3e85c0b34f9554d35a087f2d708fc6e67796d2c3293d8"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/millenium-cleanup-frontend-lint.log",
+      "sha256": "6ae5e179371bd748c5c76c650789f84d7d5a340463826c0e864986e8ac661157"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/millenium-cleanup-frontend-tests.log",
+      "sha256": "dde2abfe83fae73c4af6d27aa5711eb56ffd2913981bbc9dafa9fb6296effaf9"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/millenium-cleanup-helpers.log",
+      "sha256": "06af3a0c5295377ba1bd1a4134854af6c36166d915a71d36e65c1268cc2c5d57"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/millenium-cleanup-lovable-build.log",
+      "sha256": "40567872f57e657c2932c1499ac9e322985a61c898e55fa48083cda876c899db"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/millenium-cleanup-prompts.log",
+      "sha256": "6bc81c1cd0155b770d9625ffe6447d91ec9d3c051d0a75e3bff770232313a334"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/openai-settings.json",
+      "sha256": "521b812a447b2134f979c9665a318bfcee2484247a0dbe3c3cb0e9b5c72b6ce8"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/remote-api.json",
+      "sha256": "a792dd6b9ab69625473a5d67d621388db20faa8b3458517e4dda6b8869ffa001"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/remote-api.log",
+      "sha256": "903657bd58935a799eb07df95804410dcc4e974eaf09021254a3266e65cc59ab"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/remote_api.py",
+      "sha256": "4df260e3700051dd683b4941c8032845cffaf9d66918ebabc7114493a2bb5414"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/repeat-openai.sh",
+      "sha256": "2d38461396f77e297cfeb061a6b59f9265f3f2329f291fc1ab51e67e81501424"
+    },
+    {
+      "path": "data/millennium/comparisons/2026-11-25-maintenance-cleanup/run_questions.py",
+      "sha256": "859a610cf57ad54b9bb2c41fe89a2d4d139d467bac165b7a5288050ecd8dc172"
+    }
+  ]
+}
