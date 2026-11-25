@@ -731,3 +731,12 @@ passages and let the model reason. Name completion and `answer_thinking` stay op
 (no invented names) and query-expansion v4 (keep names as written) promoted to `production`.
 
 **Result:** target correct; QA.csv 0.529 → 0.614.
+
+## 2026-11-25: follow-up from code organization verification
+
+The pre-refactor baseline fails the detailed Gosseberga kitchen-bench question
+(`Additional Questions`, item `45d561b9-ca5e-4c5d-83cb-04b610da13dc`) with
+both Ollama and OpenAI. The scene-moment tool passes seven positional arguments
+to a six-argument retrieval function. The organization refactor preserves this
+failure; fix and regression coverage belong to a separate behavior change.
+See `docs/experiments/2026-11-25-organization-verification.md` for run evidence.

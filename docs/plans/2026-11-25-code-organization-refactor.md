@@ -1,7 +1,7 @@
 # Backend and Express server code organization refactor
 
 Date: 2026-11-25
-Status: In progress; baseline tests passed and pinned baseline experiments are running. Application refactoring has not started.
+Status: Implementation committed; final regression experiments and end-to-end verification are in progress.
 
 ## Objective and agreed decisions
 
