@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock, patch
 # Keep fixture spans out of the live Langfuse project the container is configured for.
 os.environ["LANGFUSE_TRACING_ENABLED"] = "false"
 
-from app.pipeline import _transform, run_pipeline
+from app.pipeline import _transform
 from app.prompt_assets import ManagedJudgePrompt, _evaluator_definitions, load_managed_evaluators, load_prompt_bundle, PROMPT_CATALOG
 from app.resolved_config import ResolvedPipelineConfig
 from app.experiments import ExperimentLangfuse, pack_experiment_metadata
@@ -31,65 +31,8 @@ class WorkflowChecks(unittest.TestCase):
         self.assertEqual(len(metadata_attrs), 1)
         self.assertEqual(json.loads(next(iter(metadata_attrs.values()))), original)
 
-    def test_full_mode_searches_original_hyde_three_alternatives_and_grammar(self):
-        queries, spans = [], []
-        class Qdrant:
-            def collection_exists(self, name): return True
-            def query_points(self, **kwargs): return SimpleNamespace(points=[])
-            def scroll(self, **kwargs): return [], None
-        def encode(query, **kwargs):
-            queries.append(query)
-            return SimpleNamespace(tolist=lambda: [0.0])
-        def observe(name, **kwargs):
-            spans.append(name)
-            return nullcontext(None)
-        with patch('app.pipeline.qdrant_client', return_value=Qdrant()), \
-             patch('app.pipeline._embedder', return_value=SimpleNamespace(encode=encode)), \
-             patch('app.pipeline._observe', side_effect=observe), \
-             patch('app.pipeline._ollama', side_effect=['LANGUAGE: English\nENGLISH: original question', 'hypothetical document', 'alternative one\nalternative two\nalternative three', 'corrected question']):
-            result = run_pipeline('original question', collection='test')
-        self.assertEqual(queries, ['original question', 'hypothetical document', 'alternative one', 'alternative two', 'alternative three', 'corrected question'])
-        self.assertEqual(result['grammar_corrected_query'], 'corrected question')
-        self.assertEqual(spans.count('query embedding'), 6)
-        self.assertTrue(all(f'search: literary alternative {i}' in spans for i in (1, 2, 3)))
-        self.assertIn('grammar correction', spans)
 
-    def test_hyde_off_keeps_alternatives_and_grammar(self):
-        queries = []
-        class Qdrant:
-            def collection_exists(self, name): return True
-            def query_points(self, **kwargs): return SimpleNamespace(points=[])
-            def scroll(self, **kwargs): return [], None
-        def encode(query, **kwargs):
-            queries.append(query)
-            return SimpleNamespace(tolist=lambda: [0.0])
-        with patch('app.pipeline.qdrant_client', return_value=Qdrant()), \
-             patch('app.pipeline._embedder', return_value=SimpleNamespace(encode=encode)), \
-             patch('app.pipeline._ollama', side_effect=['LANGUAGE: English\nENGLISH: original question', 'alternative one\nalternative two\nalternative three', 'corrected question']):
-            result = run_pipeline('original question', ResolvedPipelineConfig.from_mapping({'hyde': False}), collection='test')
-        self.assertEqual(queries, ['original question', 'alternative one', 'alternative two', 'alternative three', 'corrected question'])
-        self.assertIsNone(result['hypothetical_answer'])
-        with self.assertRaises(ValueError):
-            ResolvedPipelineConfig.from_mapping({'hyde': 'no'})
 
-    def test_foreign_question_is_searched_and_rewritten_in_english(self):
-        queries, sent = [], []
-        class Qdrant:
-            def collection_exists(self, name): return True
-            def query_points(self, **kwargs): return SimpleNamespace(points=[])
-            def scroll(self, **kwargs): return [], None
-        def encode(query, **kwargs):
-            queries.append(query)
-            return SimpleNamespace(tolist=lambda: [0.0])
-        replies = iter(['LANGUAGE: Turkish\nENGLISH: english question', 'hypothetical document', 'alternative one\nalternative two\nalternative three', 'corrected question'])
-        with patch('app.pipeline.qdrant_client', return_value=Qdrant()), \
-             patch('app.pipeline._embedder', return_value=SimpleNamespace(encode=encode)), \
-             patch('app.pipeline._ollama', side_effect=lambda messages, *a, **k: sent.append(messages) or next(replies)):
-            result = run_pipeline('soru', ResolvedPipelineConfig.from_mapping({'name_completion': False}), collection='test')
-        self.assertEqual(queries, ['soru', 'english question', 'hypothetical document', 'alternative one', 'alternative two', 'alternative three', 'corrected question'])
-        # The rewrites start from the translation.
-        self.assertTrue(all(messages[-1]['content'] == 'english question' for messages in sent[1:]))
-        self.assertEqual((result['question'], result['translated_question']), ('soru', 'english question'))
 
     def test_parallel_transformations_run_the_three_rewrites_together(self):
         barrier = threading.Barrier(3, timeout=5)
@@ -125,28 +68,6 @@ class WorkflowChecks(unittest.TestCase):
         self.assertEqual(len(calls), 2 * len(PROMPT_CATALOG))
         self.assertTrue(all(call['cache_ttl_seconds'] == 0 for call in calls))
 
-    def test_edited_langfuse_prompt_reaches_answer_generation(self):
-        edited = [{'role': 'system', 'content': 'Edited in Langfuse'}, {'role': 'user', 'content': 'q'}]
-        compiled = {}
-        def compile(**variables):
-            compiled.update(variables)
-            return edited
-        bundle = {'rag-answer': {'client': SimpleNamespace(compile=compile)}}
-        point = SimpleNamespace(id='1', score=0.9, payload={'text': 'passage', 'book': 'b'})
-        class Qdrant:
-            def collection_exists(self, name): return True
-            def query_points(self, **kwargs): return SimpleNamespace(points=[point])
-            def scroll(self, **kwargs): return [], None
-        sent = []
-        with patch('app.pipeline.qdrant_client', return_value=Qdrant()), \
-             patch('app.pipeline._embedder', return_value=SimpleNamespace(encode=lambda q, **k: SimpleNamespace(tolist=lambda: [0.0]))), \
-             patch('app.pipeline._reranker', return_value=SimpleNamespace(predict=lambda pairs, **k: [1.0])), \
-             patch('app.pipeline._ollama', side_effect=lambda messages, *a, **k: sent.append(messages) or 'answer [E1]'):
-            run_pipeline('question', ResolvedPipelineConfig.from_mapping({'retrieval_mode': 'baseline'}),
-                         collection='test', prompt_bundle=bundle)
-        self.assertEqual(sent, [edited])
-        self.assertEqual(compiled['question'], 'question')
-        self.assertIn('[E1]', compiled['evidence'])
 
     def test_managed_evaluator_edits_are_accepted_and_used(self):
         rows = [{'id': name, 'name': 'millennium-' + name, 'version': 8,

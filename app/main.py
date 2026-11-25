@@ -36,9 +36,6 @@ try:
     from .indexer import build_index, index_identity, validate_index
     from .intermediate_cache import scope_for as intermediate_cache_scope, use_cache as use_intermediate_cache
     from .observability import observation, record_cache_lookup, trace_scope, update as update_observation
-    from .prompt_assets import load_prompt_bundle, prompt_manifests
-    from .pipeline import run_pipeline
-    from .pipeline_setup import current_pipeline_setup
     from .pipeline_catalog import load_catalog
     from .pipeline_resolver import resolve
     from .pipeline_runner import run as run_resolved_pipeline
@@ -55,9 +52,6 @@ except ImportError:
     from indexer import build_index, index_identity, validate_index
     from intermediate_cache import scope_for as intermediate_cache_scope, use_cache as use_intermediate_cache
     from observability import observation, record_cache_lookup, trace_scope, update as update_observation
-    from prompt_assets import load_prompt_bundle, prompt_manifests
-    from pipeline import run_pipeline
-    from pipeline_setup import current_pipeline_setup
     from pipeline_catalog import load_catalog
     from pipeline_resolver import resolve
     from pipeline_runner import run as run_resolved_pipeline
@@ -111,16 +105,14 @@ def _custom_payload(incoming: dict[str, Any]) -> dict[str, Any]:
 
 
 class AskRequest(BaseModel):
+    model_config = {"extra": "forbid"}
     question: str = Field(min_length=1)
     pipeline: str | None = None
     settings: Any = None
-    candidate_count: int | None = Field(default=None, ge=5, le=100)
-    top_k: int | None = Field(default=None, ge=1, le=30)
     mode: str | None = Field(default=None, pattern="^(baseline|hyde|query_expansion|hyde_query_expansion|full)$")
-    engine: str | None = Field(default=None, pattern="^(agent|fixed)$")
+    engine: str | None = Field(default=None, pattern="^agent$")
     passage_chars: int | None = Field(default=None, ge=1)
     collection: str | None = None
-    prompt_label: str | None = None
     session_id: str | None = Field(default=None, min_length=1, max_length=200)
     user_id: str | None = Field(default=None, min_length=1, max_length=200)
     source: str = Field(default="api", pattern="^(api|frontend)$")
@@ -274,27 +266,17 @@ def _prepare_ask(request: AskRequest) -> dict[str, Any]:
             raise ValueError("settings must be an object")
         answer_cache.normalize_layers(request.cache_layers)
         values = dict(request.settings or {})
-        for legacy, key in (("mode", "retrieval_mode"), ("candidate_count", "candidate_count"),
-                            ("top_k", "top_k"), ("passage_chars", "passage_chars")):
+        for legacy, key in (("mode", "retrieval_mode"), ("passage_chars", "passage_chars")):
             value = getattr(request, legacy)
             if value is not None:
                 if key in values:
                     raise ValueError(f"{legacy} and settings.{key} cannot both be present")
                 values[key] = value
         resolved = resolve(request.pipeline, values, engine=request.engine,
-                           prompt_label=request.prompt_label, collection=request.collection)
+                           collection=request.collection)
         collection = resolved.index["collection"]
         validate_index(collection, resolved.config)
-        if resolved.engine == "fixed" and langfuse_enabled() and resolved.corpus_id == "millennium":
-            try:
-                bundle = (load_prompt_bundle(Langfuse(), versions=resolved.prompts) if resolved.status != "draft"
-                          else load_prompt_bundle(Langfuse(), label=request.prompt_label))
-            except Exception:
-                logger.warning("Langfuse prompts are unavailable; using the selected corpus profile prompts", exc_info=True)
-                bundle = {}
-        else:
-            bundle = {}
-        prompts = prompt_manifests(bundle)
+        bundle, prompts = {}, {}
     except HTTPException:
         raise
     except ValueError as exc:
@@ -395,8 +377,7 @@ def _run_ask(request: AskRequest, prepared: dict[str, Any], *, on_trace=None, on
             return result
         layer_scope = intermediate_cache_scope(prepared["resolved"], prepared["collection"], langfuse_project())
         with use_intermediate_cache(request.cache_mode, cache_layers, layer_scope):
-            result = run_resolved_pipeline(request.question, prepared["resolved"], prepared["collection"],
-                                           prepared["bundle"], on_token=on_token, on_status=on_status)
+            result = run_resolved_pipeline(request.question, prepared["resolved"], prepared["collection"], on_token=on_token, on_status=on_status)
         result["prompts"] = prompts
         result["session_id"] = session_id
         result["trace_id"] = trace_id
@@ -525,7 +506,7 @@ async def trigger_experiment(request: Request,
     dataset_id = incoming.get("datasetId", incoming.get("dataset_id"))
     dataset_name = dataset_name or custom.pop("dataset_name", None)
     dataset_id = dataset_id or custom.pop("dataset_id", None)
-    allowed = {"variant_label", "pipeline", "settings", "config", "dataset_version", "item_ids", "prompt_label",
+    allowed = {"variant_label", "pipeline", "settings", "config", "dataset_version", "item_ids",
                "correctness_evaluator", "cache_mode", "cache_layers"}
     unknown = set(custom) - allowed
     if unknown:
@@ -534,8 +515,6 @@ async def trigger_experiment(request: Request,
         dataset_name = langfuse_dataset_name(os.getenv("DATASET_NAME"))
     else:
         dataset_name = langfuse_dataset_name(str(dataset_name))
-    if "prompt_label" in custom and (not isinstance(custom["prompt_label"], str) or not custom["prompt_label"].strip()):
-        raise HTTPException(status_code=400, detail="prompt_label must be a non-empty string")
     if "variant_label" in custom and (not isinstance(custom["variant_label"], str) or not custom["variant_label"].strip()):
         raise HTTPException(status_code=400, detail="variant_label must be a non-empty string")
     if "correctness_evaluator" in custom and custom["correctness_evaluator"] not in CORRECTNESS_SPECS:
@@ -552,7 +531,7 @@ async def trigger_experiment(request: Request,
         settings = custom.pop("config", custom.get("settings", {}))
         if not isinstance(settings, dict):
             raise ValueError("settings must be an object")
-        resolved = resolve(custom.get("pipeline"), settings, prompt_label=custom.get("prompt_label"))
+        resolved = resolve(custom.get("pipeline"), settings)
         custom["pipeline"] = resolved.version
         custom["settings"] = resolved.overrides
         custom.setdefault("variant_label", resolved.version)

@@ -92,8 +92,8 @@ class InteractiveAskContract(TestCase):
                                                                     "pipeline_version": "v1", "pipeline_derived": False}), \
              patch.dict("os.environ", {"FRONTEND_RATE_LIMIT_ENABLED": "true"}), \
              patch("app.main.reserve_request") as reserve:
-            result = ask(AskRequest(question="Who?", engine="fixed", source="frontend", session_id="ui-127-0-0-1", user_id="interactive-ui-browser", client_ip="127.0.0.1", cache_mode="bypass"))
-            ask(AskRequest(question="Who?", engine="fixed", source="api", client_ip="192.0.2.12", cache_mode="bypass"))
+            result = ask(AskRequest(question="Who?", engine="agent", source="frontend", session_id="ui-127-0-0-1", user_id="interactive-ui-browser", client_ip="127.0.0.1", cache_mode="bypass"))
+            ask(AskRequest(question="Who?", engine="agent", source="api", client_ip="192.0.2.12", cache_mode="bypass"))
             reserve.assert_not_called()
 
         self.assertEqual(result["trace_id"], "a" * 32)
@@ -270,7 +270,8 @@ class VersionPayloadContract(TestCase):
                             {"question": "Who?", "pipeline": "v1", "prompt_label": "production"},
                             {"question": "Who?", "pipeline": "v1", "collection": "wrong"}):
                 with self.subTest(payload=payload):
-                    self.assertEqual(client.post("/ask", json=payload).status_code, 400)
+                    self.assertEqual(client.post("/ask", json=payload).status_code,
+                                     422 if "prompt_label" in payload else 400)
 
     def test_experiment_rejects_invalid_version_before_queueing(self):
         with patch.dict("os.environ", {"EXPERIMENT_TRIGGER_TOKEN": "test-token"}):

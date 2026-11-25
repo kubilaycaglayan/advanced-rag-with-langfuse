@@ -23,7 +23,6 @@ from app.evaluator_specs import ANSWER_CORRECTNESS_V1, ANSWER_CORRECTNESS_V2, AN
 from app.indexer import index_identity
 from app.experiments import _flush_client, submit_retry
 from app.prompt_assets import load_prompt_bundle
-from app.pipeline import run_pipeline
 from app.main import _custom_payload
 from app.evaluation import correctness, citation_support, is_explicit_abstention
 from app import experiments as experiments_module
@@ -308,20 +307,6 @@ class Stage3Checks(unittest.TestCase):
         self.assertEqual(score["value"], "error")
         self.assertEqual(score["data_type"], "CATEGORICAL")
 
-    def test_empty_retrieval_returns_an_explicit_abstention(self):
-        class EmptyQdrant:
-            def collection_exists(self, _collection): return True
-            def query_points(self, **_kwargs): return SimpleNamespace(points=[])
-            def scroll(self, **_kwargs): return [], None
-        with patch("app.pipeline.qdrant_client", return_value=EmptyQdrant()), \
-             patch("app.pipeline._embedder", return_value=SimpleNamespace(encode=lambda *_args, **_kwargs: SimpleNamespace(tolist=lambda: [0.0]))), \
-             patch("app.pipeline._observe", return_value=nullcontext(None)), \
-             patch("app.pipeline._update"), patch("app.pipeline._ollama") as ollama:
-            result = run_pipeline("q", ResolvedPipelineConfig(retrieval_mode="baseline"), collection="empty-index")
-        self.assertEqual(result["citations"], [])
-        self.assertEqual(result["evidence"], "")
-        self.assertEqual(result["answer"], "I could not find supporting passages.")
-        ollama.assert_not_called()
 
     def test_invalid_citation_label_cannot_earn_support_even_if_judge_would_score_it(self):
         with patch("app.evaluation.observation", return_value=nullcontext(None)), \
@@ -413,11 +398,6 @@ class Stage3Checks(unittest.TestCase):
             evaluator = {"evaluator_id": "evaluator-test", "managed_evaluators": managed}
             with patch.object(experiments_module, "_client", return_value=FakeLangfuse()), \
                  patch.object(experiments_module, "_dataset_for", return_value=(dataset, datetime(2026, 1, 1, tzinfo=timezone.utc))), \
-                 patch.object(experiments_module, "load_prompt_bundle", return_value={
-                     "rag-eval-answer_correctness_v1": {"client": object()},
-                     "rag-eval-citation_support_v1": {"client": object()},
-                 }), \
-                 patch.object(experiments_module, "prompt_manifests", return_value={}), \
                  patch.object(experiments_module, "load_managed_evaluators", return_value=managed), \
                  patch.object(experiments_module, "resolve_pipeline_model_identities", side_effect=lambda config: config), \
                  patch.object(experiments_module, "build_index", return_value={"collection": "millennium_books_a7ebc5a988df037cd2ee"}), \

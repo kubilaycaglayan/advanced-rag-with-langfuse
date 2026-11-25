@@ -31,8 +31,7 @@ try:
     from .intermediate_cache import scope_for as intermediate_cache_scope, use_cache as use_intermediate_cache
     from .evaluator_specs import CORRECTNESS_SPECS, DEFAULT_CORRECTNESS, JUDGE_MODELS, evaluator_manifest
     from .observability import observation, pack_scope_attributes, record_cache_lookup, use_client
-    from .pipeline import PROMPT_HASHES, run_pipeline
-    from .prompt_assets import ManagedJudgePrompt, load_managed_evaluators, load_prompt_bundle, prompt_manifests
+    from .prompt_assets import ManagedJudgePrompt, load_managed_evaluators
     from .resolved_config import ResolvedPipelineConfig, resolve_ollama_model, resolve_pipeline_model_identities
     from .pipeline_resolver import ResolvedRun, resolve
     from .pipeline_catalog import load_catalog
@@ -50,8 +49,7 @@ except ImportError:
     from intermediate_cache import scope_for as intermediate_cache_scope, use_cache as use_intermediate_cache
     from evaluator_specs import CORRECTNESS_SPECS, DEFAULT_CORRECTNESS, JUDGE_MODELS, evaluator_manifest
     from observability import observation, pack_scope_attributes, record_cache_lookup, use_client
-    from pipeline import PROMPT_HASHES, run_pipeline
-    from prompt_assets import ManagedJudgePrompt, load_managed_evaluators, load_prompt_bundle, prompt_manifests
+    from prompt_assets import ManagedJudgePrompt, load_managed_evaluators
     from resolved_config import ResolvedPipelineConfig, resolve_ollama_model, resolve_pipeline_model_identities
     from pipeline_resolver import ResolvedRun, resolve
     from pipeline_catalog import load_catalog
@@ -323,14 +321,11 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
             raise ValueError("cache_mode must be use, bypass, or refresh")
         cache_layers = answer_cache.normalize_layers(payload.get("cache_layers"))
         cache_enabled = cache_mode != "bypass" and "answer" in cache_layers
-        resolved = resolve(payload.get("pipeline"), payload.get("settings"), prompt_label=payload.get("prompt_label"))
+        resolved = resolve(payload.get("pipeline"), payload.get("settings"))
         config = resolved.config
         client = _client()
         dataset, version = _dataset_for(payload, client)
-        prompt_bundle = (load_prompt_bundle(client, versions=resolved.prompts) if resolved.engine == "fixed"
-                         and resolved.status != "draft" else
-                         load_prompt_bundle(client, label=payload.get("prompt_label")) if resolved.engine == "fixed" else {})
-        prompt_versions = prompt_manifests(prompt_bundle)
+        prompt_versions = {}
         correctness_name = payload.get("correctness_evaluator") or DEFAULT_CORRECTNESS
         if correctness_name not in CORRECTNESS_SPECS:
             raise ValueError(f"correctness_evaluator must be one of {sorted(CORRECTNESS_SPECS)}")
@@ -361,7 +356,6 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
         (corpus_data_dir() / "executions" / execution_id).mkdir(parents=True, exist_ok=True)
         manifest = {"execution_id": execution_id, "variant_label": variant, "dataset_snapshot": snapshot,
                     "pipeline": pipeline_manifest, "evaluator": evaluator_manifest,
-                    "prompt_label": payload.get("prompt_label"),
                     "prompts": prompt_versions,
                     "index": index, "config": config.manifest(), "run_name": run_name,
                     "selected_item_ids": [item.id for item in items],
@@ -432,7 +426,7 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
                                                               cache_lookup_seconds)
                         layer_scope = intermediate_cache_scope(resolved, collection, langfuse_project())
                         with use_intermediate_cache(cache_mode, cache_layers, layer_scope):
-                            output = run_resolved_pipeline(str(question), resolved, collection, prompt_bundle)
+                            output = run_resolved_pipeline(str(question), resolved, collection)
                         output["answer_cache_status"] = cache_status
                         return output
             except Exception as exc:
@@ -651,7 +645,6 @@ def cli() -> int:
     parser.add_argument("--dataset", default=os.getenv("DATASET_NAME", "QA.csv"))
     parser.add_argument("--dataset-version", help="ISO-8601 UTC dataset version timestamp")
     parser.add_argument("--variant", default=None)
-    parser.add_argument("--prompt-label", default=None)
     parser.add_argument("--pipeline", default=None)
     parser.add_argument("--cache-mode", choices=("use", "bypass", "refresh"), default="refresh",
                         help="cache mode; experiments refresh by default without reading cached answers")
@@ -669,7 +662,7 @@ def cli() -> int:
     payload = {"dataset_name": args.dataset, "dataset_version": args.dataset_version,
                "pipeline": selected_pipeline, "variant_label": args.variant or selected_pipeline,
                "settings": json.loads(settings_file.read_text()) if settings_file else {},
-               "item_ids": args.item_ids, "prompt_label": args.prompt_label,
+               "item_ids": args.item_ids,
                "cache_mode": args.cache_mode, "cache_layers": args.cache_layers,
                "correctness_evaluator": args.correctness_evaluator}
     initialize()
