@@ -1,0 +1,421 @@
+{
+  "agent": {
+    "model": "qwen3.6:35b",
+    "provider": "ollama",
+    "max_turns": 10,
+    "max_tool_calls": 16,
+    "min_tool_calls": 4,
+    "timeout_seconds": 900.0,
+    "context_length": 16384,
+    "num_predict": 1600,
+    "think": false,
+    "snippet_chars": 300,
+    "scene_candidate_count": 30,
+    "initial_scene_probe": true,
+    "query_aware_reranking": true,
+    "reasoning_effort": "none",
+    "progress_control": true,
+    "premise_early_stop": false,
+    "conversation_handoff": true
+  },
+  "settings": {
+    "retrieval_mode": "full",
+    "candidate_count": 30,
+    "top_k": 10,
+    "passage_chars": 1200,
+    "embedding_model": {
+      "name": "sentence-transformers/multi-qa-MiniLM-L6-cos-v1",
+      "digest": null,
+      "revision": "b207367332321f8e44f96e224ef15bc607f4dbf0"
+    },
+    "reranker_model": {
+      "name": "cross-encoder/ms-marco-MiniLM-L-6-v2",
+      "digest": null,
+      "revision": "233902d25c440f23af6f7d6e94d2946bac0bee0a"
+    },
+    "generation_model": {
+      "name": "qwen3:8b",
+      "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+      "revision": null
+    },
+    "generation": {
+      "temperature": 0.0,
+      "context_length": 8192,
+      "output_budgets": [
+        4096,
+        8192
+      ]
+    },
+    "rrf_constant": 60,
+    "min_passage_chars": 400,
+    "passage_overlap": 0,
+    "expansion_count": 3,
+    "hyde": true,
+    "parallel_transformations": false,
+    "answer_thinking": false,
+    "name_completion": true,
+    "name_completion_hits": 300,
+    "query_translation": true,
+    "english_word_share": 0.6,
+    "low_confidence_score": 2.0,
+    "low_confidence_top_k": 15,
+    "wide_candidate_count": 100,
+    "wide_trigger_score": 3.5,
+    "wide_override_margin": 2.0,
+    "wide_max_hits": 3,
+    "keyword_hits": 30,
+    "keyword_margin": 4.0,
+    "keyword_max_hits": 5,
+    "keyword_rare_share": null,
+    "scene_margin": 1.0,
+    "scene_window": 6,
+    "scene_stride": 3,
+    "scene_search_hits": 10,
+    "scene_summary_model": {
+      "name": "gemma4:26b",
+      "digest": null,
+      "revision": null
+    },
+    "scene_thinking": false,
+    "scene_moment": true,
+    "scene_context": true,
+    "scene_context_rank": 3,
+    "scene_context_max_hits": 2,
+    "scene_context_sentences": 2,
+    "entity_names": true,
+    "entity_matrix": true,
+    "entity_matrix_similarity": 0.75,
+    "entity_matrix_max_hits": 8,
+    "entity_graph": false,
+    "entity_graph_damping": 0.5,
+    "entity_graph_pool": 30,
+    "entity_graph_max_hits": 2,
+    "entity_graph_facts": 0,
+    "corpus_checksum": "",
+    "prompt_hashes": {}
+  },
+  "system_prompt": "You answer questions about Stieg Larsson's Millennium trilogy using a search index of the three books: The Girl with the Dragon Tattoo, The Girl Who Played with Fire and The Girl Who Kicked the Hornet's Nest.\n\nWork in small steps and use the tools. Do not answer from memory or outside knowledge: every claim must come from passages you retrieved.\n- Start with a search. Search results flag names the books do not use (\"name_hints\"); follow those spellings. If find_names gives a likely person, the question is about that person: do not answer that the character does not exist.\n- Before answering, make sure the passage you rely on states the answer, not just the topic.\n- If a search returns little, change it: expand_query for other phrasings, keyword_search for exact words.\n- For a \"why\" / reason / motive question, run keyword_search on the question's nouns (person, action, object) before rewriting it: the reason is usually stated beside those same nouns.\n- search_scenes searches summaries of six-passage windows. It is the fastest way to find a conversation, a decision or how something came about, because the summary names who was there and what they did even when the passages alone are ambiguous. Pass `people` when the question names two people. Each scene has a scene_id; when its four snippets do not contain the detail, call read_scene (or search_scenes with full=true) to read every member passage in order.\n- For a question about a detail at one moment (\"what did she say when she saw him in the kitchen\", \"what was she wearing when they met\"), call scene_moment: it writes the situation out and returns the scene that shows it, which is often the only place the detail appears. Read the scene list it returns too: the chosen scene can be the memory of the event while the dialogue is in another scene whose summary names it.\n- Before concluding that a detail is not in the books, search the words it would appear with in the passage: keyword_search for the distinctive nouns and verbs (\"loosened the gun\", \"kitchen bench\", a remembered phrase), not only the question's phrasing. A scene summary is not evidence; the passage is.\n- find_connections tells you what the cards say links two people: how they met, what one did for the other, documents or names between them. Use it for \"how did X know Y\" or \"what connects X and Y\" before concluding that the books do not say.\n- When a hit looks relevant, read_passage with its neighbours; a single line often means something different in context. A scene summary is a paraphrase, not evidence: answer in the words of the passage (the summary's \"pinned him to the floor\" may be \"nailed his feet to the floor\" in the passage).\n- When a question asks what someone was thinking or feeling, what the passage says they noticed, remembered, feared or decided is the answer even if it never uses the word \"thought\".\n- For an importance or significance question, give every distinct role the passages show for the thing (what it did, what it proved), not just one.\n- When the question asks for the name of a group, unit, place or person, give the exact name the passages use, not a description of it (\"the Section for Special Analysis\", not \"the Zalachenko unit\").\n- Keep the passages that actually support the answer.\n\nWhen you can answer, call submit_answer with:\n- answer: a concise answer (2-4 sentences) that uses only what the passages state. Answer the question directly: state the fact first, then at most one supporting sentence. If the question asks for a list, give the list, one line per item. Do not include notes, reasoning, book-metadata doubts or a transcript of your search in the answer.\n- passage_ids: the 8-character ids of the passages you relied on, most important first.\nCite each factual sentence with the ids in square brackets, exactly as the tools returned them, for example: Berger planned to switch on the sauna [95f8ea38].\nUse names exactly as the passages write them: if a passage says only \"Göransson\" or \"Niedermann\", do not add a first name from memory.\nGive one answer, not alternative answers for different readings of the question. If the place has another name in the passages (a factory can be a brickworks), say so in the same answer and keep going with the event those passages describe.\nFor a broad question (a summary, a list, a \"top 10\", or why someone did something), do not abstain because the books never use the question's word: answer from the passages you found, naming the events or people. A short structured summary is a good answer. If the question asks why, give the reason the passages show even when no sentence says \"because\".\nIf the books do not contain the answer, call submit_answer saying so, with no ids.\n\nA passage that is only about the topic is not evidence: it must state the answer, and you should read its neighbours before deciding.\nBefore submit_answer, check the question's parts one by one (who, what, where, when, why, how many) and make sure a passage states each. If one part is missing, search for it instead of answering partially. Some questions assume an event that the books contradict (that someone is dead, that something was never found): check the premise and correct it.\nWhen the books first describe a death, a crime or a disappearance one way, look for the later passage that reveals what really happened (who was there, who did it); answer with the true account, and with the official one only as contrast. For a death or a crime, always ask who else was present and call true_account with that person: it searches for the other person doing the event (\"Harriet drowned her father\"), which is a different scene from the official account.\nA \"what happened at a place\" question is a sequence, not one find: cover arrival, discovery, confrontation and outcome. After the first hit, open the scene or search again with the person who was confronted there; do not stop at the first body or clue.\nQuestions of the form \"how did X know/learn about Y\", \"how did X and Y meet\" or \"what connects X and Y\" are answered by the event that first brought them together: a document one wrote about the other, a person who introduced them, a meeting. If the passages show X reading or receiving something Y wrote, or someone telling X about Y, that is the answer even if the words \"learned\" or \"knew\" never appear. State it plainly instead of saying the books do not say.\nYou have a limited number of tool calls (about 16). Do not repeat a search that returned the same passages. Prefer four to eight calls over one long one.",
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "semantic_search",
+        "description": "Dense search over the books' passages; returns the best matches after cross-encoder reranking.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "description": "words to search for"
+            },
+            "k": {
+              "type": "integer",
+              "description": "how many results (default 5, max 10)"
+            }
+          },
+          "required": [
+            "query"
+          ]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "keyword_search",
+        "description": "BM25 search for the exact content words in a query. Best for a quoted phrase, a nickname or a rare term.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "description": "words to search for"
+            },
+            "k": {
+              "type": "integer",
+              "description": "how many results (default 5, max 10)"
+            }
+          },
+          "required": [
+            "query"
+          ]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "expand_query",
+        "description": "Ask the books' language model for a hypothetical answer passage, three alternative phrasings and a grammar correction. Search the results with semantic_search.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "description": "question to expand (default: the user's question)"
+            }
+          },
+          "required": []
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "search_scenes",
+        "description": "Search summaries of six-passage windows. Use it to find a conversation or an explanation spread over several passages, or dialogue that never names the people. Pass `people` when the question names two people: their full names are added to the query. Each scene carries its scene_id and passage ids; `full` returns every member passage at length.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "description": "words to search for"
+            },
+            "people": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "people the question names (optional)"
+            },
+            "k": {
+              "type": "integer",
+              "description": "how many scenes (default 2, max 5)"
+            },
+            "full": {
+              "type": "boolean",
+              "description": "return every member passage at ~500 characters instead of four 110-character snippets (default false)"
+            }
+          },
+          "required": []
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "read_scene",
+        "description": "Read every member passage of one scene in reading order (~500 characters each). Use the scene_id that search_scenes or true_account returned when the snippet does not contain the detail.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "scene_id": {
+              "type": "string",
+              "description": "8-character scene id"
+            }
+          },
+          "required": [
+            "scene_id"
+          ]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "scene_moment",
+        "description": "For a question about a detail at one moment (what someone said, wore, noticed or held), write the situation out and let the model choose the scene that shows it; returns that scene's passages. Use it when a search for the question's words finds the right scene but not the detail.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "question": {
+              "type": "string",
+              "description": "the question or the moment (default: the user's question)"
+            }
+          },
+          "required": []
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "true_account",
+        "description": "After the books give an official account of a death, a crime or a disappearance, find the true account: searches for the other person doing the event ('Harriet drowned her father') and returns the scene and passages that reveal what really happened. Pass who else was there when you know; otherwise the entity cards suggest them.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "person": {
+              "type": "string",
+              "description": "the person the event happened to (or the event's subject)"
+            },
+            "event": {
+              "type": "string",
+              "description": "the event verb or words from the question (died, drowned, shot, nail gun, factory); derived from the question when omitted"
+            },
+            "other_person": {
+              "type": "string",
+              "description": "who else was there or who did it (optional)"
+            }
+          },
+          "required": [
+            "person"
+          ]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "entity_card",
+        "description": "A person's entity card: how the books spell the name, facts about them, and their links to other names and things (aliases, nicknames, belongings). Facts are ranked by the question, or by `about` when given.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "person or thing name"
+            },
+            "about": {
+              "type": "string",
+              "description": "what to rank the facts for (optional; default the question)"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "find_connections",
+        "description": "What links two people: facts and edges that name both (how they met, what one did for the other, documents or names between them), with passages that state an edge. Use it for 'how did X know Y' or 'what connects X and Y'.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "person_a": {
+              "type": "string",
+              "description": "first person"
+            },
+            "person_b": {
+              "type": "string",
+              "description": "second person"
+            }
+          },
+          "required": [
+            "person_a",
+            "person_b"
+          ]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "find_names",
+        "description": "Suggest how the books spell a name, including close misspellings and full names for a first name.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "name as written in the question"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "read_passage",
+        "description": "Read one passage in full, with the passages before and after it.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "8-character passage id"
+            },
+            "before": {
+              "type": "integer",
+              "description": "passages before (0-3, default 1)"
+            },
+            "after": {
+              "type": "integer",
+              "description": "passages after (0-3, default 1)"
+            }
+          },
+          "required": [
+            "id"
+          ]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "read_chapter",
+        "description": "Browse a chapter: consecutive passages in reading order, by book and chapter number or name.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "book": {
+              "type": "string",
+              "description": "Dragon Tattoo, Played with Fire or Hornet's Nest"
+            },
+            "chapter": {
+              "type": "string",
+              "description": "chapter number, e.g. 17"
+            },
+            "offset": {
+              "type": "integer",
+              "description": "first paragraph (default 0)"
+            },
+            "limit": {
+              "type": "integer",
+              "description": "paragraphs to return (default 8, max 12)"
+            }
+          },
+          "required": [
+            "book",
+            "chapter"
+          ]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "submit_answer",
+        "description": "Finish: give the final answer and the passages it relies on.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "answer": {
+              "type": "string",
+              "description": "the answer, citing passage ids in square brackets"
+            },
+            "passage_ids": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "8-character ids of the passages the answer relies on, most important first"
+            }
+          },
+          "required": [
+            "answer"
+          ]
+        }
+      }
+    }
+  ],
+  "prompts": {
+    "answer_system": "Answer the user's question using only the evidence passages provided. Do not use outside knowledge or make unsupported claims. If evidence is insufficient, say so. Cite each factual claim with labels such as [E1]. Keep the answer concise.",
+    "hyde_system": "Write a short passage, in the style of a novel's narration, that could appear in the source text and would answer the question. Use only the names that appear in the question; do not invent names, dates, places, or other specific facts — describe unknown details generically (for example \"her mother\", \"the town\"). No preamble; do not claim access to the source books.",
+    "grammar_system": "Correct the grammar and spelling of this question while preserving its meaning and all character and place names. Return only the corrected question, without explanation or an answer.",
+    "scene_summary_system": "You summarise excerpts of a novel for a search index. Write a factual summary (60-120 words) of what happens in the excerpt: name the characters (resolve 'he', 'she', 'you' to the names used in the excerpt), and state concretely what they do, say, decide, demand, reveal or learn. Write names exactly as the excerpt does; never add a first name, surname, title or description that the excerpt does not give. Use only the excerpt. Output only the summary.",
+    "entity_extraction_system": "You index a novel. From the excerpt, list the named or distinctive things in it: people; every other name a person goes by (false identities, aliases, nicknames, online handles, names on doors, passports or cards); places; companies and organisations; vehicles; brands; clothing and what is printed on it; tattoos; notable objects (named or distinctively described ones; skip ordinary furniture, food, body parts and people the excerpt does not name).\nFor each give:\n- \"name\": as written in the excerpt (for clothing or objects without a name, a short description, e.g. \"black T-shirt\")\n- \"type\": one or two words (person, false identity, nickname, online handle, place, company, vehicle, brand, clothing, tattoo, object, ...)\n- \"of\": the full name of the person it belongs to, is used by, or is another name for, when the excerpt makes that clear (resolve \"she\"/\"he\" from the excerpt; use the fullest form of the name the excerpt uses); otherwise null\n- \"relation\": how it relates to that person, in a few words (e.g. \"false identity used by\", \"nickname of\", \"owned by\", \"worn by\", \"home of\"); null when \"of\" is null\n- \"fact\": one short sentence from what the excerpt says about it, naming the person rather than \"she\"/\"he\"\nOnly what the excerpt states; do not use outside knowledge. Reply with JSON: {\"entities\": [...]}",
+    "entity_events_system": "You index a novel. List the events of the excerpt: what one person does to, for or with another (kills, saves, helps, hires, pays, threatens, gives or buys something, tells or reveals something, learns something about them, meets them), and what happens to a person (dies, is shot, survives, is arrested, is operated on), with how and why when the excerpt says so.\nFor each give \"who\" (full name), \"what\" (a few words), \"whom\" (full name, or null) and \"fact\": one sentence stating it with full names and its key detail.\nWhen the excerpt only says 'he', 'she', 'I', 'you' or a role ('my father', 'the patient', 'the old man'), use the TEXT BEFORE to tell who that is and write the name; take no events from the text before. Only what the excerpt states; do not use outside knowledge. Reply with JSON: {\"events\": [...]}",
+    "scene_moment_system": "Split a question about a novel into two search queries. Output exactly two lines and nothing else:\nMOMENT: the situation in which the thing asked about happens, as a plain statement of who does what, where (for example \"... when X first visited Y at her office?\" becomes \"X first visited Y at her office\"). Replace pronouns such as \"they\", \"he\" or \"she\" with the person they refer to in the question, and keep every name, place and word such as \"first\", \"last\", \"before\" or \"after\". If the question does not name such a situation, write \"MOMENT: none\".\nDETAIL: the thing that is asked for, without the situation, as a short statement (for example \"the colour of X's car\").\nNever add names, places or facts that are not in the question, and do not answer the question.",
+    "scene_select_system": "You are given a description of a moment in a novel and numbered summaries of scenes from the novel. Reply with the number of the scene that shows this moment, or \"none\" if no summary shows it. When the moment says \"first\", \"last\", \"before\" or \"after\", use what the summaries state (for example that two people do not know each other yet) to choose. Reply with only the number or \"none\".",
+    "query_translation_system": "Reply with exactly two lines and nothing else:\nLANGUAGE: the language the question is written in\nENGLISH: the question translated into English (if it is already English, repeat it unchanged)\nKeep every name of a person, place, company or other entity exactly as written; never translate, respell, complete or add names. The only exception is a translated form of a name from Stieg Larsson's Millennium novels (for example a translated book title or nickname): write it as the English edition does. Do not answer the question.",
+    "query_expansion_system": "Generate exactly {{expansion_count}} distinct search queries for finding passages in a novel that answer the question. Preserve the question's intent and keep every name exactly as written in the question; never add names that are not in the question. Each query must be worded differently from the question and from each other: vary the vocabulary (for example synonyms, statements instead of questions, words a narrator or character in the book might use). Do not answer the question. Return one query per line, with no numbering or commentary."
+  }
+}

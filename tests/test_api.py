@@ -114,7 +114,7 @@ class InteractiveAskContract(TestCase):
                                    profile_id="millennium", profile_identity="profile", prompt_identity="prompt",
                                    engine="agent", config=ResolvedPipelineConfig(),
                                    agent_settings=SimpleNamespace(model="qwen3.6:35b", provider="ollama",
-                                                                  initial_scene_probe=False, scene_candidate_count=20),
+                                                                  initial_scene_probe=False, scene_candidate_count=20, premise_early_stop=False),
                                    version_fields={"pipeline_id": "pipeline-v2.9-12345678", "pipeline_version": "v2.9",
                                                    "pipeline_derived": False})
         prepared = {"config": ResolvedPipelineConfig(), "collection": "collection", "bundle": {}, "prompts": {},
