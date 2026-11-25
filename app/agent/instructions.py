@@ -68,4 +68,3 @@ def instruction_manifest() -> dict[str, Any]:
 def instruction_fingerprint() -> str:
     return hashlib.sha256(json.dumps(instruction_manifest(), ensure_ascii=False, sort_keys=True,
                                      separators=(",", ":")).encode()).hexdigest()
-

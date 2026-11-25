@@ -35,4 +35,3 @@ def get_index_manifest(collection: str, fingerprint: str) -> dict[str, Any] | No
     with connect() as db:
         row = db.execute("SELECT * FROM index_manifests WHERE collection_name=? AND fingerprint=?", (collection, fingerprint)).fetchone()
         return dict(row) if row else None
-

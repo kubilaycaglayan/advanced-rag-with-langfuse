@@ -16,4 +16,3 @@ def answer_cache_identity(question: str, resolved: ResolvedRun, collection: str)
         prompt_identity=resolved.prompt_identity, collection=collection, question=str(question),
         config=resolved.config.manifest(),
         agent_settings=(resolved.agent_settings.__dict__ if resolved.agent_settings else None))
-

@@ -277,4 +277,3 @@ def _premise_probe(state: AgentState) -> str | None:
     return ("Premise check: the question assumes a death. These passages may contradict that assumption. "
             "Resolve whether the person actually died before naming a killer; read the surrounding passage if needed.\n\n"
             + "\n\n".join(f"[{row['id'][:8]}] {(row.get('text') or '')[:900]}" for row in direct[:3]))
-

@@ -60,4 +60,3 @@ def start_worker() -> None:
     if _worker is None or not _worker.is_alive():
         _worker = threading.Thread(target=_worker_loop, name="experiment-worker", daemon=True)
         _worker.start()
-

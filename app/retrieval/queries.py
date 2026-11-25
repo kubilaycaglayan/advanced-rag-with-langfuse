@@ -87,4 +87,3 @@ def prompted(system: str, user: str, config: ResolvedPipelineConfig, name: str) 
                 {"role": "user", "content": user}]
     return local_generate(messages, config.generation_model.name, config.generation.output_budgets,
                    config.generation.temperature, config.generation.context_length, name=name)
-

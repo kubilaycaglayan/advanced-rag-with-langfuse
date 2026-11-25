@@ -64,4 +64,3 @@ def _run_tool(state: AgentState, name: str, args: dict[str, Any]) -> tuple[dict[
         state.focus_on([row for row in rows if str(row["id"]) in focused])
         return cached["payload"], False
     return tools[name](state, args), False
-

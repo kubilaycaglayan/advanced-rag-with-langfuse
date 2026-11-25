@@ -18,4 +18,3 @@ def health() -> dict[str, Any]:
                 "corpus_dir": str(corpus_config().books)}
     except Exception as exc:
         return {"status": "degraded", "qdrant": str(exc)}
-

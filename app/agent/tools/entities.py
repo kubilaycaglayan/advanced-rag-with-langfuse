@@ -99,4 +99,3 @@ def _tool_find_names(state: AgentState, args: dict[str, Any]) -> dict[str, Any]:
         payload["note"] = (f"{name!r} is not a name the books use; the likely person is {likely['full_name']}. "
                            f"Continue with that name instead of answering that the character does not exist.")
     return payload
-

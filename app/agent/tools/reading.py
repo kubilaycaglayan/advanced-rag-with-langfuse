@@ -57,4 +57,3 @@ def _tool_read_chapter(state: AgentState, args: dict[str, Any]) -> dict[str, Any
     return {"book": title, "chapter": chapter_name, "total_paragraphs": len(paragraphs), "offset": offset,
             "passages": [_passage(row, 500) for row in window],
             "note": "call again with a larger offset to continue"}
-

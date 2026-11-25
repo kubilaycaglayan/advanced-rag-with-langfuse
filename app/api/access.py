@@ -41,4 +41,3 @@ def _reserve_ask_slot() -> BinaryIO:
             raise HTTPException(status_code=429, detail="A question is already in progress. Please try again later.") from exc
         raise
     return slot
-

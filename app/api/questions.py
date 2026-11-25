@@ -112,4 +112,3 @@ def ask_stream(request: AskRequest) -> StreamingResponse:
             yield json.dumps(event, ensure_ascii=False, default=str) + "\n"
 
     return StreamingResponse(lines(), media_type="application/x-ndjson", headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
-

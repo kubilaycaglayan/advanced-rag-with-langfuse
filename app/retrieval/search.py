@@ -162,4 +162,3 @@ def complete_names(question: str, collection: str, min_count: int = 20, min_shar
 
 def passage_position(payload: dict[str, Any]) -> tuple:
     return payload.get("book", ""), payload.get("section", ""), payload.get("paragraph", 0), payload.get("part", 0)
-

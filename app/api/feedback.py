@@ -24,4 +24,3 @@ def cache_feedback(request: CacheFeedbackRequest) -> dict[str, Any]:
     except Exception as exc:
         logger.warning("Answer cache feedback update failed: %s", exc)
         return {"saved": True, "cache_status": "unavailable"}
-

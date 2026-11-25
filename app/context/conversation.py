@@ -17,4 +17,3 @@ def _compact(messages: list[dict[str, Any]], keep: int = 6, budget: int = 22000)
         ids = list(dict.fromkeys(re.findall(r'"id": "([0-9a-f]{8})"', content)))
         messages[index] = {"role": "tool", "tool_call_id": messages[index].get("tool_call_id"), "content": json.dumps(
             {"compacted": True, "ids": ids[:8], "note": "earlier result compacted to save context; read_passage can reopen an id"})}
-

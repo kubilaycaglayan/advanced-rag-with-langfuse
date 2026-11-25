@@ -41,4 +41,3 @@ def _parse_text_tool(content: str) -> tuple[str, dict[str, Any]] | None:
             arguments = value.get("arguments", value.get("args", {}))
             return value["name"], arguments if isinstance(arguments, dict) else {}
     return None
-

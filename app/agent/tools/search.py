@@ -83,4 +83,3 @@ def _tool_expand_query(state: AgentState, args: dict[str, Any]) -> dict[str, Any
     return {"query": query, "hypothetical_document": hypothetical, "alternative_phrasings": alternatives,
             "grammar_corrected": corrected,
             "note": "search these phrasings with semantic_search; they are not evidence"}
-

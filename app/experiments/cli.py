@@ -45,4 +45,3 @@ def cli() -> int:
     result = execute_execution(row["execution_id"])
     print(json.dumps(result, indent=2, ensure_ascii=False))
     return 0 if result["status"] == "completed" else 1
-

@@ -3,7 +3,7 @@
 Date: 2026-11-25. Status: complete.
 
 The Python backend and Express server are organized around the responsibilities
-in the [code map](../code-map.md). The agent runner is 287 lines and `main.py` is
+in the [code map](../code-map.md). The agent runner is 286 lines and `main.py` is
 a two-line ASGI entry point. The UI submodule is unchanged at
 `33cb103b31b0ce12bf6e9488b19aa406a0a3f5a6`. v2.16, its released catalog, protected
 instructions, handoff bytes, settings, tool schemas, and index identities remain

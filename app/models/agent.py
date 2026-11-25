@@ -231,4 +231,3 @@ def _tracked_agent_chat(state: AgentState, messages: list[dict[str, Any]],
                                      "cached_prompt_tokens": usage["cached_prompt_tokens"],
                                      "reasoning_tokens": usage["reasoning_tokens"]})
     return reply
-

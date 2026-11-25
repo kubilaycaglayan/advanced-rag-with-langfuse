@@ -112,4 +112,3 @@ def _run_ask(request: AskRequest, prepared: dict[str, Any], *, on_trace=None, on
         update_observation(obs, output={"answer": result.get("answer"), "citations": result.get("citations"),
                                         "answer_cache_status": result.get("answer_cache_status")})
         return result
-

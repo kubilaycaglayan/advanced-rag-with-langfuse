@@ -55,4 +55,3 @@ def mark_interrupted() -> int:
     with connect() as db:
         cursor = db.execute("UPDATE executions SET status='failed',error='worker stopped while execution was active',updated_at=?,finished_at=? WHERE status='running'", (stamp, stamp))
         return cursor.rowcount
-

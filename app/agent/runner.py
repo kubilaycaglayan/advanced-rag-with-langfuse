@@ -284,4 +284,3 @@ def run_agent(question: str, collection: str, config: ResolvedPipelineConfig | N
             result = _forced_answer(state, messages)
         update_observation(root, output=result)
         return result
-

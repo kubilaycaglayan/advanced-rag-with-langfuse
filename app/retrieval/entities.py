@@ -135,4 +135,3 @@ def person_full_name(collection: str, name: str) -> str:
         if word in pairs:
             return pairs[word][0]
     return form
-

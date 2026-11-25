@@ -239,4 +239,3 @@ def _tool_true_account(state: AgentState, args: dict[str, Any]) -> dict[str, Any
                                          "passages": [_scene_member(row, 500) for row in chosen_rows[:6]],
                                          "more_passages": max(0, len(chosen_rows) - 6)}
     return payload
-

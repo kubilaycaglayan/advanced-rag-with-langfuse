@@ -88,4 +88,3 @@ def _fingerprints(config: ResolvedPipelineConfig, managed_evaluators: dict[str, 
                       "model": evaluator_model, "specs": evaluator_manifest(),
                       "settings": {"temperature": 0, "stream": False, "format": "json"},
                       "code_fingerprint": evaluator_code}, corpus_checksum
-

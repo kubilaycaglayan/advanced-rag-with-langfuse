@@ -41,4 +41,3 @@ Use only those passages. Cite each claim with the passage id in square brackets,
 If the passages show a document, letter, introduction or conversation that brought two people together, or that brought
 something to someone's attention, that is how they came to know it: say so plainly. Only say the passages do not answer
 the question if none of them state it."""
-

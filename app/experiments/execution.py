@@ -353,4 +353,3 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
     finally:
         if client is not None and not client_cleanup_attempted:
             _flush_client(client)
-

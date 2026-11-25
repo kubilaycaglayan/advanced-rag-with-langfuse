@@ -94,4 +94,3 @@ async def langfuse_ollama_proxy(path: str, request: Request) -> Response:
             logger.info("Local judge response status=%d non_json_body_chars=%d", upstream.status_code, len(content))
     upstream.close()
     return Response(content=content, status_code=upstream.status_code, headers=response_headers)
-

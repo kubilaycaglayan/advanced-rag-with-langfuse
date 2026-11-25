@@ -46,4 +46,3 @@ def _dataset_for(payload: dict[str, Any], client: Langfuse) -> tuple[Any, dateti
     if resolved_version.utcoffset() is None:
         resolved_version = resolved_version.replace(tzinfo=timezone.utc)
     return dataset, resolved_version.astimezone(timezone.utc)
-

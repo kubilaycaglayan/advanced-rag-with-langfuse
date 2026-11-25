@@ -30,4 +30,3 @@ def scene_member_rows(collection: str, members: list[str]) -> list[dict[str, Any
     by_id, _ = passage_index(collection)
     rows = [by_id[member] | {"id": member} for member in members if member in by_id]
     return sorted(rows, key=passage_position)
-

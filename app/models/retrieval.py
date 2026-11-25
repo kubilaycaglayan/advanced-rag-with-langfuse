@@ -36,4 +36,3 @@ def encode_query(text: str, model: str, revision: str | None = None) -> list[flo
                          "normalize": True}, input={"text": text, "model": model, "revision": revision},
                         compute=lambda: embedder(model, revision).encode(
                             text, normalize_embeddings=True, show_progress_bar=False).tolist())
-

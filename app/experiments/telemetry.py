@@ -96,4 +96,3 @@ def _verify_trace_upload(client: Langfuse, trace_id: str | None, *, attempts: in
         if attempt + 1 < attempts:
             time.sleep(0.5)
     return f"trace {trace_id}: {last_error}"
-

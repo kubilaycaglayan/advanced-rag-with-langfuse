@@ -253,4 +253,3 @@ def _final(state: AgentState, answer: str, ids: list[str], *, stopped: str, raw_
             "collected_passages": len(state.evidence), "turns": state.turns, "tool_calls": state.tool_calls,
             "trace": state.trace, "model": state.settings.model, "usage": state.usage,
             "latency_seconds": round(time.perf_counter() - state.started, 2), "stopped": stopped}
-

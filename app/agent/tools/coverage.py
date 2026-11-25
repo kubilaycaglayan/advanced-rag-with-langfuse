@@ -173,4 +173,3 @@ def _coverage_gap(state: AgentState, answer: str) -> dict[str, Any] | None:
             "note": "a what happened answer covers arrival, discovery, confrontation and outcome; open the scene after "
                     "the first hit and search with the people involved before submitting",
             **_coverage_hint(state, answer)}
-

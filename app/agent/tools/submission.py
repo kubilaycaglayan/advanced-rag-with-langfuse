@@ -48,4 +48,3 @@ def _tool_submit_answer(state: AgentState, args: dict[str, Any]) -> tuple[dict[s
     return {"answer": rewritten, "raw_answer": answer, "passage_ids": ids,
             "cited_ids": list(dict.fromkeys(item.casefold() for item in cited)),
             "uncited": bool(ids) and not any(item.casefold() in ids for item in cited)}, True
-

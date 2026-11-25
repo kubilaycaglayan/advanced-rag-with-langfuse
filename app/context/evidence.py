@@ -42,4 +42,3 @@ class EvidenceState:
                 self.focus.append(short)
             if self.read_capture is not None:
                 self.read_capture["focused"].append(str(row["id"]))
-

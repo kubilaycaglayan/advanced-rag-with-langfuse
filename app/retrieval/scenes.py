@@ -27,4 +27,3 @@ def scene_lookup(collection: str, config: ResolvedPipelineConfig, wanted: str) -
     if len(matches) > 1:
         return None, f"scene id {wanted!r} is ambiguous ({len(matches)} scenes)"
     return None, f"no scene with id {wanted!r}"
-

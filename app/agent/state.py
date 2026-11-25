@@ -51,6 +51,3 @@ class AgentState(EvidenceState):
     rejected_answers: set[str] = field(default_factory=set)
     premise_evidence: list[str] = field(default_factory=list)
     search_history: list[tuple[str, set[str]]] = field(default_factory=list)
-
-
-

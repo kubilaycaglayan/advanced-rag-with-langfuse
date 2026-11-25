@@ -183,4 +183,3 @@ def retry_experiment(execution_id: str,
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     return {"execution_id": row["execution_id"], "retry_of_execution_id": execution_id,
             "status": row["status"], "status_url": f"/experiments/{row['execution_id']}", "created": created}
-

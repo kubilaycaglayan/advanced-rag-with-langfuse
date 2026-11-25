@@ -36,4 +36,3 @@ class CacheFeedbackRequest(BaseModel):
     trace_id: str = Field(pattern="^[0-9a-f]{32}$")
     owner_id: str = Field(min_length=1, max_length=200)
     helpful: bool
-

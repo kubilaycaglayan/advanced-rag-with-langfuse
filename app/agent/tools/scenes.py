@@ -174,4 +174,3 @@ def _tool_scene_moment(state: AgentState, args: dict[str, Any]) -> dict[str, Any
             "more_passages": max(0, len(rows) - 8), "scenes": listing,
             "note": "the chosen scene's passages are in reading order. If a summary above names the detail, read_scene "
                     "it: the detail may be in that scene rather than the chosen one."}
-

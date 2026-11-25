@@ -37,4 +37,3 @@ def local_generate(messages: list[dict[str, str]], model: str, budgets: tuple[in
                 last_error = exc
                 break
         raise RuntimeError(f"Ollama request failed or returned empty content: {last_error or 'empty response'}")
-
