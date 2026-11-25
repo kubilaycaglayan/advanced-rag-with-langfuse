@@ -2,8 +2,6 @@
 from __future__ import annotations
 
 import hashlib
-import ast
-import json
 import os
 from dataclasses import dataclass
 from pathlib import Path
@@ -26,37 +24,6 @@ except ImportError:
 
 MODEL_KEYS = {"embedding_model", "reranker_model", "generation_model", "scene_summary_model"}
 IDENTITY_KEYS = {"corpus_checksum", "prompt_hashes", "engine", "pipeline", "agent", "index", "prompts", "models"}
-_V2_INSTRUCTION_FINGERPRINT = "e114bc0e9958ce609c6bdc9706eb46cbd00f54f4025a7b7acc77353dba42831d"
-_V2_STABLE_LITERAL_FINGERPRINT = "91071f9aeafd4ad613de6c66cb4b9c80332811d3c992e6af8435e64c7d146b8a"
-_V22_ORIGINAL_INSTRUCTION_FINGERPRINT = "b457df458c964b4d225d82d784b73bae7232c68c1c124ac120299a209085ae86"
-_V22_PROVIDER_ADAPTER_COMPAT_FINGERPRINT = "edfc2ec1fbd340498afc2b139dc14f151a74de825c2d95428fe108a6b77ac720"
-_V23_HIGH_REASONING_ADAPTER_FINGERPRINT = "d117d53070e4cf4ccaeab0db35444bb8a5db4a7ff3750dea91fc15e1786a528f"
-_V25_SCENE_PROBE_FINGERPRINT = "4f3c86b9ec0ebe2f76328df25168cc4900e9ad6ecb8626c67780df12163042a8"
-_V26_PROBE_TRACE_FINGERPRINT = "59696263473e1c7bec631f012986747b8efb222739e51fed2077cbc9f6ace6bb"
-_CONVERSATION_HANDOFF_COMPAT_FINGERPRINT = "dbc2b5623281cdf1583d940fe5e5e889b0638946aa9b3de3e183bad35c83ae94"
-_DRAFT_SCOPED_INSTRUCTION_FINGERPRINT = "bbcfdbf2305d66a3ecbfac03eab187e5805195f095ecbc60e18c6a68c222549e"
-
-
-def _legacy_v2_instructions_unchanged() -> bool:
-    """Recognize v2's original instruction literals after code-only reranking additions."""
-    source = Path(__file__).resolve().parent
-    literals: dict[str, list[str]] = {}
-    for filename in ("agent.py", "prompt_templates.py"):
-        tree = ast.parse((source / filename).read_text(encoding="utf-8"))
-        literals[filename] = sorted(node.value for node in ast.walk(tree)
-                                    if isinstance(node, ast.Constant) and isinstance(node.value, str))
-    # These are retrieval data keys and a numeric sentinel introduced by reranking, not instructions.
-    for value, count in (("id", 4), ("", 2), ("text", 2), ("-inf", 1)):
-        for _ in range(count):
-            try:
-                literals["agent.py"].remove(value)
-            except ValueError:
-                return False
-    digest = hashlib.sha256(json.dumps(literals, ensure_ascii=False, sort_keys=True,
-                                       separators=(",", ":")).encode()).hexdigest()
-    return digest == _V2_STABLE_LITERAL_FINGERPRINT
-
-
 @dataclass(frozen=True)
 class ResolvedRun:
     version: str
@@ -100,16 +67,14 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
     catalog = catalog or load_catalog()
     if pipeline is not None and (not isinstance(pipeline, str) or not pipeline):
         raise ValueError("pipeline must be a non-empty version id")
-    if pipeline is None and engine is not None:
-        if engine not in {"fixed", "agent"}:
-            raise ValueError("engine must be fixed or agent")
-        pipeline = {"fixed": "v1", "agent": catalog.default}[engine]
+    if engine is not None and engine != "agent":
+        raise ValueError("only the agent engine is supported")
     block = catalog.get(pipeline)
     version = block["id"]
     if engine is not None and engine != block["engine"]:
         raise ValueError(f"engine {engine!r} disagrees with pipeline {version}")
-    if prompt_label is not None and block["status"] != "draft":
-        raise ValueError("prompt_label is allowed only for draft pipelines")
+    if prompt_label is not None:
+        raise ValueError("prompt_label is no longer supported")
     if overrides is None:
         overrides = {}
     if not isinstance(overrides, Mapping):
@@ -125,10 +90,6 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
     agent_context_length = overrides.get("agent_context_length")
     scene_candidate_count = overrides.get("scene_candidate_count")
     premise_early_stop = overrides.get("premise_early_stop")
-    if version in {"v2.6", "v2.7", "v2.8", "v2.9", "v2.10"} and overrides.get("automatic_scene_search") is True and scene_candidate_count is None:
-        # The validated automatic probe trials used 30 candidates; the v2.2-compatible default remains 20.
-        overrides["scene_candidate_count"] = 30
-        scene_candidate_count = 30
     allowed = set(block["settings"]) | (MODEL_KEYS if block["engine"] == "fixed" else set())
     if block["engine"] == "agent":
         # These are supported AgentSettings overrides for released and draft
@@ -216,38 +177,7 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
             raise ValueError(f"{version}: agent tool catalog differs from released version")
         expected_instructions = block["agent"]["instruction_fingerprint"]
         actual_instructions = instruction_fingerprint()
-        legacy_v2 = (version == "v2" and expected_instructions == _V2_INSTRUCTION_FINGERPRINT
-                     and (_legacy_v2_instructions_unchanged() or actual_instructions in {
-                         _V25_SCENE_PROBE_FINGERPRINT, _V26_PROBE_TRACE_FINGERPRINT}))
-        legacy_v22 = (version == "v2.2" and expected_instructions == _V22_ORIGINAL_INSTRUCTION_FINGERPRINT
-                      and actual_instructions in {_V22_PROVIDER_ADAPTER_COMPAT_FINGERPRINT,
-                                                  _V23_HIGH_REASONING_ADAPTER_FINGERPRINT,
-                                                  _V25_SCENE_PROBE_FINGERPRINT,
-                                                  _V26_PROBE_TRACE_FINGERPRINT})
-        compatible_v23_adapter = (version == "v2.3" and expected_instructions == _V22_PROVIDER_ADAPTER_COMPAT_FINGERPRINT
-                                  and actual_instructions in {_V23_HIGH_REASONING_ADAPTER_FINGERPRINT,
-                                                              _V25_SCENE_PROBE_FINGERPRINT,
-                                                              _V26_PROBE_TRACE_FINGERPRINT})
-        compatible_probe_trace = (version in {"v2.4", "v2.5", "v2.6", "v2.7"}
-                                  and expected_instructions == _V25_SCENE_PROBE_FINGERPRINT
-                                  and actual_instructions == _V26_PROBE_TRACE_FINGERPRINT)
-        draft_block = catalog.versions.get("v2.11") or {}
-        draft_progress_compatible = (actual_instructions ==
-                                     (draft_block.get("agent") or {}).get("instruction_fingerprint")
-                                     and version != "v2.11" and block["status"] != "draft")
-        draft_scoped_compatible = (block["status"] != "draft" and not graph_search_enabled
-                                   and actual_instructions == _DRAFT_SCOPED_INSTRUCTION_FINGERPRINT)
-        # Released instruction fingerprints protect Millennium's compatibility boundary.
-        # Other corpora select their agent instructions through their own profile and record
-        # that profile/source identity separately, so they can reuse the pipeline settings
-        # without inheriting Millennium's literal prompt fingerprint.
-        legacy_handoff_compatible = (block["status"] != "draft" and not agent_settings.conversation_handoff
-                                     and not graph_search_enabled
-                                     and actual_instructions == _CONVERSATION_HANDOFF_COMPAT_FINGERPRINT)
-        if (selected_id == "millennium" and expected_instructions != actual_instructions
-                and not (legacy_v2 or legacy_v22 or compatible_v23_adapter
-                         or compatible_probe_trace or draft_progress_compatible
-                         or draft_scoped_compatible or legacy_handoff_compatible)):
+        if selected_id == "millennium" and expected_instructions != actual_instructions:
             raise ValueError(f"{version}: agent instructions differ from released version; publish a new version")
     try:
         from .indexer import index_identity

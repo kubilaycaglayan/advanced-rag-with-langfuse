@@ -5,7 +5,6 @@ import hashlib
 import json
 import re
 from dataclasses import dataclass
-from dataclasses import fields
 from pathlib import Path
 from typing import Any
 
@@ -23,7 +22,7 @@ FINGERPRINT_KEYS = ("id", "engine", "flow", "agent", "settings", "prompts", "ind
 VERSION_KEYS = set(FINGERPRINT_KEYS) | {"status", "notes", "code"}
 MODEL_KEYS = {"embedding_model", "reranker_model", "generation_model", "scene_summary_model"}
 IDENTITY_KEYS = {"corpus_checksum", "prompt_hashes"}
-V2_SETTINGS = {"retrieval_mode", "hyde", "expansion_count", "name_completion", "scene_search_hits",
+PIPELINE_SETTINGS = {"retrieval_mode", "hyde", "expansion_count", "name_completion", "scene_search_hits",
                "scene_window", "scene_stride", "passage_chars", "min_passage_chars", "passage_overlap",
                "generation", "parallel_transformations", "scene_thinking"}
 AGENT_KEYS = {"model", "tools", "max_turns", "max_tool_calls", "min_tool_calls", "timeout_seconds",
@@ -89,7 +88,7 @@ def load_catalog(path: Path = CATALOG, releases_path: Path = RELEASES) -> Pipeli
             raise ValueError(f"invalid pipeline id {version!r}")
         if version in versions:
             raise ValueError(f"duplicate pipeline id {version}")
-        if block["status"] not in {"draft", "released", "retired"} or block["engine"] not in {"fixed", "agent"}:
+        if block["status"] != "released" or block["engine"] != "agent":
             raise ValueError(f"{version}: invalid status or engine")
         if not isinstance(block["flow"], list) or not block["flow"] or not all(isinstance(step, dict) and
                 set(step) <= {"name", "when", "parallel"} and ("name" in step or "parallel" in step)
@@ -108,22 +107,17 @@ def load_catalog(path: Path = CATALOG, releases_path: Path = RELEASES) -> Pipeli
         if ((block["index"]["collection"] is None) != (block["index"]["corpus_checksum"] is None)
                 or any(value is not None and not isinstance(value, str) for value in block["index"].values())):
             raise ValueError(f"{version}: generic indexes must leave collection and corpus_checksum unset together")
-        known_settings = {field.name for field in fields(ResolvedPipelineConfig)} - MODEL_KEYS - IDENTITY_KEYS
-        required_settings = known_settings if block["engine"] == "fixed" else V2_SETTINGS
+        required_settings = PIPELINE_SETTINGS
         if set(block["settings"]) != required_settings:
             raise ValueError(f"{version}: settings must match engine settings; missing={sorted(required_settings - set(block['settings']))}, extra={sorted(set(block['settings']) - required_settings)}")
         if set(block["models"]) != MODEL_KEYS:
             raise ValueError(f"{version}: models must list generation, embedding, reranker, and scene summary")
         if block["engine"] == "agent" and block["prompts"]:
             raise ValueError(f"{version}: agent must not pin managed RAG prompts")
-        if block["engine"] == "fixed" and len(block["prompts"]) != 7:
-            raise ValueError(f"{version}: fixed pipeline must pin all seven managed prompts")
         if block["engine"] == "agent" and (not isinstance(block["agent"], dict) or
                 not AGENT_KEYS <= set(block["agent"]) or
                 set(block["agent"]) - AGENT_KEYS - AGENT_OPTIONAL_KEYS):
             raise ValueError(f"{version}: agent settings required")
-        if block["engine"] == "fixed" and block["agent"] is not None:
-            raise ValueError(f"{version}: fixed flow cannot have agent settings")
         versions[version] = block
     if header["default"] not in versions or versions[header["default"]]["status"] != "released":
         raise ValueError("default must name a released pipeline")

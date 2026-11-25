@@ -368,7 +368,7 @@ class Stage3Checks(unittest.TestCase):
     def test_queued_job_lifecycle_and_restart_marking(self):
         with tempfile.TemporaryDirectory() as directory, patch.dict(os.environ, {"EXPERIMENT_DATA_DIR": directory}):
             initialize()
-            row, created = enqueue("execution-1", {"dataset_name": "QA.csv", "pipeline": "v1", "settings": {}}, "retry-key")
+            row, created = enqueue("execution-1", {"dataset_name": "QA.csv", "pipeline": "v2.16", "settings": {}}, "retry-key")
             self.assertTrue(created)
             same, created_again = enqueue("execution-2", {"dataset_name": "QA.csv"}, "retry-key")
             self.assertFalse(created_again)
@@ -384,7 +384,7 @@ class Stage3Checks(unittest.TestCase):
     def test_item_and_telemetry_failures_are_reported_separately(self):
         with tempfile.TemporaryDirectory() as directory, patch.dict(os.environ, {"EXPERIMENT_DATA_DIR": directory}):
             initialize()
-            enqueue("execution-partial", {"dataset_name": "QA.csv", "pipeline": "v1", "settings": {},
+            enqueue("execution-partial", {"dataset_name": "QA.csv", "pipeline": "v2.16", "settings": {},
                                           "correctness_evaluator": "answer_correctness_v1"}, None)
             items = [SimpleNamespace(id=f"item-{i}", input={"question": f"q{i}"},
                                      expected_output={"answer": f"a{i}"}, metadata={}) for i in (1, 2)]
