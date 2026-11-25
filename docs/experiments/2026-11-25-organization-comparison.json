@@ -1,0 +1,216 @@
+{
+  "baseline_revision": "7febbf7",
+  "ui_revision": "33cb103b31b0ce12bf6e9488b19aa406a0a3f5a6",
+  "cache_mode": "bypass",
+  "datasets": {
+    "QA.csv": {
+      "id": "cmv7zo6nw0007pa7t55mno068",
+      "version": "2026-11-13T12:31:57.064000+00:00",
+      "items": [
+        {
+          "id": "f59e5c80-b58e-5639-add4-ac587c7a368a",
+          "input": {
+            "question": "Who tried to shoot Mikael?"
+          },
+          "metadata": {
+            "source_row": 3,
+            "seed_row_key": "c667068177ae77247ba45c013a3c412ee28f527e43d49b608082f7d2ac20fcd0",
+            "seed_occurrence": 1,
+            "source_checksum": "af25aeb4b0411822decab5362dced6b147379d5427e07c67143ef678f26e8844"
+          }
+        },
+        {
+          "id": "fb5b6f9d-2a37-5f3b-9f40-e8dd97ca7952",
+          "input": {
+            "question": "What Salander used when she was digging herself up?"
+          },
+          "metadata": {
+            "source_row": 4,
+            "seed_row_key": "c194763dbf92be69523d6db3d926c9163a8cc82c47af1a67079197da2afa6691",
+            "seed_occurrence": 1,
+            "source_checksum": "af25aeb4b0411822decab5362dced6b147379d5427e07c67143ef678f26e8844"
+          }
+        },
+        {
+          "id": "a6ee3143-428c-5d8e-8d8e-d131dc92ac54",
+          "input": {
+            "question": "Who killed Harriet?"
+          },
+          "metadata": {
+            "source_row": 10,
+            "seed_row_key": "4d4762a4228d1447fc5817c8334e6f3cfe4474d49cdd4dd2645773b520a2c465",
+            "seed_occurrence": 1,
+            "source_checksum": "af25aeb4b0411822decab5362dced6b147379d5427e07c67143ef678f26e8844"
+          }
+        }
+      ]
+    },
+    "Additional Questions": {
+      "id": "cmv892lbn0005mj7u0q074bua",
+      "version": "2026-11-19T12:32:26.015000+00:00",
+      "items": [
+        {
+          "id": "8acd68c6-d285-42c3-b33b-ac2fb9833565",
+          "input": {
+            "question": "How did Mikael found who was in the photo that Harriet was afraid of?"
+          },
+          "metadata": {
+            "source": "frontend",
+            "clientIp": "127.0.0.1",
+            "corpus_id": "millennium",
+            "collection": "millennium_books_a7ebc5a988df037cd2ee",
+            "profile_id": "millennium",
+            "scope.name": "langfuse-sdk",
+            "agent_model": "qwen3.6:35b",
+            "pipeline_id": "pipeline-v2.12-62d121f0",
+            "scope.version": "4.17.0",
+            "agent_provider": "ollama",
+            "corpus_checksum": "d5f87c43d9e3b5cc37e6b0ab2131eadc627450d2c2af6d0f508c6ab83275cf9b",
+            "prompt_identity": "3287ad1db541c229a2ca597ea91a5b5137691e37a6e5d0f920bb5f1b12bdceab",
+            "pipeline_derived": "False",
+            "pipeline_version": "v2.12",
+            "profile_identity": "f21db658f413541469f069b84110d7676c3e10f69298c6d3b22238fd87f25985",
+            "answer_cache_status": "miss",
+            "agent_premise_early_stop": "False",
+            "agent_scene_candidate_count": 30,
+            "scope.attributes.public_key": "pk-lf-943100a48a4f7427b2f4779bac5f8d3e",
+            "agent_automatic_scene_search": "True",
+            "resourceAttributes.service.name": "unknown_service:python3.12",
+            "resourceAttributes.telemetry.sdk.name": "opentelemetry",
+            "resourceAttributes.service.instance.id": "4a51b91e-b33e-4e00-a553-986c0a567330",
+            "resourceAttributes.telemetry.sdk.version": "1.45.1",
+            "resourceAttributes.telemetry.sdk.language": "python"
+          }
+        },
+        {
+          "id": "36c50723-3b65-49f6-9d9b-70574cc9471c",
+          "input": {
+            "question": "What happened to Salander in the abandoned factory?"
+          },
+          "metadata": {
+            "source": "frontend",
+            "collection": "millennium_books_3696a8c6d4495dc7312e",
+            "scope.name": "langfuse-sdk",
+            "pipeline_id": "pipeline-3579f224c9e3d19c",
+            "scope.version": "4.17.0",
+            "prompt_rag-hyde": "fe9f9a8d-fb21-4441-bae3-75907b6008a1@3:production",
+            "prompt_rag-answer": "1f5f81b4-c5d6-41c1-9132-feebcd675cf7@1:production",
+            "prompt_rag-query-expansion": "e02481f8-b7df-4e5a-93c4-c238f6018fb2@4:production",
+            "scope.attributes.public_key": "pk-lf-943100a48a4f7427b2f4779bac5f8d3e",
+            "prompt_rag-grammar-correction": "1380f9ff-a09e-447b-b86f-962f217113f1@1:production",
+            "resourceAttributes.service.name": "unknown_service:python3.12",
+            "resourceAttributes.telemetry.sdk.name": "opentelemetry",
+            "resourceAttributes.service.instance.id": "a997acc5-42a5-4975-a2a7-e760f792f3c0",
+            "resourceAttributes.telemetry.sdk.version": "1.45.1",
+            "resourceAttributes.telemetry.sdk.language": "python"
+          }
+        },
+        {
+          "id": "45d561b9-ca5e-4c5d-83cb-04b610da13dc",
+          "input": {
+            "question": "When Mikael Blomkvist found Lisbeth Salander severely wounded on the kitchen bench at the Gosseberga farmhouse, he reached out to carefully loosen the gun from her hand. And then what Salander said to him?"
+          },
+          "metadata": {
+            "source": "frontend",
+            "clientIp": "78.163.48.13",
+            "collection": "millennium_books_3696a8c6d4495dc7312e",
+            "scope.name": "langfuse-sdk",
+            "pipeline_id": "pipeline-c794eb233c868cfd",
+            "scope.version": "4.17.0",
+            "prompt_rag-hyde": "fe9f9a8d-fb21-4441-bae3-75907b6008a1@3:production",
+            "prompt_rag-answer": "1f5f81b4-c5d6-41c1-9132-feebcd675cf7@1:production",
+            "prompt_rag-query-expansion": "e02481f8-b7df-4e5a-93c4-c238f6018fb2@4:production",
+            "scope.attributes.public_key": "pk-lf-943100a48a4f7427b2f4779bac5f8d3e",
+            "prompt_rag-grammar-correction": "1380f9ff-a09e-447b-b86f-962f217113f1@1:production",
+            "resourceAttributes.service.name": "unknown_service:python3.12",
+            "resourceAttributes.telemetry.sdk.name": "opentelemetry",
+            "resourceAttributes.service.instance.id": "a3c9a563-ef0a-4df2-b6bf-bfab16e14f3f",
+            "resourceAttributes.telemetry.sdk.version": "1.45.1",
+            "resourceAttributes.telemetry.sdk.language": "python"
+          }
+        }
+      ]
+    },
+    "set3": {
+      "id": "cmvcgm11i0003mj7tbjygxtlr",
+      "version": "2026-10-21T07:06:27.962000+00:00",
+      "items": [
+        {
+          "id": "cf527045-31e2-56b5-a91d-1fb1f13fdd71",
+          "input": {
+            "question": "How Gottfried really died?"
+          },
+          "metadata": {
+            "label": "S3-1",
+            "source": "frontend-thumbs-down",
+            "feedback_trace_id": "dff882443688630740cd23d3fef0d95b"
+          }
+        },
+        {
+          "id": "ce841aab-a26b-512b-8fa9-ba28cf3b0f20",
+          "input": {
+            "question": "Who are the top 10 most important characters?"
+          },
+          "metadata": {
+            "label": "S3-4",
+            "source": "frontend-thumbs-down",
+            "feedback_trace_id": "9673af591e030b152a32979373241f71"
+          }
+        },
+        {
+          "id": "63be7c48-978b-5327-b7b3-7961e60dfc22",
+          "input": {
+            "question": "Why Mikael agreed to work for Henrik?"
+          },
+          "metadata": {
+            "label": "S3-9",
+            "source": "frontend-thumbs-down",
+            "feedback_trace_id": "a1215491b41835e85a401b9235ca2b89"
+          }
+        }
+      ]
+    },
+    "right-set-3": {
+      "id": "cmvcgsorw0005mj7tu0turtdo",
+      "version": "2026-10-21T07:06:28.123000+00:00",
+      "items": [
+        {
+          "id": "c8687e69-1da6-5f24-8ce6-92835741c8a4",
+          "input": {
+            "question": "Where was Gottfried's cabin located?"
+          },
+          "metadata": {
+            "label": "R3-1",
+            "source": "frontend-thumbs-up",
+            "feedback_trace_id": "d99a5956b507d8c95fe23577b9bd656c",
+            "reference_corrected": false
+          }
+        },
+        {
+          "id": "b2919027-a60a-5b43-935e-221b4d99df2a",
+          "input": {
+            "question": "What Paolo Roberto was thinking when he was in a fight with Niederman?"
+          },
+          "metadata": {
+            "label": "R3-5",
+            "source": "frontend-thumbs-up",
+            "feedback_trace_id": "82d06f700bc9d323c41031066cc80f38",
+            "reference_corrected": false
+          }
+        },
+        {
+          "id": "58f31047-d68c-5735-9bdc-26c7320f23a9",
+          "input": {
+            "question": "How name Zala and Salander related?"
+          },
+          "metadata": {
+            "label": "R3-6",
+            "source": "frontend-thumbs-up",
+            "feedback_trace_id": "55d57edb21207666405223d4e329e7e7",
+            "reference_corrected": false
+          }
+        }
+      ]
+    }
+  }
+}
