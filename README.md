@@ -16,6 +16,8 @@ Tested but not optimized with *The Alienist* by Caleb Carr. <br/>
 The supported pipeline is **v2.16**, with local Ollama and OpenAI options. See the
 [technical guide](TECHNICAL_GUIDE.md) for configuration and experiment commands.
 Older pipeline execution is unsupported; historical results remain available.
+The [code map](docs/code-map.md) explains backend and Express ownership and how a
+question moves through the system.
 
 ## How it works
 

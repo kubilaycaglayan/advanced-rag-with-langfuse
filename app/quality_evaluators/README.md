@@ -46,7 +46,7 @@ definitions. The variant shares existing weights. It does not change the base
 model or Ollama's service-wide default. Historical evaluator versions and scores
 remain available in Langfuse.
 
-## Scoring existing traces with `quality_metrics.py`
+## Scoring existing traces with `app/evaluation/metrics.py`
 
 With `--write`, each evaluation creates a `quality evaluation` parent under the
 source experiment trace. Child spans measure source extraction, retrieval,

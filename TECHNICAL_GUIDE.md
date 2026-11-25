@@ -3,7 +3,7 @@
 ## Supported workflow
 
 The only supported pipeline is **v2.16**. HTTP questions and dataset experiments
-share `app/pipeline_resolver.py` and `app/pipeline_runner.py`. Older pipeline
+share `app/pipelines/resolver.py` and `app/answering/execution.py`. Older pipeline
 versions and the fixed engine are unsupported. Git history contains their code.
 
 The agent gathers evidence through 13 tools, runs connection/scene/true-account/
@@ -137,7 +137,7 @@ Inspect them with `python -m app.prompt_assets`; explicit
 Correctness evaluator versions are independent of pipeline versions and remain
 supported. The default is `answer_correctness_v2`; citation support remains
 `citation_support_v1`. See `app/evaluator_specs.py`,
-`app/quality_evaluators/README.md`, and `app/quality_metrics.py` for current
+`app/quality_evaluators/README.md`, and `app/evaluation/metrics.py` for current
 contracts/executors. Do not duplicate scores with additional managed rules when
 the experiment runner already executes the same judges.
 
@@ -166,3 +166,11 @@ locks/data from live requests. Frontend checks run from its directory:
 
 The [cleanup plan](docs/plans/2026-11-25-v2.16-maintenance-cleanup.md) records
 scope and the verification checklist.
+
+## Code ownership
+
+See the [code map](docs/code-map.md) to follow a question and locate search,
+tools, instructions, evidence, evaluators, and Express behavior. Run Python
+commands from the repository root with `python -m app.<module>`; the ASGI
+entry point is `uvicorn app.main:app`. The UI submodule remains a separate
+HTTP consumer. Index manifests retain their existing SQLite storage.
