@@ -23,3 +23,15 @@ The selected attempt and historical baseline both receive R1 present, R2 present
 Required decision: authorize treating the best attempt's 0.0333 gap as an evaluator discrepancy and continuing, or retain the strict gate. The prior developer authorization resolved Harriet specifically. Prompts, evidence policy, historical results and the three-attempt limit remain unchanged. Developer notified in chat.
 
 Evidence: frozen comparison-manifest.json questions[5], and Step 8 openai-q06-a1/a2/a3 retained results, manifests, live traces and reviews. Step 8 remains incomplete; Step 9 has not started.
+
+## Step 8: substantive abandoned-factory regression
+
+Status: awaiting developer decision, 2026-11-26. OpenAI Q10 and all Ollama items remain unstarted.
+
+OpenAI Q9 (Additional Questions, 36c50723-3b65-49f6-9d9b-70574cc9471c) exhausted all three permitted attempts: 0.5167 / 41.12 seconds; 0.5 / 56.09 seconds; 0.5167 / 45.12 seconds. Historical correctness is 1.0. Attempt 1 is provisionally selected as the earliest best-correctness tie, using its own latency. All results remain unchanged.
+
+All three answers omit the required nail-gun immobilization of Niedermann. Attempt 2 additionally mixes the Gosseberga shooting/burial into the brickworks account. Citation support is 0.5 on attempt 1. The final cited evidence in all three attempts lacks the word “nail.” All traces complete ten investigation turns, application budget drafting and one finalization, with no provider, tool, telemetry or graph structure errors. Attempts 2 and 3 include coverage rewriting. Source inspection confirms legacy runner _finish and graph prepare_final_answer are the same helper (app/agent/submission.py), including that rewrite. No behavior change or new baseline was introduced. These observations locate the answer-quality failure but do not establish that the migration is accepted.
+
+Required decision: authorize recording the substantive failure and continuing the remaining serial validation, or keep the gate and investigate changes to preserved pipeline behavior. The prior authorizations cover Harriet and the summary evaluator discrepancies; they do not waive this substantive regression. Developer notified with both options in chat. No fourth attempt may be run under the current agreement.
+
+Evidence: Step 8 openai-q09-a1/a2/a3 results, manifests, traces and reviews, frozen Step 1 questions[8], progress.json. Step 8 remains incomplete and Step 9 has not started.

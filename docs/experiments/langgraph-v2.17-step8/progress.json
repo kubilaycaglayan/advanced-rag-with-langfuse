@@ -1,6 +1,6 @@
 {
   "step": 8,
-  "status": "in_progress",
+  "status": "awaiting_factory_regression_decision",
   "selected_attempts": {
     "openai-q01": "openai-q01-a1",
     "openai-q02": "openai-q02-a1",
@@ -9,9 +9,10 @@
     "openai-q05": "openai-q05-a1",
     "openai-q06": "openai-q06-a1",
     "openai-q07": "openai-q07-a1",
-    "openai-q08": "openai-q08-a3"
+    "openai-q08": "openai-q08-a3",
+    "openai-q09": "openai-q09-a1"
   },
-  "selection_note": "Q6 attempt 1 selected as best correctness with its own latency. Developer resolved the supporting-fact discrepancy.",
+  "selection_note": "Q9 best correctness is 0.5167 in attempts 1 and 3; earliest attempt 1 provisionally selected with its own 41.12-second latency. Substantive regression unresolved.",
   "attempts": [
     {
       "label": "openai-q01-a1",
@@ -117,9 +118,23 @@
       "latency_seconds": 41.12,
       "execution_id": "4c29c309-e6d2-4863-b98f-24d794959ce9",
       "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027"
+    },
+    {
+      "label": "openai-q09-a2",
+      "correctness": 0.5,
+      "latency_seconds": 56.09,
+      "execution_id": "0b789ecf-0e3c-4f93-b4b9-bf29b7003ff7",
+      "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027"
+    },
+    {
+      "label": "openai-q09-a3",
+      "correctness": 0.5167,
+      "latency_seconds": 45.12,
+      "execution_id": "d17b382c-38cb-4bc1-a442-3219adebe886",
+      "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027"
     }
   ],
-  "remaining_question_provider_pairs": 12,
+  "remaining_question_provider_pairs": 11,
   "live_default_changed": false,
   "step9_started": false,
   "gate_decisions": {

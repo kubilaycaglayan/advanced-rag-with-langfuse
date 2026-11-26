@@ -204,6 +204,188 @@
         "trace.json": "928408db49e66e161b221916caaf5e8e068324b0db7c90cf9b4e2645133c0328",
         "review.json": "fc8c04ab11dce779042283e05a998c59a647418dc41bde9ec486706c30d337b1"
       }
+    },
+    {
+      "label": "openai-q07-a1",
+      "execution_id": "2a15eab7-b07a-4cdd-abf9-c31cad71a52a",
+      "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027",
+      "managed_evaluators_equal_to_baseline": true,
+      "reviewed_tool_errors": [
+        {
+          "arguments": {
+            "answer": "At the end of the court proceedings, Teleborian was arrested with the judge\u2019s permission for possession of about nine thousand pornographic photographs of children found on his computer; his laptop was confiscated as evidence. He was led out of the courtroom as Salander watched him go. [93ec354d] [2f0f62a1]",
+            "passage_ids": [
+              "93ec354d",
+              "2f0f62a1"
+            ]
+          },
+          "error": "the answer covers only one stage of what happened: arrival, discovery, outcome.",
+          "result_ids": [],
+          "seconds": 1.34,
+          "tool": "submit_answer"
+        }
+      ],
+      "manual_review": "Correctness and citation support 1.0. Coverage rejection recovered with a revised submission and final coverage rewrite; graph/model/tool nesting and usage checks pass, finalization once. No unresolved regression.",
+      "score": 1.0,
+      "baseline_score": 0.95,
+      "latency_seconds": 26.33,
+      "baseline_latency_seconds": 27.84,
+      "artifact_sha256": {
+        "request.json": "97353b28f2a82ac36a0586e2fa3c7f072d13df01be654afe00ac7dc7eefe342b",
+        "manifest.json": "c0b0b5ee00f71f6bfde861fc2c664d41332f468420600ffb6619cbb1c33b4ee6",
+        "results.json": "d6f4193ca0ab289d4e25a2e6950c07f0fcf37bc535997482fdcf1732ab6b2d38",
+        "trace.json": "54e91463affaae9bccc77647b5a41d2ece8bf91a9cb3e96f057057c035fdd28d",
+        "review.json": "ffe00abd1ae58746ba2548fd1410bb4585ff8c67bd7c1ae8f57a239c2f91a32c"
+      }
+    },
+    {
+      "label": "openai-q08-a1",
+      "execution_id": "84fafcbb-7dc4-4192-80e6-b5bd5f7d9c20",
+      "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027",
+      "managed_evaluators_equal_to_baseline": true,
+      "reviewed_tool_errors": [
+        {
+          "arguments": {
+            "answer": "Salander quoted a text that existed only on Blomkvist\u2019s computer, so he realized she had been inside it and told her, \u201cYou\u2019re a hacker.\u201d [a5571633]",
+            "passage_ids": [
+              "a5571633"
+            ]
+          },
+          "error": "investigate more before answering: at least 4 tool calls (you made 3); a passage that is only on topic is not evidence",
+          "result_ids": [],
+          "seconds": 0.0,
+          "tool": "submit_answer"
+        }
+      ],
+      "manual_review": "Expected minimum-tool rejection recovered with further retrieval and accepted verification. Citation support 1.0; trace checks pass. Correctness judge says only-on-his-computer detail absent although output explicitly states stored only on Blomkvist computer; retain score unchanged and retry before advancing.",
+      "score": 0.55,
+      "baseline_score": 1.0,
+      "latency_seconds": 18.9,
+      "baseline_latency_seconds": 19.78,
+      "artifact_sha256": {
+        "request.json": "fefd7b39859f7dbee78e8009af029afdf02009b5c4c6559011cd168092b264d4",
+        "manifest.json": "5fdb7e9e6bb7764cdd280d46de9c59a8bc668b1154f29c442868d1c5d409e188",
+        "results.json": "b27fb22cf0fa7dafae2f2b3b6f455fcb9db226f7efec8053dd73270015178233",
+        "trace.json": "6b753fbd3f505b6d92d3c645c56971b1be0b2811f571f7bcc80890eed788dc2d",
+        "review.json": "99045c0cc09cafe177b73b82866967cff250968c724c8ec0832b91430a692950"
+      }
+    },
+    {
+      "label": "openai-q08-a2",
+      "execution_id": "ef3392e7-b161-4dc3-9a05-14e25b9f0878",
+      "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027",
+      "managed_evaluators_equal_to_baseline": true,
+      "reviewed_tool_errors": [
+        {
+          "arguments": {
+            "answer": "He realized she had been inside his computer when she quoted a text that was stored only on it. He told her, \u201cYou\u2019ve been inside my computer. You\u2019re a hacker.\u201d [a5571633]",
+            "passage_ids": [
+              "a5571633"
+            ]
+          },
+          "error": "investigate more before answering: at least 4 tool calls (you made 3); a passage that is only on topic is not evidence",
+          "result_ids": [],
+          "seconds": 0.0,
+          "tool": "submit_answer"
+        },
+        {
+          "arguments": {
+            "question": "How did Mikael Blomkvist realize that Lisbeth Salander had hacked his computer and was a hacker?"
+          },
+          "error": "TypeError: _moment_scene_hits() takes 6 positional arguments but 7 were given",
+          "result_ids": [],
+          "seconds": 0.02,
+          "tool": "scene_moment"
+        }
+      ],
+      "manual_review": "Correct core answer and citation support. Early submission rejection recovered normally; trace checks pass. Supporting confrontation detail omitted, score 0.9 below historical 1.0; retain and use last diagnostic attempt.",
+      "score": 0.9,
+      "baseline_score": 1.0,
+      "latency_seconds": 21.28,
+      "baseline_latency_seconds": 19.78,
+      "artifact_sha256": {
+        "request.json": "f13d7e21dd0aeb4fe4490f46229bfad7070d1eda846107866dd9e33cdccf13a5",
+        "manifest.json": "320e86667d105efcc124d2ba8cc356d110de77b75b677ca7c034f8a62bed30c2",
+        "results.json": "ae93c000cbfc8bd78790dae6205551445bd4c1456c5693796b17af188b50bbf6",
+        "trace.json": "5611e71f61a70b75e0c0594d5fe27c45cb10306cfc944e02f3a8e398a12ed56d",
+        "review.json": "62ef081ad9d59ac42d9fbd0fe5bc0132d8f36f0703988ff8a865b3b6d2234a4f"
+      }
+    },
+    {
+      "label": "openai-q08-a3",
+      "execution_id": "0a1eac00-59ab-41dd-8f46-47e0a3809646",
+      "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027",
+      "managed_evaluators_equal_to_baseline": true,
+      "reviewed_tool_errors": [],
+      "manual_review": "Correctness/citation support 1.0; matches baseline. Text-review nudge and rejected verification followed by accepted submission are expected recovered branches. Trace nesting, usage and finalization checks pass. Select attempt 3 with its own 32.95-second latency; retain attempts 1 and 2.",
+      "score": 1.0,
+      "baseline_score": 1.0,
+      "latency_seconds": 32.95,
+      "baseline_latency_seconds": 19.78,
+      "artifact_sha256": {
+        "request.json": "158194c7899adc01aa40d34d65e86e981f5572614e6a9745969c1eeab145a8a4",
+        "manifest.json": "96c85c62678e8f2f93395bd489a159c0a7568fa90febe067007f31c633218cb3",
+        "results.json": "b153fb1b63931bdc45ea546258d9a99e1c42fd5480f6b7359d53736ebed7c031",
+        "trace.json": "aac6186e911464c28be32c0ffef4c68f7f852b9e7ae339860f746aef8e0f005b",
+        "review.json": "17153ad45055ac07ec6fbde2a54045a0b03d552f2f25ffd76d2d7b1ae968c0b1"
+      }
+    },
+    {
+      "label": "openai-q09-a1",
+      "execution_id": "4c29c309-e6d2-4863-b98f-24d794959ce9",
+      "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027",
+      "managed_evaluators_equal_to_baseline": true,
+      "reviewed_tool_errors": [],
+      "manual_review": "Clean execution through turn-budget handoff; no graph errors. Sequence answer omits nail-gun immobilization and has reduced correctness. Retain and diagnose via permitted retry before advancing.",
+      "score": 0.5167,
+      "baseline_score": 1.0,
+      "latency_seconds": 41.12,
+      "baseline_latency_seconds": 40.53,
+      "artifact_sha256": {
+        "request.json": "5b3b2b5f2cfe6535981fc6ce24e4627e88e7da58ce36b7405eed95041cc361d5",
+        "manifest.json": "e6a140572bd671f5a925949f3e4cb28ec7d6f78d3394e3535697707a1ea13bc6",
+        "results.json": "def8aa645a842da9c1ce24cffde45f037800efad824298ab31aa82da8dbdb080",
+        "trace.json": "7dbe68d6b0b90bca444ae285a01f4efdabd6079aeae005d41caab359164b4a19",
+        "review.json": "c8877a6f038ccdcbc56376dd5ef079c12d1bdb752e537cd3fc45165924015aab"
+      }
+    },
+    {
+      "label": "openai-q09-a2",
+      "execution_id": "0b789ecf-0e3c-4f93-b4b9-bf29b7003ff7",
+      "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027",
+      "managed_evaluators_equal_to_baseline": true,
+      "reviewed_tool_errors": [],
+      "manual_review": "Clean graph execution through budget drafting then coverage rewrite. Final answer mixes Gosseberga shooting with brickworks confrontation; substantive answer regression. Shared final-answer helper performs rewrite. Score 0.5 retained unchanged; use final diagnostic attempt before deciding gate.",
+      "score": 0.5,
+      "baseline_score": 1.0,
+      "latency_seconds": 56.09,
+      "baseline_latency_seconds": 40.53,
+      "artifact_sha256": {
+        "request.json": "97a67bf9cee77f539c8361421c35679c366af6756dd64f32edd8f88ed050e227",
+        "manifest.json": "51d0722d62dd4a00ac7342e46be02ed93d53687577f1a309260615f12953ad98",
+        "results.json": "5a0d102b362e262b7091868096a4b3b64b2dc877f263f0c6574da803fecb8cc7",
+        "trace.json": "8cf4da04ddf3b0538da73d5237672e1630b61b6ef5857fe9cc75f867f55091ce",
+        "review.json": "01745c43481fbb0032fa10a2151d5c15245a708ed8553bbfe468cfb11126def9"
+      }
+    },
+    {
+      "label": "openai-q09-a3",
+      "execution_id": "d17b382c-38cb-4bc1-a442-3219adebe886",
+      "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027",
+      "managed_evaluators_equal_to_baseline": true,
+      "reviewed_tool_errors": [],
+      "manual_review": "All three attempts exhausted. Best correctness ties attempt 1 at 0.5167 versus historical 1.0; final answer omits required nail-gun immobilization. No graph/tool/provider error; coverage rewrite shared with legacy helper. Gate unresolved, and attempt 1 must be selected as earliest tie with its own 41.12-second latency.",
+      "score": 0.5167,
+      "baseline_score": 1.0,
+      "latency_seconds": 45.12,
+      "baseline_latency_seconds": 40.53,
+      "artifact_sha256": {
+        "request.json": "52207e6659772c483cbb6c2cc9e9d2d456ea6191555920d35bd14ba21f39d3f4",
+        "manifest.json": "d29614effbed82c16490e6c751ba1473928740b3a42abde04aefb696f8ee4330",
+        "results.json": "a8eeb7196def84927f15c13856d565766de001b84cfa97ff57accdc55f6e3026",
+        "trace.json": "1c2357730f3317b4035a217fae4ec60ce07ac8e7f152b99949bc9be1c0c2bf04",
+        "review.json": "505f1b8902355040c05305bf30ae4968977a45709181d96997ae7c51edee8d2a"
+      }
     }
   ]
 }
