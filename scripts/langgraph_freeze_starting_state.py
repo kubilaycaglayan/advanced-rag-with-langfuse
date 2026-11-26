@@ -1,3 +1,8 @@
+"""One-time read-only Step 1 identity capture. Run from the repository root.
+
+Requires the existing app environment; no dependency installation or generation.
+Do not rerun after freezing: output intentionally represents the starting revision.
+"""
 import json,dataclasses,hashlib,subprocess,urllib.request
 from pathlib import Path
 from app.pipelines.resolver import resolve

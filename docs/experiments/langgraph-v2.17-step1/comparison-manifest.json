@@ -18,6 +18,11 @@
       "dataset": "QA.csv",
       "provider": "openai",
       "execution_id": "2a7000ac-590c-41c1-9005-333475f14fe0",
+      "agent_model_identity": {
+        "name": "gpt-6-luna",
+        "provenance": "recorded pipeline.agent_settings",
+        "immutable_revision": "Not recorded for historical answering-agent weights; current local digests are in starting-state.json"
+      },
       "experiment_id": "4dc5a0a71e072c74",
       "dataset_run_id": "4dc5a0a71e072c74",
       "dataset_run_url": "http://127.0.0.1:28420/project/millenium/datasets/cmv7zo6nw0007pa7t55mno068/runs/4dc5a0a71e072c74",
@@ -397,6 +402,11 @@
       "dataset": "QA.csv",
       "provider": "ollama",
       "execution_id": "33c78788-ad83-49c1-abf0-acbe8474738b",
+      "agent_model_identity": {
+        "name": "qwen3:8b",
+        "provenance": "assessment and best-performing-versions.md local QA fallback; legacy manifest omits agent settings",
+        "immutable_revision": "Not recorded for historical answering-agent weights; current local digests are in starting-state.json"
+      },
       "experiment_id": "4ff5ebd1a66dbfb8",
       "dataset_run_id": "4ff5ebd1a66dbfb8",
       "dataset_run_url": "http://127.0.0.1:28420/project/millenium/datasets/cmv7zo6nw0007pa7t55mno068/runs/4ff5ebd1a66dbfb8",
@@ -742,6 +752,11 @@
       "dataset": "set3",
       "provider": "openai",
       "execution_id": "2bfa8acb-f60c-473b-9113-e174dcc74e06",
+      "agent_model_identity": {
+        "name": "gpt-6-luna",
+        "provenance": "recorded pipeline.agent_settings",
+        "immutable_revision": "Not recorded for historical answering-agent weights; current local digests are in starting-state.json"
+      },
       "experiment_id": "37ebe85de2796617",
       "dataset_run_id": "37ebe85de2796617",
       "dataset_run_url": "http://127.0.0.1:28420/project/millenium/datasets/cmvcgm11i0003mj7tbjygxtlr/runs/37ebe85de2796617",
@@ -1121,6 +1136,11 @@
       "dataset": "set3",
       "provider": "ollama",
       "execution_id": "436795ab-3a61-4d28-949c-8848aef19b1b",
+      "agent_model_identity": {
+        "name": "qwen3.6:35b",
+        "provenance": "recorded pipeline.agent_settings",
+        "immutable_revision": "Not recorded for historical answering-agent weights; current local digests are in starting-state.json"
+      },
       "experiment_id": "163cfd81374ea8b8",
       "dataset_run_id": "163cfd81374ea8b8",
       "dataset_run_url": "http://127.0.0.1:28420/project/millenium/datasets/cmvcgm11i0003mj7tbjygxtlr/runs/163cfd81374ea8b8",
@@ -1496,6 +1516,11 @@
       "dataset": "right-set-3",
       "provider": "openai",
       "execution_id": "52b29974-96b2-4b7c-8e64-bb4b69e4fd4e",
+      "agent_model_identity": {
+        "name": "gpt-6-luna",
+        "provenance": "recorded pipeline.agent_settings",
+        "immutable_revision": "Not recorded for historical answering-agent weights; current local digests are in starting-state.json"
+      },
       "experiment_id": "c2cde1e05faa6f40",
       "dataset_run_id": "c2cde1e05faa6f40",
       "dataset_run_url": "http://127.0.0.1:28420/project/millenium/datasets/cmvcgsorw0005mj7tu0turtdo/runs/c2cde1e05faa6f40",
@@ -1872,6 +1897,11 @@
       "dataset": "right-set-3",
       "provider": "ollama",
       "execution_id": "3d8897b7-97dc-45d4-93bc-c37389f34ebb",
+      "agent_model_identity": {
+        "name": "qwen3.6:35b",
+        "provenance": "recorded pipeline.agent_settings",
+        "immutable_revision": "Not recorded for historical answering-agent weights; current local digests are in starting-state.json"
+      },
       "experiment_id": "99b35b171b966af9",
       "dataset_run_id": "99b35b171b966af9",
       "dataset_run_url": "http://127.0.0.1:28420/project/millenium/datasets/cmvcgsorw0005mj7tu0turtdo/runs/99b35b171b966af9",
@@ -2247,6 +2277,11 @@
       "dataset": "Additional Questions",
       "provider": "openai",
       "execution_id": "4bcb3bce-dcc2-4982-9442-f331eac4eaad",
+      "agent_model_identity": {
+        "name": "gpt-6-luna",
+        "provenance": "recorded pipeline.agent_settings",
+        "immutable_revision": "Not recorded for historical answering-agent weights; current local digests are in starting-state.json"
+      },
       "experiment_id": "4411d1a1728f4990",
       "dataset_run_id": "4411d1a1728f4990",
       "dataset_run_url": "http://127.0.0.1:28420/project/millenium/datasets/cmv892lbn0005mj7u0q074bua/runs/4411d1a1728f4990",
@@ -2631,6 +2666,11 @@
       "dataset": "Additional Questions",
       "provider": "ollama",
       "execution_id": "090606b4-8d95-4785-b0d3-ba9626635ec3",
+      "agent_model_identity": {
+        "name": "qwen3.6:35b",
+        "provenance": "recorded pipeline.agent_settings",
+        "immutable_revision": "Not recorded for historical answering-agent weights; current local digests are in starting-state.json"
+      },
       "experiment_id": "b2e7fb1676745447",
       "dataset_run_id": "b2e7fb1676745447",
       "dataset_run_url": "http://127.0.0.1:28420/project/millenium/datasets/cmv892lbn0005mj7u0q074bua/runs/b2e7fb1676745447",

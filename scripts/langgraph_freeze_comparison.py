@@ -52,6 +52,11 @@ def freeze():
             assert snapshot['dataset_name'] == dataset
             sources[experiment] = {
                 'dataset': dataset, 'provider': provider, 'execution_id': execution,
+                'agent_model_identity': {
+                    'name': manifest['pipeline'].get('agent_settings', {}).get('model', 'qwen3:8b'),
+                    'provenance': 'recorded pipeline.agent_settings' if manifest['pipeline'].get('agent_settings') else 'assessment and best-performing-versions.md local QA fallback; legacy manifest omits agent settings',
+                    'immutable_revision': 'Not recorded for historical answering-agent weights; current local digests are in starting-state.json',
+                },
                 'experiment_id': experiment, 'dataset_run_id': result['dataset_run_id'],
                 'dataset_run_url': result['dataset_run_url'], 'request': request,
                 'dataset_snapshot': {k: v for k, v in snapshot.items() if k != 'items'},
