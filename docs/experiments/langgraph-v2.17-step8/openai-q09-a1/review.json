@@ -1,0 +1,103 @@
+{
+  "label": "openai-q09-a1",
+  "status": "completed",
+  "score": 0.5167,
+  "baseline_score": 1.0,
+  "latency": 41.12,
+  "baseline_latency": 40.53,
+  "answer": "Salander found Niedermann living in the abandoned brickworks, then realized the exit was padlocked and he had trapped her inside. She fought back with a crowbar and fled into the inner workshop; later, after she alerted the police and drew Svavelsj\u00f6 MC to the site, Niedermann was killed by the gang, while Salander was outside and safe [E1] [E2] [E3] [E4] [E5] [E6] [E7] [E8].",
+  "evaluations": [
+    {
+      "comment": "The answer provides a partial account of the events, but it omits the use of a nail gun to pin Niedermann's feet to the floor and does not mention the discovery of trafficking evidence or a body.",
+      "config_id": null,
+      "data_type": null,
+      "metadata": {
+        "evaluator_id": "65c50df46ddd9801bbb52f060af656ba8b48e869f84cf8be2d7d8c33433e368c",
+        "evaluator_latency_seconds": 9.8318,
+        "evaluator_model": "qwen3:8b",
+        "evaluator_version": 2,
+        "fact_verdicts": {
+          "A1": "partial",
+          "D1": "present",
+          "D2": "present",
+          "D3": "missing",
+          "R1": "present",
+          "R2": "missing"
+        },
+        "managed_evaluator_id": "cmvf5zbot0007mj7ti62igkpt"
+      },
+      "name": "answer_correctness_v2",
+      "value": 0.5167
+    },
+    {
+      "comment": "The answer contains factual claims about Salander's actions and the outcome involving Niedermann. However, the evidence provided does not fully support all these claims. For instance, the claim that Salander 'found Niedermann living in the abandoned brickworks' is partially supported by E2 and E3, but not explicitly confirmed. The claim that 'she fought back with a crowbar and fled into the inner workshop' is supported by E1, E2, and E5. The claim that 'Niedermann was killed by the gang' is supported by E6 and E8, but the exact sequence and details of the killing are not fully detailed in the evidence. The claim that 'Salander was outside and safe' is supported by E7, but the evidence does not explicitly state that she was outside during the killing. Therefore, the support is mixed and incomplete.",
+      "config_id": null,
+      "data_type": null,
+      "metadata": {
+        "evaluator_id": "65c50df46ddd9801bbb52f060af656ba8b48e869f84cf8be2d7d8c33433e368c",
+        "evaluator_latency_seconds": 7.1947,
+        "evaluator_model": "qwen3:8b",
+        "evaluator_version": 3,
+        "managed_evaluator_id": "cmv81kasl000dpa7t19ma0e3o"
+      },
+      "name": "citation_support_v1",
+      "value": 0.5
+    }
+  ],
+  "stop": "budget",
+  "tool_errors": [],
+  "telemetry_errors": [],
+  "trace_checks": [],
+  "trace_warnings": [],
+  "nodes": [
+    "graph node: prepare",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: select",
+    "graph node: decide",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: select",
+    "graph node: decide",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: budget",
+    "graph node: final"
+  ],
+  "prompt_usage": [
+    13279,
+    13114,
+    12885,
+    11515,
+    13668,
+    12488,
+    9795,
+    8429,
+    7403,
+    6350,
+    3913
+  ],
+  "source": null,
+  "manual_review": "Clean execution through turn-budget handoff; no graph errors. Sequence answer omits nail-gun immobilization and has reduced correctness. Retain and diagnose via permitted retry before advancing."
+}

@@ -110,6 +110,13 @@
       "latency_seconds": 32.95,
       "execution_id": "0a1eac00-59ab-41dd-8f46-47e0a3809646",
       "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027"
+    },
+    {
+      "label": "openai-q09-a1",
+      "correctness": 0.5167,
+      "latency_seconds": 41.12,
+      "execution_id": "4c29c309-e6d2-4863-b98f-24d794959ce9",
+      "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027"
     }
   ],
   "remaining_question_provider_pairs": 12,
