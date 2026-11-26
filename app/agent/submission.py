@@ -195,7 +195,7 @@ def _synthesize(state: AgentState) -> tuple[str, list[str]] | None:
     return content, list(dict.fromkeys(ids))
 
 
-def _finish(state: AgentState, answer: str, ids: list[str], *, stopped: str,
+def prepare_final_answer(state: AgentState, answer: str, ids: list[str], *, stopped: str,
             raw_answer: str | None = None) -> dict[str, Any]:
     """Answer from the loop, but never abstain while holding evidence that states the answer."""
     if _WHAT_HAPPENED.search(state.question) and state.evidence:
@@ -228,13 +228,25 @@ def _finish(state: AgentState, answer: str, ids: list[str], *, stopped: str,
     return _final(state, answer, ids, stopped=stopped, raw_answer=raw_answer)
 
 
-def _forced_answer(state: AgentState, messages: list[dict[str, Any]]) -> dict[str, Any]:
+# v2.16's released runner retains its historical import and patch boundary.
+# New execution code calls the descriptive public name above.
+_finish = prepare_final_answer
+
+
+def draft_budget_answer(state: AgentState, messages: list[dict[str, Any]]) -> tuple[str, list[str]]:
+    """Draft from the protected conversation handoff; do not finalize or synthesize here."""
     final_messages = conversation_final_messages(messages, _compact)
     reply = _tracked_agent_chat(state, final_messages, None, "forced answer")
     message = reply.get("message") or {}
     content = (message.get("content") or "").strip()
     ids = [short.casefold() for short in re.findall(r"\[([0-9a-fA-F]{8})\]", content) if short.casefold() in state.evidence]
-    return _finish(state, content, list(dict.fromkeys(short.casefold() for short in ids)), stopped="budget")
+    return content, list(dict.fromkeys(short.casefold() for short in ids))
+
+
+def _forced_answer(state: AgentState, messages: list[dict[str, Any]]) -> dict[str, Any]:
+    """v2.16 compatibility composition; target orchestration separates these steps."""
+    content, ids = draft_budget_answer(state, messages)
+    return _finish(state, content, ids, stopped="budget")
 
 
 def _final(state: AgentState, answer: str, ids: list[str], *, stopped: str, raw_answer: str | None = None) -> dict[str, Any]:
