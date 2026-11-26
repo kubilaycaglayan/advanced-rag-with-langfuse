@@ -1,0 +1,27 @@
+ Container millenium-app-run-ad203935565d Creating
+ Container millenium-app-run-ad203935565d Created
+test_answering_dispatch_streams_same_result_contract_without_registering_candidate (test_graph_integration.GraphIntegration.test_answering_dispatch_streams_same_result_contract_without_registering_candidate) ... ok
+test_cache_identities_include_graph_source_and_instruction_identity (test_graph_integration.GraphIntegration.test_cache_identities_include_graph_source_and_instruction_identity) ... ok
+test_experiment_item_runs_graph_and_persists_candidate_provenance (test_graph_integration.GraphIntegration.test_experiment_item_runs_graph_and_persists_candidate_provenance) ... ok
+test_graph_reads_intermediate_cache_in_invocation_context (test_graph_integration.GraphIntegration.test_graph_reads_intermediate_cache_in_invocation_context) ... ok
+test_http_ask_and_stream_output_run_actual_graph (test_graph_integration.GraphIntegration.test_http_ask_and_stream_output_run_actual_graph) ... ok
+test_interactive_answer_cache_hit_skips_graph_and_preserves_new_trace (test_graph_integration.GraphIntegration.test_interactive_answer_cache_hit_skips_graph_and_preserves_new_trace) ... FAIL
+test_no_graph_can_masquerade_as_v2_16_or_legacy_execution (test_graph_integration.GraphIntegration.test_no_graph_can_masquerade_as_v2_16_or_legacy_execution) ... ok
+test_all_provider_paths_record_prompt_usage_and_cost_once (test_graph_telemetry.GraphTelemetry.test_all_provider_paths_record_prompt_usage_and_cost_once) ... ok
+test_budget_and_synthesis_have_distinct_nodes_and_generate_once (test_graph_telemetry.GraphTelemetry.test_budget_and_synthesis_have_distinct_nodes_and_generate_once) ... ok
+test_context_measurements_use_compacted_exact_request_and_preserve_evaluator_input (test_graph_telemetry.GraphTelemetry.test_context_measurements_use_compacted_exact_request_and_preserve_evaluator_input) ... ok
+test_telemetry_outages_do_not_change_answer_usage_or_provider_failure (test_graph_telemetry.GraphTelemetry.test_telemetry_outages_do_not_change_answer_usage_or_provider_failure) ... ok
+test_tree_actual_execution_timing_usage_and_associations (test_graph_telemetry.GraphTelemetry.test_tree_actual_execution_timing_usage_and_associations) ... ok
+
+======================================================================
+FAIL: test_interactive_answer_cache_hit_skips_graph_and_preserves_new_trace (test_graph_integration.GraphIntegration.test_interactive_answer_cache_hit_skips_graph_and_preserves_new_trace)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/tests/test_graph_integration.py", line 124, in test_interactive_answer_cache_hit_skips_graph_and_preserves_new_trace
+    self.assertTrue(answers.store_approved(scope, {'answer': 'Cached [E1]', 'citations': ['[E1]'], 'pipeline_version': 'v2.17'},
+AssertionError: False is not true
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.358s
+
+FAILED (failures=1)

@@ -1,0 +1,11 @@
+ Container millenium-app-run-ec1748d21a0d Creating
+ Container millenium-app-run-ec1748d21a0d Created
+test_context_entry_failure_still_executes_body_once (test_observability_fail_open.FailOpenTelemetry.test_context_entry_failure_still_executes_body_once) ... ok
+test_context_exit_failure_preserves_successful_result (test_observability_fail_open.FailOpenTelemetry.test_context_exit_failure_preserves_successful_result) ... ok
+test_disabled_scope_preserves_provider_error (test_observability_fail_open.FailOpenTelemetry.test_disabled_scope_preserves_provider_error) ... ok
+test_provider_failure_is_never_replaced_or_suppressed_by_telemetry (test_observability_fail_open.FailOpenTelemetry.test_provider_failure_is_never_replaced_or_suppressed_by_telemetry) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.297s
+
+OK

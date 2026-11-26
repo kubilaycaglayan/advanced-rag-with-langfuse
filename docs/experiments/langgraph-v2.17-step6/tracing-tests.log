@@ -1,0 +1,11 @@
+ Container millenium-app-run-c3d3e6363ecc Creating
+ Container millenium-app-run-c3d3e6363ecc Created
+test_budget_and_synthesis_have_distinct_nodes_and_generate_once (test_graph_telemetry.GraphTelemetry.test_budget_and_synthesis_have_distinct_nodes_and_generate_once) ... ok
+test_context_measurements_use_compacted_exact_request_and_preserve_evaluator_input (test_graph_telemetry.GraphTelemetry.test_context_measurements_use_compacted_exact_request_and_preserve_evaluator_input) ... ok
+test_telemetry_outages_do_not_change_answer_usage_or_provider_failure (test_graph_telemetry.GraphTelemetry.test_telemetry_outages_do_not_change_answer_usage_or_provider_failure) ... ok
+test_tree_actual_execution_timing_usage_and_associations (test_graph_telemetry.GraphTelemetry.test_tree_actual_execution_timing_usage_and_associations) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.036s
+
+OK

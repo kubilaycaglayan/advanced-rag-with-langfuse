@@ -1,0 +1,51 @@
+{
+  "step": 6,
+  "status": "passed",
+  "starting_revision": "ae0ae57040601efe4190e7cf5aaa688c803617de",
+  "implementation_revision": "13b47a5288f9ba21287852611ae2e2f7057183fa",
+  "protected_files_byte_unchanged": [
+    "app/agent/runner.py",
+    "pipelines.md",
+    "pipelines.sha256",
+    "app/context/agent_final_handoff.py",
+    "app/context/conversation.py",
+    "app/agent/protocol.py",
+    "app/agent/prechecks.py",
+    "app/agent/submission.py",
+    "app/requirements.txt"
+  ],
+  "legacy_instruction_fingerprint": "e45b61a77dea658e04f29a7327294072d8416f3398877bd5c9676b6dea9fbc1e",
+  "target_instruction_fingerprint": "f0491a8c7fb1b31599ca554d332f2ab247b7d4f25954327d2daaaa097f35d209",
+  "six_mocked_provider_request_contracts_unchanged": true,
+  "both_provider_legacy_answer_cache_identities_unchanged": true,
+  "full_test_suite": {
+    "tests": 250,
+    "failures": 0,
+    "errors": 0
+  },
+  "fail_open_regression": {
+    "before": "4 methods: 7 subtest failures and 2 errors",
+    "after": "5 methods pass in final full suite"
+  },
+  "application_default": "v2.16",
+  "candidate_registered": false,
+  "step7_started": false,
+  "live_model_calls": 0,
+  "live_langfuse_validation": false,
+  "artifact_sha256": {
+    "integration-tests.log": "dee4a67555e75a924930bce9d66a595263b46559b9b4d5c9a74bff8a48039528",
+    "fail-open-after.log": "1d6e3063bbddefdf828f89cfcc99c572cdacbee5cc2dada5e5ac6d7c376c4ff3",
+    "mock-traces.json": "075d89c8b5d6d37c37d1105c56ea8a48a6d5c644dc98a8bcfca2f5fc8783624e",
+    "fail-open-suite.log": "38b864fa581c690e494c3fa2bcc279c38020cce67ee372e11290d8f12317c6fc",
+    "graph-integration-tests.log": "a846160dae5ffafa9ebefabbb55a9c479f643897c561aa858ce787e0e317a90b",
+    "sdk-signatures.log": "8b57dc78766c420417c56acbb20aed844dbbb1f7524350fffa0250c5da62e517",
+    "fail-open-before.log": "01852781c6ab40601d9fa63615efd42a0b6b5ebc0baf77ca393fdf33fde1b8e6",
+    "legacy-cache-identities.json": "ae6377ce63df7c394f11a0f968a7f69f00e75d0325971331b689dd7413161c39",
+    "tracing-tests.log": "8b16d281a5d0f3fbe355ea10dc7e05c2cfd4416f47b8c3dae110fb00e59154e6",
+    "full-tests.log": "d3f057bf50e9dc1b6aae4820661f8f68d65389f9aa577952c7a7038f385586f4"
+  },
+  "mock_tree_and_timeline_verified": true,
+  "live_app_image_unchanged": true,
+  "log_format": "Trailing whitespace normalized; substantive output unchanged.",
+  "capture_script_sha256": "94cb511aab2308c9cf5c65dfbe1caca6dd16c5794f25faaaac9554d3920313bc"
+}

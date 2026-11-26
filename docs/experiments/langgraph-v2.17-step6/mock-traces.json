@@ -1,0 +1,3415 @@
+{
+  "kind": "mocked SDK observations from actual LangGraph execution",
+  "live_model_calls": 0,
+  "live_langfuse_calls": 0,
+  "duration_policy": "Observed monotonic timestamps; ancestor durations are inclusive, never sum them with descendants.",
+  "cases": [
+    {
+      "name": "tools-rejection",
+      "telemetry_fault": null,
+      "error": null,
+      "mock_provider_calls": 4,
+      "result": {
+        "answer": "Bea read it [E1].",
+        "stopped": "submit",
+        "turns": 2,
+        "tool_calls": 5,
+        "usage": {
+          "provider": "ollama",
+          "model": "qwen3.6:35b",
+          "reasoning_effort": "none",
+          "calls": 4,
+          "prompt_tokens": 160,
+          "completion_tokens": 20,
+          "total_tokens": 180,
+          "cached_prompt_tokens": 0,
+          "reasoning_tokens": 0,
+          "estimated_cost_usd": 0.0,
+          "call_details": [
+            {
+              "purpose": "tool selection and answer",
+              "provider": "ollama",
+              "model": "qwen3.6:35b",
+              "prompt_tokens": 40,
+              "completion_tokens": 5,
+              "total_tokens": 45,
+              "cached_prompt_tokens": 0,
+              "reasoning_tokens": 0,
+              "reasoning_effort": "none",
+              "endpoint": "ollama",
+              "estimated_cost_usd": null
+            },
+            {
+              "purpose": "tool selection and answer",
+              "provider": "ollama",
+              "model": "qwen3.6:35b",
+              "prompt_tokens": 40,
+              "completion_tokens": 5,
+              "total_tokens": 45,
+              "cached_prompt_tokens": 0,
+              "reasoning_tokens": 0,
+              "reasoning_effort": "none",
+              "endpoint": "ollama",
+              "estimated_cost_usd": null
+            },
+            {
+              "purpose": "submission verification",
+              "provider": "ollama",
+              "model": "qwen3.6:35b",
+              "prompt_tokens": 40,
+              "completion_tokens": 5,
+              "total_tokens": 45,
+              "cached_prompt_tokens": 0,
+              "reasoning_tokens": 0,
+              "reasoning_effort": "none",
+              "endpoint": "ollama",
+              "estimated_cost_usd": null
+            },
+            {
+              "purpose": "submission verification",
+              "provider": "ollama",
+              "model": "qwen3.6:35b",
+              "prompt_tokens": 40,
+              "completion_tokens": 5,
+              "total_tokens": 45,
+              "cached_prompt_tokens": 0,
+              "reasoning_tokens": 0,
+              "reasoning_effort": "none",
+              "endpoint": "ollama",
+              "estimated_cost_usd": null
+            }
+          ]
+        }
+      },
+      "observations": [
+        {
+          "id": 0,
+          "name": "agent run",
+          "parent_id": null,
+          "start_ns": 0,
+          "end_ns": 9272919,
+          "fields": {
+            "as_type": "span",
+            "input": {
+              "question": "Who wrote the report?",
+              "model": "qwen3.6:35b"
+            },
+            "model": null,
+            "metadata": {},
+            "prompt": null,
+            "output": {
+              "question": "Who wrote the report?",
+              "asked": "Who wrote the report?",
+              "name_normalization": [],
+              "answer": "Bea read it [E1].",
+              "raw_answer": "Bea read it [bbbbbbbb].",
+              "passage_ids": [
+                "bbbbbbbb"
+              ],
+              "citations": [
+                "E1"
+              ],
+              "evidence": [
+                {
+                  "id": "bbbbbbbb-0000",
+                  "text": "Bea read the report.",
+                  "book": "Book",
+                  "book_file": "book.epub",
+                  "section": "one",
+                  "paragraph": 2,
+                  "agent_label": "E1"
+                }
+              ],
+              "collected_passages": 2,
+              "turns": 2,
+              "tool_calls": 5,
+              "trace": [
+                {
+                  "tool": "broken_tool",
+                  "arguments": {},
+                  "seconds": 0.0,
+                  "error": "ValueError: retrieval failed",
+                  "result_ids": []
+                },
+                {
+                  "tool": "semantic_search",
+                  "arguments": {},
+                  "seconds": 0.0,
+                  "error": null,
+                  "result_ids": [
+                    "aaaaaaaa",
+                    "bbbbbbbb"
+                  ]
+                },
+                {
+                  "tool": "submit_answer",
+                  "arguments": {
+                    "answer": "Ada wrote it [aaaaaaaa].",
+                    "passage_ids": [
+                      "aaaaaaaa"
+                    ]
+                  },
+                  "seconds": 0.0,
+                  "error": null,
+                  "result_ids": []
+                },
+                {
+                  "tool": "submit_answer",
+                  "arguments": {
+                    "answer": "Ada wrote it [aaaaaaaa].",
+                    "passage_ids": [
+                      "aaaaaaaa"
+                    ]
+                  },
+                  "seconds": 0.0,
+                  "error": null,
+                  "result_ids": []
+                },
+                {
+                  "tool": "submit_answer",
+                  "arguments": {
+                    "answer": "Bea read it [bbbbbbbb].",
+                    "passage_ids": [
+                      "bbbbbbbb"
+                    ]
+                  },
+                  "seconds": 0.0,
+                  "error": null,
+                  "result_ids": []
+                }
+              ],
+              "model": "qwen3.6:35b",
+              "usage": {
+                "provider": "ollama",
+                "model": "qwen3.6:35b",
+                "reasoning_effort": "none",
+                "calls": 4,
+                "prompt_tokens": 160,
+                "completion_tokens": 20,
+                "total_tokens": 180,
+                "cached_prompt_tokens": 0,
+                "reasoning_tokens": 0,
+                "estimated_cost_usd": 0.0,
+                "call_details": [
+                  {
+                    "purpose": "tool selection and answer",
+                    "provider": "ollama",
+                    "model": "qwen3.6:35b",
+                    "prompt_tokens": 40,
+                    "completion_tokens": 5,
+                    "total_tokens": 45,
+                    "cached_prompt_tokens": 0,
+                    "reasoning_tokens": 0,
+                    "reasoning_effort": "none",
+                    "endpoint": "ollama",
+                    "estimated_cost_usd": null
+                  },
+                  {
+                    "purpose": "tool selection and answer",
+                    "provider": "ollama",
+                    "model": "qwen3.6:35b",
+                    "prompt_tokens": 40,
+                    "completion_tokens": 5,
+                    "total_tokens": 45,
+                    "cached_prompt_tokens": 0,
+                    "reasoning_tokens": 0,
+                    "reasoning_effort": "none",
+                    "endpoint": "ollama",
+                    "estimated_cost_usd": null
+                  },
+                  {
+                    "purpose": "submission verification",
+                    "provider": "ollama",
+                    "model": "qwen3.6:35b",
+                    "prompt_tokens": 40,
+                    "completion_tokens": 5,
+                    "total_tokens": 45,
+                    "cached_prompt_tokens": 0,
+                    "reasoning_tokens": 0,
+                    "reasoning_effort": "none",
+                    "endpoint": "ollama",
+                    "estimated_cost_usd": null
+                  },
+                  {
+                    "purpose": "submission verification",
+                    "provider": "ollama",
+                    "model": "qwen3.6:35b",
+                    "prompt_tokens": 40,
+                    "completion_tokens": 5,
+                    "total_tokens": 45,
+                    "cached_prompt_tokens": 0,
+                    "reasoning_tokens": 0,
+                    "reasoning_effort": "none",
+                    "endpoint": "ollama",
+                    "estimated_cost_usd": null
+                  }
+                ]
+              },
+              "latency_seconds": 0.01,
+              "stopped": "submit",
+              "submitted": {
+                "answer": "Bea read it [E1].",
+                "raw_answer": "Bea read it [bbbbbbbb].",
+                "passage_ids": [
+                  "bbbbbbbb"
+                ],
+                "cited_ids": [
+                  "bbbbbbbb"
+                ],
+                "uncited": false
+              }
+            }
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "tools-rejection"
+            }
+          }
+        },
+        {
+          "id": 1,
+          "name": "agent graph",
+          "parent_id": 0,
+          "start_ns": 20829,
+          "end_ns": 9271246,
+          "fields": {
+            "as_type": "span",
+            "input": {
+              "question": "Who wrote the report?"
+            },
+            "model": null,
+            "metadata": {
+              "execution_backend": "langgraph",
+              "target_pipeline": "v2.17",
+              "recursion_limit": 35
+            },
+            "prompt": null,
+            "output": {
+              "route": "done",
+              "turns": 2,
+              "tool_calls": 5,
+              "collected_passages": 2,
+              "rejected_answers": 1,
+              "verification_supported": true,
+              "verification_reason": "",
+              "budget_reason": null,
+              "budget_drafted": false,
+              "final_prepared": true,
+              "stopped": "submit"
+            }
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "tools-rejection"
+            }
+          }
+        },
+        {
+          "id": 2,
+          "name": "graph node: prepare",
+          "parent_id": 1,
+          "start_ns": 3888123,
+          "end_ns": 5323571,
+          "fields": {
+            "as_type": "span",
+            "input": {
+              "route": "prepare",
+              "turns": 0,
+              "tool_calls": 0,
+              "collected_passages": 0,
+              "rejected_answers": 0,
+              "verification_supported": null,
+              "verification_reason": "",
+              "budget_reason": null,
+              "budget_drafted": false,
+              "final_prepared": false,
+              "stopped": null
+            },
+            "model": null,
+            "metadata": {
+              "graph_node": "prepare",
+              "execution_backend": "langgraph"
+            },
+            "prompt": null,
+            "output": {
+              "route": "decide",
+              "turns": 0,
+              "tool_calls": 0,
+              "collected_passages": 0,
+              "rejected_answers": 0,
+              "verification_supported": null,
+              "verification_reason": "",
+              "budget_reason": null,
+              "budget_drafted": false,
+              "final_prepared": false,
+              "stopped": null
+            }
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "tools-rejection"
+            }
+          }
+        },
+        {
+          "id": 3,
+          "name": "connection pre-check",
+          "parent_id": 2,
+          "start_ns": 3917728,
+          "end_ns": 3925442,
+          "fields": {
+            "as_type": "span",
+            "input": "Who wrote the report?",
+            "model": null,
+            "metadata": null,
+            "prompt": null
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "tools-rejection"
+            }
+          }
+        },
+        {
+          "id": 4,
+          "name": "true account pre-check",
+          "parent_id": 2,
+          "start_ns": 3942044,
+          "end_ns": 3948085,
+          "fields": {
+            "as_type": "span",
+            "input": "Who wrote the report?",
+            "model": null,
+            "metadata": null,
+            "prompt": null
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "tools-rejection"
+            }
+          }
+        },
+        {
+          "id": 5,
+          "name": "sequence pre-check",
+          "parent_id": 2,
+          "start_ns": 3959687,
+          "end_ns": 3965077,
+          "fields": {
+            "as_type": "span",
+            "input": "Who wrote the report?",
+            "model": null,
+            "metadata": null,
+            "prompt": null
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "tools-rejection"
+            }
+          }
+        },
+        {
+          "id": 6,
+          "name": "moment pre-check",
+          "parent_id": 2,
+          "start_ns": 3975937,
+          "end_ns": 3982660,
+          "fields": {
+            "as_type": "span",
+            "input": "Who wrote the report?",
+            "model": null,
+            "metadata": null,
+            "prompt": null
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "tools-rejection"
+            }
+          }
+        },
+        {
+          "id": 7,
+          "name": "premise probe",
+          "parent_id": 2,
+          "start_ns": 3993720,
+          "end_ns": 4008458,
+          "fields": {
+            "as_type": "span",
+            "input": "Who wrote the report?",
+            "model": null,
+            "metadata": {},
+            "prompt": null,
+            "output": {
+              "passage_ids": []
+            }
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "tools-rejection"
+            }
+          }
+        },
+        {
+          "id": 8,
+          "name": "graph node: decide",
+          "parent_id": 1,
+          "start_ns": 5656635,
+          "end_ns": 5674228,
+          "fields": {
+            "as_type": "span",
+            "input": {
+              "route": "decide",
+              "turns": 0,
+              "tool_calls": 0,
+              "collected_passages": 0,
+              "rejected_answers": 0,
+              "verification_supported": null,
+              "verification_reason": "",
+              "budget_reason": null,
+              "budget_drafted": false,
+              "final_prepared": false,
+              "stopped": null
+            },
+            "model": null,
+            "metadata": {
+              "graph_node": "decide",
+              "execution_backend": "langgraph"
+            },
+            "prompt": null,
+            "output": {
+              "route": "select",
+              "turns": 1,
+              "tool_calls": 0,
+              "collected_passages": 0,
+              "rejected_answers": 0,
+              "verification_supported": null,
+              "verification_reason": "",
+              "budget_reason": null,
+              "budget_drafted": false,
+              "final_prepared": false,
+              "stopped": null
+            }
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "tools-rejection"
+            }
+          }
+        },
+        {
+          "id": 9,
+          "name": "graph node: select",
+          "parent_id": 1,
+          "start_ns": 5924216,
+          "end_ns": 6513610,
+          "fields": {
+            "as_type": "span",
+            "input": {
+              "route": "select",
+              "turns": 1,
+              "tool_calls": 0,
+              "collected_passages": 0,
+              "rejected_answers": 0,
+              "verification_supported": null,
+              "verification_reason": "",
+              "budget_reason": null,
+              "budget_drafted": false,
+              "final_prepared": false,
+              "stopped": null
+            },
+            "model": null,
+            "metadata": {
+              "graph_node": "select",
+              "execution_backend": "langgraph"
+            },
+            "prompt": null,
+            "output": {
+              "route": "tools",
+              "turns": 1,
+              "tool_calls": 0,
+              "collected_passages": 0,
+              "rejected_answers": 0,
+              "verification_supported": null,
+              "verification_reason": "",
+              "budget_reason": null,
+              "budget_drafted": false,
+              "final_prepared": false,
+              "stopped": null
+            }
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "tools-rejection"
+            }
+          }
+        },
+        {
+          "id": 10,
+          "name": "agent turn 1",
+          "parent_id": 9,
+          "start_ns": 5939655,
+          "end_ns": 6492080,
+          "fields": {
+            "as_type": "span",
+            "input": [
+              {
+                "role": "system",
+                "content": "You answer questions about Stieg Larsson's Millennium trilogy using a search index of the three books: The Girl with the Dragon Tattoo, The Girl Who Played with Fire and The Girl Who Kicked the Hornet's Nest.\n\nWork in small steps and use the tools. Do not answer from memory or outside knowledge: every claim must come from passages you retrieved.\n- Start with a search. Search results flag names the books do not use (\"name_hints\"); follow those spellings. If find_names gives a likely person, the question is about that person: do not answer that the character does not exist.\n- Before answering, make sure the passage you rely on states the answer, not just the topic.\n- If a search returns little, change it: expand_query for other phrasings, keyword_search for exact words.\n- For a \"why\" / reason / motive question, run keyword_search on the question's nouns (person, action, object) before rewriting it: the reason is usually stated beside those same nouns.\n- search_scenes searches summaries of six-passage windows. It is the fastest way to find a conversation, a decision or how something came about, because the summary names who was there and what they did even when the passages alone are ambiguous. Pass `people` when the question names two people. Each scene has a scene_id; when its four snippets do not contain the detail, call read_scene (or search_scenes with full=true) to read every member passage in order.\n- For a question about a detail at one moment (\"what did she say when she saw him in the kitchen\", \"what was she wearing when they met\"), call scene_moment: it writes the situation out and returns the scene that shows it, which is often the only place the detail appears. Read the scene list it returns too: the chosen scene can be the memory of the event while the dialogue is in another scene whose summary names it.\n- Before concluding that a detail is not in the books, search the words it would appear with in the passage: keyword_search for the distinctive nouns and verbs (\"loosened the gun\", \"kitchen bench\", a remembered phrase), not only the question's phrasing. A scene summary is not evidence; the passage is.\n- find_connections tells you what the cards say links two people: how they met, what one did for the other, documents or names between them. Use it for \"how did X know Y\" or \"what connects X and Y\" before concluding that the books do not say.\n- When a hit looks relevant, read_passage with its neighbours; a single line often means something different in context. A scene summary is a paraphrase, not evidence: answer in the words of the passage (the summary's \"pinned him to the floor\" may be \"nailed his feet to the floor\" in the passage).\n- When a question asks what someone was thinking or feeling, what the passage says they noticed, remembered, feared or decided is the answer even if it never uses the word \"thought\".\n- For an importance or significance question, give every distinct role the passages show for the thing (what it did, what it proved), not just one.\n- When the question asks for the name of a group, unit, place or person, give the exact name the passages use, not a description of it (\"the Section for Special Analysis\", not \"the Zalachenko unit\").\n- Keep the passages that actually support the answer.\n\nWhen you can answer, call submit_answer with:\n- answer: a concise answer (2-4 sentences) that uses only what the passages state. Answer the question directly: state the fact first, then at most one supporting sentence. If the question asks for a list, give the list, one line per item. Do not include notes, reasoning, book-metadata doubts or a transcript of your search in the answer.\n- passage_ids: the 8-character ids of the passages you relied on, most important first.\nCite each factual sentence with the ids in square brackets, exactly as the tools returned them, for example: Berger planned to switch on the sauna [95f8ea38].\nUse names exactly as the passages write them: if a passage says only \"G\u00f6ransson\" or \"Niedermann\", do not add a first name from memory.\nGive one answer, not alternative answers for different readings of the question. If the place has another name in the passages (a factory can be a brickworks), say so in the same answer and keep going with the event those passages describe.\nFor a broad question (a summary, a list, a \"top 10\", or why someone did something), do not abstain because the books never use the question's word: answer from the passages you found, naming the events or people. A short structured summary is a good answer. If the question asks why, give the reason the passages show even when no sentence says \"because\".\nIf the books do not contain the answer, call submit_answer saying so, with no ids.\n\nA passage that is only about the topic is not evidence: it must state the answer, and you should read its neighbours before deciding.\nBefore submit_answer, check the question's parts one by one (who, what, where, when, why, how many) and make sure a passage states each. If one part is missing, search for it instead of answering partially. Some questions assume an event that the books contradict (that someone is dead, that something was never found): check the premise and correct it.\nWhen the books first describe a death, a crime or a disappearance one way, look for the later passage that reveals what really happened (who was there, who did it); answer with the true account, and with the official one only as contrast. For a death or a crime, always ask who else was present and call true_account with that person: it searches for the other person doing the event (\"Harriet drowned her father\"), which is a different scene from the official account.\nA \"what happened at a place\" question is a sequence, not one find: cover arrival, discovery, confrontation and outcome. After the first hit, open the scene or search again with the person who was confronted there; do not stop at the first body or clue.\nQuestions of the form \"how did X know/learn about Y\", \"how did X and Y meet\" or \"what connects X and Y\" are answered by the event that first brought them together: a document one wrote about the other, a person who introduced them, a meeting. If the passages show X reading or receiving something Y wrote, or someone telling X about Y, that is the answer even if the words \"learned\" or \"knew\" never appear. State it plainly instead of saying the books do not say.\nYou have a limited number of tool calls (about 16). Do not repeat a search that returned the same passages. Prefer four to eight calls over one long one."
+              },
+              {
+                "role": "user",
+                "content": "Who wrote the report?"
+              }
+            ],
+            "model": null,
+            "metadata": {
+              "provider": "ollama",
+              "model": "qwen3.6:35b"
+            },
+            "prompt": null,
+            "output": {
+              "content": "",
+              "tool_calls": [
+                {
+                  "function": {
+                    "name": "broken_tool",
+                    "arguments": {}
+                  }
+                },
+                {
+                  "function": {
+                    "name": "semantic_search",
+                    "arguments": {}
+                  }
+                }
+              ],
+              "usage": null
+            }
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "tools-rejection"
+            }
+          }
+        },
+        {
+          "id": 11,
+          "name": "query agent model: tool selection and answer",
+          "parent_id": 10,
+          "start_ns": 6003825,
+          "end_ns": 6475749,
+          "fields": {
+            "as_type": "generation",
+            "input": "[{\"role\": \"system\", \"content\": \"You answer questions about Stieg Larsson's Millennium trilogy using a search index of the three books: The Girl with the Dragon Tattoo, The Girl Who Played with Fire and The Girl Who Kicked the Hornet's Nest.\\n\\nWork in small steps and use the tools. Do not answer from memory or outside knowledge: every claim must come from passages you retrieved.\\n- Start with a search. Search results flag names the books do not use (\\\"name_hints\\\"); follow those spellings. If find_names gives a likely person, the question is about that person: do not answer that the character does not exist.\\n- Before answering, make sure the passage you rely on states the answer, not just the topic.\\n- If a search returns little, change it: expand_query for other phrasings, keyword_search for exact words.\\n- For a \\\"why\\\" / reason / motive question, run keyword_search on the question's nouns (person, action, object) before rewriting it: the reason is usually stated beside those same nouns.\\n- search_scenes searches summaries of six-passage windows. It is the fastest way to find a conversation, a decision or how something came about, because the summary names who was there and what they did even when the passages alone are ambiguous. Pass `people` when the question names two people. Each scene has a scene_id; when its four snippets do not contain the detail, call read_scene (or search_scenes with full=true) to read every member passage in order.\\n- For a question about a detail at one moment (\\\"what did she say when she saw him in the kitchen\\\", \\\"what was she wearing when they met\\\"), call scene_moment: it writes the situation out and returns the scene that shows it, which is often the only place the detail appears. Read the scene list it returns too: the chosen scene can be the memory of the event while the dialogue is in another scene whose summary names it.\\n- Before concluding that a detail is not in the books, search the words it would appear with in the passage: keyword_search for the distinctive nouns and verbs (\\\"loosened the gun\\\", \\\"kitchen bench\\\", a remembered phrase), not only the question's phrasing. A scene summary is not evidence; the passage is.\\n- find_connections tells you what the cards say links two people: how they met, what one did for the other, documents or names between them. Use it for \\\"how did X know Y\\\" or \\\"what connects X and Y\\\" before concluding that the books do not say.\\n- When a hit looks relevant, read_passage with its neighbours; a single line often means something different in context. A scene summary is a paraphrase, not evidence: answer in the words of the passage (the summary's \\\"pinned him to the floor\\\" may be \\\"nailed his feet to the floor\\\" in the passage).\\n- When a question asks what someone was thinking or feeling, what the passage says they noticed, remembered, feared or decided is the answer even if it never uses the word \\\"thought\\\".\\n- For an importance or significance question, give every distinct role the passages show for the thing (what it did, what it proved), not just one.\\n- When the question asks for the name of a group, unit, place or person, give the exact name the passages use, not a description of it (\\\"the Section for Special Analysis\\\", not \\\"the Zalachenko unit\\\").\\n- Keep the passages that actually support the answer.\\n\\nWhen you can answer, call submit_answer with:\\n- answer: a concise answer (2-4 sentences) that uses only what the passages state. Answer the question directly: state the fact first, then at most one supporting sentence. If the question asks for a list, give the list, one line per item. Do not include notes, reasoning, book-metadata doubts or a transcript of your search in the answer.\\n- passage_ids: the 8-character ids of the passages you relied on, most important first.\\nCite each factual sentence with the ids in square brackets, exactly as the tools returned them, for example: Berger planned to switch on the sauna [95f8ea38].\\nUse names exactly as the passages write them: if a passage says only \\\"G\u00f6ransson\\\" or \\\"Niedermann\\\", do not add a first name from memory.\\nGive one answer, not alternative answers for different readings of the question. If the place has another name in the passages (a factory can be a brickworks), say so in the same answer and keep going with the event those passages describe.\\nFor a broad question (a summary, a list, a \\\"top 10\\\", or why someone did something), do not abstain because the books never use the question's word: answer from the passages you found, naming the events or people. A short structured summary is a good answer. If the question asks why, give the reason the passages show even when no sentence says \\\"because\\\".\\nIf the books do not contain the answer, call submit_answer saying so, with no ids.\\n\\nA passage that is only about the topic is not evidence: it must state the answer, and you should read its neighbours before deciding.\\nBefore submit_answer, check the question's parts one by one (who, what, where, when, why, how many) and make sure a passage states each. If one part is missing, search for it instead of answering partially. Some questions assume an event that the books contradict (that someone is dead, that something was never found): check the premise and correct it.\\nWhen the books first describe a death, a crime or a disappearance one way, look for the later passage that reveals what really happened (who was there, who did it); answer with the true account, and with the official one only as contrast. For a death or a crime, always ask who else was present and call true_account with that person: it searches for the other person doing the event (\\\"Harriet drowned her father\\\"), which is a different scene from the official account.\\nA \\\"what happened at a place\\\" question is a sequence, not one find: cover arrival, discovery, confrontation and outcome. After the first hit, open the scene or search again with the person who was confronted there; do not stop at the first body or clue.\\nQuestions of the form \\\"how did X know/learn about Y\\\", \\\"how did X and Y meet\\\" or \\\"what connects X and Y\\\" are answered by the event that first brought them together: a document one wrote about the other, a person who introduced them, a meeting. If the passages show X reading or receiving something Y wrote, or someone telling X about Y, that is the answer even if the words \\\"learned\\\" or \\\"knew\\\" never appear. State it plainly instead of saying the books do not say.\\nYou have a limited number of tool calls (about 16). Do not repeat a search that returned the same passages. Prefer four to eight calls over one long one.\"}, {\"role\": \"user\", \"content\": \"Who wrote the report?\"}]",
+            "model": "qwen3.6:35b",
+            "metadata": {
+              "provider": "ollama",
+              "purpose": "tool selection and answer",
+              "reasoning_effort": "none",
+              "endpoint": "ollama",
+              "request_endpoint": "ollama",
+              "request_measurement_format": "canonical JSON; sorted compact keys; ensure_ascii=False",
+              "request_sha256": "57a41f6c895ca3fd68972052dea0983aeeb257fb88fda794523af8b72b93f645",
+              "request_characters": 13311,
+              "message_characters": 6722,
+              "tool_schema_characters": 6776,
+              "message_count": 2,
+              "compacted_tool_messages": 0,
+              "estimated_request_tokens": 3327.75,
+              "token_estimate_method": "serialized request characters / 4; not tokenizer or provider chat-template tokens",
+              "requested_output_tokens": 1600,
+              "configured_local_context_tokens": 16384,
+              "provider_prompt_tokens": 40,
+              "provider_prompt_tokens_available": true,
+              "cached_prompt_tokens": 0,
+              "reasoning_tokens": 0
+            },
+            "prompt": null,
+            "output": {
+              "content": "",
+              "tool_calls": [
+                {
+                  "function": {
+                    "name": "broken_tool",
+                    "arguments": {}
+                  }
+                },
+                {
+                  "function": {
+                    "name": "semantic_search",
+                    "arguments": {}
+                  }
+                }
+              ]
+            },
+            "usage_details": {
+              "input": 40,
+              "output": 5,
+              "total": 45
+            },
+            "cost_details": null
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "tools-rejection"
+            }
+          }
+        },
+        {
+          "id": 12,
+          "name": "graph node: tools",
+          "parent_id": 1,
+          "start_ns": 6731448,
+          "end_ns": 6895796,
+          "fields": {
+            "as_type": "span",
+            "input": {
+              "route": "tools",
+              "turns": 1,
+              "tool_calls": 0,
+              "collected_passages": 0,
+              "rejected_answers": 0,
+              "verification_supported": null,
+              "verification_reason": "",
+              "budget_reason": null,
+              "budget_drafted": false,
+              "final_prepared": false,
+              "stopped": null
+            },
+            "model": null,
+            "metadata": {
+              "graph_node": "tools",
+              "execution_backend": "langgraph"
+            },
+            "prompt": null,
+            "output": {
+              "route": "decide",
+              "turns": 1,
+              "tool_calls": 2,
+              "collected_passages": 2,
+              "rejected_answers": 0,
+              "verification_supported": null,
+              "verification_reason": "",
+              "budget_reason": null,
+              "budget_drafted": false,
+              "final_prepared": false,
+              "stopped": null
+            }
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "tools-rejection"
+            }
+          }
+        },
+        {
+          "id": 13,
+          "name": "tool: broken_tool",
+          "parent_id": 12,
+          "start_ns": 6752448,
+          "end_ns": 6775471,
+          "fields": {
+            "as_type": "tool",
+            "input": {},
+            "model": null,
+            "metadata": {},
+            "prompt": null,
+            "output": {
+              "error": "ValueError: retrieval failed"
+            },
+            "level": "ERROR",
+            "status_message": "ValueError: retrieval failed"
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "tools-rejection"
+            }
+          }
+        },
+        {
+          "id": 14,
+          "name": "tool: semantic_search",
+          "parent_id": 12,
+          "start_ns": 6804886,
+          "end_ns": 6829362,
+          "fields": {
+            "as_type": "tool",
+            "input": {},
+            "model": null,
+            "metadata": {},
+            "prompt": null,
+            "output": {
+              "hits": [
+                {
+                  "id": "aaaaaaaa"
+                },
+                {
+                  "id": "bbbbbbbb"
+                }
+              ]
+            },
+            "level": "DEFAULT",
+            "status_message": null
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "tools-rejection"
+            }
+          }
+        },
+        {
+          "id": 15,
+          "name": "graph node: decide",
+          "parent_id": 1,
+          "start_ns": 7088637,
+          "end_ns": 7102573,
+          "fields": {
+            "as_type": "span",
+            "input": {
+              "route": "decide",
+              "turns": 1,
+              "tool_calls": 2,
+              "collected_passages": 2,
+              "rejected_answers": 0,
+              "verification_supported": null,
+              "verification_reason": "",
+              "budget_reason": null,
+              "budget_drafted": false,
+              "final_prepared": false,
+              "stopped": null
+            },
+            "model": null,
+            "metadata": {
+              "graph_node": "decide",
+              "execution_backend": "langgraph"
+            },
+            "prompt": null,
+            "output": {
+              "route": "select",
+              "turns": 2,
+              "tool_calls": 2,
+              "collected_passages": 2,
+              "rejected_answers": 0,
+              "verification_supported": null,
+              "verification_reason": "",
+              "budget_reason": null,
+              "budget_drafted": false,
+              "final_prepared": false,
+              "stopped": null
+            }
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "tools-rejection"
+            }
+          }
+        },
+        {
+          "id": 16,
+          "name": "graph node: select",
+          "parent_id": 1,
+          "start_ns": 7268474,
+          "end_ns": 7823844,
+          "fields": {
+            "as_type": "span",
+            "input": {
+              "route": "select",
+              "turns": 2,
+              "tool_calls": 2,
+              "collected_passages": 2,
+              "rejected_answers": 0,
+              "verification_supported": null,
+              "verification_reason": "",
+              "budget_reason": null,
+              "budget_drafted": false,
+              "final_prepared": false,
+              "stopped": null
+            },
+            "model": null,
+            "metadata": {
+              "graph_node": "select",
+              "execution_backend": "langgraph"
+            },
+            "prompt": null,
+            "output": {
+              "route": "tools",
+              "turns": 2,
+              "tool_calls": 2,
+              "collected_passages": 2,
+              "rejected_answers": 0,
+              "verification_supported": null,
+              "verification_reason": "",
+              "budget_reason": null,
+              "budget_drafted": false,
+              "final_prepared": false,
+              "stopped": null
+            }
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "tools-rejection"
+            }
+          }
+        },
+        {
+          "id": 17,
+          "name": "agent turn 2",
+          "parent_id": 16,
+          "start_ns": 7283512,
+          "end_ns": 7807153,
+          "fields": {
+            "as_type": "span",
+            "input": [
+              {
+                "role": "tool",
+                "tool_call_id": "agent_1_1",
+                "content": "{\"error\": \"ValueError: retrieval failed\"}"
+              },
+              {
+                "role": "tool",
+                "tool_call_id": "agent_1_2",
+                "content": "{\"hits\": [{\"id\": \"aaaaaaaa\"}, {\"id\": \"bbbbbbbb\"}]}"
+              }
+            ],
+            "model": null,
+            "metadata": {
+              "provider": "ollama",
+              "model": "qwen3.6:35b"
+            },
+            "prompt": null,
+            "output": {
+              "content": "",
+              "tool_calls": [
+                {
+                  "function": {
+                    "name": "submit_answer",
+                    "arguments": {
+                      "answer": "Ada wrote it [aaaaaaaa].",
+                      "passage_ids": [
+                        "aaaaaaaa"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "function": {
+                    "name": "submit_answer",
+                    "arguments": {
+                      "answer": "Ada wrote it [aaaaaaaa].",
+                      "passage_ids": [
+                        "aaaaaaaa"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "function": {
+                    "name": "submit_answer",
+                    "arguments": {
+                      "answer": "Bea read it [bbbbbbbb].",
+                      "passage_ids": [
+                        "bbbbbbbb"
+                      ]
+                    }
+                  }
+                }
+              ],
+              "usage": null
+            }
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "tools-rejection"
+            }
+          }
+        },
+        {
+          "id": 18,
+          "name": "query agent model: tool selection and answer",
+          "parent_id": 17,
+          "start_ns": 7335269,
+          "end_ns": 7782317,
+          "fields": {
+            "as_type": "generation",
+            "input": "[{\"role\": \"system\", \"content\": \"You answer questions about Stieg Larsson's Millennium trilogy using a search index of the three books: The Girl with the Dragon Tattoo, The Girl Who Played with Fire and The Girl Who Kicked the Hornet's Nest.\\n\\nWork in small steps and use the tools. Do not answer from memory or outside knowledge: every claim must come from passages you retrieved.\\n- Start with a search. Search results flag names the books do not use (\\\"name_hints\\\"); follow those spellings. If find_names gives a likely person, the question is about that person: do not answer that the character does not exist.\\n- Before answering, make sure the passage you rely on states the answer, not just the topic.\\n- If a search returns little, change it: expand_query for other phrasings, keyword_search for exact words.\\n- For a \\\"why\\\" / reason / motive question, run keyword_search on the question's nouns (person, action, object) before rewriting it: the reason is usually stated beside those same nouns.\\n- search_scenes searches summaries of six-passage windows. It is the fastest way to find a conversation, a decision or how something came about, because the summary names who was there and what they did even when the passages alone are ambiguous. Pass `people` when the question names two people. Each scene has a scene_id; when its four snippets do not contain the detail, call read_scene (or search_scenes with full=true) to read every member passage in order.\\n- For a question about a detail at one moment (\\\"what did she say when she saw him in the kitchen\\\", \\\"what was she wearing when they met\\\"), call scene_moment: it writes the situation out and returns the scene that shows it, which is often the only place the detail appears. Read the scene list it returns too: the chosen scene can be the memory of the event while the dialogue is in another scene whose summary names it.\\n- Before concluding that a detail is not in the books, search the words it would appear with in the passage: keyword_search for the distinctive nouns and verbs (\\\"loosened the gun\\\", \\\"kitchen bench\\\", a remembered phrase), not only the question's phrasing. A scene summary is not evidence; the passage is.\\n- find_connections tells you what the cards say links two people: how they met, what one did for the other, documents or names between them. Use it for \\\"how did X know Y\\\" or \\\"what connects X and Y\\\" before concluding that the books do not say.\\n- When a hit looks relevant, read_passage with its neighbours; a single line often means something different in context. A scene summary is a paraphrase, not evidence: answer in the words of the passage (the summary's \\\"pinned him to the floor\\\" may be \\\"nailed his feet to the floor\\\" in the passage).\\n- When a question asks what someone was thinking or feeling, what the passage says they noticed, remembered, feared or decided is the answer even if it never uses the word \\\"thought\\\".\\n- For an importance or significance question, give every distinct role the passages show for the thing (what it did, what it proved), not just one.\\n- When the question asks for the name of a group, unit, place or person, give the exact name the passages use, not a description of it (\\\"the Section for Special Analysis\\\", not \\\"the Zalachenko unit\\\").\\n- Keep the passages that actually support the answer.\\n\\nWhen you can answer, call submit_answer with:\\n- answer: a concise answer (2-4 sentences) that uses only what the passages state. Answer the question directly: state the fact first, then at most one supporting sentence. If the question asks for a list, give the list, one line per item. Do not include notes, reasoning, book-metadata doubts or a transcript of your search in the answer.\\n- passage_ids: the 8-character ids of the passages you relied on, most important first.\\nCite each factual sentence with the ids in square brackets, exactly as the tools returned them, for example: Berger planned to switch on the sauna [95f8ea38].\\nUse names exactly as the passages write them: if a passage says only \\\"G\u00f6ransson\\\" or \\\"Niedermann\\\", do not add a first name from memory.\\nGive one answer, not alternative answers for different readings of the question. If the place has another name in the passages (a factory can be a brickworks), say so in the same answer and keep going with the event those passages describe.\\nFor a broad question (a summary, a list, a \\\"top 10\\\", or why someone did something), do not abstain because the books never use the question's word: answer from the passages you found, naming the events or people. A short structured summary is a good answer. If the question asks why, give the reason the passages show even when no sentence says \\\"because\\\".\\nIf the books do not contain the answer, call submit_answer saying so, with no ids.\\n\\nA passage that is only about the topic is not evidence: it must state the answer, and you should read its neighbours before deciding.\\nBefore submit_answer, check the question's parts one by one (who, what, where, when, why, how many) and make sure a passage states each. If one part is missing, search for it instead of answering partially. Some questions assume an event that the books contradict (that someone is dead, that something was never found): check the premise and correct it.\\nWhen the books first describe a death, a crime or a disappearance one way, look for the later passage that reveals what really happened (who was there, who did it); answer with the true account, and with the official one only as contrast. For a death or a crime, always ask who else was present and call true_account with that person: it searches for the other person doing the event (\\\"Harriet drowned her father\\\"), which is a different scene from the official account.\\nA \\\"what happened at a place\\\" question is a sequence, not one find: cover arrival, discovery, confrontation and outcome. After the first hit, open the scene or search again with the person who was confronted there; do not stop at the first body or clue.\\nQuestions of the form \\\"how did X know/learn about Y\\\", \\\"how did X and Y meet\\\" or \\\"what connects X and Y\\\" are answered by the event that first brought them together: a document one wrote about the other, a person who introduced them, a meeting. If the passages show X reading or receiving something Y wrote, or someone telling X about Y, that is the answer even if the words \\\"learned\\\" or \\\"knew\\\" never appear. State it plainly instead of saying the books do not say.\\nYou have a limited number of tool calls (about 16). Do not repeat a search that returned the same passages. Prefer four to eight calls over one long one.\"}, {\"role\": \"user\", \"content\": \"Who wrote the report?\"}, {\"role\": \"assistant\", \"content\": \"\", \"tool_calls\": [{\"id\": \"agent_1_1\", \"function\": {\"name\": \"broken_tool\", \"arguments\": {}}}, {\"id\": \"agent_1_2\", \"function\": {\"name\": \"semantic_search\", \"arguments\": {}}}]}, {\"role\": \"tool\", \"tool_call_id\": \"agent_1_1\", \"content\": \"{\\\"error\\\": \\\"ValueError: retrieval failed\\\"}\"}, {\"role\": \"tool\", \"tool_call_id\": \"agent_1_2\", \"content\": \"{\\\"hits\\\": [{\\\"id\\\": \\\"aaaaaaaa\\\"}, {\\\"id\\\": \\\"bbbbbbbb\\\"}]}\"}]",
+            "model": "qwen3.6:35b",
+            "metadata": {
+              "provider": "ollama",
+              "purpose": "tool selection and answer",
+              "reasoning_effort": "none",
+              "endpoint": "ollama",
+              "request_endpoint": "ollama",
+              "request_measurement_format": "canonical JSON; sorted compact keys; ensure_ascii=False",
+              "request_sha256": "57ac219cb7247caa72e7102e1a72996e3a98e4ffa123b90879273b54d4d660c4",
+              "request_characters": 13717,
+              "message_characters": 7159,
+              "tool_schema_characters": 6776,
+              "message_count": 5,
+              "compacted_tool_messages": 0,
+              "estimated_request_tokens": 3429.25,
+              "token_estimate_method": "serialized request characters / 4; not tokenizer or provider chat-template tokens",
+              "requested_output_tokens": 1600,
+              "configured_local_context_tokens": 16384,
+              "provider_prompt_tokens": 40,
+              "provider_prompt_tokens_available": true,
+              "cached_prompt_tokens": 0,
+              "reasoning_tokens": 0
+            },
+            "prompt": null,
+            "output": {
+              "content": "",
+              "tool_calls": [
+                {
+                  "function": {
+                    "name": "submit_answer",
+                    "arguments": {
+                      "answer": "Ada wrote it [aaaaaaaa].",
+                      "passage_ids": [
+                        "aaaaaaaa"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "function": {
+                    "name": "submit_answer",
+                    "arguments": {
+                      "answer": "Ada wrote it [aaaaaaaa].",
+                      "passage_ids": [
+                        "aaaaaaaa"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "function": {
+                    "name": "submit_answer",
+                    "arguments": {
+                      "answer": "Bea read it [bbbbbbbb].",
+                      "passage_ids": [
+                        "bbbbbbbb"
+                      ]
+                    }
+                  }
+                }
+              ]
+            },
+            "usage_details": {
+              "input": 40,
+              "output": 5,
+              "total": 45
+            },
+            "cost_details": null
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "tools-rejection"
+            }
+          }
+        },
+        {
+          "id": 19,
+          "name": "graph node: tools",
+          "parent_id": 1,
+          "start_ns": 8005635,
+          "end_ns": 8662085,
+          "fields": {
+            "as_type": "span",
+            "input": {
+              "route": "tools",
+              "turns": 2,
+              "tool_calls": 2,
+              "collected_passages": 2,
+              "rejected_answers": 0,
+              "verification_supported": null,
+              "verification_reason": "",
+              "budget_reason": null,
+              "budget_drafted": false,
+              "final_prepared": false,
+              "stopped": null
+            },
+            "model": null,
+            "metadata": {
+              "graph_node": "tools",
+              "execution_backend": "langgraph"
+            },
+            "prompt": null,
+            "output": {
+              "route": "final",
+              "turns": 2,
+              "tool_calls": 5,
+              "collected_passages": 2,
+              "rejected_answers": 1,
+              "verification_supported": true,
+              "verification_reason": "",
+              "budget_reason": null,
+              "budget_drafted": false,
+              "final_prepared": false,
+              "stopped": null
+            }
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "tools-rejection"
+            }
+          }
+        },
+        {
+          "id": 20,
+          "name": "tool: submit_answer",
+          "parent_id": 19,
+          "start_ns": 8022176,
+          "end_ns": 8120029,
+          "fields": {
+            "as_type": "tool",
+            "input": {
+              "answer": "Ada wrote it [aaaaaaaa].",
+              "passage_ids": [
+                "aaaaaaaa"
+              ]
+            },
+            "model": null,
+            "metadata": {},
+            "prompt": null,
+            "output": {
+              "answer": "Ada wrote it [E1].",
+              "raw_answer": "Ada wrote it [aaaaaaaa].",
+              "passage_ids": [
+                "aaaaaaaa"
+              ],
+              "cited_ids": [
+                "aaaaaaaa"
+              ],
+              "uncited": false
+            },
+            "level": "DEFAULT",
+            "status_message": null
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "tools-rejection"
+            }
+          }
+        },
+        {
+          "id": 21,
+          "name": "submission verification",
+          "parent_id": 19,
+          "start_ns": 8173840,
+          "end_ns": 8342396,
+          "fields": {
+            "as_type": "span",
+            "input": {
+              "answer": "Ada wrote it [E1].",
+              "raw_answer": "Ada wrote it [aaaaaaaa].",
+              "passage_ids": [
+                "aaaaaaaa"
+              ],
+              "cited_ids": [
+                "aaaaaaaa"
+              ],
+              "uncited": false
+            },
+            "model": null,
+            "metadata": {},
+            "prompt": null,
+            "output": {
+              "supported": false,
+              "reason": "contradiction"
+            },
+            "level": "WARNING"
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "tools-rejection"
+            }
+          }
+        },
+        {
+          "id": 22,
+          "name": "query agent model: submission verification",
+          "parent_id": 21,
+          "start_ns": 8223263,
+          "end_ns": 8299505,
+          "fields": {
+            "as_type": "generation",
+            "input": "[{\"role\": \"system\", \"content\": \"You check whether evidence supports an answer.\"}, {\"role\": \"user\", \"content\": \"Question: Who wrote the report?\\n\\nProposed answer: Ada wrote it [aaaaaaaa].\\n\\nPassages:\\n[E1] id=aaaaaaaa | Book | None\\nparagraph 1: Ada wrote the report.\\nparagraph 2: Bea read the report.\\n\\nDoes at least one passage state the main answer to the question, even if worded differently? A passage that only mentions the topic, or states the opposite, is not support. A passage that only says 'he' or 'she', or that could be about another person, is not support either: the passage must name or unambiguously identify the person the question asks about. Additional background the passages do not mention is not a failure. Reply with JSON only: {\\\"supported\\\": true or false, \\\"reason\\\": \\\"one sentence\\\"}\\nFor this draft, every factual claim must be supported; override the earlier allowance for unsupported background. Check the answer's central claim and the question's premise against all passages, including contradictions. An intention, accusation, question, or earlier belief does not establish that an event happened. If a later passage establishes the subject is alive, reject an answer saying someone killed them. If the answer changes the subject of who was killed, reject it unless it also answers the question directly. Return supported=false for any unsupported central claim or unresolved contradiction.\"}]",
+            "model": "qwen3.6:35b",
+            "metadata": {
+              "provider": "ollama",
+              "purpose": "submission verification",
+              "reasoning_effort": "none",
+              "endpoint": "ollama",
+              "request_endpoint": "ollama",
+              "request_measurement_format": "canonical JSON; sorted compact keys; ensure_ascii=False",
+              "request_sha256": "a0752536fb11f61fb0c57de23d8ced0288d9b6c711a87f469375f3ab0fb3a9ad",
+              "request_characters": 1552,
+              "message_characters": 1432,
+              "tool_schema_characters": 0,
+              "message_count": 2,
+              "compacted_tool_messages": 0,
+              "estimated_request_tokens": 388.0,
+              "token_estimate_method": "serialized request characters / 4; not tokenizer or provider chat-template tokens",
+              "requested_output_tokens": 1600,
+              "configured_local_context_tokens": 16384,
+              "provider_prompt_tokens": 40,
+              "provider_prompt_tokens_available": true,
+              "cached_prompt_tokens": 0,
+              "reasoning_tokens": 0
+            },
+            "prompt": null,
+            "output": {
+              "content": "{\"supported\":false,\"reason\":\"contradiction\"}",
+              "tool_calls": []
+            },
+            "usage_details": {
+              "input": 40,
+              "output": 5,
+              "total": 45
+            },
+            "cost_details": null
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "tools-rejection"
+            }
+          }
+        },
+        {
+          "id": 23,
+          "name": "tool: submit_answer",
+          "parent_id": 19,
+          "start_ns": 8365880,
+          "end_ns": 8401667,
+          "fields": {
+            "as_type": "tool",
+            "input": {
+              "answer": "Ada wrote it [aaaaaaaa].",
+              "passage_ids": [
+                "aaaaaaaa"
+              ]
+            },
+            "model": null,
+            "metadata": {},
+            "prompt": null,
+            "output": {
+              "answer": "Ada wrote it [E1].",
+              "raw_answer": "Ada wrote it [aaaaaaaa].",
+              "passage_ids": [
+                "aaaaaaaa"
+              ],
+              "cited_ids": [
+                "aaaaaaaa"
+              ],
+              "uncited": false
+            },
+            "level": "DEFAULT",
+            "status_message": null
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "tools-rejection"
+            }
+          }
+        },
+        {
+          "id": 24,
+          "name": "rejected answer",
+          "parent_id": 19,
+          "start_ns": 8418659,
+          "end_ns": 8429068,
+          "fields": {
+            "as_type": "span",
+            "input": {
+              "answer": "Ada wrote it [E1].",
+              "raw_answer": "Ada wrote it [aaaaaaaa].",
+              "passage_ids": [
+                "aaaaaaaa"
+              ],
+              "cited_ids": [
+                "aaaaaaaa"
+              ],
+              "uncited": false
+            },
+            "model": null,
+            "metadata": {
+              "path": "submit_answer"
+            },
+            "prompt": null,
+            "level": "WARNING",
+            "output": {
+              "reason": "previously rejected"
+            }
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "tools-rejection"
+            }
+          }
+        },
+        {
+          "id": 25,
+          "name": "tool: submit_answer",
+          "parent_id": 19,
+          "start_ns": 8440690,
+          "end_ns": 8511402,
+          "fields": {
+            "as_type": "tool",
+            "input": {
+              "answer": "Bea read it [bbbbbbbb].",
+              "passage_ids": [
+                "bbbbbbbb"
+              ]
+            },
+            "model": null,
+            "metadata": {},
+            "prompt": null,
+            "output": {
+              "answer": "Bea read it [E1].",
+              "raw_answer": "Bea read it [bbbbbbbb].",
+              "passage_ids": [
+                "bbbbbbbb"
+              ],
+              "cited_ids": [
+                "bbbbbbbb"
+              ],
+              "uncited": false
+            },
+            "level": "DEFAULT",
+            "status_message": null
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "tools-rejection"
+            }
+          }
+        },
+        {
+          "id": 26,
+          "name": "submission verification",
+          "parent_id": 19,
+          "start_ns": 8528795,
+          "end_ns": 8648168,
+          "fields": {
+            "as_type": "span",
+            "input": {
+              "answer": "Bea read it [E1].",
+              "raw_answer": "Bea read it [bbbbbbbb].",
+              "passage_ids": [
+                "bbbbbbbb"
+              ],
+              "cited_ids": [
+                "bbbbbbbb"
+              ],
+              "uncited": false
+            },
+            "model": null,
+            "metadata": {},
+            "prompt": null,
+            "output": {
+              "supported": true,
+              "reason": ""
+            },
+            "level": "DEFAULT"
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "tools-rejection"
+            }
+          }
+        },
+        {
+          "id": 27,
+          "name": "query agent model: submission verification",
+          "parent_id": 26,
+          "start_ns": 8565794,
+          "end_ns": 8635124,
+          "fields": {
+            "as_type": "generation",
+            "input": "[{\"role\": \"system\", \"content\": \"You check whether evidence supports an answer.\"}, {\"role\": \"user\", \"content\": \"Question: Who wrote the report?\\n\\nProposed answer: Bea read it [bbbbbbbb].\\n\\nPassages:\\n[E1] id=bbbbbbbb | Book | None\\nparagraph 1: Ada wrote the report.\\nparagraph 2: Bea read the report.\\nparagraph 3: Cora challenged the report.\\n\\nDoes at least one passage state the main answer to the question, even if worded differently? A passage that only mentions the topic, or states the opposite, is not support. A passage that only says 'he' or 'she', or that could be about another person, is not support either: the passage must name or unambiguously identify the person the question asks about. Additional background the passages do not mention is not a failure. Reply with JSON only: {\\\"supported\\\": true or false, \\\"reason\\\": \\\"one sentence\\\"}\\nFor this draft, every factual claim must be supported; override the earlier allowance for unsupported background. Check the answer's central claim and the question's premise against all passages, including contradictions. An intention, accusation, question, or earlier belief does not establish that an event happened. If a later passage establishes the subject is alive, reject an answer saying someone killed them. If the answer changes the subject of who was killed, reject it unless it also answers the question directly. Return supported=false for any unsupported central claim or unresolved contradiction.\"}]",
+            "model": "qwen3.6:35b",
+            "metadata": {
+              "provider": "ollama",
+              "purpose": "submission verification",
+              "reasoning_effort": "none",
+              "endpoint": "ollama",
+              "request_endpoint": "ollama",
+              "request_measurement_format": "canonical JSON; sorted compact keys; ensure_ascii=False",
+              "request_sha256": "778be22c8ce1fb82488d3ece3694a1e1ad05efdaa7f1e5aee65e5aea5fbacd87",
+              "request_characters": 1593,
+              "message_characters": 1473,
+              "tool_schema_characters": 0,
+              "message_count": 2,
+              "compacted_tool_messages": 0,
+              "estimated_request_tokens": 398.25,
+              "token_estimate_method": "serialized request characters / 4; not tokenizer or provider chat-template tokens",
+              "requested_output_tokens": 1600,
+              "configured_local_context_tokens": 16384,
+              "provider_prompt_tokens": 40,
+              "provider_prompt_tokens_available": true,
+              "cached_prompt_tokens": 0,
+              "reasoning_tokens": 0
+            },
+            "prompt": null,
+            "output": {
+              "content": "{\"supported\":true}",
+              "tool_calls": []
+            },
+            "usage_details": {
+              "input": 40,
+              "output": 5,
+              "total": 45
+            },
+            "cost_details": null
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "tools-rejection"
+            }
+          }
+        },
+        {
+          "id": 28,
+          "name": "graph node: final",
+          "parent_id": 1,
+          "start_ns": 8860156,
+          "end_ns": 9132526,
+          "fields": {
+            "as_type": "span",
+            "input": {
+              "route": "final",
+              "turns": 2,
+              "tool_calls": 5,
+              "collected_passages": 2,
+              "rejected_answers": 1,
+              "verification_supported": true,
+              "verification_reason": "",
+              "budget_reason": null,
+              "budget_drafted": false,
+              "final_prepared": false,
+              "stopped": null
+            },
+            "model": null,
+            "metadata": {
+              "graph_node": "final",
+              "execution_backend": "langgraph"
+            },
+            "prompt": null,
+            "output": {
+              "route": "done",
+              "turns": 2,
+              "tool_calls": 5,
+              "collected_passages": 2,
+              "rejected_answers": 1,
+              "verification_supported": true,
+              "verification_reason": "",
+              "budget_reason": null,
+              "budget_drafted": false,
+              "final_prepared": true,
+              "stopped": "submit"
+            }
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "tools-rejection"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "budget-synthesis",
+      "telemetry_fault": null,
+      "error": null,
+      "mock_provider_calls": 2,
+      "result": {
+        "answer": "Ada wrote it [E1].",
+        "stopped": "budget+synthesis",
+        "turns": 0,
+        "tool_calls": 0,
+        "usage": {
+          "provider": "ollama",
+          "model": "qwen3.6:35b",
+          "reasoning_effort": "none",
+          "calls": 2,
+          "prompt_tokens": 80,
+          "completion_tokens": 10,
+          "total_tokens": 90,
+          "cached_prompt_tokens": 0,
+          "reasoning_tokens": 0,
+          "estimated_cost_usd": 0.0,
+          "call_details": [
+            {
+              "purpose": "forced answer",
+              "provider": "ollama",
+              "model": "qwen3.6:35b",
+              "prompt_tokens": 40,
+              "completion_tokens": 5,
+              "total_tokens": 45,
+              "cached_prompt_tokens": 0,
+              "reasoning_tokens": 0,
+              "reasoning_effort": "none",
+              "endpoint": "ollama",
+              "estimated_cost_usd": null
+            },
+            {
+              "purpose": "answer synthesis",
+              "provider": "ollama",
+              "model": "qwen3.6:35b",
+              "prompt_tokens": 40,
+              "completion_tokens": 5,
+              "total_tokens": 45,
+              "cached_prompt_tokens": 0,
+              "reasoning_tokens": 0,
+              "reasoning_effort": "none",
+              "endpoint": "ollama",
+              "estimated_cost_usd": null
+            }
+          ]
+        }
+      },
+      "observations": [
+        {
+          "id": 0,
+          "name": "agent run",
+          "parent_id": null,
+          "start_ns": 0,
+          "end_ns": 1676991,
+          "fields": {
+            "as_type": "span",
+            "input": {
+              "question": "Who wrote the report?",
+              "model": "qwen3.6:35b"
+            },
+            "model": null,
+            "metadata": {},
+            "prompt": null,
+            "output": {
+              "question": "Who wrote the report?",
+              "asked": "Who wrote the report?",
+              "name_normalization": [],
+              "answer": "Ada wrote it [E1].",
+              "raw_answer": "Ada wrote it [aaaaaaaa].",
+              "passage_ids": [
+                "aaaaaaaa"
+              ],
+              "citations": [
+                "E1"
+              ],
+              "evidence": [
+                {
+                  "id": "aaaaaaaa-0000",
+                  "text": "Ada wrote the report.",
+                  "book": "Book",
+                  "book_file": "book.epub",
+                  "section": "one",
+                  "paragraph": 1,
+                  "agent_label": "E1"
+                }
+              ],
+              "collected_passages": 1,
+              "turns": 0,
+              "tool_calls": 0,
+              "trace": [
+                {
+                  "tool": "abstention synthesis",
+                  "arguments": {
+                    "rows": 1
+                  },
+                  "seconds": 0.0,
+                  "error": null,
+                  "result_ids": [
+                    "aaaaaaaa"
+                  ]
+                }
+              ],
+              "model": "qwen3.6:35b",
+              "usage": {
+                "provider": "ollama",
+                "model": "qwen3.6:35b",
+                "reasoning_effort": "none",
+                "calls": 2,
+                "prompt_tokens": 80,
+                "completion_tokens": 10,
+                "total_tokens": 90,
+                "cached_prompt_tokens": 0,
+                "reasoning_tokens": 0,
+                "estimated_cost_usd": 0.0,
+                "call_details": [
+                  {
+                    "purpose": "forced answer",
+                    "provider": "ollama",
+                    "model": "qwen3.6:35b",
+                    "prompt_tokens": 40,
+                    "completion_tokens": 5,
+                    "total_tokens": 45,
+                    "cached_prompt_tokens": 0,
+                    "reasoning_tokens": 0,
+                    "reasoning_effort": "none",
+                    "endpoint": "ollama",
+                    "estimated_cost_usd": null
+                  },
+                  {
+                    "purpose": "answer synthesis",
+                    "provider": "ollama",
+                    "model": "qwen3.6:35b",
+                    "prompt_tokens": 40,
+                    "completion_tokens": 5,
+                    "total_tokens": 45,
+                    "cached_prompt_tokens": 0,
+                    "reasoning_tokens": 0,
+                    "reasoning_effort": "none",
+                    "endpoint": "ollama",
+                    "estimated_cost_usd": null
+                  }
+                ]
+              },
+              "latency_seconds": 0.0,
+              "stopped": "budget+synthesis"
+            }
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "budget-synthesis"
+            }
+          }
+        },
+        {
+          "id": 1,
+          "name": "agent graph",
+          "parent_id": 0,
+          "start_ns": 14297,
+          "end_ns": 1675628,
+          "fields": {
+            "as_type": "span",
+            "input": {
+              "question": "Who wrote the report?"
+            },
+            "model": null,
+            "metadata": {
+              "execution_backend": "langgraph",
+              "target_pipeline": "v2.17",
+              "recursion_limit": 5
+            },
+            "prompt": null,
+            "output": {
+              "route": "done",
+              "turns": 0,
+              "tool_calls": 0,
+              "collected_passages": 1,
+              "rejected_answers": 0,
+              "verification_supported": null,
+              "verification_reason": "",
+              "budget_reason": "turn_budget",
+              "budget_drafted": true,
+              "final_prepared": true,
+              "stopped": "budget+synthesis"
+            }
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "budget-synthesis"
+            }
+          }
+        },
+        {
+          "id": 2,
+          "name": "graph node: prepare",
+          "parent_id": 1,
+          "start_ns": 428883,
+          "end_ns": 569727,
+          "fields": {
+            "as_type": "span",
+            "input": {
+              "route": "prepare",
+              "turns": 0,
+              "tool_calls": 0,
+              "collected_passages": 0,
+              "rejected_answers": 0,
+              "verification_supported": null,
+              "verification_reason": "",
+              "budget_reason": null,
+              "budget_drafted": false,
+              "final_prepared": false,
+              "stopped": null
+            },
+            "model": null,
+            "metadata": {
+              "graph_node": "prepare",
+              "execution_backend": "langgraph"
+            },
+            "prompt": null,
+            "output": {
+              "route": "decide",
+              "turns": 0,
+              "tool_calls": 0,
+              "collected_passages": 1,
+              "rejected_answers": 0,
+              "verification_supported": null,
+              "verification_reason": "",
+              "budget_reason": null,
+              "budget_drafted": false,
+              "final_prepared": false,
+              "stopped": null
+            }
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "budget-synthesis"
+            }
+          }
+        },
+        {
+          "id": 3,
+          "name": "connection pre-check",
+          "parent_id": 2,
+          "start_ns": 454952,
+          "end_ns": 463348,
+          "fields": {
+            "as_type": "span",
+            "input": "Who wrote the report?",
+            "model": null,
+            "metadata": null,
+            "prompt": null
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "budget-synthesis"
+            }
+          }
+        },
+        {
+          "id": 4,
+          "name": "true account pre-check",
+          "parent_id": 2,
+          "start_ns": 476312,
+          "end_ns": 483536,
+          "fields": {
+            "as_type": "span",
+            "input": "Who wrote the report?",
+            "model": null,
+            "metadata": null,
+            "prompt": null
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "budget-synthesis"
+            }
+          }
+        },
+        {
+          "id": 5,
+          "name": "sequence pre-check",
+          "parent_id": 2,
+          "start_ns": 493985,
+          "end_ns": 499315,
+          "fields": {
+            "as_type": "span",
+            "input": "Who wrote the report?",
+            "model": null,
+            "metadata": null,
+            "prompt": null
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "budget-synthesis"
+            }
+          }
+        },
+        {
+          "id": 6,
+          "name": "moment pre-check",
+          "parent_id": 2,
+          "start_ns": 509154,
+          "end_ns": 514554,
+          "fields": {
+            "as_type": "span",
+            "input": "Who wrote the report?",
+            "model": null,
+            "metadata": null,
+            "prompt": null
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "budget-synthesis"
+            }
+          }
+        },
+        {
+          "id": 7,
+          "name": "premise probe",
+          "parent_id": 2,
+          "start_ns": 525194,
+          "end_ns": 536785,
+          "fields": {
+            "as_type": "span",
+            "input": "Who wrote the report?",
+            "model": null,
+            "metadata": {},
+            "prompt": null,
+            "output": {
+              "passage_ids": []
+            }
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "budget-synthesis"
+            }
+          }
+        },
+        {
+          "id": 8,
+          "name": "graph node: decide",
+          "parent_id": 1,
+          "start_ns": 755545,
+          "end_ns": 769882,
+          "fields": {
+            "as_type": "span",
+            "input": {
+              "route": "decide",
+              "turns": 0,
+              "tool_calls": 0,
+              "collected_passages": 1,
+              "rejected_answers": 0,
+              "verification_supported": null,
+              "verification_reason": "",
+              "budget_reason": null,
+              "budget_drafted": false,
+              "final_prepared": false,
+              "stopped": null
+            },
+            "model": null,
+            "metadata": {
+              "graph_node": "decide",
+              "execution_backend": "langgraph"
+            },
+            "prompt": null,
+            "output": {
+              "route": "budget",
+              "turns": 0,
+              "tool_calls": 0,
+              "collected_passages": 1,
+              "rejected_answers": 0,
+              "verification_supported": null,
+              "verification_reason": "",
+              "budget_reason": "turn_budget",
+              "budget_drafted": false,
+              "final_prepared": false,
+              "stopped": null
+            }
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "budget-synthesis"
+            }
+          }
+        },
+        {
+          "id": 9,
+          "name": "graph node: budget",
+          "parent_id": 1,
+          "start_ns": 938628,
+          "end_ns": 1159462,
+          "fields": {
+            "as_type": "span",
+            "input": {
+              "route": "budget",
+              "turns": 0,
+              "tool_calls": 0,
+              "collected_passages": 1,
+              "rejected_answers": 0,
+              "verification_supported": null,
+              "verification_reason": "",
+              "budget_reason": "turn_budget",
+              "budget_drafted": false,
+              "final_prepared": false,
+              "stopped": null
+            },
+            "model": null,
+            "metadata": {
+              "graph_node": "budget",
+              "execution_backend": "langgraph"
+            },
+            "prompt": null,
+            "output": {
+              "route": "final",
+              "turns": 0,
+              "tool_calls": 0,
+              "collected_passages": 1,
+              "rejected_answers": 0,
+              "verification_supported": null,
+              "verification_reason": "",
+              "budget_reason": "turn_budget",
+              "budget_drafted": true,
+              "final_prepared": false,
+              "stopped": null
+            }
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "budget-synthesis"
+            }
+          }
+        },
+        {
+          "id": 10,
+          "name": "forced answer",
+          "parent_id": 9,
+          "start_ns": 951602,
+          "end_ns": 1146197,
+          "fields": {
+            "as_type": "span",
+            "input": {
+              "reason": "turn_budget"
+            },
+            "model": null,
+            "metadata": null,
+            "prompt": null
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "budget-synthesis"
+            }
+          }
+        },
+        {
+          "id": 11,
+          "name": "query agent model: forced answer",
+          "parent_id": 10,
+          "start_ns": 1007757,
+          "end_ns": 1140546,
+          "fields": {
+            "as_type": "generation",
+            "input": "[{\"role\": \"system\", \"content\": \"You answer questions about Stieg Larsson's Millennium trilogy using a search index of the three books: The Girl with the Dragon Tattoo, The Girl Who Played with Fire and The Girl Who Kicked the Hornet's Nest.\\n\\nWork in small steps and use the tools. Do not answer from memory or outside knowledge: every claim must come from passages you retrieved.\\n- Start with a search. Search results flag names the books do not use (\\\"name_hints\\\"); follow those spellings. If find_names gives a likely person, the question is about that person: do not answer that the character does not exist.\\n- Before answering, make sure the passage you rely on states the answer, not just the topic.\\n- If a search returns little, change it: expand_query for other phrasings, keyword_search for exact words.\\n- For a \\\"why\\\" / reason / motive question, run keyword_search on the question's nouns (person, action, object) before rewriting it: the reason is usually stated beside those same nouns.\\n- search_scenes searches summaries of six-passage windows. It is the fastest way to find a conversation, a decision or how something came about, because the summary names who was there and what they did even when the passages alone are ambiguous. Pass `people` when the question names two people. Each scene has a scene_id; when its four snippets do not contain the detail, call read_scene (or search_scenes with full=true) to read every member passage in order.\\n- For a question about a detail at one moment (\\\"what did she say when she saw him in the kitchen\\\", \\\"what was she wearing when they met\\\"), call scene_moment: it writes the situation out and returns the scene that shows it, which is often the only place the detail appears. Read the scene list it returns too: the chosen scene can be the memory of the event while the dialogue is in another scene whose summary names it.\\n- Before concluding that a detail is not in the books, search the words it would appear with in the passage: keyword_search for the distinctive nouns and verbs (\\\"loosened the gun\\\", \\\"kitchen bench\\\", a remembered phrase), not only the question's phrasing. A scene summary is not evidence; the passage is.\\n- find_connections tells you what the cards say links two people: how they met, what one did for the other, documents or names between them. Use it for \\\"how did X know Y\\\" or \\\"what connects X and Y\\\" before concluding that the books do not say.\\n- When a hit looks relevant, read_passage with its neighbours; a single line often means something different in context. A scene summary is a paraphrase, not evidence: answer in the words of the passage (the summary's \\\"pinned him to the floor\\\" may be \\\"nailed his feet to the floor\\\" in the passage).\\n- When a question asks what someone was thinking or feeling, what the passage says they noticed, remembered, feared or decided is the answer even if it never uses the word \\\"thought\\\".\\n- For an importance or significance question, give every distinct role the passages show for the thing (what it did, what it proved), not just one.\\n- When the question asks for the name of a group, unit, place or person, give the exact name the passages use, not a description of it (\\\"the Section for Special Analysis\\\", not \\\"the Zalachenko unit\\\").\\n- Keep the passages that actually support the answer.\\n\\nWhen you can answer, call submit_answer with:\\n- answer: a concise answer (2-4 sentences) that uses only what the passages state. Answer the question directly: state the fact first, then at most one supporting sentence. If the question asks for a list, give the list, one line per item. Do not include notes, reasoning, book-metadata doubts or a transcript of your search in the answer.\\n- passage_ids: the 8-character ids of the passages you relied on, most important first.\\nCite each factual sentence with the ids in square brackets, exactly as the tools returned them, for example: Berger planned to switch on the sauna [95f8ea38].\\nUse names exactly as the passages write them: if a passage says only \\\"G\u00f6ransson\\\" or \\\"Niedermann\\\", do not add a first name from memory.\\nGive one answer, not alternative answers for different readings of the question. If the place has another name in the passages (a factory can be a brickworks), say so in the same answer and keep going with the event those passages describe.\\nFor a broad question (a summary, a list, a \\\"top 10\\\", or why someone did something), do not abstain because the books never use the question's word: answer from the passages you found, naming the events or people. A short structured summary is a good answer. If the question asks why, give the reason the passages show even when no sentence says \\\"because\\\".\\nIf the books do not contain the answer, call submit_answer saying so, with no ids.\\n\\nA passage that is only about the topic is not evidence: it must state the answer, and you should read its neighbours before deciding.\\nBefore submit_answer, check the question's parts one by one (who, what, where, when, why, how many) and make sure a passage states each. If one part is missing, search for it instead of answering partially. Some questions assume an event that the books contradict (that someone is dead, that something was never found): check the premise and correct it.\\nWhen the books first describe a death, a crime or a disappearance one way, look for the later passage that reveals what really happened (who was there, who did it); answer with the true account, and with the official one only as contrast. For a death or a crime, always ask who else was present and call true_account with that person: it searches for the other person doing the event (\\\"Harriet drowned her father\\\"), which is a different scene from the official account.\\nA \\\"what happened at a place\\\" question is a sequence, not one find: cover arrival, discovery, confrontation and outcome. After the first hit, open the scene or search again with the person who was confronted there; do not stop at the first body or clue.\\nQuestions of the form \\\"how did X know/learn about Y\\\", \\\"how did X and Y meet\\\" or \\\"what connects X and Y\\\" are answered by the event that first brought them together: a document one wrote about the other, a person who introduced them, a meeting. If the passages show X reading or receiving something Y wrote, or someone telling X about Y, that is the answer even if the words \\\"learned\\\" or \\\"knew\\\" never appear. State it plainly instead of saying the books do not say.\\nYou have a limited number of tool calls (about 16). Do not repeat a search that returned the same passages. Prefer four to eight calls over one long one.\"}, {\"role\": \"user\", \"content\": \"Who wrote the report?\"}, {\"role\": \"user\", \"content\": \"You have reached the step limit. Using the evidence in the conversation, answer the question now. Do not call tools. Cite supporting passage IDs in square brackets. If the evidence does not answer the question, say so.\"}]",
+            "model": "qwen3.6:35b",
+            "metadata": {
+              "provider": "ollama",
+              "purpose": "forced answer",
+              "reasoning_effort": "none",
+              "endpoint": "ollama",
+              "request_endpoint": "ollama",
+              "request_measurement_format": "canonical JSON; sorted compact keys; ensure_ascii=False",
+              "request_sha256": "3c4b7fc610ac8b76a76bdda46767b9fb58a54e92e611378b1013df3470a29a98",
+              "request_characters": 7089,
+              "message_characters": 6973,
+              "tool_schema_characters": 0,
+              "message_count": 3,
+              "compacted_tool_messages": 0,
+              "estimated_request_tokens": 1772.25,
+              "token_estimate_method": "serialized request characters / 4; not tokenizer or provider chat-template tokens",
+              "requested_output_tokens": 1600,
+              "configured_local_context_tokens": 16384,
+              "provider_prompt_tokens": 40,
+              "provider_prompt_tokens_available": true,
+              "cached_prompt_tokens": 0,
+              "reasoning_tokens": 0
+            },
+            "prompt": null,
+            "output": {
+              "content": "Insufficient evidence.",
+              "tool_calls": []
+            },
+            "usage_details": {
+              "input": 40,
+              "output": 5,
+              "total": 45
+            },
+            "cost_details": null
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "budget-synthesis"
+            }
+          }
+        },
+        {
+          "id": 12,
+          "name": "graph node: final",
+          "parent_id": 1,
+          "start_ns": 1333908,
+          "end_ns": 1548250,
+          "fields": {
+            "as_type": "span",
+            "input": {
+              "route": "final",
+              "turns": 0,
+              "tool_calls": 0,
+              "collected_passages": 1,
+              "rejected_answers": 0,
+              "verification_supported": null,
+              "verification_reason": "",
+              "budget_reason": "turn_budget",
+              "budget_drafted": true,
+              "final_prepared": false,
+              "stopped": null
+            },
+            "model": null,
+            "metadata": {
+              "graph_node": "final",
+              "execution_backend": "langgraph"
+            },
+            "prompt": null,
+            "output": {
+              "route": "done",
+              "turns": 0,
+              "tool_calls": 0,
+              "collected_passages": 1,
+              "rejected_answers": 0,
+              "verification_supported": null,
+              "verification_reason": "",
+              "budget_reason": "turn_budget",
+              "budget_drafted": true,
+              "final_prepared": true,
+              "stopped": "budget+synthesis"
+            }
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "budget-synthesis"
+            }
+          }
+        },
+        {
+          "id": 13,
+          "name": "abstention synthesis",
+          "parent_id": 12,
+          "start_ns": 1358565,
+          "end_ns": 1465715,
+          "fields": {
+            "as_type": "span",
+            "input": "Insufficient evidence.",
+            "model": null,
+            "metadata": null,
+            "prompt": null
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "budget-synthesis"
+            }
+          }
+        },
+        {
+          "id": 14,
+          "name": "query agent model: answer synthesis",
+          "parent_id": 13,
+          "start_ns": 1392719,
+          "end_ns": 1458862,
+          "fields": {
+            "as_type": "generation",
+            "input": "[{\"role\": \"system\", \"content\": \"You answer a question about Stieg Larsson's Millennium trilogy from the evidence passages given.\\nUse only those passages. Cite each claim with the passage id in square brackets, exactly as given.\\nIf the passages show a document, letter, introduction or conversation that brought two people together, or that brought\\nsomething to someone's attention, that is how they came to know it: say so plainly. Only say the passages do not answer\\nthe question if none of them state it.\"}, {\"role\": \"user\", \"content\": \"Question: Who wrote the report?\\n\\nEvidence:\\n[aaaaaaaa] Book | None | paragraph 1\\nAda wrote the report.\"}]",
+            "model": "qwen3.6:35b",
+            "metadata": {
+              "provider": "ollama",
+              "purpose": "answer synthesis",
+              "reasoning_effort": "none",
+              "endpoint": "ollama",
+              "request_endpoint": "ollama",
+              "request_measurement_format": "canonical JSON; sorted compact keys; ensure_ascii=False",
+              "request_sha256": "05e780fc6369fd28ea73fe84373fdf41eb929a16d2eb7acf22afa5738d9e8b1e",
+              "request_characters": 771,
+              "message_characters": 651,
+              "tool_schema_characters": 0,
+              "message_count": 2,
+              "compacted_tool_messages": 0,
+              "estimated_request_tokens": 192.75,
+              "token_estimate_method": "serialized request characters / 4; not tokenizer or provider chat-template tokens",
+              "requested_output_tokens": 1600,
+              "configured_local_context_tokens": 16384,
+              "provider_prompt_tokens": 40,
+              "provider_prompt_tokens_available": true,
+              "cached_prompt_tokens": 0,
+              "reasoning_tokens": 0
+            },
+            "prompt": null,
+            "output": {
+              "content": "Ada wrote it [aaaaaaaa].",
+              "tool_calls": []
+            },
+            "usage_details": {
+              "input": 40,
+              "output": 5,
+              "total": 45
+            },
+            "cost_details": null
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "budget-synthesis"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "sequence-rewrite",
+      "telemetry_fault": null,
+      "error": null,
+      "mock_provider_calls": 3,
+      "result": {
+        "answer": "She arrived, found evidence, confronted him and escaped [E1].",
+        "stopped": "content",
+        "turns": 1,
+        "tool_calls": 0,
+        "usage": {
+          "provider": "ollama",
+          "model": "qwen3.6:35b",
+          "reasoning_effort": "none",
+          "calls": 3,
+          "prompt_tokens": 120,
+          "completion_tokens": 15,
+          "total_tokens": 135,
+          "cached_prompt_tokens": 0,
+          "reasoning_tokens": 0,
+          "estimated_cost_usd": 0.0,
+          "call_details": [
+            {
+              "purpose": "tool selection and answer",
+              "provider": "ollama",
+              "model": "qwen3.6:35b",
+              "prompt_tokens": 40,
+              "completion_tokens": 5,
+              "total_tokens": 45,
+              "cached_prompt_tokens": 0,
+              "reasoning_tokens": 0,
+              "reasoning_effort": "none",
+              "endpoint": "ollama",
+              "estimated_cost_usd": null
+            },
+            {
+              "purpose": "submission verification",
+              "provider": "ollama",
+              "model": "qwen3.6:35b",
+              "prompt_tokens": 40,
+              "completion_tokens": 5,
+              "total_tokens": 45,
+              "cached_prompt_tokens": 0,
+              "reasoning_tokens": 0,
+              "reasoning_effort": "none",
+              "endpoint": "ollama",
+              "estimated_cost_usd": null
+            },
+            {
+              "purpose": "answer synthesis",
+              "provider": "ollama",
+              "model": "qwen3.6:35b",
+              "prompt_tokens": 40,
+              "completion_tokens": 5,
+              "total_tokens": 45,
+              "cached_prompt_tokens": 0,
+              "reasoning_tokens": 0,
+              "reasoning_effort": "none",
+              "endpoint": "ollama",
+              "estimated_cost_usd": null
+            }
+          ]
+        }
+      },
+      "observations": [
+        {
+          "id": 0,
+          "name": "agent run",
+          "parent_id": null,
+          "start_ns": 0,
+          "end_ns": 2823699,
+          "fields": {
+            "as_type": "span",
+            "input": {
+              "question": "What happened to Ada?",
+              "model": "qwen3.6:35b"
+            },
+            "model": null,
+            "metadata": {},
+            "prompt": null,
+            "output": {
+              "question": "What happened to Ada?",
+              "asked": "What happened to Ada?",
+              "name_normalization": [],
+              "answer": "She arrived, found evidence, confronted him and escaped [E1].",
+              "raw_answer": "She arrived, found evidence, confronted him and escaped [bbbbbbbb].",
+              "passage_ids": [
+                "bbbbbbbb"
+              ],
+              "citations": [
+                "E1"
+              ],
+              "evidence": [
+                {
+                  "id": "bbbbbbbb-0000",
+                  "text": "Bea read the report.",
+                  "book": "Book",
+                  "book_file": "book.epub",
+                  "section": "one",
+                  "paragraph": 2,
+                  "agent_label": "E1"
+                }
+              ],
+              "collected_passages": 2,
+              "turns": 1,
+              "tool_calls": 0,
+              "trace": [
+                {
+                  "tool": "abstention synthesis",
+                  "arguments": {
+                    "rows": 2
+                  },
+                  "seconds": 0.0,
+                  "error": null,
+                  "result_ids": [
+                    "bbbbbbbb"
+                  ]
+                }
+              ],
+              "model": "qwen3.6:35b",
+              "usage": {
+                "provider": "ollama",
+                "model": "qwen3.6:35b",
+                "reasoning_effort": "none",
+                "calls": 3,
+                "prompt_tokens": 120,
+                "completion_tokens": 15,
+                "total_tokens": 135,
+                "cached_prompt_tokens": 0,
+                "reasoning_tokens": 0,
+                "estimated_cost_usd": 0.0,
+                "call_details": [
+                  {
+                    "purpose": "tool selection and answer",
+                    "provider": "ollama",
+                    "model": "qwen3.6:35b",
+                    "prompt_tokens": 40,
+                    "completion_tokens": 5,
+                    "total_tokens": 45,
+                    "cached_prompt_tokens": 0,
+                    "reasoning_tokens": 0,
+                    "reasoning_effort": "none",
+                    "endpoint": "ollama",
+                    "estimated_cost_usd": null
+                  },
+                  {
+                    "purpose": "submission verification",
+                    "provider": "ollama",
+                    "model": "qwen3.6:35b",
+                    "prompt_tokens": 40,
+                    "completion_tokens": 5,
+                    "total_tokens": 45,
+                    "cached_prompt_tokens": 0,
+                    "reasoning_tokens": 0,
+                    "reasoning_effort": "none",
+                    "endpoint": "ollama",
+                    "estimated_cost_usd": null
+                  },
+                  {
+                    "purpose": "answer synthesis",
+                    "provider": "ollama",
+                    "model": "qwen3.6:35b",
+                    "prompt_tokens": 40,
+                    "completion_tokens": 5,
+                    "total_tokens": 45,
+                    "cached_prompt_tokens": 0,
+                    "reasoning_tokens": 0,
+                    "reasoning_effort": "none",
+                    "endpoint": "ollama",
+                    "estimated_cost_usd": null
+                  }
+                ]
+              },
+              "latency_seconds": 0.0,
+              "stopped": "content"
+            }
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "sequence-rewrite"
+            }
+          }
+        },
+        {
+          "id": 1,
+          "name": "agent graph",
+          "parent_id": 0,
+          "start_ns": 38452,
+          "end_ns": 2822407,
+          "fields": {
+            "as_type": "span",
+            "input": {
+              "question": "What happened to Ada?"
+            },
+            "model": null,
+            "metadata": {
+              "execution_backend": "langgraph",
+              "target_pipeline": "v2.17",
+              "recursion_limit": 35
+            },
+            "prompt": null,
+            "output": {
+              "route": "done",
+              "turns": 1,
+              "tool_calls": 0,
+              "collected_passages": 2,
+              "rejected_answers": 0,
+              "verification_supported": true,
+              "verification_reason": "",
+              "budget_reason": null,
+              "budget_drafted": false,
+              "final_prepared": true,
+              "stopped": "content"
+            }
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "sequence-rewrite"
+            }
+          }
+        },
+        {
+          "id": 2,
+          "name": "graph node: prepare",
+          "parent_id": 1,
+          "start_ns": 390562,
+          "end_ns": 518812,
+          "fields": {
+            "as_type": "span",
+            "input": {
+              "route": "prepare",
+              "turns": 0,
+              "tool_calls": 0,
+              "collected_passages": 0,
+              "rejected_answers": 0,
+              "verification_supported": null,
+              "verification_reason": "",
+              "budget_reason": null,
+              "budget_drafted": false,
+              "final_prepared": false,
+              "stopped": null
+            },
+            "model": null,
+            "metadata": {
+              "graph_node": "prepare",
+              "execution_backend": "langgraph"
+            },
+            "prompt": null,
+            "output": {
+              "route": "decide",
+              "turns": 0,
+              "tool_calls": 0,
+              "collected_passages": 2,
+              "rejected_answers": 0,
+              "verification_supported": null,
+              "verification_reason": "",
+              "budget_reason": null,
+              "budget_drafted": false,
+              "final_prepared": false,
+              "stopped": null
+            }
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "sequence-rewrite"
+            }
+          }
+        },
+        {
+          "id": 3,
+          "name": "connection pre-check",
+          "parent_id": 2,
+          "start_ns": 414156,
+          "end_ns": 420328,
+          "fields": {
+            "as_type": "span",
+            "input": "What happened to Ada?",
+            "model": null,
+            "metadata": null,
+            "prompt": null
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "sequence-rewrite"
+            }
+          }
+        },
+        {
+          "id": 4,
+          "name": "true account pre-check",
+          "parent_id": 2,
+          "start_ns": 432551,
+          "end_ns": 437941,
+          "fields": {
+            "as_type": "span",
+            "input": "What happened to Ada?",
+            "model": null,
+            "metadata": null,
+            "prompt": null
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "sequence-rewrite"
+            }
+          }
+        },
+        {
+          "id": 5,
+          "name": "sequence pre-check",
+          "parent_id": 2,
+          "start_ns": 449222,
+          "end_ns": 454512,
+          "fields": {
+            "as_type": "span",
+            "input": "What happened to Ada?",
+            "model": null,
+            "metadata": null,
+            "prompt": null
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "sequence-rewrite"
+            }
+          }
+        },
+        {
+          "id": 6,
+          "name": "moment pre-check",
+          "parent_id": 2,
+          "start_ns": 463879,
+          "end_ns": 469610,
+          "fields": {
+            "as_type": "span",
+            "input": "What happened to Ada?",
+            "model": null,
+            "metadata": null,
+            "prompt": null
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "sequence-rewrite"
+            }
+          }
+        },
+        {
+          "id": 7,
+          "name": "premise probe",
+          "parent_id": 2,
+          "start_ns": 479078,
+          "end_ns": 490639,
+          "fields": {
+            "as_type": "span",
+            "input": "What happened to Ada?",
+            "model": null,
+            "metadata": {},
+            "prompt": null,
+            "output": {
+              "passage_ids": []
+            }
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "sequence-rewrite"
+            }
+          }
+        },
+        {
+          "id": 8,
+          "name": "graph node: decide",
+          "parent_id": 1,
+          "start_ns": 703107,
+          "end_ns": 718256,
+          "fields": {
+            "as_type": "span",
+            "input": {
+              "route": "decide",
+              "turns": 0,
+              "tool_calls": 0,
+              "collected_passages": 2,
+              "rejected_answers": 0,
+              "verification_supported": null,
+              "verification_reason": "",
+              "budget_reason": null,
+              "budget_drafted": false,
+              "final_prepared": false,
+              "stopped": null
+            },
+            "model": null,
+            "metadata": {
+              "graph_node": "decide",
+              "execution_backend": "langgraph"
+            },
+            "prompt": null,
+            "output": {
+              "route": "select",
+              "turns": 1,
+              "tool_calls": 0,
+              "collected_passages": 2,
+              "rejected_answers": 0,
+              "verification_supported": null,
+              "verification_reason": "",
+              "budget_reason": null,
+              "budget_drafted": false,
+              "final_prepared": false,
+              "stopped": null
+            }
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "sequence-rewrite"
+            }
+          }
+        },
+        {
+          "id": 9,
+          "name": "graph node: select",
+          "parent_id": 1,
+          "start_ns": 875120,
+          "end_ns": 1431642,
+          "fields": {
+            "as_type": "span",
+            "input": {
+              "route": "select",
+              "turns": 1,
+              "tool_calls": 0,
+              "collected_passages": 2,
+              "rejected_answers": 0,
+              "verification_supported": null,
+              "verification_reason": "",
+              "budget_reason": null,
+              "budget_drafted": false,
+              "final_prepared": false,
+              "stopped": null
+            },
+            "model": null,
+            "metadata": {
+              "graph_node": "select",
+              "execution_backend": "langgraph"
+            },
+            "prompt": null,
+            "output": {
+              "route": "review",
+              "turns": 1,
+              "tool_calls": 0,
+              "collected_passages": 2,
+              "rejected_answers": 0,
+              "verification_supported": null,
+              "verification_reason": "",
+              "budget_reason": null,
+              "budget_drafted": false,
+              "final_prepared": false,
+              "stopped": null
+            }
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "sequence-rewrite"
+            }
+          }
+        },
+        {
+          "id": 10,
+          "name": "agent turn 1",
+          "parent_id": 9,
+          "start_ns": 888645,
+          "end_ns": 1336143,
+          "fields": {
+            "as_type": "span",
+            "input": [
+              {
+                "role": "system",
+                "content": "You answer questions about Stieg Larsson's Millennium trilogy using a search index of the three books: The Girl with the Dragon Tattoo, The Girl Who Played with Fire and The Girl Who Kicked the Hornet's Nest.\n\nWork in small steps and use the tools. Do not answer from memory or outside knowledge: every claim must come from passages you retrieved.\n- Start with a search. Search results flag names the books do not use (\"name_hints\"); follow those spellings. If find_names gives a likely person, the question is about that person: do not answer that the character does not exist.\n- Before answering, make sure the passage you rely on states the answer, not just the topic.\n- If a search returns little, change it: expand_query for other phrasings, keyword_search for exact words.\n- For a \"why\" / reason / motive question, run keyword_search on the question's nouns (person, action, object) before rewriting it: the reason is usually stated beside those same nouns.\n- search_scenes searches summaries of six-passage windows. It is the fastest way to find a conversation, a decision or how something came about, because the summary names who was there and what they did even when the passages alone are ambiguous. Pass `people` when the question names two people. Each scene has a scene_id; when its four snippets do not contain the detail, call read_scene (or search_scenes with full=true) to read every member passage in order.\n- For a question about a detail at one moment (\"what did she say when she saw him in the kitchen\", \"what was she wearing when they met\"), call scene_moment: it writes the situation out and returns the scene that shows it, which is often the only place the detail appears. Read the scene list it returns too: the chosen scene can be the memory of the event while the dialogue is in another scene whose summary names it.\n- Before concluding that a detail is not in the books, search the words it would appear with in the passage: keyword_search for the distinctive nouns and verbs (\"loosened the gun\", \"kitchen bench\", a remembered phrase), not only the question's phrasing. A scene summary is not evidence; the passage is.\n- find_connections tells you what the cards say links two people: how they met, what one did for the other, documents or names between them. Use it for \"how did X know Y\" or \"what connects X and Y\" before concluding that the books do not say.\n- When a hit looks relevant, read_passage with its neighbours; a single line often means something different in context. A scene summary is a paraphrase, not evidence: answer in the words of the passage (the summary's \"pinned him to the floor\" may be \"nailed his feet to the floor\" in the passage).\n- When a question asks what someone was thinking or feeling, what the passage says they noticed, remembered, feared or decided is the answer even if it never uses the word \"thought\".\n- For an importance or significance question, give every distinct role the passages show for the thing (what it did, what it proved), not just one.\n- When the question asks for the name of a group, unit, place or person, give the exact name the passages use, not a description of it (\"the Section for Special Analysis\", not \"the Zalachenko unit\").\n- Keep the passages that actually support the answer.\n\nWhen you can answer, call submit_answer with:\n- answer: a concise answer (2-4 sentences) that uses only what the passages state. Answer the question directly: state the fact first, then at most one supporting sentence. If the question asks for a list, give the list, one line per item. Do not include notes, reasoning, book-metadata doubts or a transcript of your search in the answer.\n- passage_ids: the 8-character ids of the passages you relied on, most important first.\nCite each factual sentence with the ids in square brackets, exactly as the tools returned them, for example: Berger planned to switch on the sauna [95f8ea38].\nUse names exactly as the passages write them: if a passage says only \"G\u00f6ransson\" or \"Niedermann\", do not add a first name from memory.\nGive one answer, not alternative answers for different readings of the question. If the place has another name in the passages (a factory can be a brickworks), say so in the same answer and keep going with the event those passages describe.\nFor a broad question (a summary, a list, a \"top 10\", or why someone did something), do not abstain because the books never use the question's word: answer from the passages you found, naming the events or people. A short structured summary is a good answer. If the question asks why, give the reason the passages show even when no sentence says \"because\".\nIf the books do not contain the answer, call submit_answer saying so, with no ids.\n\nA passage that is only about the topic is not evidence: it must state the answer, and you should read its neighbours before deciding.\nBefore submit_answer, check the question's parts one by one (who, what, where, when, why, how many) and make sure a passage states each. If one part is missing, search for it instead of answering partially. Some questions assume an event that the books contradict (that someone is dead, that something was never found): check the premise and correct it.\nWhen the books first describe a death, a crime or a disappearance one way, look for the later passage that reveals what really happened (who was there, who did it); answer with the true account, and with the official one only as contrast. For a death or a crime, always ask who else was present and call true_account with that person: it searches for the other person doing the event (\"Harriet drowned her father\"), which is a different scene from the official account.\nA \"what happened at a place\" question is a sequence, not one find: cover arrival, discovery, confrontation and outcome. After the first hit, open the scene or search again with the person who was confronted there; do not stop at the first body or clue.\nQuestions of the form \"how did X know/learn about Y\", \"how did X and Y meet\" or \"what connects X and Y\" are answered by the event that first brought them together: a document one wrote about the other, a person who introduced them, a meeting. If the passages show X reading or receiving something Y wrote, or someone telling X about Y, that is the answer even if the words \"learned\" or \"knew\" never appear. State it plainly instead of saying the books do not say.\nYou have a limited number of tool calls (about 16). Do not repeat a search that returned the same passages. Prefer four to eight calls over one long one."
+              },
+              {
+                "role": "user",
+                "content": "What happened to Ada?"
+              }
+            ],
+            "model": null,
+            "metadata": {
+              "provider": "ollama",
+              "model": "qwen3.6:35b"
+            },
+            "prompt": null,
+            "output": {
+              "content": "She found evidence [aaaaaaaa].",
+              "tool_calls": [],
+              "usage": null
+            }
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "sequence-rewrite"
+            }
+          }
+        },
+        {
+          "id": 11,
+          "name": "query agent model: tool selection and answer",
+          "parent_id": 10,
+          "start_ns": 937827,
+          "end_ns": 1328419,
+          "fields": {
+            "as_type": "generation",
+            "input": "[{\"role\": \"system\", \"content\": \"You answer questions about Stieg Larsson's Millennium trilogy using a search index of the three books: The Girl with the Dragon Tattoo, The Girl Who Played with Fire and The Girl Who Kicked the Hornet's Nest.\\n\\nWork in small steps and use the tools. Do not answer from memory or outside knowledge: every claim must come from passages you retrieved.\\n- Start with a search. Search results flag names the books do not use (\\\"name_hints\\\"); follow those spellings. If find_names gives a likely person, the question is about that person: do not answer that the character does not exist.\\n- Before answering, make sure the passage you rely on states the answer, not just the topic.\\n- If a search returns little, change it: expand_query for other phrasings, keyword_search for exact words.\\n- For a \\\"why\\\" / reason / motive question, run keyword_search on the question's nouns (person, action, object) before rewriting it: the reason is usually stated beside those same nouns.\\n- search_scenes searches summaries of six-passage windows. It is the fastest way to find a conversation, a decision or how something came about, because the summary names who was there and what they did even when the passages alone are ambiguous. Pass `people` when the question names two people. Each scene has a scene_id; when its four snippets do not contain the detail, call read_scene (or search_scenes with full=true) to read every member passage in order.\\n- For a question about a detail at one moment (\\\"what did she say when she saw him in the kitchen\\\", \\\"what was she wearing when they met\\\"), call scene_moment: it writes the situation out and returns the scene that shows it, which is often the only place the detail appears. Read the scene list it returns too: the chosen scene can be the memory of the event while the dialogue is in another scene whose summary names it.\\n- Before concluding that a detail is not in the books, search the words it would appear with in the passage: keyword_search for the distinctive nouns and verbs (\\\"loosened the gun\\\", \\\"kitchen bench\\\", a remembered phrase), not only the question's phrasing. A scene summary is not evidence; the passage is.\\n- find_connections tells you what the cards say links two people: how they met, what one did for the other, documents or names between them. Use it for \\\"how did X know Y\\\" or \\\"what connects X and Y\\\" before concluding that the books do not say.\\n- When a hit looks relevant, read_passage with its neighbours; a single line often means something different in context. A scene summary is a paraphrase, not evidence: answer in the words of the passage (the summary's \\\"pinned him to the floor\\\" may be \\\"nailed his feet to the floor\\\" in the passage).\\n- When a question asks what someone was thinking or feeling, what the passage says they noticed, remembered, feared or decided is the answer even if it never uses the word \\\"thought\\\".\\n- For an importance or significance question, give every distinct role the passages show for the thing (what it did, what it proved), not just one.\\n- When the question asks for the name of a group, unit, place or person, give the exact name the passages use, not a description of it (\\\"the Section for Special Analysis\\\", not \\\"the Zalachenko unit\\\").\\n- Keep the passages that actually support the answer.\\n\\nWhen you can answer, call submit_answer with:\\n- answer: a concise answer (2-4 sentences) that uses only what the passages state. Answer the question directly: state the fact first, then at most one supporting sentence. If the question asks for a list, give the list, one line per item. Do not include notes, reasoning, book-metadata doubts or a transcript of your search in the answer.\\n- passage_ids: the 8-character ids of the passages you relied on, most important first.\\nCite each factual sentence with the ids in square brackets, exactly as the tools returned them, for example: Berger planned to switch on the sauna [95f8ea38].\\nUse names exactly as the passages write them: if a passage says only \\\"G\u00f6ransson\\\" or \\\"Niedermann\\\", do not add a first name from memory.\\nGive one answer, not alternative answers for different readings of the question. If the place has another name in the passages (a factory can be a brickworks), say so in the same answer and keep going with the event those passages describe.\\nFor a broad question (a summary, a list, a \\\"top 10\\\", or why someone did something), do not abstain because the books never use the question's word: answer from the passages you found, naming the events or people. A short structured summary is a good answer. If the question asks why, give the reason the passages show even when no sentence says \\\"because\\\".\\nIf the books do not contain the answer, call submit_answer saying so, with no ids.\\n\\nA passage that is only about the topic is not evidence: it must state the answer, and you should read its neighbours before deciding.\\nBefore submit_answer, check the question's parts one by one (who, what, where, when, why, how many) and make sure a passage states each. If one part is missing, search for it instead of answering partially. Some questions assume an event that the books contradict (that someone is dead, that something was never found): check the premise and correct it.\\nWhen the books first describe a death, a crime or a disappearance one way, look for the later passage that reveals what really happened (who was there, who did it); answer with the true account, and with the official one only as contrast. For a death or a crime, always ask who else was present and call true_account with that person: it searches for the other person doing the event (\\\"Harriet drowned her father\\\"), which is a different scene from the official account.\\nA \\\"what happened at a place\\\" question is a sequence, not one find: cover arrival, discovery, confrontation and outcome. After the first hit, open the scene or search again with the person who was confronted there; do not stop at the first body or clue.\\nQuestions of the form \\\"how did X know/learn about Y\\\", \\\"how did X and Y meet\\\" or \\\"what connects X and Y\\\" are answered by the event that first brought them together: a document one wrote about the other, a person who introduced them, a meeting. If the passages show X reading or receiving something Y wrote, or someone telling X about Y, that is the answer even if the words \\\"learned\\\" or \\\"knew\\\" never appear. State it plainly instead of saying the books do not say.\\nYou have a limited number of tool calls (about 16). Do not repeat a search that returned the same passages. Prefer four to eight calls over one long one.\"}, {\"role\": \"user\", \"content\": \"What happened to Ada?\"}]",
+            "model": "qwen3.6:35b",
+            "metadata": {
+              "provider": "ollama",
+              "purpose": "tool selection and answer",
+              "reasoning_effort": "none",
+              "endpoint": "ollama",
+              "request_endpoint": "ollama",
+              "request_measurement_format": "canonical JSON; sorted compact keys; ensure_ascii=False",
+              "request_sha256": "55ec09fa84573afe2a472956afdcd352182aa10d648579eda2a0e1b9fb5947ea",
+              "request_characters": 13311,
+              "message_characters": 6722,
+              "tool_schema_characters": 6776,
+              "message_count": 2,
+              "compacted_tool_messages": 0,
+              "estimated_request_tokens": 3327.75,
+              "token_estimate_method": "serialized request characters / 4; not tokenizer or provider chat-template tokens",
+              "requested_output_tokens": 1600,
+              "configured_local_context_tokens": 16384,
+              "provider_prompt_tokens": 40,
+              "provider_prompt_tokens_available": true,
+              "cached_prompt_tokens": 0,
+              "reasoning_tokens": 0
+            },
+            "prompt": null,
+            "output": {
+              "content": "She found evidence [aaaaaaaa].",
+              "tool_calls": []
+            },
+            "usage_details": {
+              "input": 40,
+              "output": 5,
+              "total": 45
+            },
+            "cost_details": null
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "sequence-rewrite"
+            }
+          }
+        },
+        {
+          "id": 12,
+          "name": "graph node: review",
+          "parent_id": 1,
+          "start_ns": 1625415,
+          "end_ns": 2215981,
+          "fields": {
+            "as_type": "span",
+            "input": {
+              "route": "review",
+              "turns": 1,
+              "tool_calls": 0,
+              "collected_passages": 2,
+              "rejected_answers": 0,
+              "verification_supported": null,
+              "verification_reason": "",
+              "budget_reason": null,
+              "budget_drafted": false,
+              "final_prepared": false,
+              "stopped": null
+            },
+            "model": null,
+            "metadata": {
+              "graph_node": "review",
+              "execution_backend": "langgraph"
+            },
+            "prompt": null,
+            "output": {
+              "route": "final",
+              "turns": 1,
+              "tool_calls": 0,
+              "collected_passages": 2,
+              "rejected_answers": 0,
+              "verification_supported": true,
+              "verification_reason": "",
+              "budget_reason": null,
+              "budget_drafted": false,
+              "final_prepared": false,
+              "stopped": null
+            }
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "sequence-rewrite"
+            }
+          }
+        },
+        {
+          "id": 13,
+          "name": "coverage check",
+          "parent_id": 12,
+          "start_ns": 1647486,
+          "end_ns": 1656383,
+          "fields": {
+            "as_type": "span",
+            "input": "She found evidence [aaaaaaaa].",
+            "model": null,
+            "metadata": null,
+            "prompt": null
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "sequence-rewrite"
+            }
+          }
+        },
+        {
+          "id": 14,
+          "name": "submission verification",
+          "parent_id": 12,
+          "start_ns": 1671030,
+          "end_ns": 2201724,
+          "fields": {
+            "as_type": "span",
+            "input": {
+              "answer": "She found evidence [aaaaaaaa].",
+              "ids": [
+                "aaaaaaaa"
+              ]
+            },
+            "model": null,
+            "metadata": {},
+            "prompt": null,
+            "output": {
+              "supported": true,
+              "reason": ""
+            },
+            "level": "DEFAULT"
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "sequence-rewrite"
+            }
+          }
+        },
+        {
+          "id": 15,
+          "name": "query agent model: submission verification",
+          "parent_id": 14,
+          "start_ns": 2110814,
+          "end_ns": 2187357,
+          "fields": {
+            "as_type": "generation",
+            "input": "[{\"role\": \"system\", \"content\": \"You check whether evidence supports an answer.\"}, {\"role\": \"user\", \"content\": \"Question: What happened to Ada?\\n\\nProposed answer: She found evidence [aaaaaaaa].\\n\\nPassages:\\n[E1] id=aaaaaaaa | Book | None\\nparagraph 1: Ada wrote the report.\\nparagraph 2: Bea read the report.\\n\\nDoes at least one passage state the main answer to the question, even if worded differently? A passage that only mentions the topic, or states the opposite, is not support. A passage that only says 'he' or 'she', or that could be about another person, is not support either: the passage must name or unambiguously identify the person the question asks about. Additional background the passages do not mention is not a failure. Reply with JSON only: {\\\"supported\\\": true or false, \\\"reason\\\": \\\"one sentence\\\"}\\nFor this draft, every factual claim must be supported; override the earlier allowance for unsupported background. Check the answer's central claim and the question's premise against all passages, including contradictions. An intention, accusation, question, or earlier belief does not establish that an event happened. If a later passage establishes the subject is alive, reject an answer saying someone killed them. If the answer changes the subject of who was killed, reject it unless it also answers the question directly. Return supported=false for any unsupported central claim or unresolved contradiction.\"}]",
+            "model": "qwen3.6:35b",
+            "metadata": {
+              "provider": "ollama",
+              "purpose": "submission verification",
+              "reasoning_effort": "none",
+              "endpoint": "ollama",
+              "request_endpoint": "ollama",
+              "request_measurement_format": "canonical JSON; sorted compact keys; ensure_ascii=False",
+              "request_sha256": "2e6842c9da8b3e85b3960723a77cb3444c0dff77afaac66c9c4657e9b97fa41f",
+              "request_characters": 1558,
+              "message_characters": 1438,
+              "tool_schema_characters": 0,
+              "message_count": 2,
+              "compacted_tool_messages": 0,
+              "estimated_request_tokens": 389.5,
+              "token_estimate_method": "serialized request characters / 4; not tokenizer or provider chat-template tokens",
+              "requested_output_tokens": 1600,
+              "configured_local_context_tokens": 16384,
+              "provider_prompt_tokens": 40,
+              "provider_prompt_tokens_available": true,
+              "cached_prompt_tokens": 0,
+              "reasoning_tokens": 0
+            },
+            "prompt": null,
+            "output": {
+              "content": "{\"supported\":true}",
+              "tool_calls": []
+            },
+            "usage_details": {
+              "input": 40,
+              "output": 5,
+              "total": 45
+            },
+            "cost_details": null
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "sequence-rewrite"
+            }
+          }
+        },
+        {
+          "id": 16,
+          "name": "graph node: final",
+          "parent_id": 1,
+          "start_ns": 2404654,
+          "end_ns": 2690961,
+          "fields": {
+            "as_type": "span",
+            "input": {
+              "route": "final",
+              "turns": 1,
+              "tool_calls": 0,
+              "collected_passages": 2,
+              "rejected_answers": 0,
+              "verification_supported": true,
+              "verification_reason": "",
+              "budget_reason": null,
+              "budget_drafted": false,
+              "final_prepared": false,
+              "stopped": null
+            },
+            "model": null,
+            "metadata": {
+              "graph_node": "final",
+              "execution_backend": "langgraph"
+            },
+            "prompt": null,
+            "output": {
+              "route": "done",
+              "turns": 1,
+              "tool_calls": 0,
+              "collected_passages": 2,
+              "rejected_answers": 0,
+              "verification_supported": true,
+              "verification_reason": "",
+              "budget_reason": null,
+              "budget_drafted": false,
+              "final_prepared": true,
+              "stopped": "content"
+            }
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "sequence-rewrite"
+            }
+          }
+        },
+        {
+          "id": 17,
+          "name": "coverage rewrite",
+          "parent_id": 16,
+          "start_ns": 2469396,
+          "end_ns": 2583289,
+          "fields": {
+            "as_type": "span",
+            "input": "She found evidence [aaaaaaaa].",
+            "model": null,
+            "metadata": null,
+            "prompt": null
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "sequence-rewrite"
+            }
+          }
+        },
+        {
+          "id": 18,
+          "name": "query agent model: answer synthesis",
+          "parent_id": 17,
+          "start_ns": 2509741,
+          "end_ns": 2577168,
+          "fields": {
+            "as_type": "generation",
+            "input": "[{\"role\": \"system\", \"content\": \"You answer a question about Stieg Larsson's Millennium trilogy from the evidence passages given.\\nUse only those passages. Cite each claim with the passage id in square brackets, exactly as given.\\nIf the passages show a document, letter, introduction or conversation that brought two people together, or that brought\\nsomething to someone's attention, that is how they came to know it: say so plainly. Only say the passages do not answer\\nthe question if none of them state it.\"}, {\"role\": \"user\", \"content\": \"Question: What happened to Ada?\\n\\nEvidence:\\n[aaaaaaaa] Book | None | paragraph 1\\nAda wrote the report.\\n\\n[bbbbbbbb] Book | None | paragraph 2\\nBea read the report.\"}]",
+            "model": "qwen3.6:35b",
+            "metadata": {
+              "provider": "ollama",
+              "purpose": "answer synthesis",
+              "reasoning_effort": "none",
+              "endpoint": "ollama",
+              "request_endpoint": "ollama",
+              "request_measurement_format": "canonical JSON; sorted compact keys; ensure_ascii=False",
+              "request_sha256": "d7dec2b3554c55f923e16ca8a1b482c2e24002048d959e4e3630a28ef5087332",
+              "request_characters": 833,
+              "message_characters": 713,
+              "tool_schema_characters": 0,
+              "message_count": 2,
+              "compacted_tool_messages": 0,
+              "estimated_request_tokens": 208.25,
+              "token_estimate_method": "serialized request characters / 4; not tokenizer or provider chat-template tokens",
+              "requested_output_tokens": 1600,
+              "configured_local_context_tokens": 16384,
+              "provider_prompt_tokens": 40,
+              "provider_prompt_tokens_available": true,
+              "cached_prompt_tokens": 0,
+              "reasoning_tokens": 0
+            },
+            "prompt": null,
+            "output": {
+              "content": "She arrived, found evidence, confronted him and escaped [bbbbbbbb].",
+              "tool_calls": []
+            },
+            "usage_details": {
+              "input": 40,
+              "output": 5,
+              "total": 45
+            },
+            "cost_details": null
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "sequence-rewrite"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "provider-error",
+      "telemetry_fault": null,
+      "error": "synthetic provider unavailable",
+      "mock_provider_calls": 1,
+      "result": null,
+      "observations": [
+        {
+          "id": 0,
+          "name": "agent run",
+          "parent_id": null,
+          "start_ns": 0,
+          "end_ns": 1359887,
+          "fields": {
+            "as_type": "span",
+            "input": {
+              "question": "Who wrote the report?",
+              "model": "qwen3.6:35b"
+            },
+            "model": null,
+            "metadata": {},
+            "prompt": null,
+            "level": "ERROR",
+            "status_message": "RuntimeError: synthetic provider unavailable"
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "provider-error"
+            }
+          }
+        },
+        {
+          "id": 1,
+          "name": "agent graph",
+          "parent_id": 0,
+          "start_ns": 13395,
+          "end_ns": 1354117,
+          "fields": {
+            "as_type": "span",
+            "input": {
+              "question": "Who wrote the report?"
+            },
+            "model": null,
+            "metadata": {
+              "execution_backend": "langgraph",
+              "target_pipeline": "v2.17",
+              "recursion_limit": 35
+            },
+            "prompt": null,
+            "level": "ERROR",
+            "status_message": "RuntimeError: synthetic provider unavailable"
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "provider-error"
+            }
+          }
+        },
+        {
+          "id": 2,
+          "name": "graph node: prepare",
+          "parent_id": 1,
+          "start_ns": 379521,
+          "end_ns": 506669,
+          "fields": {
+            "as_type": "span",
+            "input": {
+              "route": "prepare",
+              "turns": 0,
+              "tool_calls": 0,
+              "collected_passages": 0,
+              "rejected_answers": 0,
+              "verification_supported": null,
+              "verification_reason": "",
+              "budget_reason": null,
+              "budget_drafted": false,
+              "final_prepared": false,
+              "stopped": null
+            },
+            "model": null,
+            "metadata": {
+              "graph_node": "prepare",
+              "execution_backend": "langgraph"
+            },
+            "prompt": null,
+            "output": {
+              "route": "decide",
+              "turns": 0,
+              "tool_calls": 0,
+              "collected_passages": 0,
+              "rejected_answers": 0,
+              "verification_supported": null,
+              "verification_reason": "",
+              "budget_reason": null,
+              "budget_drafted": false,
+              "final_prepared": false,
+              "stopped": null
+            }
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "provider-error"
+            }
+          }
+        },
+        {
+          "id": 3,
+          "name": "connection pre-check",
+          "parent_id": 2,
+          "start_ns": 401522,
+          "end_ns": 407964,
+          "fields": {
+            "as_type": "span",
+            "input": "Who wrote the report?",
+            "model": null,
+            "metadata": null,
+            "prompt": null
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "provider-error"
+            }
+          }
+        },
+        {
+          "id": 4,
+          "name": "true account pre-check",
+          "parent_id": 2,
+          "start_ns": 420558,
+          "end_ns": 426058,
+          "fields": {
+            "as_type": "span",
+            "input": "Who wrote the report?",
+            "model": null,
+            "metadata": null,
+            "prompt": null
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "provider-error"
+            }
+          }
+        },
+        {
+          "id": 5,
+          "name": "sequence pre-check",
+          "parent_id": 2,
+          "start_ns": 436518,
+          "end_ns": 441607,
+          "fields": {
+            "as_type": "span",
+            "input": "Who wrote the report?",
+            "model": null,
+            "metadata": null,
+            "prompt": null
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "provider-error"
+            }
+          }
+        },
+        {
+          "id": 6,
+          "name": "moment pre-check",
+          "parent_id": 2,
+          "start_ns": 451847,
+          "end_ns": 456976,
+          "fields": {
+            "as_type": "span",
+            "input": "Who wrote the report?",
+            "model": null,
+            "metadata": null,
+            "prompt": null
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "provider-error"
+            }
+          }
+        },
+        {
+          "id": 7,
+          "name": "premise probe",
+          "parent_id": 2,
+          "start_ns": 466584,
+          "end_ns": 477615,
+          "fields": {
+            "as_type": "span",
+            "input": "Who wrote the report?",
+            "model": null,
+            "metadata": {},
+            "prompt": null,
+            "output": {
+              "passage_ids": []
+            }
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "provider-error"
+            }
+          }
+        },
+        {
+          "id": 8,
+          "name": "graph node: decide",
+          "parent_id": 1,
+          "start_ns": 690203,
+          "end_ns": 704259,
+          "fields": {
+            "as_type": "span",
+            "input": {
+              "route": "decide",
+              "turns": 0,
+              "tool_calls": 0,
+              "collected_passages": 0,
+              "rejected_answers": 0,
+              "verification_supported": null,
+              "verification_reason": "",
+              "budget_reason": null,
+              "budget_drafted": false,
+              "final_prepared": false,
+              "stopped": null
+            },
+            "model": null,
+            "metadata": {
+              "graph_node": "decide",
+              "execution_backend": "langgraph"
+            },
+            "prompt": null,
+            "output": {
+              "route": "select",
+              "turns": 1,
+              "tool_calls": 0,
+              "collected_passages": 0,
+              "rejected_answers": 0,
+              "verification_supported": null,
+              "verification_reason": "",
+              "budget_reason": null,
+              "budget_drafted": false,
+              "final_prepared": false,
+              "stopped": null
+            }
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "provider-error"
+            }
+          }
+        },
+        {
+          "id": 9,
+          "name": "graph node: select",
+          "parent_id": 1,
+          "start_ns": 862656,
+          "end_ns": 1311958,
+          "fields": {
+            "as_type": "span",
+            "input": {
+              "route": "select",
+              "turns": 1,
+              "tool_calls": 0,
+              "collected_passages": 0,
+              "rejected_answers": 0,
+              "verification_supported": null,
+              "verification_reason": "",
+              "budget_reason": null,
+              "budget_drafted": false,
+              "final_prepared": false,
+              "stopped": null
+            },
+            "model": null,
+            "metadata": {
+              "graph_node": "select",
+              "execution_backend": "langgraph"
+            },
+            "prompt": null,
+            "level": "ERROR",
+            "status_message": "RuntimeError: synthetic provider unavailable"
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "provider-error"
+            }
+          }
+        },
+        {
+          "id": 10,
+          "name": "agent turn 1",
+          "parent_id": 9,
+          "start_ns": 875160,
+          "end_ns": 1306317,
+          "fields": {
+            "as_type": "span",
+            "input": [
+              {
+                "role": "system",
+                "content": "You answer questions about Stieg Larsson's Millennium trilogy using a search index of the three books: The Girl with the Dragon Tattoo, The Girl Who Played with Fire and The Girl Who Kicked the Hornet's Nest.\n\nWork in small steps and use the tools. Do not answer from memory or outside knowledge: every claim must come from passages you retrieved.\n- Start with a search. Search results flag names the books do not use (\"name_hints\"); follow those spellings. If find_names gives a likely person, the question is about that person: do not answer that the character does not exist.\n- Before answering, make sure the passage you rely on states the answer, not just the topic.\n- If a search returns little, change it: expand_query for other phrasings, keyword_search for exact words.\n- For a \"why\" / reason / motive question, run keyword_search on the question's nouns (person, action, object) before rewriting it: the reason is usually stated beside those same nouns.\n- search_scenes searches summaries of six-passage windows. It is the fastest way to find a conversation, a decision or how something came about, because the summary names who was there and what they did even when the passages alone are ambiguous. Pass `people` when the question names two people. Each scene has a scene_id; when its four snippets do not contain the detail, call read_scene (or search_scenes with full=true) to read every member passage in order.\n- For a question about a detail at one moment (\"what did she say when she saw him in the kitchen\", \"what was she wearing when they met\"), call scene_moment: it writes the situation out and returns the scene that shows it, which is often the only place the detail appears. Read the scene list it returns too: the chosen scene can be the memory of the event while the dialogue is in another scene whose summary names it.\n- Before concluding that a detail is not in the books, search the words it would appear with in the passage: keyword_search for the distinctive nouns and verbs (\"loosened the gun\", \"kitchen bench\", a remembered phrase), not only the question's phrasing. A scene summary is not evidence; the passage is.\n- find_connections tells you what the cards say links two people: how they met, what one did for the other, documents or names between them. Use it for \"how did X know Y\" or \"what connects X and Y\" before concluding that the books do not say.\n- When a hit looks relevant, read_passage with its neighbours; a single line often means something different in context. A scene summary is a paraphrase, not evidence: answer in the words of the passage (the summary's \"pinned him to the floor\" may be \"nailed his feet to the floor\" in the passage).\n- When a question asks what someone was thinking or feeling, what the passage says they noticed, remembered, feared or decided is the answer even if it never uses the word \"thought\".\n- For an importance or significance question, give every distinct role the passages show for the thing (what it did, what it proved), not just one.\n- When the question asks for the name of a group, unit, place or person, give the exact name the passages use, not a description of it (\"the Section for Special Analysis\", not \"the Zalachenko unit\").\n- Keep the passages that actually support the answer.\n\nWhen you can answer, call submit_answer with:\n- answer: a concise answer (2-4 sentences) that uses only what the passages state. Answer the question directly: state the fact first, then at most one supporting sentence. If the question asks for a list, give the list, one line per item. Do not include notes, reasoning, book-metadata doubts or a transcript of your search in the answer.\n- passage_ids: the 8-character ids of the passages you relied on, most important first.\nCite each factual sentence with the ids in square brackets, exactly as the tools returned them, for example: Berger planned to switch on the sauna [95f8ea38].\nUse names exactly as the passages write them: if a passage says only \"G\u00f6ransson\" or \"Niedermann\", do not add a first name from memory.\nGive one answer, not alternative answers for different readings of the question. If the place has another name in the passages (a factory can be a brickworks), say so in the same answer and keep going with the event those passages describe.\nFor a broad question (a summary, a list, a \"top 10\", or why someone did something), do not abstain because the books never use the question's word: answer from the passages you found, naming the events or people. A short structured summary is a good answer. If the question asks why, give the reason the passages show even when no sentence says \"because\".\nIf the books do not contain the answer, call submit_answer saying so, with no ids.\n\nA passage that is only about the topic is not evidence: it must state the answer, and you should read its neighbours before deciding.\nBefore submit_answer, check the question's parts one by one (who, what, where, when, why, how many) and make sure a passage states each. If one part is missing, search for it instead of answering partially. Some questions assume an event that the books contradict (that someone is dead, that something was never found): check the premise and correct it.\nWhen the books first describe a death, a crime or a disappearance one way, look for the later passage that reveals what really happened (who was there, who did it); answer with the true account, and with the official one only as contrast. For a death or a crime, always ask who else was present and call true_account with that person: it searches for the other person doing the event (\"Harriet drowned her father\"), which is a different scene from the official account.\nA \"what happened at a place\" question is a sequence, not one find: cover arrival, discovery, confrontation and outcome. After the first hit, open the scene or search again with the person who was confronted there; do not stop at the first body or clue.\nQuestions of the form \"how did X know/learn about Y\", \"how did X and Y meet\" or \"what connects X and Y\" are answered by the event that first brought them together: a document one wrote about the other, a person who introduced them, a meeting. If the passages show X reading or receiving something Y wrote, or someone telling X about Y, that is the answer even if the words \"learned\" or \"knew\" never appear. State it plainly instead of saying the books do not say.\nYou have a limited number of tool calls (about 16). Do not repeat a search that returned the same passages. Prefer four to eight calls over one long one."
+              },
+              {
+                "role": "user",
+                "content": "Who wrote the report?"
+              }
+            ],
+            "model": null,
+            "metadata": {
+              "provider": "ollama",
+              "model": "qwen3.6:35b"
+            },
+            "prompt": null,
+            "level": "ERROR",
+            "status_message": "RuntimeError: synthetic provider unavailable"
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "provider-error"
+            }
+          }
+        },
+        {
+          "id": 11,
+          "name": "query agent model: tool selection and answer",
+          "parent_id": 10,
+          "start_ns": 921927,
+          "end_ns": 1297781,
+          "fields": {
+            "as_type": "generation",
+            "input": "[{\"role\": \"system\", \"content\": \"You answer questions about Stieg Larsson's Millennium trilogy using a search index of the three books: The Girl with the Dragon Tattoo, The Girl Who Played with Fire and The Girl Who Kicked the Hornet's Nest.\\n\\nWork in small steps and use the tools. Do not answer from memory or outside knowledge: every claim must come from passages you retrieved.\\n- Start with a search. Search results flag names the books do not use (\\\"name_hints\\\"); follow those spellings. If find_names gives a likely person, the question is about that person: do not answer that the character does not exist.\\n- Before answering, make sure the passage you rely on states the answer, not just the topic.\\n- If a search returns little, change it: expand_query for other phrasings, keyword_search for exact words.\\n- For a \\\"why\\\" / reason / motive question, run keyword_search on the question's nouns (person, action, object) before rewriting it: the reason is usually stated beside those same nouns.\\n- search_scenes searches summaries of six-passage windows. It is the fastest way to find a conversation, a decision or how something came about, because the summary names who was there and what they did even when the passages alone are ambiguous. Pass `people` when the question names two people. Each scene has a scene_id; when its four snippets do not contain the detail, call read_scene (or search_scenes with full=true) to read every member passage in order.\\n- For a question about a detail at one moment (\\\"what did she say when she saw him in the kitchen\\\", \\\"what was she wearing when they met\\\"), call scene_moment: it writes the situation out and returns the scene that shows it, which is often the only place the detail appears. Read the scene list it returns too: the chosen scene can be the memory of the event while the dialogue is in another scene whose summary names it.\\n- Before concluding that a detail is not in the books, search the words it would appear with in the passage: keyword_search for the distinctive nouns and verbs (\\\"loosened the gun\\\", \\\"kitchen bench\\\", a remembered phrase), not only the question's phrasing. A scene summary is not evidence; the passage is.\\n- find_connections tells you what the cards say links two people: how they met, what one did for the other, documents or names between them. Use it for \\\"how did X know Y\\\" or \\\"what connects X and Y\\\" before concluding that the books do not say.\\n- When a hit looks relevant, read_passage with its neighbours; a single line often means something different in context. A scene summary is a paraphrase, not evidence: answer in the words of the passage (the summary's \\\"pinned him to the floor\\\" may be \\\"nailed his feet to the floor\\\" in the passage).\\n- When a question asks what someone was thinking or feeling, what the passage says they noticed, remembered, feared or decided is the answer even if it never uses the word \\\"thought\\\".\\n- For an importance or significance question, give every distinct role the passages show for the thing (what it did, what it proved), not just one.\\n- When the question asks for the name of a group, unit, place or person, give the exact name the passages use, not a description of it (\\\"the Section for Special Analysis\\\", not \\\"the Zalachenko unit\\\").\\n- Keep the passages that actually support the answer.\\n\\nWhen you can answer, call submit_answer with:\\n- answer: a concise answer (2-4 sentences) that uses only what the passages state. Answer the question directly: state the fact first, then at most one supporting sentence. If the question asks for a list, give the list, one line per item. Do not include notes, reasoning, book-metadata doubts or a transcript of your search in the answer.\\n- passage_ids: the 8-character ids of the passages you relied on, most important first.\\nCite each factual sentence with the ids in square brackets, exactly as the tools returned them, for example: Berger planned to switch on the sauna [95f8ea38].\\nUse names exactly as the passages write them: if a passage says only \\\"G\u00f6ransson\\\" or \\\"Niedermann\\\", do not add a first name from memory.\\nGive one answer, not alternative answers for different readings of the question. If the place has another name in the passages (a factory can be a brickworks), say so in the same answer and keep going with the event those passages describe.\\nFor a broad question (a summary, a list, a \\\"top 10\\\", or why someone did something), do not abstain because the books never use the question's word: answer from the passages you found, naming the events or people. A short structured summary is a good answer. If the question asks why, give the reason the passages show even when no sentence says \\\"because\\\".\\nIf the books do not contain the answer, call submit_answer saying so, with no ids.\\n\\nA passage that is only about the topic is not evidence: it must state the answer, and you should read its neighbours before deciding.\\nBefore submit_answer, check the question's parts one by one (who, what, where, when, why, how many) and make sure a passage states each. If one part is missing, search for it instead of answering partially. Some questions assume an event that the books contradict (that someone is dead, that something was never found): check the premise and correct it.\\nWhen the books first describe a death, a crime or a disappearance one way, look for the later passage that reveals what really happened (who was there, who did it); answer with the true account, and with the official one only as contrast. For a death or a crime, always ask who else was present and call true_account with that person: it searches for the other person doing the event (\\\"Harriet drowned her father\\\"), which is a different scene from the official account.\\nA \\\"what happened at a place\\\" question is a sequence, not one find: cover arrival, discovery, confrontation and outcome. After the first hit, open the scene or search again with the person who was confronted there; do not stop at the first body or clue.\\nQuestions of the form \\\"how did X know/learn about Y\\\", \\\"how did X and Y meet\\\" or \\\"what connects X and Y\\\" are answered by the event that first brought them together: a document one wrote about the other, a person who introduced them, a meeting. If the passages show X reading or receiving something Y wrote, or someone telling X about Y, that is the answer even if the words \\\"learned\\\" or \\\"knew\\\" never appear. State it plainly instead of saying the books do not say.\\nYou have a limited number of tool calls (about 16). Do not repeat a search that returned the same passages. Prefer four to eight calls over one long one.\"}, {\"role\": \"user\", \"content\": \"Who wrote the report?\"}]",
+            "model": "qwen3.6:35b",
+            "metadata": {
+              "provider": "ollama",
+              "purpose": "tool selection and answer",
+              "reasoning_effort": "none",
+              "endpoint": "ollama",
+              "request_endpoint": "ollama",
+              "request_measurement_format": "canonical JSON; sorted compact keys; ensure_ascii=False",
+              "request_sha256": "57a41f6c895ca3fd68972052dea0983aeeb257fb88fda794523af8b72b93f645",
+              "request_characters": 13311,
+              "message_characters": 6722,
+              "tool_schema_characters": 6776,
+              "message_count": 2,
+              "compacted_tool_messages": 0,
+              "estimated_request_tokens": 3327.75,
+              "token_estimate_method": "serialized request characters / 4; not tokenizer or provider chat-template tokens",
+              "requested_output_tokens": 1600,
+              "configured_local_context_tokens": 16384
+            },
+            "prompt": null,
+            "level": "ERROR",
+            "status_message": "RuntimeError: synthetic provider unavailable"
+          },
+          "trace_attributes": {
+            "session_id": "synthetic-question",
+            "metadata": {
+              "execution_id": "synthetic-step6",
+              "dataset_item_id": "provider-error"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "telemetry-entry-outage",
+      "telemetry_fault": "enter",
+      "error": null,
+      "mock_provider_calls": 2,
+      "result": {
+        "answer": "Ada wrote it [E1].",
+        "stopped": "content",
+        "turns": 1,
+        "tool_calls": 0,
+        "usage": {
+          "provider": "ollama",
+          "model": "qwen3.6:35b",
+          "reasoning_effort": "none",
+          "calls": 2,
+          "prompt_tokens": 80,
+          "completion_tokens": 10,
+          "total_tokens": 90,
+          "cached_prompt_tokens": 0,
+          "reasoning_tokens": 0,
+          "estimated_cost_usd": 0.0,
+          "call_details": [
+            {
+              "purpose": "tool selection and answer",
+              "provider": "ollama",
+              "model": "qwen3.6:35b",
+              "prompt_tokens": 40,
+              "completion_tokens": 5,
+              "total_tokens": 45,
+              "cached_prompt_tokens": 0,
+              "reasoning_tokens": 0,
+              "reasoning_effort": "none",
+              "endpoint": "ollama",
+              "estimated_cost_usd": null
+            },
+            {
+              "purpose": "submission verification",
+              "provider": "ollama",
+              "model": "qwen3.6:35b",
+              "prompt_tokens": 40,
+              "completion_tokens": 5,
+              "total_tokens": 45,
+              "cached_prompt_tokens": 0,
+              "reasoning_tokens": 0,
+              "reasoning_effort": "none",
+              "endpoint": "ollama",
+              "estimated_cost_usd": null
+            }
+          ]
+        }
+      },
+      "observations": []
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+ Container millenium-app-run-7d4e0627d4a5 Creating
+ Container millenium-app-run-7d4e0627d4a5 Created
+test_answering_dispatch_streams_same_result_contract_without_registering_candidate (test_graph_integration.GraphIntegration.test_answering_dispatch_streams_same_result_contract_without_registering_candidate) ... ok
+test_cache_identities_include_graph_source_and_instruction_identity (test_graph_integration.GraphIntegration.test_cache_identities_include_graph_source_and_instruction_identity) ... ok
+test_experiment_item_runs_graph_and_persists_candidate_provenance (test_graph_integration.GraphIntegration.test_experiment_item_runs_graph_and_persists_candidate_provenance) ... ok
+test_graph_reads_intermediate_cache_in_invocation_context (test_graph_integration.GraphIntegration.test_graph_reads_intermediate_cache_in_invocation_context) ... ok
+test_http_ask_and_stream_output_run_actual_graph (test_graph_integration.GraphIntegration.test_http_ask_and_stream_output_run_actual_graph) ... ok
+test_interactive_answer_cache_hit_skips_graph_and_preserves_new_trace (test_graph_integration.GraphIntegration.test_interactive_answer_cache_hit_skips_graph_and_preserves_new_trace) ... ok
+test_no_graph_can_masquerade_as_v2_16_or_legacy_execution (test_graph_integration.GraphIntegration.test_no_graph_can_masquerade_as_v2_16_or_legacy_execution) ... ok
+test_streaming_graph_observations_keep_trace_context_across_worker_thread (test_graph_integration.GraphIntegration.test_streaming_graph_observations_keep_trace_context_across_worker_thread) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.430s
+
+OK

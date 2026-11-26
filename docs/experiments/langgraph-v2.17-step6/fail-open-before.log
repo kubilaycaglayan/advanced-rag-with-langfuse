@@ -1,0 +1,99 @@
+ Container millenium-app-run-f67158f11498 Creating
+ Container millenium-app-run-f67158f11498 Created
+test_context_entry_failure_still_executes_body_once (test_observability_fail_open.FailOpenTelemetry.test_context_entry_failure_still_executes_body_once) ...
+  test_context_entry_failure_still_executes_body_once (test_observability_fail_open.FailOpenTelemetry.test_context_entry_failure_still_executes_body_once) (kind='observation') ... ERROR
+  test_context_entry_failure_still_executes_body_once (test_observability_fail_open.FailOpenTelemetry.test_context_entry_failure_still_executes_body_once) (kind='scope') ... ERROR
+test_context_exit_failure_preserves_successful_result (test_observability_fail_open.FailOpenTelemetry.test_context_exit_failure_preserves_successful_result) ... ok
+test_disabled_scope_preserves_provider_error (test_observability_fail_open.FailOpenTelemetry.test_disabled_scope_preserves_provider_error) ... FAIL
+test_provider_failure_is_never_replaced_or_suppressed_by_telemetry (test_observability_fail_open.FailOpenTelemetry.test_provider_failure_is_never_replaced_or_suppressed_by_telemetry) ...
+  test_provider_failure_is_never_replaced_or_suppressed_by_telemetry (test_observability_fail_open.FailOpenTelemetry.test_provider_failure_is_never_replaced_or_suppressed_by_telemetry) (kind='observation', phase='enter') ... FAIL
+  test_provider_failure_is_never_replaced_or_suppressed_by_telemetry (test_observability_fail_open.FailOpenTelemetry.test_provider_failure_is_never_replaced_or_suppressed_by_telemetry) (kind='observation', phase='exit') ... FAIL
+  test_provider_failure_is_never_replaced_or_suppressed_by_telemetry (test_observability_fail_open.FailOpenTelemetry.test_provider_failure_is_never_replaced_or_suppressed_by_telemetry) (kind='observation', phase='suppress') ... FAIL
+  test_provider_failure_is_never_replaced_or_suppressed_by_telemetry (test_observability_fail_open.FailOpenTelemetry.test_provider_failure_is_never_replaced_or_suppressed_by_telemetry) (kind='scope', phase='enter') ... FAIL
+  test_provider_failure_is_never_replaced_or_suppressed_by_telemetry (test_observability_fail_open.FailOpenTelemetry.test_provider_failure_is_never_replaced_or_suppressed_by_telemetry) (kind='scope', phase='exit') ... FAIL
+  test_provider_failure_is_never_replaced_or_suppressed_by_telemetry (test_observability_fail_open.FailOpenTelemetry.test_provider_failure_is_never_replaced_or_suppressed_by_telemetry) (kind='scope', phase='suppress') ... FAIL
+
+======================================================================
+ERROR: test_context_entry_failure_still_executes_body_once (test_observability_fail_open.FailOpenTelemetry.test_context_entry_failure_still_executes_body_once) (kind='observation')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/tests/test_observability_fail_open.py", line 38, in test_context_entry_failure_still_executes_body_once
+    with owner, context:
+                ^^^^^^^
+  File "/usr/local/lib/python3.12/contextlib.py", line 139, in __enter__
+    raise RuntimeError("generator didn't yield") from None
+RuntimeError: generator didn't yield
+
+======================================================================
+ERROR: test_context_entry_failure_still_executes_body_once (test_observability_fail_open.FailOpenTelemetry.test_context_entry_failure_still_executes_body_once) (kind='scope')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/tests/test_observability_fail_open.py", line 38, in test_context_entry_failure_still_executes_body_once
+    with owner, context:
+                ^^^^^^^
+  File "/usr/local/lib/python3.12/contextlib.py", line 139, in __enter__
+    raise RuntimeError("generator didn't yield") from None
+RuntimeError: generator didn't yield
+
+======================================================================
+FAIL: test_disabled_scope_preserves_provider_error (test_observability_fail_open.FailOpenTelemetry.test_disabled_scope_preserves_provider_error)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/tests/test_observability_fail_open.py", line 60, in test_disabled_scope_preserves_provider_error
+    self.assertIs(caught.exception, failure)
+AssertionError: RuntimeError("generator didn't stop after throw()") is not RuntimeError('provider unavailable')
+
+======================================================================
+FAIL: test_provider_failure_is_never_replaced_or_suppressed_by_telemetry (test_observability_fail_open.FailOpenTelemetry.test_provider_failure_is_never_replaced_or_suppressed_by_telemetry) (kind='observation', phase='enter')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/tests/test_observability_fail_open.py", line 52, in test_provider_failure_is_never_replaced_or_suppressed_by_telemetry
+    self.assertIs(caught.exception, failure)
+AssertionError: RuntimeError("generator didn't yield") is not RuntimeError('provider unavailable')
+
+======================================================================
+FAIL: test_provider_failure_is_never_replaced_or_suppressed_by_telemetry (test_observability_fail_open.FailOpenTelemetry.test_provider_failure_is_never_replaced_or_suppressed_by_telemetry) (kind='observation', phase='exit')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/tests/test_observability_fail_open.py", line 52, in test_provider_failure_is_never_replaced_or_suppressed_by_telemetry
+    self.assertIs(caught.exception, failure)
+AssertionError: RuntimeError('telemetry exit failed') is not RuntimeError('provider unavailable')
+
+======================================================================
+FAIL: test_provider_failure_is_never_replaced_or_suppressed_by_telemetry (test_observability_fail_open.FailOpenTelemetry.test_provider_failure_is_never_replaced_or_suppressed_by_telemetry) (kind='observation', phase='suppress')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/tests/test_observability_fail_open.py", line 49, in test_provider_failure_is_never_replaced_or_suppressed_by_telemetry
+    with self.assertRaises(RuntimeError) as caught:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: RuntimeError not raised
+
+======================================================================
+FAIL: test_provider_failure_is_never_replaced_or_suppressed_by_telemetry (test_observability_fail_open.FailOpenTelemetry.test_provider_failure_is_never_replaced_or_suppressed_by_telemetry) (kind='scope', phase='enter')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/tests/test_observability_fail_open.py", line 52, in test_provider_failure_is_never_replaced_or_suppressed_by_telemetry
+    self.assertIs(caught.exception, failure)
+AssertionError: RuntimeError("generator didn't yield") is not RuntimeError('provider unavailable')
+
+======================================================================
+FAIL: test_provider_failure_is_never_replaced_or_suppressed_by_telemetry (test_observability_fail_open.FailOpenTelemetry.test_provider_failure_is_never_replaced_or_suppressed_by_telemetry) (kind='scope', phase='exit')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/tests/test_observability_fail_open.py", line 52, in test_provider_failure_is_never_replaced_or_suppressed_by_telemetry
+    self.assertIs(caught.exception, failure)
+AssertionError: RuntimeError('telemetry exit failed') is not RuntimeError('provider unavailable')
+
+======================================================================
+FAIL: test_provider_failure_is_never_replaced_or_suppressed_by_telemetry (test_observability_fail_open.FailOpenTelemetry.test_provider_failure_is_never_replaced_or_suppressed_by_telemetry) (kind='scope', phase='suppress')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/tests/test_observability_fail_open.py", line 49, in test_provider_failure_is_never_replaced_or_suppressed_by_telemetry
+    with self.assertRaises(RuntimeError) as caught:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: RuntimeError not raised
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.297s
+
+FAILED (failures=7, errors=2)
