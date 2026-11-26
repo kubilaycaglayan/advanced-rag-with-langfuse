@@ -4,7 +4,8 @@
   "selected_attempts": {
     "openai-q01": "openai-q01-a1",
     "openai-q02": "openai-q02-a1",
-    "openai-q03": "openai-q03-a1"
+    "openai-q03": "openai-q03-a1",
+    "openai-q04": "openai-q04-a1"
   },
   "selection_note": "All Q2 attempts tie on correctness; earliest retained with its own latency. Developer resolved the Q2 gate as evaluator variance.",
   "attempts": [
@@ -37,7 +38,7 @@
       "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027"
     }
   ],
-  "remaining_question_provider_pairs": 17,
+  "remaining_question_provider_pairs": 16,
   "live_default_changed": false,
   "step9_started": false,
   "gate_decisions": {

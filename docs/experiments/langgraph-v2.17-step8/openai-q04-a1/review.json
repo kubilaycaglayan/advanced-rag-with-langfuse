@@ -1,0 +1,98 @@
+{
+  "label": "openai-q04-a1",
+  "status": "completed",
+  "score": 1.0,
+  "baseline_score": 0.5,
+  "latency": 51.15,
+  "baseline_latency": 55.92,
+  "answer": "The novels don\u2019t provide an official ranking, but a reasonable top 10 based on the passages here is:\n\n1. Lisbeth Salander [E1]\n2. Mikael Blomkvist [E1]\n3. Henrik Vanger [E2]\n4. Harriet Vanger [E3]\n5. Martin Vanger [E4]\n6. Erika Berger [E5]\n7. Dragan Armansky [E5]\n8. Bublanski [E5]\n9. Zalachenko [E6]\n10. Evert Gullberg [E7]",
+  "evaluations": [
+    {
+      "comment": "The answer provides a list of ten characters who are genuinely central to the story, matching the required fact.",
+      "config_id": null,
+      "data_type": null,
+      "metadata": {
+        "evaluator_id": "65c50df46ddd9801bbb52f060af656ba8b48e869f84cf8be2d7d8c33433e368c",
+        "evaluator_latency_seconds": 6.3678,
+        "evaluator_model": "qwen3:8b",
+        "evaluator_version": 2,
+        "fact_verdicts": {
+          "R1": "present"
+        },
+        "managed_evaluator_id": "cmvf5zbot0007mj7ti62igkpt"
+      },
+      "name": "answer_correctness_v2",
+      "value": 1.0
+    },
+    {
+      "comment": "Each of the top 10 characters listed in the answer is supported by a specific citation from the labeled evidence. The citations provide context or mention the characters, which supports the claim that they are considered important in the novels. There is no unsupported claim, and all factual claims are appropriately supported by the cited evidence.",
+      "config_id": null,
+      "data_type": null,
+      "metadata": {
+        "evaluator_id": "65c50df46ddd9801bbb52f060af656ba8b48e869f84cf8be2d7d8c33433e368c",
+        "evaluator_latency_seconds": 3.6149,
+        "evaluator_model": "qwen3:8b",
+        "evaluator_version": 3,
+        "managed_evaluator_id": "cmv81kasl000dpa7t19ma0e3o"
+      },
+      "name": "citation_support_v1",
+      "value": 1.0
+    }
+  ],
+  "stop": "budget",
+  "tool_errors": [],
+  "telemetry_errors": [],
+  "trace_checks": [],
+  "trace_warnings": [],
+  "nodes": [
+    "graph node: prepare",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: select",
+    "graph node: decide",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: select",
+    "graph node: decide",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: select",
+    "graph node: decide",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: budget",
+    "graph node: final"
+  ],
+  "prompt_usage": [
+    10827,
+    11836,
+    9989,
+    11987,
+    11226,
+    9938,
+    8642,
+    7290,
+    6602,
+    4002,
+    3273
+  ],
+  "source": null,
+  "manual_review": "Correctness and citation support 1.0. Ten tool-selection turns reached application budget; live graph routes decide to budget drafting then exactly one finalization, with no tool or trace errors. No regression."
+}
