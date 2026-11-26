@@ -1,0 +1,106 @@
+{
+  "label": "ollama-q02-a1",
+  "status": "completed",
+  "score": 1.0,
+  "baseline_score": 1.0,
+  "latency": 59.88,
+  "baseline_latency": 34.3,
+  "answer": "Harriet Vanger was not killed; she disappeared on September 24, 1966, and was presumed dead until it was revealed years later that she had escaped her uncle Gottfried Vanger's captivity and was alive [E1]. The official account stated that Harriet vanished from Hedeby Island after being last seen by Pastor Otto Falk, with the bridge blocked by an accident preventing anyone from leaving or entering [E2]. It was later discovered that Gottfried Vanger had raped Harriet and held her captive in his cabin on the island before he drowned in 1965, allowing her to escape [E3]. Martin Vanger did not kill Harriet but murdered other women with similar appearances to frame their nephew Henrik for the crimes [E4].",
+  "evaluations": [
+    {
+      "comment": "The answer confirms that Harriet Vanger was not killed and that she escaped her uncle's captivity, aligning with the required fact and supporting details.",
+      "config_id": null,
+      "data_type": null,
+      "metadata": {
+        "evaluator_id": "65c50df46ddd9801bbb52f060af656ba8b48e869f84cf8be2d7d8c33433e368c",
+        "evaluator_latency_seconds": 6.2255,
+        "evaluator_model": "qwen3:8b",
+        "evaluator_version": 2,
+        "fact_verdicts": {
+          "D1": "present",
+          "D2": "present",
+          "R1": "present"
+        },
+        "managed_evaluator_id": "cmvf5zbot0007mj7ti62igkpt"
+      },
+      "name": "answer_correctness_v2",
+      "value": 1.0
+    },
+    {
+      "comment": "The answer makes several factual claims, but the cited evidence does not fully support them. For instance, the claim that Harriet 'disappeared on September 24, 1966' is not directly supported by the evidence provided (E1-E4). The evidence in E2 supports that Harriet was last seen by Pastor Otto Falk, but it does not specify the exact date. The claim that Gottfried Vanger 'raped Harriet and held her captive' is partially supported by E3, which mentions Harriet discovering Gottfried's crimes, but it does not explicitly state that he raped her. The claim that Martin Vanger 'murdered other women with similar appearances' is not supported by any of the evidence. Therefore, the answer has mixed support and incomplete coverage.",
+      "config_id": null,
+      "data_type": null,
+      "metadata": {
+        "evaluator_id": "65c50df46ddd9801bbb52f060af656ba8b48e869f84cf8be2d7d8c33433e368c",
+        "evaluator_latency_seconds": 5.7447,
+        "evaluator_model": "qwen3:8b",
+        "evaluator_version": 3,
+        "managed_evaluator_id": "cmv81kasl000dpa7t19ma0e3o"
+      },
+      "name": "citation_support_v1",
+      "value": 0.5
+    }
+  ],
+  "stop": "budget",
+  "tool_errors": [],
+  "telemetry_errors": [],
+  "trace_checks": [],
+  "trace_warnings": [
+    [
+      "submission verification",
+      ""
+    ]
+  ],
+  "nodes": [
+    "graph node: prepare",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: review",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: review",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: review",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: budget",
+    "graph node: final"
+  ],
+  "prompt_usage": [
+    8454,
+    8881,
+    4436,
+    10450,
+    9872,
+    9240,
+    8463,
+    7876,
+    7120,
+    6933,
+    4856,
+    4651
+  ],
+  "source": null,
+  "manual_review": "Correct core false-premise correction but substantive unsupported additions: Gottfried called uncle despite E4 father; invented captivity/escape timing and plan to frame Henrik. Citation support0.5; judge correctness1.0 is insufficient. Not selected; diagnostic retry required. Trace execution itself clean."
+}
