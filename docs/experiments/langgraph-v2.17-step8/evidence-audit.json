@@ -1,6 +1,14 @@
 {
   "scope": "Retained attempts only; not full Step 8 completion or Step 9 acceptance",
   "checks": "single-item/cache/source/identity/reviewed-tool-errors/trace-parent-timing/single-finalization",
+  "final_source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df",
+  "archived_failed_attempts": [
+    {
+      "label": "openai-q10-a1",
+      "status": "partial",
+      "reason": "Failed preparation due to obsolete seventh scene_moment argument; retry on final code."
+    }
+  ],
   "attempts": [
     {
       "label": "openai-q01-a1",
@@ -19,7 +27,9 @@
         "results.json": "579dcd0fc795b26eba3a859063988218d349a7336647674715706f70706dc9b6",
         "trace.json": "e49af6c11757fa99fda44d504bf31da0dd19c539ec95eb3affe8db61b3b8fea6",
         "review.json": "7914322d19eef6c51d3c5b4defc66018f1f932c0f0898349ef85105c6dd836aa"
-      }
+      },
+      "final_code_compatibility": "only unused moment helper call changed",
+      "effective_correctness": 0.95
     },
     {
       "label": "openai-q02-a1",
@@ -38,7 +48,9 @@
         "results.json": "fe287e2bd04c59a66ee536b5df9d40c1fe69ed79eb27fb3c7031bf4df06992e0",
         "trace.json": "44bbe7f70499c07b75edbbbd9bc2db713265085f6fa030632f45735114a102d5",
         "review.json": "447eef7d4eab57347099fd690a8263f8a6b978f30e8df3af227527db98e533da"
-      }
+      },
+      "final_code_compatibility": "only unused moment helper call changed",
+      "effective_correctness": 0.95
     },
     {
       "label": "openai-q02-a2",
@@ -57,7 +69,9 @@
         "results.json": "633755785c5d82be018a77caeec449841366082d1f262ea3f45b2a6f73167686",
         "trace.json": "37b4f568f070d168911aa614aadc413f73b4fda74722350dc62ad62013e4ee3e",
         "review.json": "fab93f427278d534bcc3f1ad9ab9dc2c968e189186f4a2602bc193b144f9cfef"
-      }
+      },
+      "final_code_compatibility": "only unused moment helper call changed",
+      "effective_correctness": 0.95
     },
     {
       "label": "openai-q02-a3",
@@ -76,7 +90,9 @@
         "results.json": "3ec297c380bd2d68ac8fec3f777a4ca374bb21aa1be28039adc724ff7a3a7594",
         "trace.json": "422308c13be233271c5f5cb45730de0fe86d3410f185674a744a543f6db857aa",
         "review.json": "f22c4d90270a48f9d05598720ce76160765d6001bc272d09af94334798758aff"
-      }
+      },
+      "final_code_compatibility": "only unused moment helper call changed",
+      "effective_correctness": 0.95
     },
     {
       "label": "openai-q03-a1",
@@ -108,7 +124,9 @@
         "results.json": "976ec04d6d81bd18ab29fa5525ea653e5c7c0562d4c3c5dfc6d6d40934d6464e",
         "trace.json": "79be0e627d0b5d00e0cdd5f2402be0d0c024bb5f3413f3d99863a1e214d90ef9",
         "review.json": "d0a9cd56410249fe01e1b1a2da49a19dbffdbce9ef4809f788d6ee618646d8a3"
-      }
+      },
+      "final_code_compatibility": "only unused moment helper call changed",
+      "effective_correctness": 0.9167
     },
     {
       "label": "openai-q04-a1",
@@ -127,7 +145,9 @@
         "results.json": "134662f507050b3d462327c51cb8a6ca68cbe900c8543b713ab3d8574500b66b",
         "trace.json": "d0428ebd5d859d8b3a7744a402ef1cabc24d574cd8b643091f8b7abfd250f72a",
         "review.json": "a44d4525f8d7272dcd0952bda5e5465eeb745c48728b4755457910d8440a99bc"
-      }
+      },
+      "final_code_compatibility": "only unused moment helper call changed",
+      "effective_correctness": 1.0
     },
     {
       "label": "openai-q05-a1",
@@ -146,7 +166,9 @@
         "results.json": "0642cab5956184be2179f407cf21a30b65a98bbccc6d4acfadd9a2b741fbdd50",
         "trace.json": "cf591c1065d8a1a0b757947742c154356f95e1433c2a76c7b4ce26a3872de044",
         "review.json": "9d318ae4a6d905ac1578933ff88db5b6f8169c40e5f554d6d9f51dda8ce5b628"
-      }
+      },
+      "final_code_compatibility": "only unused moment helper call changed",
+      "effective_correctness": 0.95
     },
     {
       "label": "openai-q06-a1",
@@ -165,7 +187,9 @@
         "results.json": "9595356bfc7c92a88599be241036648eeed248addfaa3839c06b8aff1deb24f0",
         "trace.json": "c5ff4f6dd66fa7c31384ae0409a81a77defbd46210b7abe88ac8208a6e8959ff",
         "review.json": "1472edf567d86df3097ab71cc82ead84620663b808ad804c184bea7378941c63"
-      }
+      },
+      "final_code_compatibility": "only unused moment helper call changed",
+      "effective_correctness": 0.6
     },
     {
       "label": "openai-q06-a2",
@@ -184,7 +208,9 @@
         "results.json": "2e114628d4d3f4a68b011e32bfc22d28a01d1a10ee3ad45789565fb34df25ab3",
         "trace.json": "d6a7981bb7170c30ef1490bd309a24ec7cdf56822c079391c357da9faa609f97",
         "review.json": "49c9c58b1c0e1240075bfd16db653ef28d4c82e27c7dee8faa7b10356d4c12ad"
-      }
+      },
+      "final_code_compatibility": "only unused moment helper call changed",
+      "effective_correctness": 0.45
     },
     {
       "label": "openai-q06-a3",
@@ -203,7 +229,9 @@
         "results.json": "aca71aeba2af7f4b0ead0c5b045d9a3f7f77375633abc0d84c15925dae9be942",
         "trace.json": "928408db49e66e161b221916caaf5e8e068324b0db7c90cf9b4e2645133c0328",
         "review.json": "fc8c04ab11dce779042283e05a998c59a647418dc41bde9ec486706c30d337b1"
-      }
+      },
+      "final_code_compatibility": "only unused moment helper call changed",
+      "effective_correctness": 0.3333
     },
     {
       "label": "openai-q07-a1",
@@ -236,7 +264,9 @@
         "results.json": "d6f4193ca0ab289d4e25a2e6950c07f0fcf37bc535997482fdcf1732ab6b2d38",
         "trace.json": "54e91463affaae9bccc77647b5a41d2ece8bf91a9cb3e96f057057c035fdd28d",
         "review.json": "ffe00abd1ae58746ba2548fd1410bb4585ff8c67bd7c1ae8f57a239c2f91a32c"
-      }
+      },
+      "final_code_compatibility": "only unused moment helper call changed",
+      "effective_correctness": 1.0
     },
     {
       "label": "openai-q08-a1",
@@ -268,7 +298,9 @@
         "results.json": "b27fb22cf0fa7dafae2f2b3b6f455fcb9db226f7efec8053dd73270015178233",
         "trace.json": "6b753fbd3f505b6d92d3c645c56971b1be0b2811f571f7bcc80890eed788dc2d",
         "review.json": "99045c0cc09cafe177b73b82866967cff250968c724c8ec0832b91430a692950"
-      }
+      },
+      "final_code_compatibility": "only unused moment helper call changed",
+      "effective_correctness": 0.55
     },
     {
       "label": "openai-q08-a2",
@@ -309,7 +341,9 @@
         "results.json": "ae93c000cbfc8bd78790dae6205551445bd4c1456c5693796b17af188b50bbf6",
         "trace.json": "5611e71f61a70b75e0c0594d5fe27c45cb10306cfc944e02f3a8e398a12ed56d",
         "review.json": "62ef081ad9d59ac42d9fbd0fe5bc0132d8f36f0703988ff8a865b3b6d2234a4f"
-      }
+      },
+      "final_code_compatibility": "only unused moment helper call changed",
+      "effective_correctness": 0.9
     },
     {
       "label": "openai-q08-a3",
@@ -328,7 +362,9 @@
         "results.json": "b153fb1b63931bdc45ea546258d9a99e1c42fd5480f6b7359d53736ebed7c031",
         "trace.json": "aac6186e911464c28be32c0ffef4c68f7f852b9e7ae339860f746aef8e0f005b",
         "review.json": "17153ad45055ac07ec6fbde2a54045a0b03d552f2f25ffd76d2d7b1ae968c0b1"
-      }
+      },
+      "final_code_compatibility": "only unused moment helper call changed",
+      "effective_correctness": 1.0
     },
     {
       "label": "openai-q09-a1",
@@ -347,7 +383,9 @@
         "results.json": "def8aa645a842da9c1ce24cffde45f037800efad824298ab31aa82da8dbdb080",
         "trace.json": "7dbe68d6b0b90bca444ae285a01f4efdabd6079aeae005d41caab359164b4a19",
         "review.json": "c8877a6f038ccdcbc56376dd5ef079c12d1bdb752e537cd3fc45165924015aab"
-      }
+      },
+      "final_code_compatibility": "only unused moment helper call changed",
+      "effective_correctness": 1.0
     },
     {
       "label": "openai-q09-a2",
@@ -366,7 +404,9 @@
         "results.json": "5a0d102b362e262b7091868096a4b3b64b2dc877f263f0c6574da803fecb8cc7",
         "trace.json": "8cf4da04ddf3b0538da73d5237672e1630b61b6ef5857fe9cc75f867f55091ce",
         "review.json": "01745c43481fbb0032fa10a2151d5c15245a708ed8553bbfe468cfb11126def9"
-      }
+      },
+      "final_code_compatibility": "only unused moment helper call changed",
+      "effective_correctness": 0.5
     },
     {
       "label": "openai-q09-a3",
@@ -385,7 +425,30 @@
         "results.json": "a8eeb7196def84927f15c13856d565766de001b84cfa97ff57accdc55f6e3026",
         "trace.json": "1c2357730f3317b4035a217fae4ec60ce07ac8e7f152b99949bc9be1c0c2bf04",
         "review.json": "505f1b8902355040c05305bf30ae4968977a45709181d96997ae7c51edee8d2a"
-      }
+      },
+      "final_code_compatibility": "only unused moment helper call changed",
+      "effective_correctness": 1.0
+    },
+    {
+      "label": "openai-q10-a2",
+      "execution_id": "ef3471b0-0c69-4f03-85b6-9edaaf798b5f",
+      "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df",
+      "managed_evaluators_equal_to_baseline": true,
+      "reviewed_tool_errors": [],
+      "manual_review": "Signature fix verified live: moment preparation completes; exact speech quotation, correctness/citation support 1.0, no tool/trace errors. Select attempt2 at 17.72 seconds; failed attempt1 retained as superseded.",
+      "score": 1.0,
+      "baseline_score": 1.0,
+      "latency_seconds": 17.72,
+      "baseline_latency_seconds": 14.86,
+      "artifact_sha256": {
+        "request.json": "e0b1253e1c21516fc6f498987947bfdc866147a1fbb69a491a7c71693dcad0e7",
+        "manifest.json": "7b20f2ef542e60dc4ff68ae82b325c714b1fb7099b0edb6195b3c88a5d4be153",
+        "results.json": "0288a36866c0141ef13f418f39d5a05f025cf301089287d8e11d4a250f3715d7",
+        "trace.json": "29009f25902cba001906880c882099ea50eebeac1623f6cb95f76f22e04fba03",
+        "review.json": "cf3d230fba543b44a0db8ec9faa9456504de817cb8f2ddbe0ade7ed844254172"
+      },
+      "final_code_compatibility": "exact source",
+      "effective_correctness": 1.0
     }
   ]
 }

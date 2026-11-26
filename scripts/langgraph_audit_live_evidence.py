@@ -7,13 +7,22 @@ root = Path(__file__).resolve().parents[1]
 folder = root / 'docs/experiments/langgraph-v2.17-step8'
 fixed = json.loads((root / 'docs/experiments/langgraph-v2.17-step1/comparison-manifest.json').read_text())
 questions = {q['item_id']: q for q in fixed['questions']}
+progress = json.loads((folder/'progress.json').read_text())
+final_manifest = json.loads((folder/'openai-q10-a2/manifest.json').read_text())['pipeline']
+final_files = {r['path']:r['sha256'] for r in final_manifest['source_manifest']['files']}
 rows = []
+archived = []
 for directory in sorted(folder.glob('*-q??-a?')):
     result = json.loads((directory / 'results.json').read_text())
     manifest = json.loads((directory / 'manifest.json').read_text())
     request = json.loads((directory / 'request.json').read_text())
     trace = json.loads((directory / 'trace.json').read_text())
-    assert result['status'] == 'completed', directory
+    if result['status'] != 'completed':
+        assert directory.name in progress['superseded_attempts'], directory
+        assert directory.name not in progress['selected_attempts'].values()
+        archived.append({'label':directory.name,'status':result['status'],
+                         'reason':progress['superseded_attempts'][directory.name]})
+        continue
     assert result['dataset_item_count'] == result['completed_item_count'] == 1
     assert result['failed_item_count'] == result['evaluation_failure_count'] == result['telemetry_failure_count'] == 0
     item, = result['item_results']
@@ -47,7 +56,21 @@ for directory in sorted(folder.glob('*-q??-a?')):
         'latency_seconds': output['latency_seconds'], 'baseline_latency_seconds': baseline['latency_seconds'],
         'artifact_sha256': {name: hashlib.sha256((directory / name).read_bytes()).hexdigest()
             for name in ('request.json', 'manifest.json', 'results.json', 'trace.json', 'review.json')}})
-assert len({r['source_fingerprint'] for r in rows}) == 1
+    files = {r['path']:r['sha256'] for r in manifest['pipeline']['source_manifest']['files']}
+    changed = [k for k in files.keys() | final_files.keys() if files.get(k) != final_files.get(k)]
+    assert changed in ([], ['app/agent/tools/scenes.py']), (directory, changed)
+    if changed and directory.name in progress['selected_attempts'].values():
+        assert item['item_id'] != '45d561b9-ca5e-4c5d-83cb-04b610da13dc'
+        assert not any(t.get('tool') == 'scene_moment' for t in output['agent_trace'])
+    rows[-1]['final_code_compatibility'] = 'exact source' if not changed else 'only unused moment helper call changed'
+    override = progress.get('effective_correctness_overrides', {}).get(directory.name)
+    if override:
+        rescored = json.loads((folder/override['artifact']).read_text())
+        actual = next(r for r in rescored['attempts'] if r['label'] == directory.name)
+        assert actual['evaluation']['value'] == override['value']
+        assert actual['latency_seconds'] == output['latency_seconds']
+    rows[-1]['effective_correctness'] = override['value'] if override else item['correctness_score']
 print(json.dumps({'scope': 'Retained attempts only; not full Step 8 completion or Step 9 acceptance',
                   'checks': 'single-item/cache/source/identity/reviewed-tool-errors/trace-parent-timing/single-finalization',
-                  'attempts': rows}, indent=2))
+                  'final_source_fingerprint': final_manifest['source_fingerprint'],
+                  'archived_failed_attempts':archived, 'attempts': rows}, indent=2))

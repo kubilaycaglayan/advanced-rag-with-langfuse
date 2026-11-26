@@ -16,6 +16,13 @@
   "selection_note": "Select highest effective correctness after question-specific approved rescoring, preserving all original scores and using latency from that same generation attempt.",
   "attempts": [
     {
+      "label": "ollama-q01-a1",
+      "correctness": 0.9,
+      "latency_seconds": 40.4,
+      "execution_id": "620bcb69-1f9b-48ce-99d0-1dfd5d72b28b",
+      "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df"
+    },
+    {
       "label": "openai-q01-a1",
       "correctness": 0.95,
       "latency_seconds": 18.59,
