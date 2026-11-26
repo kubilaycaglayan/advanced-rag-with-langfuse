@@ -38,7 +38,7 @@ Route = Literal["prepare", "decide", "select", "tools", "review", "budget", "fin
 
 @dataclass
 class ExecutionState(AgentState):
-    """Explicit in-memory orchestration state for the unregistered v2.17 path.
+    """Explicit in-memory orchestration state for the explicitly selected v2.17 path.
 
     This is not a durable checkpoint schema. Existing ordered evidence remains in
     the inherited state; the process-local start clock retains its current policy.

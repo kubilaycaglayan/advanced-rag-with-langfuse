@@ -182,10 +182,10 @@ class PipelineVersions(TestCase):
 
 
 class SupportedCatalog(TestCase):
-    def test_only_current_pipeline_is_available(self):
+    def test_default_and_explicit_candidate_are_available(self):
         catalog = load_catalog()
-        self.assertEqual(set(catalog.versions), {"v2.16"})
-        self.assertEqual(set(catalog.releases), {"v2.16"})
+        self.assertEqual(set(catalog.versions), {"v2.16", "v2.17"})
+        self.assertEqual(set(catalog.releases), {"v2.16", "v2.17"})
         for version in ("v1", "v2", *(f"v2.{i}" for i in range(2, 16))):
             with self.subTest(version=version), self.assertRaisesRegex(ValueError, "unknown pipeline"):
                 resolve(version)
@@ -194,3 +194,26 @@ class SupportedCatalog(TestCase):
         with patch("app.pipelines.resolver.instruction_fingerprint", return_value="changed"):
             with self.assertRaisesRegex(ValueError, "agent instructions differ"):
                 resolve()
+
+    def test_candidate_resolves_both_providers_with_separate_identity(self):
+        from app.settings_definitions import TargetAgentSettings
+        from app.answering.cache_identity import answer_cache_identity
+        from app.agent.instructions import target_instruction_fingerprint
+        legacy = resolve()
+        for provider in ("ollama", "openai"):
+            with self.subTest(provider=provider):
+                run = resolve("v2.17", {"agent_provider": provider})
+                self.assertIs(type(run.agent_settings), TargetAgentSettings)
+                self.assertEqual(run.execution_backend, "langgraph")
+                self.assertEqual(run.agent_settings.provider, provider)
+                self.assertNotIn("premise_early_stop", run.agent_settings.__dict__)
+                self.assertEqual(load_catalog().get("v2.17")["agent"]["instruction_fingerprint"], target_instruction_fingerprint())
+                self.assertNotEqual(answer_cache_identity("Q", run, run.index["collection"]),
+                                    answer_cache_identity("Q", legacy, legacy.index["collection"]))
+        for value in (True, False, None):
+            with self.subTest(value=value), self.assertRaisesRegex(ValueError, "settings not used"):
+                resolve("v2.17", {"premise_early_stop": value})
+        with patch("app.pipelines.resolver.target_instruction_fingerprint", return_value="changed"):
+            with self.assertRaisesRegex(ValueError, "agent instructions differ"):
+                resolve("v2.17")
+        self.assertEqual(resolve().execution_backend, "legacy")

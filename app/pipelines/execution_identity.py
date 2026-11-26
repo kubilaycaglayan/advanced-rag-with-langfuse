@@ -1,4 +1,4 @@
-"""Select an execution backend without registering or relabeling a release."""
+"""Validate execution selection and record graph source/instruction identity."""
 from pathlib import Path
 
 from app.identity import source_manifest

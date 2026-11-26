@@ -11,7 +11,7 @@ from app.corpus_config import corpus_config, corpus_id
 from app.corpus_profiles import profile_identity, prompt_identity
 from app.agent.state import AgentSettings
 from app.settings_definitions import TargetAgentSettings, validate_agent_value
-from app.agent.instructions import instruction_fingerprint
+from app.agent.instructions import instruction_fingerprint, target_instruction_fingerprint
 from app.agent.schemas import tool_names
 from app.identity import canonical_json
 from app.pipelines.catalog import PipelineCatalog, load_catalog
@@ -86,9 +86,13 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
     agent_context_length = overrides.get("agent_context_length")
     scene_candidate_count = overrides.get("scene_candidate_count")
     premise_early_stop = overrides.get("premise_early_stop")
+    target = version == "v2.17"
+    settings_class = TargetAgentSettings if target else AgentSettings
     allowed = set(block["settings"])
     allowed.update({"agent_provider", "agent_model", "agent_think", "agent_context_length",
                     "automatic_scene_search", "scene_candidate_count", "premise_early_stop"})
+    if target:
+        allowed.discard("premise_early_stop")
     if block["agent"].get("provider") == "openai" or agent_provider == "openai":
         allowed.add("agent_reasoning_effort")
     unknown = set(overrides) - allowed
@@ -108,7 +112,7 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
     config = ResolvedPipelineConfig.from_mapping(values, use_environment=False)
     agent_values = {key: value for key, value in block["agent"].items()
                     if key not in {"tools", "instruction_fingerprint", "conversation_handoff_fingerprint"}}
-    agent_settings = AgentSettings(**{**RELEASED_AGENT_FALLBACKS.get(version, {}), **agent_values})
+    agent_settings = settings_class(**{**RELEASED_AGENT_FALLBACKS.get(version, {}), **agent_values})
     expected_handoff = block["agent"].get("conversation_handoff_fingerprint")
     actual_handoff = hashlib.sha256((Path(__file__).resolve().parents[1] / "context" / "agent_final_handoff.py").read_bytes()).hexdigest()
     if expected_handoff != actual_handoff:
@@ -116,43 +120,43 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
     if agent_provider is not None:
         validate_agent_value("provider", agent_provider)
         model = "gpt-6-luna" if agent_provider == "openai" else block["agent"]["model"]
-        agent_settings = AgentSettings(**{**agent_settings.__dict__,
+        agent_settings = settings_class(**{**agent_settings.__dict__,
                                           "provider": agent_provider, "model": model})
     if agent_model is not None:
         validate_agent_value("model", agent_model)
         if agent_settings.provider != "ollama":
             raise ValueError("agent_model can only be set for the ollama provider")
-        agent_settings = AgentSettings(**{**agent_settings.__dict__, "model": agent_model.strip()})
+        agent_settings = settings_class(**{**agent_settings.__dict__, "model": agent_model.strip()})
     if agent_think is not None:
         validate_agent_value("think", agent_think)
         if agent_settings.provider != "ollama":
             raise ValueError("agent_think can only be set for the ollama provider")
-        agent_settings = AgentSettings(**{**agent_settings.__dict__, "think": agent_think})
+        agent_settings = settings_class(**{**agent_settings.__dict__, "think": agent_think})
     if agent_context_length is not None:
         validate_agent_value("context_length", agent_context_length)
         if agent_settings.provider != "ollama":
             raise ValueError("agent_context_length can only be set for the ollama provider")
-        agent_settings = AgentSettings(**{**agent_settings.__dict__,
+        agent_settings = settings_class(**{**agent_settings.__dict__,
                                           "context_length": agent_context_length})
     if "automatic_scene_search" in overrides:
         validate_agent_value("initial_scene_probe", overrides["automatic_scene_search"])
-        agent_settings = AgentSettings(**{**agent_settings.__dict__,
+        agent_settings = settings_class(**{**agent_settings.__dict__,
                                           "initial_scene_probe": overrides["automatic_scene_search"]})
     if scene_candidate_count is not None:
         validate_agent_value("scene_candidate_count", scene_candidate_count)
-        agent_settings = AgentSettings(**{**agent_settings.__dict__,
+        agent_settings = settings_class(**{**agent_settings.__dict__,
                                           "scene_candidate_count": scene_candidate_count})
     if premise_early_stop is not None:
         validate_agent_value("premise_early_stop", premise_early_stop)
-        agent_settings = AgentSettings(**{**agent_settings.__dict__,
+        agent_settings = settings_class(**{**agent_settings.__dict__,
                                           "premise_early_stop": premise_early_stop})
     if agent_effort is not None:
         validate_agent_value("reasoning_effort", agent_effort)
-        agent_settings = AgentSettings(**{**agent_settings.__dict__, "reasoning_effort": agent_effort})
+        agent_settings = settings_class(**{**agent_settings.__dict__, "reasoning_effort": agent_effort})
     if block["agent"]["tools"] != tool_names():
         raise ValueError(f"{version}: agent tool catalog differs from released version")
     expected_instructions = block["agent"]["instruction_fingerprint"]
-    actual_instructions = instruction_fingerprint()
+    actual_instructions = target_instruction_fingerprint() if target else instruction_fingerprint()
     if selected_id == "millennium" and expected_instructions != actual_instructions:
         raise ValueError(f"{version}: agent instructions differ from released version; publish a new version")
     from app.indexing.passages import index_identity
@@ -168,4 +172,5 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
                        dict(block["prompts"]), {**block["index"], "collection": expected_collection},
                        f"{prefix}-{version}-{digest}", bool(overrides), overrides, released_fingerprint,
                        corpus_id(), source_checksum, selected_corpus.profile_id,
-                       profile_identity(), prompt_identity())
+                       profile_identity(), prompt_identity(),
+                       execution_backend="langgraph" if target else "legacy")

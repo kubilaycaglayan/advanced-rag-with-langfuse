@@ -1,7 +1,6 @@
 """Candidate integration through real answering/API/cache/experiment boundaries.
 
-Candidate ResolvedRuns are injected only in tests: the catalog is not registered
-until Step 7, and resolve('v2.17') remains unsupported here.
+Uses the registered candidate without changing the default pipeline.
 """
 from contextlib import ExitStack, nullcontext
 from copy import deepcopy
@@ -35,11 +34,8 @@ from test_graph_telemetry import Client
 
 
 def candidate():
-    base = resolve()
-    settings = TargetAgentSettings(**{key: value for key, value in asdict(base.agent_settings).items() if key != 'premise_early_stop'})
-    return replace(base, version='v2.17', status='candidate', pipeline_id='candidate-v2.17-test',
-                   fingerprint='synthetic-candidate', agent_settings=replace(settings, min_tool_calls=0, initial_scene_probe=False),
-                   execution_backend='langgraph')
+    base = resolve('v2.17')
+    return replace(base, agent_settings=replace(base.agent_settings, min_tool_calls=0, initial_scene_probe=False))
 
 
 def prepared(resolved):
@@ -55,7 +51,7 @@ class GraphIntegration(unittest.TestCase):
         return contracts.ExecutionHarness(replies or [contracts.reply('Ada wrote it [aaaaaaaa].'),
                                                       contracts.reply('{"supported":true}')], seed=[contracts.A], **kwargs)
 
-    def test_answering_dispatch_streams_same_result_contract_without_registering_candidate(self):
+    def test_answering_dispatch_streams_same_result_contract_with_registered_candidate(self):
         resolved = candidate()
         tokens, statuses = [], []
         with self.harness() as h, patch('app.answering.execution.time.sleep'):
@@ -70,8 +66,7 @@ class GraphIntegration(unittest.TestCase):
         self.assertEqual(result['agent_stopped'], 'content')
         self.assertEqual(h.state.route, 'done')
         self.assertEqual(resolve().version, 'v2.16')
-        with self.assertRaisesRegex(ValueError, 'unknown pipeline'):
-            resolve('v2.17')
+        self.assertEqual(resolve('v2.17').execution_backend, 'langgraph')
 
     def test_no_graph_can_masquerade_as_v2_16_or_legacy_execution(self):
         resolved = candidate()

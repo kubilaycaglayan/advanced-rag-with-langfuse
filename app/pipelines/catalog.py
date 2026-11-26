@@ -21,7 +21,7 @@ PIPELINE_SETTINGS = {"retrieval_mode", "hyde", "expansion_count", "name_completi
                "generation", "parallel_transformations", "scene_thinking"}
 AGENT_KEYS = {"model", "tools", "max_turns", "max_tool_calls", "min_tool_calls", "timeout_seconds",
               "context_length", "num_predict", "think", "snippet_chars", "instruction_fingerprint"}
-AGENT_OPTIONAL_KEYS = {"scene_candidate_count", "initial_scene_probe", "provider", "premise_early_stop", "conversation_handoff_fingerprint"}
+AGENT_OPTIONAL_KEYS = {"scene_candidate_count", "initial_scene_probe", "provider", "premise_early_stop", "conversation_handoff_fingerprint", "reasoning_effort"}
 
 
 def fingerprint(block: dict[str, Any]) -> str:
@@ -111,6 +111,8 @@ def load_catalog(path: Path = CATALOG, releases_path: Path = RELEASES) -> Pipeli
                 not AGENT_KEYS <= set(block["agent"]) or
                 set(block["agent"]) - AGENT_KEYS - AGENT_OPTIONAL_KEYS):
             raise ValueError(f"{version}: agent settings required")
+        if version == "v2.17" and "premise_early_stop" in block["agent"]:
+            raise ValueError("v2.17: premise_early_stop is not supported")
         versions[version] = block
     if header["default"] not in versions or versions[header["default"]]["status"] != "released":
         raise ValueError("default must name a released pipeline")

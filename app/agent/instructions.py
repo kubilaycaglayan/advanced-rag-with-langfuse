@@ -73,8 +73,8 @@ def instruction_fingerprint() -> str:
 def target_instruction_manifest() -> dict[str, Any]:
     """Cover the extracted v2.17 builders without changing v2.16's release identity.
 
-    The target remains unregistered until the catalog step. Relocation changes the
-    source manifest shape; execution-contract tests protect model-visible parity.
+    The v2.17 catalog pins this distinct manifest. Relocation changes the source
+    manifest shape; execution-contract tests protect model-visible parity.
     """
     from app.agent import execution
     manifest = instruction_manifest()
