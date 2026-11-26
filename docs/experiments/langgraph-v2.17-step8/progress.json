@@ -7,7 +7,8 @@
     "openai-q03": "openai-q03-a1",
     "openai-q04": "openai-q04-a1",
     "openai-q05": "openai-q05-a1",
-    "openai-q06": "openai-q06-a1"
+    "openai-q06": "openai-q06-a1",
+    "openai-q07": "openai-q07-a1"
   },
   "selection_note": "Q6 attempt 1 selected as best correctness with its own latency. Developer resolved the supporting-fact discrepancy.",
   "attempts": [
@@ -80,9 +81,16 @@
       "latency_seconds": 41.25,
       "execution_id": "4c7d49cc-6ffc-42f2-b839-9626a6e3d0bc",
       "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027"
+    },
+    {
+      "label": "openai-q07-a1",
+      "correctness": 1.0,
+      "latency_seconds": 26.33,
+      "execution_id": "2a15eab7-b07a-4cdd-abf9-c31cad71a52a",
+      "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027"
     }
   ],
-  "remaining_question_provider_pairs": 14,
+  "remaining_question_provider_pairs": 13,
   "live_default_changed": false,
   "step9_started": false,
   "gate_decisions": {
