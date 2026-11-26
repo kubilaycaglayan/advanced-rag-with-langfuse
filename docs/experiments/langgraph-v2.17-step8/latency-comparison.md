@@ -22,19 +22,19 @@ The v2.17 Ollama results below use `qwen3.6:35b`; OpenAI uses the Step 8 OpenAI 
 
 ## Ollama
 
-| Q | Question | Previous pipeline | Before | v2.17 attempt | After | Change |
-|---:|---|---|---:|---|---:|---:|
-| 1 | What academic mathematics book does Lisbeth Salander carry around and memorize? 🛑 | `pipeline-v2.2-27213d82` | 33.10s | `ollama-q01-a2` | 33.21s | +0.11s (+0.3%) |
-| 2 | Who killed Harriet? 🛑 | `pipeline-v2.2-27213d82` | 34.30s | `ollama-q02-a1` | 59.88s | +25.58s (+74.6%) |
-| 3 | What was the nickname of Mikael? 🛑 | `pipeline-v2.2-27213d82` | 18.79s | `ollama-q03-a1` | 40.64s | +21.85s (+116.3%) |
-| 4 | Who are the top 10 most important characters? 🛑 | `draft-v2.13-8c73b46f` | 45.45s | `ollama-q04-a3` | 106.15s | +60.70s (+133.6%) |
-| 5 | How Gottfried really died? | `draft-v2.13-8c73b46f` | 35.39s | `ollama-q05-a1` | 32.78s | -2.61s (-7.4%) |
-| 6 | what is the sumary of the first book? 🛑 | `draft-v2.13-8c73b46f` | 75.97s | `ollama-q06-a3` | 153.23s | +77.26s (+101.7%) |
-| 7 | What happened to Teleborian in the end of the court? 🛑 | `draft-v2.13-8c73b46f` | 51.06s | `ollama-q07-a1` | 53.35s | +2.29s (+4.5%) |
-| 8 | How Mikale knows that Salander is a hacker? 🛑 | `draft-v2.13-8c73b46f` | 20.84s | `ollama-q08-a3` | 21.77s | +0.93s (+4.5%) |
-| 9 | What happened to Salander in the abandoned factory? | `pipeline-v2.12-62d121f0` | 97.15s | `ollama-q09-a1` | 72.46s | -24.69s (-25.4%) |
-| 10 | When Mikael Blomkvist found Lisbeth Salander severely wounded on the kitchen bench at the Gosseberga farmhouse, he reached out to carefully loosen the gun from her hand. And then what Salander said to him? 🛑 | `pipeline-v2.12-62d121f0` | 53.69s | `ollama-q10-a1` | 54.93s | +1.24s (+2.3%) |
-| **Mean** | **8/10 increased** | — | **46.57s** | — | **62.84s** | **+16.27s (+34.9%)** |
+| Q | Question | Model | Previous pipeline | Before | v2.17 attempt | After | Change |
+|---:|---|---|---|---:|---|---:|---:|
+| 1 | What academic mathematics book does Lisbeth Salander carry around and memorize? 🛑 | `pipeline-v2.2-27213d82` | `qwen3.6:35b` | 33.10s | `ollama-q01-a2` | 33.21s | +0.11s (+0.3%) |
+| 2 | Who killed Harriet? 🛑 | `pipeline-v2.2-27213d82` | `qwen3.6:35b` | 34.30s | `ollama-q02-a1` | 59.88s | +25.58s (+74.6%) |
+| 3 | What was the nickname of Mikael? 🛑 | `pipeline-v2.2-27213d82` | `qwen3.6:35b` | 18.79s | `ollama-q03-a1` | 40.64s | +21.85s (+116.3%) |
+| 4 | Who are the top 10 most important characters? 🛑 | `draft-v2.13-8c73b46f` | `qwen3.6:35b` | 45.45s | `ollama-q04-a3` | 106.15s | +60.70s (+133.6%) |
+| 5 | How Gottfried really died? | `draft-v2.13-8c73b46f` | `qwen3.6:35b` | 35.39s | `ollama-q05-a1` | 32.78s | -2.61s (-7.4%) |
+| 6 | what is the sumary of the first book? 🛑 | `draft-v2.13-8c73b46f` | `qwen3.6:35b` | 75.97s | `ollama-q06-a3` | 153.23s | +77.26s (+101.7%) |
+| 7 | What happened to Teleborian in the end of the court? 🛑 | `draft-v2.13-8c73b46f` | `qwen3.6:35b` | 51.06s | `ollama-q07-a1` | 53.35s | +2.29s (+4.5%) |
+| 8 | How Mikale knows that Salander is a hacker? 🛑 | `draft-v2.13-8c73b46f` | `qwen3.6:35b` | 20.84s | `ollama-q08-a3` | 21.77s | +0.93s (+4.5%) |
+| 9 | What happened to Salander in the abandoned factory? | `pipeline-v2.12-62d121f0` | `qwen3.6:35b` | 97.15s | `ollama-q09-a1` | 72.46s | -24.69s (-25.4%) |
+| 10 | When Mikael Blomkvist found Lisbeth Salander severely wounded on the kitchen bench at the Gosseberga farmhouse, he reached out to carefully loosen the gun from her hand. And then what Salander said to him? 🛑 | `pipeline-v2.12-62d121f0` | `qwen3.6:35b` | 53.69s | `ollama-q10-a1` | 54.93s | +1.24s (+2.3%) |
+| **Mean** | **8/10 increased** | — | — | **46.57s** | — | **62.84s** | **+16.27s (+34.9%)** |
 
 ## Summary
 
