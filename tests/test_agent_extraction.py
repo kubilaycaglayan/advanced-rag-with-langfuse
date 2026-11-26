@@ -32,8 +32,7 @@ class ExecutionBoundaries(unittest.TestCase):
         with self.assertRaises(TypeError):
             TargetAgentSettings(premise_early_stop=True)
         self.assertIn('premise_early_stop', asdict(resolve().agent_settings))
-        with self.assertRaisesRegex(ValueError, 'unknown pipeline'):
-            resolve('v2.17')
+        self.assertIs(type(resolve('v2.17').agent_settings), TargetAgentSettings)
         with self.assertRaisesRegex(ValueError, 'TargetAgentSettings'):
             execution.run_agent('Who?', 'fixture', settings=AgentSettings(premise_early_stop=True))
         with self.assertRaises(ValueError):
@@ -177,6 +176,23 @@ class ExecutionBoundaries(unittest.TestCase):
         for index, (replies, seed) in enumerate(scenarios):
             with self.subTest(index=index):
                 self.assertEqual(run(execution, replies, seed), run(runner, replies, seed))
+
+    def test_registered_graph_preserves_model_messages_and_tool_schemas(self):
+        from app.agent import runner as legacy
+        import test_agent_execution_contract as contracts
+        scenarios = [
+            [contracts.reply('Ada wrote it [aaaaaaaa].'), contracts.reply('{"supported":true}')],
+            [contracts.reply(calls=[contracts.submit()]), contracts.reply('{"supported":true}')],
+            [contracts.reply(calls=[contracts.call('semantic_search')]),
+             contracts.reply('Ada wrote it [aaaaaaaa].'), contracts.reply('{"supported":true}')],
+        ]
+        for replies in scenarios:
+            captured = []
+            for backend in (legacy, execution):
+                with patch.object(contracts, 'runner', backend), contracts.ExecutionHarness(replies, seed=[contracts.A]) as h:
+                    result = h.run()
+                    captured.append((h.calls, result['answer'], result['citations'], result['stopped']))
+            self.assertEqual(captured[0], captured[1])
 
 
 if __name__ == '__main__':
