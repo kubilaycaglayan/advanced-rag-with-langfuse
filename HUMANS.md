@@ -48,7 +48,7 @@ Evidence: frozen Step 1 questions[0].baselines.ollama and retained Step 8 ollama
 
 ## Step 8: substantive local Harriet hallucinations despite high judge scores
 
-Status: awaiting developer decision, 2026-11-26. Ollama Q3–Q10 remain unstarted. This is outside the authorization for verified evaluator-only discrepancies.
+Status: resolved by developer on 2026-11-26: “record and finish the remaining” authorizes recording this substantive failure and completing the remaining local sample. The three attempts and scores remain unchanged.
 
 Ollama Q2 exhausted all three permitted attempts: correctness 1.0/0.925/0.95; latencies 59.88/83.44/67.28 seconds. Every answer correctly says Harriet is alive but adds materially false unsupported details. Attempt 1 calls Gottfried her uncle and invents a plan to frame Henrik. Attempt 2 says Martin was her uncle and held her captive for decades. Attempt 3 says Martin imprisoned her for decades until her later escape/rescue, although its E3 explicitly says he did not know what had happened to his sister. Citation support is 0.5. The correctness judge's high scores do not establish factual acceptance. All graph executions and trace checks complete; attempts 1/2 reach budget handoff and attempt3 passes the existing conditional verification/text route. No supported orchestration mismatch was identified, and prompts/verification/evidence-selection policies remain preserved.
 
