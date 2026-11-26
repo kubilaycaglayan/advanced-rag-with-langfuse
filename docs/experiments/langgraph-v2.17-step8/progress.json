@@ -1,6 +1,6 @@
 {
   "step": 8,
-  "status": "awaiting_factory_regression_decision",
+  "status": "in_progress",
   "selected_attempts": {
     "openai-q01": "openai-q01-a1",
     "openai-q02": "openai-q02-a1",
@@ -12,7 +12,7 @@
     "openai-q08": "openai-q08-a3",
     "openai-q09": "openai-q09-a1"
   },
-  "selection_note": "Q9 best correctness is 0.5167 in attempts 1 and 3; earliest attempt 1 provisionally selected with its own 41.12-second latency. Substantive regression unresolved.",
+  "selection_note": "Select highest effective correctness after question-specific approved rescoring, preserving all original scores and using latency from that same generation attempt.",
   "attempts": [
     {
       "label": "openai-q01-a1",
@@ -139,6 +139,21 @@
   "step9_started": false,
   "gate_decisions": {
     "openai-q02": "Developer authorized treating 0.025 score difference as evaluator variance and continuing; historical baseline unchanged.",
-    "openai-q06": "Developer authorized recording the 0.0333 difference as an evaluator discrepancy and continuing."
+    "openai-q06": "Developer authorized recording the 0.0333 difference as an evaluator discrepancy and continuing.",
+    "openai-q09": "Developer approved current answer and requested a question-specific scorer correction. Final live rubric rescore: attempts 1/3=1.0, scene-confused attempt2=0.5. Select attempt1 with original latency; source results preserved."
+  },
+  "effective_correctness_overrides": {
+    "openai-q09-a1": {
+      "value": 1.0,
+      "artifact": "factory-rubric-rescore-v2.json"
+    },
+    "openai-q09-a2": {
+      "value": 0.5,
+      "artifact": "factory-rubric-rescore-v2.json"
+    },
+    "openai-q09-a3": {
+      "value": 1.0,
+      "artifact": "factory-rubric-rescore-v2.json"
+    }
   }
 }

@@ -26,7 +26,7 @@ Evidence: frozen comparison-manifest.json questions[5], and Step 8 openai-q06-a1
 
 ## Step 8: substantive abandoned-factory regression
 
-Status: awaiting developer decision, 2026-11-26. OpenAI Q10 and all Ollama items remain unstarted.
+Status: resolved by developer on 2026-11-26: current answer approved as perfectly correct; requested scorer correction isolated to this question and continuation. Factory rubric now accepts the approved core account. Live rescore v2 gives attempts 1/3 full credit and the scene-confused attempt 2 only 0.5. Original scores and prior diagnosis retained as history.
 
 OpenAI Q9 (Additional Questions, 36c50723-3b65-49f6-9d9b-70574cc9471c) exhausted all three permitted attempts: 0.5167 / 41.12 seconds; 0.5 / 56.09 seconds; 0.5167 / 45.12 seconds. Historical correctness is 1.0. Attempt 1 is provisionally selected as the earliest best-correctness tie, using its own latency. All results remain unchanged.
 
