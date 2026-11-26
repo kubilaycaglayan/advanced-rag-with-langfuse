@@ -388,7 +388,7 @@ class Coverage(unittest.TestCase):
     def test_moment_tool_returns_the_chosen_scene(self):
         agent = state()
         row = {"id": "a1b2c3d4-0000-0000-0000-000000000000", "text": "Kalle Fucking Blomkvist."}
-        with patch("app.agent.tools.scenes.moment_scene_hits",
+        with patch("app.agent.tools.scenes.moment_scene_hits", autospec=True,
                    return_value=([row | {"scene_summary": "the kitchen"}], "Salander saw him in the kitchen")), \
                 patch("app.agent.tools.scenes._scene_points", return_value=([], "")), \
                 patch("app.agent.tools.scenes._alias_variants", return_value=[]):
