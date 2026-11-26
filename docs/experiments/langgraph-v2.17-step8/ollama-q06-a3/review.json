@@ -1,0 +1,127 @@
+{
+  "label": "ollama-q06-a3",
+  "status": "completed",
+  "score": 0.6167,
+  "baseline_score": 0.9667,
+  "latency": 153.23,
+  "baseline_latency": 75.97,
+  "answer": "The first book, *The Girl with the Dragon Tattoo*, follows journalist Mikael Blomkvist who is hired by Henrik Vanger to investigate the disappearance of his niece Harriet from the family's private island forty years earlier [E1]. Blomkvist teams up with Lisbeth Salander, a brilliant but troubled hacker, to uncover a series of murders linked to the Vanger family [E2]. Their investigation reveals that the killer is Martin Vanger, Harriet's uncle, and exposes deep-seated corruption within the family and society [E3]. The story concludes with Blomkvist restoring his reputation by exposing financier Hans-Erik Wennerstr\u00f6m's crimes and finding Harriet's remains [E4].",
+  "evaluations": [
+    {
+      "comment": "The answer provides a summary of the first book, but it does not fully capture all required facts and supporting details. It partially addresses R2 and R3, but omits key details such as Martin's death and Salander's role in exposing Wennerstr\u00f6m. It also partially addresses D3 but does not explicitly mention the year 1966.",
+      "config_id": null,
+      "data_type": null,
+      "metadata": {
+        "evaluator_id": "65c50df46ddd9801bbb52f060af656ba8b48e869f84cf8be2d7d8c33433e368c",
+        "evaluator_latency_seconds": 9.8626,
+        "evaluator_model": "qwen3:8b",
+        "evaluator_version": 2,
+        "fact_verdicts": {
+          "D1": "missing",
+          "D2": "missing",
+          "D3": "partial",
+          "R1": "present",
+          "R2": "partial",
+          "R3": "partial"
+        },
+        "managed_evaluator_id": "cmvf5zbot0007mj7ti62igkpt"
+      },
+      "name": "answer_correctness_v2",
+      "value": 0.6167
+    },
+    {
+      "comment": "The answer's factual claims are not supported by the provided evidence. The evidence labels [E1], [E2], [E3], and [E4] do not contain information about the summary of the first book, the characters, or the plot points described in the answer. The evidence provided is fragmented and does not cover the summary of the book as claimed.",
+      "config_id": null,
+      "data_type": null,
+      "metadata": {
+        "evaluator_id": "65c50df46ddd9801bbb52f060af656ba8b48e869f84cf8be2d7d8c33433e368c",
+        "evaluator_latency_seconds": 3.6269,
+        "evaluator_model": "qwen3:8b",
+        "evaluator_version": 3,
+        "managed_evaluator_id": "cmv81kasl000dpa7t19ma0e3o"
+      },
+      "name": "citation_support_v1",
+      "value": 0.0
+    }
+  ],
+  "stop": "budget",
+  "tool_errors": [],
+  "telemetry_errors": [],
+  "trace_checks": [],
+  "trace_warnings": [
+    [
+      "submission verification",
+      ""
+    ],
+    [
+      "rejected answer",
+      ""
+    ],
+    [
+      "rejected answer",
+      ""
+    ],
+    [
+      "submission verification",
+      ""
+    ],
+    [
+      "submission verification",
+      ""
+    ]
+  ],
+  "nodes": [
+    "graph node: prepare",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: budget",
+    "graph node: final"
+  ],
+  "prompt_usage": [
+    12382,
+    4430,
+    13876,
+    14778,
+    12460,
+    12331,
+    4437,
+    11442,
+    8498,
+    4437,
+    7614,
+    5794,
+    4946,
+    4118
+  ],
+  "source": null,
+  "manual_review": "Provides a relevant summary, but score0.6167 vs0.9667; claims Harriet remains, contradictory to alive baseline and false. Best numeric score; record failure and continue under developer direction."
+}
