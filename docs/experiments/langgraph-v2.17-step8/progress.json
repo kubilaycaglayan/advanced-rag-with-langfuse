@@ -10,7 +10,8 @@
     "openai-q06": "openai-q06-a1",
     "openai-q07": "openai-q07-a1",
     "openai-q08": "openai-q08-a3",
-    "openai-q09": "openai-q09-a1"
+    "openai-q09": "openai-q09-a1",
+    "openai-q10": "openai-q10-a2"
   },
   "selection_note": "Select highest effective correctness after question-specific approved rescoring, preserving all original scores and using latency from that same generation attempt.",
   "attempts": [
@@ -132,9 +133,23 @@
       "latency_seconds": 45.12,
       "execution_id": "d17b382c-38cb-4bc1-a442-3219adebe886",
       "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027"
+    },
+    {
+      "label": "openai-q10-a1",
+      "correctness": null,
+      "latency_seconds": null,
+      "execution_id": "be910714-adc3-495c-ab3d-af757b67ff85",
+      "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027"
+    },
+    {
+      "label": "openai-q10-a2",
+      "correctness": 1.0,
+      "latency_seconds": 17.72,
+      "execution_id": "ef3471b0-0c69-4f03-85b6-9edaaf798b5f",
+      "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df"
     }
   ],
-  "remaining_question_provider_pairs": 11,
+  "remaining_question_provider_pairs": 10,
   "live_default_changed": false,
   "step9_started": false,
   "gate_decisions": {
