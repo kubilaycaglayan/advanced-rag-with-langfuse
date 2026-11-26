@@ -82,8 +82,11 @@
   "step4_started": false,
   "live_generation_calls": 0,
   "verification_artifacts": {
-    "centralization-tests.log": "9c5070e7205cd5c10485e3667675d38204a68c4261f8abd8ecb9091428a8d94c",
-    "settings-tests.log": "f392ffd8605ae0d4994b0e26ba67f638850f8ae77250a315e425b7f3fed2de51",
-    "full-tests.log": "7a502d5989daccf9633b621e888e4c58959fbfbf844da20839d6ccf8a4993627"
-  }
+    "centralization-tests.log": "d48eb7660fa1d4ccd04a655558134ffc225e711be834e33b8a075d8e616c9127",
+    "settings-tests.log": "7257e0a2f49c7e604b8d97a574ebfd45a170ea25dbb16a1841cad3889497ae9e",
+    "full-tests.log": "7cb8275d3e10e96dc4f0a39e177f5eac4adf9a744cc6bd0dbfc7018534c7254d"
+  },
+  "log_format": "Trailing whitespace normalized; substantive output unchanged.",
+  "reference_sha256": "4186f04ebdc9fe8d23bbd29a1ed8b2d5f47e42875810d92cbac9c9404ecbc8de",
+  "request_fixture_sha256": "271f149bf46f62c181b5a764fd8b2d071061611635795037d60e70f2bd02c0ae"
 }
