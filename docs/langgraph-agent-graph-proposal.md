@@ -1,10 +1,8 @@
-// for every answer you will give, be concise and write them in human language. answer in 1 single line, not longer unless otherwise stated.
-
 # Proposed agent graph
 
 Date: 2026-11-25
 
-**Status:** Design suggestion only. No implementation or new pipeline version is introduced.
+**Status:** Migration scope under review; target v2.17, based on current v2.16 behavior; implementation planning starts after this review.
 
 **Behavioral baseline:** v2.16, the currently supported version in [the pipeline catalog](../pipelines.md). This graph proposes an orchestration structure around that behavior; it is not an exact executable specification.
 
@@ -22,9 +20,8 @@ Rectangles represent work; diamonds represent decisions. The loop means the agen
 
 ```mermaid
 flowchart TD
-    signature["Proposed orchestration — v2.16 behavioral baseline"]
+    signature["Proposed v2.17 scope — v2.16 behavioral baseline"]
     prepare["1. Prepare question and initial evidence"]
-    early{"Verified early answer available?"}
     budget{"Another model turn allowed?"}
     think["2. Ask model for next action"]
     route{"Tool calls or answer text?"}
@@ -34,11 +31,9 @@ flowchart TD
     accepted{"Answer accepted?"}
     feedback["5. Continue with updated conversation"]
     forced["6. Draft answer from conversation handoff"]
-    finish["7. Repair or synthesize if needed; format result"]
+    finish["7. Prepare final answer and format result"]
+    prepare --> budget
     signature --> prepare
-    prepare --> early
-    early -->|"Yes"| finish
-    early -->|"No; default configuration"| budget
     budget -->|"Yes"| think
     budget -->|"Timeout or turn limit"| forced
     think --> route
@@ -67,54 +62,83 @@ This diagram groups some decisions for readability. In particular, tool processi
 | 4. Review answer | Check whether answer text can be accepted or needs more investigation. | Existing no-tool branch in `app/agent/runner.py` |
 | 5. Continue | Route back with messages already updated by tool processing or answer review. This can be an edge rather than a work node. | Existing loop continuation |
 | 6. Conversation handoff | Draft an answer without model-selected tools when a budget exit occurs. | Drafting portion of `_forced_answer` and `app/context/agent_final_handoff.py` |
-| 7. Finalize | Apply current finishing behavior and return the established result contract. | `_finish` and `app/answering/execution.py` |
+| 7. Prepare final answer | Complete or replace the draft from evidence when needed, then format the result. | `_finish` and `app/answering/execution.py` |
 
 **Implementation boundary:** `_forced_answer` currently calls `_finish` itself. To implement the diagram literally, extract its drafting portion before routing to the shared finishing node. Alternatively, retain `_forced_answer` intact and route its completed result directly to the output. Never call `_finish` a second time on that result. Feedback is appended inside tool processing and text review, in its existing order; step 5 is only a continuation marker.
 
-The early-answer decision preserves `premise_early_stop`. It is disabled in the released v2.16 configuration. When enabled, a proposed direct premise resolution still requires verification. // let's remove the premise_early_stop notion completely as we'r not using it
+The proposed scope omits the unused direct early-answer branch; preparation still gathers premise evidence before the normal loop.
 
 ## Important routing rules
 
 ### Preparation order
 
 Use the actual runner order as the migration baseline:
-// Explain the following terms in human language and very briefly. Be precise, be concise. Do not make very long explanations. I will ask you if needed. For example, what normalize means? Is it calling a tool or like is it a function or something? What is the connection pre-check? Again, it's a method. What is that? Like is it gonna be a tool uh is it gonna be something else like uh same for the other entries as well please uh annotate the keywords and the following entries do not change the following entries just annotate the keywords and make explanations below them
+
 1. Normalize the question and record name notes.
+
+`_normalize_question`: Python function that replaces uncommon capitalized words with close, frequent book names and records substitutions; no model call. ([prechecks](../app/agent/prechecks.py), [scene probe](../app/agent/tools/scenes.py)).
+
 2. Run the connection precheck.
+
+`_connection_precheck`: Python function that reads entity-card relationships for questions linking two people; these facts point to passages and are not proof by themselves. ([prechecks](../app/agent/prechecks.py), [scene probe](../app/agent/tools/scenes.py)).
+
 3. Run the optional initial scene probe and assemble its message.
+
+`_initial_scene_probe`: Python function that searches for the best scene and loads its source passages before model tool selection. ([prechecks](../app/agent/prechecks.py), [scene probe](../app/agent/tools/scenes.py)).
+
 4. Append the connection precheck message when applicable.
+
+`_precheck_message`: Python function that formats connection facts into a user-role message for the model. ([prechecks](../app/agent/prechecks.py), [scene probe](../app/agent/tools/scenes.py)).
+
 5. Run the true-account precheck.
+
+`_true_account_precheck`: Python function that calls the true-account tool helper directly for matching death questions, seeking evidence beyond the official account. ([prechecks](../app/agent/prechecks.py), [scene probe](../app/agent/tools/scenes.py)).
+
 6. Run the sequence precheck.
+
+`_sequence_precheck`: Python function that calls `_coverage_hint` to retrieve later scenes for matching “what happened” questions. ([prechecks](../app/agent/prechecks.py), [scene probe](../app/agent/tools/scenes.py)).
+
 7. Run the moment precheck.
-8. Run the premise probe. // explain what "run" means?
-9. Consider verified direct premise resolution if enabled.
 
-These steps can initially remain inside one preparation node. Splitting them into individual nodes later is useful if separate inspection or recovery boundaries are needed. Do not parallelize them as part of the first migration.
+`_moment_precheck`: Python function that calls the scene-moment helper and keyword retrieval for matching speech questions, retaining candidate quoted lines. ([prechecks](../app/agent/prechecks.py), [scene probe](../app/agent/tools/scenes.py)).
 
-// A side note is that we shouldn't lose our tracings, metrics, measurements, observation instrumentation when doing this migration. Please be careful with that. We can even go further And add more instrumentation for more measurement and observability. If there are tools that's not being measured and can potentially be measured, we should add tracking for those paths as well.
+8. Run the premise probe.
+
+“Run” means call `_premise_probe(state)` automatically; it searches for survival evidence when a question assumes a killing, then remembers and highlights matching passages.
+
+The preparation node calls these steps sequentially.
 
 ### A model reply containing tools
 
 - Preserve support for both structured calls and the existing parser for tool calls written as text.
-- Assign missing call IDs as today and preserve message order. // explain briefly
+- Assign missing call IDs as today and preserve message order.
+
+The runner gives a missing tool call an ID such as `agent_1_1` so its result can be linked to that request, and appends messages in execution order ([runner](../app/agent/runner.py)).
+
 - Execute calls one at a time. A model reply can contain more than one call. Increment `tool_calls` before dispatch, including for `submit_answer` and failed calls.
-- Treat recoverable tool failures as observations the model can use. // and track them, measure them, all shuold be integrated in LangFuse
+- Treat recoverable tool failures as observations the model can use; retain error payloads, per-tool duration, trace entries, and Langfuse observations, adding failure measurements where missing.
+
 - Preserve name-correction messages and search-progress hints. Append tool results and hints before checking the ordinary tool-budget exit, so the forced-answer handoff sees the latest result.
 - A submission can finish the run immediately; do not execute remaining calls after an accepted submission.
 - Preserve rejected-answer and verification branches before applying the existing tool-budget exit rule.
 
 **Submission-specific conditions:** `_tool_submit_answer` rejects empty answers, missing evidence, insufficient tool calls, unknown IDs, and a coverage gap. Its minimum is one tool call when a speech hint exists; otherwise it uses `min_tool_calls`. If evidence already exists, an empty `passage_ids` list is not itself rejected. The runner only calls `_verify_submission` when that list is nonempty. Therefore an accepted submission is not necessarily a verified submission.
 
-A rejected prior answer or failed verification uses `continue` inside the tool loop: remaining calls in the same model reply can still run, and that iteration skips the ordinary tool-budget check. This is existing behavior, not a recommended new policy. // explain tool-budget check
+A rejected prior answer or failed verification uses `continue` inside the tool loop: remaining calls in the same model reply can still run, and that iteration skips the ordinary tool-budget check. This is existing behavior, not a recommended new policy.
 
-For the first implementation, process a whole reply's tool calls within one node. Persisting a cursor and splitting execution into one node invocation per tool is a later option if recovery between calls becomes a requirement.
+The tool-budget check compares the counted calls with `max_tool_calls=16` and normally switches to conversation handoff at the limit; rejection branches can bypass that check ([runner](../app/agent/runner.py)).
+
+The tool-processing node handles a whole reply sequentially.
 
 ### A model reply containing answer text
 
 Preserve the current review sequence:
 
 1. Extract citation IDs that refer to collected evidence.
-2. Reject a previously rejected central answer. // but it can stil be connected to the part of the story? let's think about it. For broad questions, the answer might be scattered accross different passages and only consuming all of them as a whole might give the full picture. A fact that has been stated in many passages might be corrected at some point, and the final answer should be aware of this notion of changing things or the things that are obscured in the plot by seeing all related parts together and crafting the final answer to help user grok. So rather than unseeing unrelated passages, we should keep the attention for the things that `might` be a part of a long trailed story. This is not only related to only this second entry but a whole approach for the rag pipeline.
+2. Reject a previously rejected central answer.
+
+Rejected-answer tracking blocks repeated answer wording, not passages; the current verifier checks cited passages plus up to six focused or premise passages ([submission](../app/agent/submission.py)). Preserve the existing evidence-selection and verification rules for broad questions in v2.17; use broad questions to evaluate whether migration retains current behavior.
+
 3. Apply the minimum-tool nudge when the count is below the minimum and the shared nudge count is below two.
 4. If evidence exists, check coverage and request further investigation if needed. `_coverage_gap` applies only to matching sequence questions and issues at most one gap rejection per run; it may retrieve and remember additional evidence.
 5. Verify the submission when citation IDs exist; reject unsupported claims.
@@ -127,15 +151,23 @@ The text-answer path and `submit_answer` path are not identical today. Keep thei
 
 The diagram's budget decision summarizes the current turn-loop behavior. It does not propose a new universal guard before every operation.
 
-- Timeout is checked at the start of a model turn. // what is the timeout? Do we have a globals file for these constants? with explanations? If no, we should create. and the file should not only contain the constants, but their explanations in human language, briefly, and in human language. with references to where they are in the code.
-- Turn exhaustion leads to conversation handoff. // explain
+- Timeout is checked at the start of a model turn.
+
+The run allowance is 900 seconds, checked before each model turn rather than enforced as a hard deadline; defaults are distributed, so [the settings reference](langgraph-pipeline-settings.md) now explains their values and locations.
+
+- Turn exhaustion leads to conversation handoff.
+
+Turn exhaustion means all 10 model-selection turns were used; the runner then asks for an answer from the conversation with model-selected tools disabled.
+
 - Tool-budget checking occurs within tool processing, after specific branches that can return or continue first.
 - All three existing budget exits must retain the v2.16 conversation handoff.
 
 A strict deadline before every tool, or uniform tool-limit enforcement across all branches, could be useful later. Those would be behavior changes and should be evaluated separately.
 
-### Finishing is active work, not just formatting
-// explain what is "_finish", a tool? a function? reference.
+### Prepare final answer
+
+“Prepare final answer” is the graph step; `prepare_final_answer` is the agreed descriptive name for the current internal `_finish` function during migration. It can replace an incomplete draft with an answer written from collected passages before formatting the result ([source](../app/agent/submission.py)).
+
 `_finish` can change an accepted candidate:
 
 1. For matching sequence questions with evidence, if the answer lacks confrontation or has fewer than three stages, gather a coverage hint and try synthesis. Adopt the rewrite only if it contains confrontation and increases the number of covered stages.
@@ -173,21 +205,25 @@ Keep network clients, callbacks, tracing handles, and other runtime resources ou
 - **Provider adapters:** Keep current Ollama and OpenAI request formatting and response normalization.
 - **Experiment scheduling:** Keep job scheduling separate from the graph for a single question.
 - **Caching and identity:** Distinguish any experimental graph implementation from baseline results so cached answers cannot conceal behavioral differences.
-- **Observability:** Preserve existing Langfuse observations and usage accounting while adding node-level visibility where useful.
+- **Observability:** Preserve existing traces, metrics, observations, and usage; expose actual graph nesting, timing, tool errors, and stop reasons in Langfuse, including preparation and finishing paths.
 
-## Suggested implementation sequence for later approval // there's no "later" we are implementing everything now in steps. so we shouldn't mention a "later" version or a "future" milestone. All the milestones will be completed step by step once we start.
+## Migration review requirements
 
-1. Capture baseline transition tests and representative experiment results. // Work only on one single questio when migrating, to check something, make a smoke test, or test the graph, do not run several questions. This is to save time. If you see a fail or error, fix it before you run all the dataset. Go incremental. If one question successfully answered without errors or correctness regression, then go to the second one. If an unmanagable mistake happens, ask it to the developer, make sure it is noticed, and in the meantime you can work on the following work if there is. If it is a blocker, make noise to get answer, use/create HUMANS.md file to dump your question. Only for important blockers.
-2. Extract preparation, one model turn, tool processing, text-answer review, and finalization into callable boundaries without changing their behavior.
-3. Connect those boundaries with a custom graph and explicit routing decisions.
-4. Compare the graph against the existing runner using the same inputs and mocked model/tool responses; then compare real evaluation results.
-// The tree structure, timeline, and the graph should be well reflected in the LangFuse traces and observable. It should match the actual implementation of the pipeline.
-5. Only after parity, decide whether checkpointing, smaller nodes, human review, or parallel work justifies additional complexity.
+The agreed high-level flow belongs to one v2.17 migration; these are review stages, with the detailed implementation plan to follow after scope agreement:
 
-Acceptance should cover citation validity, verification failures, name correction, tool errors, multiple calls in one reply, all budget exits, conversation handoff, output fields, and usage reporting. Real-model comparisons should also assess answer quality, latency, and cost; exact textual equality is not sufficient or always realistic.
+1. Identify the fixed acceptance questions and their existing recorded baseline results.
+2. Define preparation, model turn, sequential tool processing, answer review, and final-answer preparation as explicit boundaries.
+3. Express their current transitions in the graph, including both provider adapters and agreed scope changes.
+4. Validate behavior and observability incrementally, one question at a time, then assess the agreed sample against quality and latency criteria.
+5. Complete the agreed scope and acceptance checks within v2.17, resolving remaining review decisions before implementation planning.
 
-**Recommended first milestone:** a graph that makes v2.16's decisions visible while preserving existing behavior. Multi-agent delegation, new reasoning strategies, parallel tool execution, and durable recovery remain separate follow-up decisions. // do not mention the things we didn't talk, do not pollute our context. Focus on what we are building right now and what we are migrating right now. There is no a "future version" or a separate milestone that'll be implemented in an unknown time. We will create the milestones and all of them will be implemented as we start.
+Agree the scope and acceptance here before writing an implementation sequence; all agreed work belongs to the v2.17 migration.
 
+- Use the existing recorded v2.16 baselines and the 10-question acceptance sample defined in [the assessment](langgraph-refactor-assessment.md).
+- During migration validation, advance one question at a time only after errors and correctness regressions are resolved; retain up to two reruns for regression diagnosis.
+- Preserve Langfuse traces, measurements, and usage; graph hierarchy and timeline must match executed steps, including preparation and finishing.
+- Notify the developer of important unresolved blockers and record the exact question and evidence in `HUMANS.md`; continue independent work where possible.
+- Preserve both provider adapters and sequential tool execution; remove the unused early-stop option from the agreed target scope.
 
 ## Validation record
 
@@ -206,10 +242,9 @@ Corrections from validation: conditional submission verification, post-verificat
 
 This is source-level validation supported by existing tests. No LangGraph implementation exists to test for parity, no live model experiment was run, and these tests do not establish exhaustive branch coverage. The proposed node boundaries remain design choices. Future parity tests should specifically cover empty-ID submission, rewritten answers, rejected submissions followed by additional calls, and failure propagation.
 
+## Context-window assessment and agreed monitoring
 
-## Context-window assessment and required design addition
-
-Measured on 2026-11-25. The earlier proposal preserved compaction but did not establish that prompts fit the local model. Context budgeting must be a separate acceptance requirement; adopting a graph does not solve it automatically.
+Measured on 2026-11-25. The earlier proposal preserved compaction but did not establish that prompts fit the local model. Context usage must be observed during acceptance; adopting a graph does not solve it automatically.
 
 ### Corpus size
 
@@ -238,36 +273,31 @@ A conservative planning envelope is:
 - The system prompt alone measures 1,460 tokens; serialized tool-schema JSON measures 1,713. Together these consume about 3,173 tokens before question, history, evidence, or actual provider template overhead.
 - Approximately 10,587 tokens remain under that provisional allocation before accounting for those other inputs. This is not an evidence allowance or a measured final chat-template budget.
 
-The margin is a proposed starting point, not a validated optimum. Measure the actual deployed tokenizer/template and compare provider prompt-token usage before fixing thresholds. A model's advertised maximum context is not the configured request window.
+This envelope is illustrative, not a new runtime threshold; preserve current limits and observe provider prompt-token usage. A model's advertised maximum context is not the configured request window.
 
 ### Current limitations found in code
 
-- `_compact` triggers above 22,000 **content characters**, not tokens. It excludes tool schemas and structured tool-call arguments from its size calculation. // for all documentation, let's use one single unit for text size: tokens. use an approx. factor to convert. do not mention characters if not necessary, instead, use tokens whenever possible.
-- It replaces older tool messages but preserves the latest six regardless of their size. `_clip` permits about 9,000 characters per tool result: six recent results alone can approach 54,000 characters, before other prompt content.
+Preserve existing compaction behavior and monitor prompt usage in Langfuse; no new truncation, evidence selection, or context-limit policy is approved. Size estimates use approximately four source characters per token and are not tokenizer measurements.
+
+- `_compact` triggers above approximately 5,500 content tokens under the rough conversion, rather than a tokenizer count. It excludes tool schemas and structured tool-call arguments from its size calculation.
+
+- It replaces older tool messages but preserves the latest six regardless of their size. `_clip` permits approximately 2,250 tokens per tool result: six recent results alone can approach 13,500 tokens, before other prompt content.
 - It does not enforce a final size bound, and precheck messages added as user messages are not compacted by this mechanism.
-// as long as the grap migration doesn't change the behavior of the current pipeline we shouldn't have any problems with context limit because the current pipeline is already handling all the question sets with no problems regarding context limit. So this is something we should keep in mind but not necessarily take an action. Just we should watch it.
+
 - Compaction retains only up to eight IDs matching its specific JSON pattern per old result. Other IDs or decisive supporting/contradicting text can disappear from the model-visible conversation, although evidence remains in application state.
 - Main tool-selection calls compact history; verifier and synthesis calls build separate prompts and have no equivalent general token-budget guard.
 - The final handoff compacts history and then appends its instruction. It disallows model-selected tools, so an ID-only reminder cannot recover an omitted decisive passage at that stage.
 
-### Addition to the proposed architecture
+### Shared context and model input
 
-Separate **full evidence storage** from **the bounded context shown to the model**. Full passages and provenance can remain in application state or referenced storage; they should not all be serialized into every model request or checkpoint unnecessarily. // perfect idea, approved, mention what you will use as the storage, a db? a file? etc.
+Separate **full evidence storage** from **the bounded context shown to the model**. Full passages and provenance can remain in application state or referenced storage; they should not all be serialized into every model request or checkpoint unnecessarily.
 
-// what is the different between a "shared context" and "context-preparation boundary"? if they same, use "shared context" naming accross the document
-Introduce a shared context-preparation boundary immediately before every model call: tool selection, verification, synthesis, and conversation handoff. It should:
+Use the existing per-run in-memory `EvidenceState.evidence` dictionary for retrieved passage records and the existing Qdrant collection as the indexed source; no new database or file store is proposed ([evidence](../app/context/evidence.py)).
 
-// this can help with abbreviated hand-offs, such as a passage retrieved in a previous call but then redacted to it's ID during the handoff, and therefore the model misses important context. investigate potential benefit on this regard, and propose solution only if you are condfident abot 90%.
+Shared context means per-run evidence and conversation state; building model input means selecting and formatting what a specific call sees.
 
-1. Count the complete rendered input with the deployed model's tokenizer/template, including schemas and call arguments.
-2. Reserve output space and a safety margin.
-3. Preserve the original question, unresolved claims, selected supporting and contradicting passages, citation IDs, and valid tool-call/result relationships.
-4. Deduplicate repeated evidence and reduce low-priority older content until the request fits. Bound individual and aggregate tool-result payloads by tokens.
-5. Fail explicitly or choose a documented smaller evidence set if protected content cannot fit; do not rely on silent truncation.
-6. Record token counts before/after selection, removed passage IDs, and provider-reported prompt usage for evaluation. // basically record them and trace with LangFuse
+Preserve the exact v2.16 conversation handoff and current request construction; do not restore omitted passages, introduce a new evidence-selection policy, or add truncation rules during this migration. Full evidence remains in application state even when older model-visible tool results are compacted to IDs.
 
-For a small local model, prefer a compact task-specific evidence set over merely filling the available window. Start with deterministic evidence selection and existing retrieval provenance; an additional summarizer agent is not required. Any generated summary must retain links to original passages and must not become the sole basis for citations.
+Record available provider prompt usage and context measurements in Langfuse, linked to the exact model call. Observe context pressure without changing the model-visible input.
 
-**Migration boundary:** tokenize and measure first without changing requests. Enforcing new selection or inserting evidence into the v2.16 final handoff changes model-visible behavior and potentially the protected handoff fingerprint. Evaluate that as a separately identified pipeline change, after establishing orchestration parity; do not silently include it in a refactor labeled behavior-preserving.
-
-Required future checks include six large recent tool results, long prechecks, repeated passages, large verification inputs, and budget handoff where decisive contradictory evidence is old. Assert prompt fit and evidence preservation, then measure answer quality on real questions. No live generation or runtime truncation test was performed for this assessment.
+Context checks cover large recent tool results, long prechecks, repeated passages, verification inputs, and budget handoff with older evidence. The existing compaction has no strict token bound; no live generation or runtime truncation test was performed for this assessment.
