@@ -1,5 +1,5 @@
- Container millenium-app-run-6d62a63f9ef9 Creating 
- Container millenium-app-run-6d62a63f9ef9 Created 
+ Container millenium-app-run-6d62a63f9ef9 Creating
+ Container millenium-app-run-6d62a63f9ef9 Created
 Requirement already satisfied: langfuse==4.17.0 in /usr/local/lib/python3.12/site-packages (from -r app/requirements.txt (line 1)) (4.17.0)
 Requirement already satisfied: fastapi==0.120.0 in /usr/local/lib/python3.12/site-packages (from -r app/requirements.txt (line 2)) (0.120.0)
 Requirement already satisfied: uvicorn==0.38.0 in /usr/local/lib/python3.12/site-packages (from uvicorn[standard]==0.38.0->-r app/requirements.txt (line 3)) (0.38.0)
@@ -167,4 +167,3 @@ Traceback (most recent call last):
   File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
   File "<frozen importlib._bootstrap>", line 1324, in _find_and_load_unlocked
 ModuleNotFoundError: No module named 'app'
-

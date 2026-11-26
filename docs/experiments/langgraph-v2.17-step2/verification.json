@@ -27,14 +27,15 @@
   "model_generation_calls": 0,
   "step3_started": false,
   "artifact_sha256": {
-    "after-tests.log": "36bdb193db8d8893c646d789c3351e54b5716ff6b87dfa779f3c8f793fcf3353",
+    "after-tests.log": "33f07b55c25bcb84a36e690ce5be73ae9a79aebe05db6087903ed3645ab5834c",
     "base-image.txt": "c5957ca50a99a0c6f41ef10d6840a6782b01764dadbcab3f6444c8b811c55b87",
-    "before-tests.log": "448bd0d9e015e2b1631dc8b903a9b3b018966f6c3a11c33c7ffbb5948bedaf49",
-    "contract-tests.log": "8a0d8dc29bce136c0fbaf61a56be8fdaa9eb13afa1433c404218538c4fef1ba3",
-    "dependency-build.log": "7e17787469b681c4b241dff613bb3b2ed46f85844345899ef022b0ee07ccdcac",
+    "before-tests.log": "c2c08af0c8567a66132e213bd84e7d3d235319001e3c53f25e467a1180926a02",
+    "contract-tests.log": "fc3634d5593b14e9e571566cfb0762b3d2e706c62eac9bdcbeafe7c1f7fdc4b6",
+    "dependency-build.log": "aa2a9a5420f2779a8717d55b44603821c7366904f3b119b74d06088d6c687f56",
     "dependency-probe.json": "ab7d7c2f6dcdc1f9c3d798452eb25a6b4df00c8a90ed53e6b2410d192e49530d",
-    "initial-probe-path-error.log": "09c824c3e1f7fbb0de70dcc92a408cdc5d0c7baf29c856bbd174f8d2bd22c113",
+    "initial-probe-path-error.log": "74bdd94370d63fd474ee8512ae89ba7f6554c603de0e9922d596b44379df9eb8",
     "pip-install-report.json": "8744b28de6bbe517c96a9fc7da1916d87d909b71c7eee075811ad41598470319",
     "resolved-requirements.txt": "e3ba9edc27093219e72a1579c54472821fad6caedcd5b64b149ab50379bb7ee8"
-  }
+  },
+  "log_format": "Trailing whitespace and terminal empty lines normalized; substantive output unchanged."
 }

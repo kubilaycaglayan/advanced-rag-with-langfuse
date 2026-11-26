@@ -1,5 +1,5 @@
- Container millenium-app-run-5c3f91489444 Creating 
- Container millenium-app-run-5c3f91489444 Created 
+ Container millenium-app-run-5c3f91489444 Creating
+ Container millenium-app-run-5c3f91489444 Created
 test_answers_from_the_evidence_instead_of_abstaining (test_agent.AbstentionRecovery.test_answers_from_the_evidence_instead_of_abstaining) ... ok
 test_recognises_the_loops_abstention_wording (test_agent.AbstentionRecovery.test_recognises_the_loops_abstention_wording) ... ok
 test_finds_the_fact_that_names_both_people (test_agent.Connections.test_finds_the_fact_that_names_both_people) ... ok
