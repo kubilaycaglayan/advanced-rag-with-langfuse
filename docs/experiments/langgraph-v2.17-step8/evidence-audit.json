@@ -142,6 +142,97 @@
       "effective_correctness": 0.95
     },
     {
+      "label": "ollama-q02-a1",
+      "execution_id": "ab8c9923-e79e-409d-9810-998d4a830300",
+      "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df",
+      "managed_evaluators_equal_to_baseline": false,
+      "reviewed_tool_errors": [],
+      "manual_review": "Correct core false-premise correction but substantive unsupported additions: Gottfried called uncle despite E4 father; invented captivity/escape timing and plan to frame Henrik. Citation support0.5; judge correctness1.0 is insufficient. Not selected; diagnostic retry required. Trace execution itself clean.",
+      "score": 1.0,
+      "baseline_score": 1.0,
+      "latency_seconds": 59.88,
+      "baseline_latency_seconds": 34.3,
+      "artifact_sha256": {
+        "request.json": "f4cfd7831df209f09aefefb2f18b6e6adc1ad6836e4c3a2e5ca18a294a05baaf",
+        "manifest.json": "3106369f679637ee8a62ad3fe02f9879377f4140c73d67db6e2de554d69697d4",
+        "results.json": "86c304964a02b21d31358c9ed94cfc15b50ce4c72084eb00cf510b5572bf03a0",
+        "trace.json": "307eb0877f82602ba1d64a2e5651162049d968447af5ac7ac0fc78c1850070bd",
+        "review.json": "c868b5c622da74e1158cad1b1077b7f8587e386235e00fd86cb7308b7ac837d6"
+      },
+      "final_code_compatibility": "exact source",
+      "effective_correctness": 1.0
+    },
+    {
+      "label": "ollama-q02-a2",
+      "execution_id": "92a9c915-490a-464b-b33e-28ca3486449e",
+      "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df",
+      "managed_evaluators_equal_to_baseline": false,
+      "reviewed_tool_errors": [
+        {
+          "arguments": {
+            "answer": "Harriet Vanger was not killed; she was kidnapped by her uncle Martin Vanger on September 24, 1966. While it was officially reported that she drowned in the sea, she was actually held captive by Martin for many years before being rescued [555dc56c][0d4468bc].",
+            "passage_ids": [
+              "555dc56c",
+              "0d4468bc"
+            ]
+          },
+          "error": "investigate more before answering: at least 4 tool calls (you made 1); a passage that is only on topic is not evidence",
+          "result_ids": [],
+          "seconds": 0.0,
+          "tool": "submit_answer"
+        },
+        {
+          "arguments": {
+            "answer": "Harriet Vanger was not killed; she was kidnapped by her uncle Martin Vanger. The official account stated that Harriet drowned in the sea near Hedeby Island on September 24, 1966 [555dc56c]. However, it was later revealed that Harriet was actually alive and had been held captive by Martin for decades [0d4468bc]. Martin Vanger wanted to kill her because she knew about his crimes and planned to tell Henrik, but he arrived too late to do so [168a75d0].",
+            "passage_ids": [
+              "555dc56c",
+              "0d4468bc",
+              "168a75d0"
+            ]
+          },
+          "error": "investigate more before answering: at least 4 tool calls (you made 3); a passage that is only on topic is not evidence",
+          "result_ids": [],
+          "seconds": 0.0,
+          "tool": "submit_answer"
+        }
+      ],
+      "manual_review": "Substantive wrong additions despite correct alive premise: Martin called uncle and invented decades of captivity/rescue; official drowning account asserted. Trace completes with repeated rejected verifications and budget handoff. Not selected; last diagnostic retry required; scorer unchanged.",
+      "score": 0.925,
+      "baseline_score": 1.0,
+      "latency_seconds": 83.44,
+      "baseline_latency_seconds": 34.3,
+      "artifact_sha256": {
+        "request.json": "b61a28a186fb14f0145038d4ed6359a892252fa0300aad8d3a28a96d0108db91",
+        "manifest.json": "7a4e1914ab4b0f6c1136e1c35d2ae37bd6bb258e5e4d441010ec853ae038045f",
+        "results.json": "28e3d53d3720dd6153da558f0c58d3b78009af8c1e3de91435348ae236e7aaf2",
+        "trace.json": "3951ed8055b627dab94919824f4c62f9b3bb35a9ab62e5683155c5e620d5a335",
+        "review.json": "6aed6327bd74ffbd24019fe6eb078afc8e6e333953dfd4bc92ea824b24205934"
+      },
+      "final_code_compatibility": "exact source",
+      "effective_correctness": 0.925
+    },
+    {
+      "label": "ollama-q02-a3",
+      "execution_id": "f9771118-4418-4148-bb0b-52a4f3369b8d",
+      "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df",
+      "managed_evaluators_equal_to_baseline": false,
+      "reviewed_tool_errors": [],
+      "manual_review": "Substantive false captivity narrative: says Martin held Harriet for decades while E3 explicitly says he did not know what happened to his sister. Correct alive premise does not excuse unsupported additions. All three diagnostic attempts exhausted; no trace execution error. Gate requires substantive-failure decision, not evaluator-variance authorization.",
+      "score": 0.95,
+      "baseline_score": 1.0,
+      "latency_seconds": 67.28,
+      "baseline_latency_seconds": 34.3,
+      "artifact_sha256": {
+        "request.json": "a58ff81cfaa64c2d940093ff0ab9346070f334ab47cd5b50c7c5ca56d7b59f59",
+        "manifest.json": "bbdb43d26347801aefb48d1c092efe37ececed1a3cbe725572254f92b1a4ca59",
+        "results.json": "bf56e549c88df7d3ab9a41fd5d3c00e76ea339a6e0575b9a128a7509cef32f2e",
+        "trace.json": "ddefc84b70cbd2c67bd726329c5159eb594ead80b97ebe5a35004ed20709a458",
+        "review.json": "3b5787bbfbed6057de65c1050fec2029739acaf689d3536dd2e9b255bf57122e"
+      },
+      "final_code_compatibility": "exact source",
+      "effective_correctness": 0.95
+    },
+    {
       "label": "openai-q01-a1",
       "execution_id": "587da288-117a-4e71-a986-7ab479a47dba",
       "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027",

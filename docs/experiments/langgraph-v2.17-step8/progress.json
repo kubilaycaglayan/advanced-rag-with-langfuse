@@ -1,6 +1,6 @@
 {
   "step": 8,
-  "status": "in_progress",
+  "status": "awaiting_local_harriet_substantive_failure_decision",
   "selected_attempts": {
     "openai-q01": "openai-q01-a1",
     "openai-q02": "openai-q02-a1",
@@ -12,9 +12,10 @@
     "openai-q08": "openai-q08-a3",
     "openai-q09": "openai-q09-a1",
     "openai-q10": "openai-q10-a2",
-    "ollama-q01": "ollama-q01-a2"
+    "ollama-q01": "ollama-q01-a2",
+    "ollama-q02": "ollama-q02-a1"
   },
-  "selection_note": "Ollama Q1 attempt2 provisionally selected as earliest best-score tie (0.95, 33.21 seconds). Factory uses approved final rescore artifact. Other scorers unchanged.",
+  "selection_note": "Local Harriet attempt1 has highest recorded correctness1.0, provisionally retained with its own59.88-second latency, but manual review rejects unsupported claims. No attempt accepted; substantive-failure gate unresolved. Scores unchanged.",
   "attempts": [
     {
       "label": "ollama-q01-a1",
@@ -49,6 +50,13 @@
       "correctness": 0.925,
       "latency_seconds": 83.44,
       "execution_id": "92a9c915-490a-464b-b33e-28ca3486449e",
+      "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df"
+    },
+    {
+      "label": "ollama-q02-a3",
+      "correctness": 0.95,
+      "latency_seconds": 67.28,
+      "execution_id": "f9771118-4418-4148-bb0b-52a4f3369b8d",
       "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df"
     },
     {
@@ -185,7 +193,7 @@
       "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df"
     }
   ],
-  "remaining_question_provider_pairs": 9,
+  "remaining_question_provider_pairs": 8,
   "live_default_changed": false,
   "step9_started": false,
   "gate_decisions": {

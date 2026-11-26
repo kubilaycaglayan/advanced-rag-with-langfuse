@@ -45,3 +45,13 @@ Ollama Q1 exhausted three permitted attempts: correctness 0.90/0.95/0.95 versus 
 Required decision: authorize recording this and similarly verified evaluator-only discrepancies while continuing, leaving all other scorers unchanged and still stopping for execution errors or substantive wrong answers; or retain separate serial gating for each. Developer asked in chat. Historical scores and all attempts remain intact; no additional generation allowed for Q1 under the three-attempt rule.
 
 Evidence: frozen Step 1 questions[0].baselines.ollama and retained Step 8 ollama-q01-a1/a2/a3 results, manifests, traces and reviews. Step 8 remains incomplete.
+
+## Step 8: substantive local Harriet hallucinations despite high judge scores
+
+Status: awaiting developer decision, 2026-11-26. Ollama Q3–Q10 remain unstarted. This is outside the authorization for verified evaluator-only discrepancies.
+
+Ollama Q2 exhausted all three permitted attempts: correctness 1.0/0.925/0.95; latencies 59.88/83.44/67.28 seconds. Every answer correctly says Harriet is alive but adds materially false unsupported details. Attempt 1 calls Gottfried her uncle and invents a plan to frame Henrik. Attempt 2 says Martin was her uncle and held her captive for decades. Attempt 3 says Martin imprisoned her for decades until her later escape/rescue, although its E3 explicitly says he did not know what had happened to his sister. Citation support is 0.5. The correctness judge's high scores do not establish factual acceptance. All graph executions and trace checks complete; attempts 1/2 reach budget handoff and attempt3 passes the existing conditional verification/text route. No supported orchestration mismatch was identified, and prompts/verification/evidence-selection policies remain preserved.
+
+Required decision: authorize recording this substantive validation failure and continuing the remaining eight local questions, or investigate changes to preserved answering behavior. Developer notified in chat. No fourth generation attempt is allowed under the existing three-attempt agreement. Provisionally retain attempt1 as highest numeric correctness with its own latency, but do not mark it factually accepted or hide the failure behind aggregate correctness.
+
+Evidence: retained Step 8 ollama-q02-a1/a2/a3 results, manifests, live traces and manual reviews; especially attempt3 output.evidence E3 versus output.answer. Historical local baseline/model/evaluator differences remain as recorded in Step1. Step8 is incomplete; Step9 and deployment have not started.
