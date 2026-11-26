@@ -15,3 +15,9 @@ OpenAI Q2 attempt 1: correctness 0.95 versus 0.975; citation support 1.0; correc
 The first OpenAI manifest's evaluator differs from its historical evaluator only in code_fingerprint and derived evaluator_id; all managed definitions are identical. This distinction stays visible in retained manifests. The historical local fallback/model/evaluator differences from Step 1 remain applicable.
 
 The retained manifests record exact Git revisions and dirty flags. Documentation and evidence commits during validation do not alter the pipeline source fingerprint. Acceptance evidence must use one unchanged executable source/configuration; any executable change requires superseding affected results.
+
+## Serial gate pending
+
+All three permitted OpenAI Q2 attempts completed at 0.95, below the historical 0.975. No later pair was started. See the decision request in HUMANS.md and the exact attempt selection/progress in progress.json. Step 8 is incomplete pending that decision and the remaining 18 pairs.
+
+A read-only evidence audit verifies all four retained attempts against the fixed sample: exact question/item selection, fresh bypass mode, execution/trace identity, no item/evaluator/telemetry/tool errors, one shared executable source fingerprint, one finalization per run, and actual start/end containment of each observation in its parent. All managed evaluator definitions equal their OpenAI historical definitions. The audit preserves per-artifact hashes and per-attempt score/latency without changing baselines or calculating Step 9 aggregate acceptance. Reproduce with `python scripts/langgraph_audit_live_evidence.py`; evidence-audit.json is its saved output.

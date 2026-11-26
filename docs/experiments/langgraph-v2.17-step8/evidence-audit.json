@@ -1,0 +1,74 @@
+{
+  "scope": "Retained attempts only; not full Step 8 completion or Step 9 acceptance",
+  "checks": "single-item/cache/source/identity/tool-errors/trace-parent-timing/single-finalization",
+  "attempts": [
+    {
+      "label": "openai-q01-a1",
+      "execution_id": "587da288-117a-4e71-a986-7ab479a47dba",
+      "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027",
+      "managed_evaluators_equal_to_baseline": true,
+      "score": 0.95,
+      "baseline_score": 0.9,
+      "latency_seconds": 18.59,
+      "baseline_latency_seconds": 16.09,
+      "artifact_sha256": {
+        "request.json": "aa040abfaae719ee621e95272b825ab97487d004d91356427ba8b767c9c160d5",
+        "manifest.json": "33bd7da1975aa4a048cbefe88d8bd8664311fb39f848cd74c92cbf3370d85196",
+        "results.json": "579dcd0fc795b26eba3a859063988218d349a7336647674715706f70706dc9b6",
+        "trace.json": "e49af6c11757fa99fda44d504bf31da0dd19c539ec95eb3affe8db61b3b8fea6",
+        "review.json": "7914322d19eef6c51d3c5b4defc66018f1f932c0f0898349ef85105c6dd836aa"
+      }
+    },
+    {
+      "label": "openai-q02-a1",
+      "execution_id": "785b03fb-1594-4626-a7f4-e083ffcb99d8",
+      "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027",
+      "managed_evaluators_equal_to_baseline": true,
+      "score": 0.95,
+      "baseline_score": 0.975,
+      "latency_seconds": 18.24,
+      "baseline_latency_seconds": 18.95,
+      "artifact_sha256": {
+        "request.json": "cbcde8e03e91785655058dc594515c86f69be8a59c012bce55e1bd3cc934043d",
+        "manifest.json": "341f4bedee6c40d075eafc451ca99adfa19f32aa29080009e16c60d145d26dfa",
+        "results.json": "fe287e2bd04c59a66ee536b5df9d40c1fe69ed79eb27fb3c7031bf4df06992e0",
+        "trace.json": "44bbe7f70499c07b75edbbbd9bc2db713265085f6fa030632f45735114a102d5",
+        "review.json": "447eef7d4eab57347099fd690a8263f8a6b978f30e8df3af227527db98e533da"
+      }
+    },
+    {
+      "label": "openai-q02-a2",
+      "execution_id": "a756186b-8110-4040-a4cd-82dfddaf8891",
+      "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027",
+      "managed_evaluators_equal_to_baseline": true,
+      "score": 0.95,
+      "baseline_score": 0.975,
+      "latency_seconds": 38.67,
+      "baseline_latency_seconds": 18.95,
+      "artifact_sha256": {
+        "request.json": "74734dcfe7da4a03ce1158e41cf19f15934f91cdde53acdbad3611c6eb0b7220",
+        "manifest.json": "2b34019ccf8b1d6a93fdc9bb04d400ac7ceb08a2eca7f80a62d0e2dc4468e21a",
+        "results.json": "633755785c5d82be018a77caeec449841366082d1f262ea3f45b2a6f73167686",
+        "trace.json": "37b4f568f070d168911aa614aadc413f73b4fda74722350dc62ad62013e4ee3e",
+        "review.json": "fab93f427278d534bcc3f1ad9ab9dc2c968e189186f4a2602bc193b144f9cfef"
+      }
+    },
+    {
+      "label": "openai-q02-a3",
+      "execution_id": "1d0277ef-fbd2-47c7-aceb-ba7691003c20",
+      "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027",
+      "managed_evaluators_equal_to_baseline": true,
+      "score": 0.95,
+      "baseline_score": 0.975,
+      "latency_seconds": 22.43,
+      "baseline_latency_seconds": 18.95,
+      "artifact_sha256": {
+        "request.json": "4a33b8614725f3641097abe72348dab4c2ec52b3f64b8534dc4b8d51d8275094",
+        "manifest.json": "474f6cfa7e8f330667c086d3db38a33e2240d7401c65d1e352887840d8be7d0a",
+        "results.json": "3ec297c380bd2d68ac8fec3f777a4ca374bb21aa1be28039adc724ff7a3a7594",
+        "trace.json": "422308c13be233271c5f5cb45730de0fe86d3410f185674a744a543f6db857aa",
+        "review.json": "f22c4d90270a48f9d05598720ce76160765d6001bc272d09af94334798758aff"
+      }
+    }
+  ]
+}
