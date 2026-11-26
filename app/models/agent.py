@@ -1,6 +1,7 @@
 """models / agent responsibilities."""
 from __future__ import annotations
 
+from app.settings_definitions import runtime_limits
 from app.agent.state import AgentSettings
 from app.agent.state import AgentState
 from app.context.conversation import _compact
@@ -25,7 +26,7 @@ def _ollama_chat(messages: list[dict[str, Any]], tools: list[dict[str, Any]] | N
     if tools:
         payload["tools"] = tools
         _compact(messages)
-    response = requests.post(base + "/api/chat", json=payload, timeout=(10, 900))
+    response = requests.post(base + "/api/chat", json=payload, timeout=(runtime_limits().http_connect_seconds, runtime_limits().ollama_read_seconds))
     response.raise_for_status()
     return response.json()
 
@@ -74,7 +75,7 @@ def _agent_chat(messages: list[dict[str, Any]], tools: list[dict[str, Any]] | No
                                 for tool in tools]
             payload["tool_choice"] = "auto"
         response = requests.post("https://api.openai.com/v1/responses", json=payload,
-                                 headers={"Authorization": f"Bearer {api_key}"}, timeout=(10, 300))
+                                 headers={"Authorization": f"Bearer {api_key}"}, timeout=(runtime_limits().http_connect_seconds, runtime_limits().openai_responses_read_seconds))
         if not response.ok:
             try:
                 detail = (response.json().get("error") or {}).get("message")
@@ -132,7 +133,7 @@ def _agent_chat(messages: list[dict[str, Any]], tools: list[dict[str, Any]] | No
         payload["tools"] = tools
         payload["tool_choice"] = "auto"
     response = requests.post("https://api.openai.com/v1/chat/completions", json=payload,
-                             headers={"Authorization": f"Bearer {api_key}"}, timeout=(10, 180))
+                             headers={"Authorization": f"Bearer {api_key}"}, timeout=(runtime_limits().http_connect_seconds, runtime_limits().openai_chat_read_seconds))
     if not response.ok:
         try:
             detail = (response.json().get("error") or {}).get("message")

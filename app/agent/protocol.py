@@ -1,12 +1,14 @@
 """agent / protocol responsibilities."""
 from __future__ import annotations
 
+from app.settings_definitions import runtime_limits
 from typing import Any
 import json
 import re
 
 
-def _clip(payload: Any, limit: int = 9000) -> str:
+def _clip(payload: Any, limit: int | None = None) -> str:
+    limit = runtime_limits().tool_result_chars if limit is None else limit
     text = json.dumps(payload, ensure_ascii=False)
     if len(text) <= limit:
         return text

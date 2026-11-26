@@ -15,6 +15,7 @@ from app.agent.prompts import SYSTEM_PROMPT
 from app.agent.protocol import _clip
 from app.agent.protocol import _parse_text_tool
 from app.agent.schemas import _tool_specs
+from app.settings_definitions import runtime_limits
 from app.agent.state import AgentSettings
 from app.agent.state import AgentState
 from app.agent.submission import _answer_key
@@ -157,7 +158,7 @@ def run_agent(question: str, collection: str, config: ResolvedPipelineConfig | N
                     messages.append({"role": "assistant", "content": content})
                     messages.append({"role": "user", "content": "That central answer was already rejected. Resolve the contradiction or give a different, supported answer."})
                     continue
-                if state.tool_calls < state.settings.min_tool_calls and state.nudges < 2:
+                if state.tool_calls < state.settings.min_tool_calls and state.nudges < runtime_limits().nudge_limit:
                     state.nudges += 1
                     messages.append({"role": "assistant", "content": content})
                     messages.append({"role": "user", "content": (
@@ -189,7 +190,7 @@ def run_agent(question: str, collection: str, config: ResolvedPipelineConfig | N
                             "error": "the answer is not supported by the cited passages", "reason": reason,
                             "note": "search again: find a passage that names the person and states the answer, then submit"})})
                         continue
-                if not ids and state.nudges < 2:
+                if not ids and state.nudges < runtime_limits().nudge_limit:
                     state.nudges += 1
                     messages.append({"role": "assistant", "content": content})
                     messages.append({"role": "user", "content": (

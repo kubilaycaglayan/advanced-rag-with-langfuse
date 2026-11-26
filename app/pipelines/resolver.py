@@ -10,11 +10,15 @@ from typing import Any, Mapping
 from app.corpus_config import corpus_config, corpus_id
 from app.corpus_profiles import profile_identity, prompt_identity
 from app.agent.state import AgentSettings
+from app.settings_definitions import validate_agent_value
 from app.agent.instructions import instruction_fingerprint
 from app.agent.schemas import tool_names
 from app.identity import canonical_json
 from app.pipelines.catalog import PipelineCatalog, load_catalog
 from app.pipelines.config import ResolvedPipelineConfig
+
+# Historical omission in the released catalog, not a moving current default.
+RELEASED_AGENT_FALLBACKS = {"v2.16": {"reasoning_effort": "none"}}
 
 IDENTITY_KEYS = {"corpus_checksum", "prompt_hashes", "engine", "pipeline", "agent", "index", "prompts", "models"}
 
@@ -103,54 +107,46 @@ def resolve(pipeline: str | None = None, overrides: Mapping[str, Any] | None = N
     config = ResolvedPipelineConfig.from_mapping(values, use_environment=False)
     agent_values = {key: value for key, value in block["agent"].items()
                     if key not in {"tools", "instruction_fingerprint", "conversation_handoff_fingerprint"}}
-    agent_settings = AgentSettings(**agent_values)
+    agent_settings = AgentSettings(**{**RELEASED_AGENT_FALLBACKS.get(version, {}), **agent_values})
     expected_handoff = block["agent"].get("conversation_handoff_fingerprint")
     actual_handoff = hashlib.sha256((Path(__file__).resolve().parents[1] / "context" / "agent_final_handoff.py").read_bytes()).hexdigest()
     if expected_handoff != actual_handoff:
         raise ValueError(f"{version}: conversation handoff differs from its pinned fingerprint")
     if agent_provider is not None:
-        if agent_provider not in ("ollama", "openai"):
-            raise ValueError("agent_provider must be ollama or openai")
+        validate_agent_value("provider", agent_provider)
         model = "gpt-6-luna" if agent_provider == "openai" else block["agent"]["model"]
         agent_settings = AgentSettings(**{**agent_settings.__dict__,
                                           "provider": agent_provider, "model": model})
     if agent_model is not None:
-        if not isinstance(agent_model, str) or not agent_model.strip():
-            raise ValueError("agent_model must be a non-empty string")
+        validate_agent_value("model", agent_model)
         if agent_settings.provider != "ollama":
             raise ValueError("agent_model can only be set for the ollama provider")
         agent_settings = AgentSettings(**{**agent_settings.__dict__, "model": agent_model.strip()})
     if agent_think is not None:
-        if not isinstance(agent_think, bool):
-            raise ValueError("agent_think must be a boolean")
+        validate_agent_value("think", agent_think)
         if agent_settings.provider != "ollama":
             raise ValueError("agent_think can only be set for the ollama provider")
         agent_settings = AgentSettings(**{**agent_settings.__dict__, "think": agent_think})
     if agent_context_length is not None:
-        if type(agent_context_length) is not int or agent_context_length < 1:
-            raise ValueError("agent_context_length must be a positive integer")
+        validate_agent_value("context_length", agent_context_length)
         if agent_settings.provider != "ollama":
             raise ValueError("agent_context_length can only be set for the ollama provider")
         agent_settings = AgentSettings(**{**agent_settings.__dict__,
                                           "context_length": agent_context_length})
     if "automatic_scene_search" in overrides:
-        if not isinstance(overrides["automatic_scene_search"], bool):
-            raise ValueError("automatic_scene_search must be a boolean")
+        validate_agent_value("initial_scene_probe", overrides["automatic_scene_search"])
         agent_settings = AgentSettings(**{**agent_settings.__dict__,
                                           "initial_scene_probe": overrides["automatic_scene_search"]})
     if scene_candidate_count is not None:
-        if type(scene_candidate_count) is not int or not 1 <= scene_candidate_count <= 100:
-            raise ValueError("scene_candidate_count must be an integer from 1 to 100")
+        validate_agent_value("scene_candidate_count", scene_candidate_count)
         agent_settings = AgentSettings(**{**agent_settings.__dict__,
                                           "scene_candidate_count": scene_candidate_count})
     if premise_early_stop is not None:
-        if not isinstance(premise_early_stop, bool):
-            raise ValueError("premise_early_stop must be a boolean")
+        validate_agent_value("premise_early_stop", premise_early_stop)
         agent_settings = AgentSettings(**{**agent_settings.__dict__,
                                           "premise_early_stop": premise_early_stop})
     if agent_effort is not None:
-        if agent_effort not in {"none", "low", "medium", "high", "xhigh", "max"}:
-            raise ValueError("agent_reasoning_effort must be none, low, medium, high, xhigh, or max")
+        validate_agent_value("reasoning_effort", agent_effort)
         agent_settings = AgentSettings(**{**agent_settings.__dict__, "reasoning_effort": agent_effort})
     if block["agent"]["tools"] != tool_names():
         raise ValueError(f"{version}: agent tool catalog differs from released version")
