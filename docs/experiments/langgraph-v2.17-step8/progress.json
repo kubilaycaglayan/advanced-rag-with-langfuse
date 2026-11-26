@@ -1,11 +1,11 @@
 {
   "step": 8,
-  "status": "awaiting_gate_decision",
+  "status": "in_progress",
   "selected_attempts": {
     "openai-q01": "openai-q01-a1",
     "openai-q02": "openai-q02-a1"
   },
-  "selection_note": "All Q2 attempts tie on correctness; earliest is retained. Correctness and latency use that same actual attempt. Q2 remains unresolved pending developer decision.",
+  "selection_note": "All Q2 attempts tie on correctness; earliest retained with its own latency. Developer resolved the Q2 gate as evaluator variance.",
   "attempts": [
     {
       "label": "openai-q01-a1",
@@ -38,5 +38,8 @@
   ],
   "remaining_question_provider_pairs": 18,
   "live_default_changed": false,
-  "step9_started": false
+  "step9_started": false,
+  "gate_decisions": {
+    "openai-q02": "Developer authorized treating 0.025 score difference as evaluator variance and continuing; historical baseline unchanged."
+  }
 }

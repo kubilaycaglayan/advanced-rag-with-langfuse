@@ -2,7 +2,7 @@
 
 ## Step 8: Harriet correctness gate after all three permitted attempts
 
-Status: awaiting developer decision, 2026-11-26. No later question/provider pair has been started.
+Status: resolved by developer on 2026-11-26: “yes, go on” authorizes treating this 0.025 difference as evaluator variance and continuing the fixed sample. Historical scores and all attempt records remain unchanged.
 
 The roadmap requires advancing only after the preceding item has no unresolved execution error or correctness regression. OpenAI question 2 (QA.csv, a6ee3143-428c-5d8e-8d8e-d131dc92ac54, “Who killed Harriet?”) scored 0.95 in each of three fresh attempts, compared with the frozen recorded 0.975. The rerun allowance is exhausted. Each answer correctly says she survived; citation support is 1.0 and no tool/telemetry/trace structure errors were found. All attempts share executable source fingerprint e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027.
 
