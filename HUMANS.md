@@ -38,7 +38,7 @@ Evidence: Step 8 openai-q09-a1/a2/a3 results, manifests, traces and reviews, fro
 
 ## Step 8: local mathematics-book evaluator discrepancy
 
-Status: awaiting developer decision, 2026-11-26. Factory scorer correction and OpenAI speech execution fix are complete; all 10 OpenAI pairs have selected results. Ollama Q2–Q10 remain unstarted.
+Status: resolved by developer on 2026-11-26: “record and cont” authorizes recording this and similarly verified evaluator-only discrepancies while continuing, leaving other scorers unchanged and still stopping for execution errors or substantive wrong answers.
 
 Ollama Q1 exhausted three permitted attempts: correctness 0.90/0.95/0.95 versus recorded local fallback 1.0. Attempt 2 is provisionally selected as the earliest best-score tie, with its own 33.21-second latency. The answers correctly identify Dimensions in Mathematics and describe memorization/carrying. The older local baseline uses qwen3:8b and evaluator version 1; its saved score credits L.C. Young even though its saved answer names no author. Current evaluator version 2 scores author/publication supporting details; no rubric or scorer for this question was changed. All three executions and traces complete normally after expected submission rejections.
 

@@ -1,6 +1,6 @@
 {
   "step": 8,
-  "status": "awaiting_local_book_evaluator_gate",
+  "status": "in_progress",
   "selected_attempts": {
     "openai-q01": "openai-q01-a1",
     "openai-q02": "openai-q02-a1",
@@ -177,7 +177,8 @@
   "gate_decisions": {
     "openai-q02": "Developer authorized treating 0.025 score difference as evaluator variance and continuing; historical baseline unchanged.",
     "openai-q06": "Developer authorized recording the 0.0333 difference as an evaluator discrepancy and continuing.",
-    "openai-q09": "Developer approved current answer and requested a question-specific scorer correction. Final live rubric rescore: attempts 1/3=1.0, scene-confused attempt2=0.5. Select attempt1 with original latency; source results preserved."
+    "openai-q09": "Developer approved current answer and requested a question-specific scorer correction. Final live rubric rescore: attempts 1/3=1.0, scene-confused attempt2=0.5. Select attempt1 with original latency; source results preserved.",
+    "ollama-q01": "Developer authorized recording this and similarly verified evaluator-only discrepancies while continuing; no other scorer changes; substantive wrong answers/execution errors remain gated."
   },
   "effective_correctness_overrides": {
     "openai-q09-a1": {
