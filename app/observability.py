@@ -5,6 +5,7 @@ from contextlib import contextmanager, nullcontext
 from contextvars import ContextVar
 import logging
 import os
+import sys
 from typing import Any, Iterator
 
 logger = logging.getLogger(__name__)
@@ -44,40 +45,52 @@ def use_client(client: Any) -> Iterator[None]:
 
 
 @contextmanager
+def _safe_context(context: Any) -> Iterator[Any | None]:
+    """Enter/exit telemetry separately from application work; never suppress work errors."""
+    try:
+        handle = context.__enter__()
+    except Exception:
+        logger.debug("Langfuse context entry failed", exc_info=True)
+        yield None
+        return
+    try:
+        yield handle
+    except BaseException:
+        exception = sys.exc_info()
+        try:
+            context.__exit__(*exception)
+        except Exception:
+            logger.debug("Langfuse context cleanup failed", exc_info=True)
+        raise
+    else:
+        try:
+            context.__exit__(None, None, None)
+        except Exception:
+            logger.debug("Langfuse context exit failed", exc_info=True)
+
+
+@contextmanager
 def trace_scope(**attributes: Any) -> Iterator[None]:
-    """Attach Langfuse trace attributes when configured; otherwise keep the request local."""
+    """Attach trace attributes without letting telemetry skip or suppress work."""
+    context = nullcontext(None)
     try:
         from app.corpus_profiles import langfuse_enabled
-        if not langfuse_enabled():
-            yield
-            return
-        from langfuse import propagate_attributes
-        scope = propagate_attributes(**pack_scope_attributes(attributes))
+        if langfuse_enabled():
+            from langfuse import propagate_attributes
+            context = propagate_attributes(**pack_scope_attributes(attributes))
     except Exception:
+        logger.debug("Langfuse trace scope setup failed", exc_info=True)
+    with _safe_context(context):
         yield
-        return
-    body_failed = False
-    try:
-        with scope:
-            try:
-                yield
-            except BaseException:
-                body_failed = True
-                raise
-    except Exception:
-        if body_failed:
-            raise
-        logger.debug("Langfuse trace scope failed", exc_info=True)
 
 
 @contextmanager
 def observation(name: str, *, as_type: str = "span", input: Any = None,
                 model: str | None = None, prompt: Any = None, metadata: dict[str, Any] | None = None) -> Iterator[Any | None]:
+    context = nullcontext(None)
     try:
         from app.corpus_profiles import langfuse_enabled
-        if not langfuse_enabled():
-            context = nullcontext(None)
-        else:
+        if langfuse_enabled():
             client = _client_context.get()
             if client is None:
                 from langfuse import get_client
@@ -85,19 +98,13 @@ def observation(name: str, *, as_type: str = "span", input: Any = None,
             context = client.start_as_current_observation(as_type=as_type, name=name,
                                                           input=input, model=model, metadata=metadata, prompt=prompt)
     except Exception:
-        context = nullcontext(None)
-    body_failed = False
-    try:
-        with context as obs:
-            try:
-                yield obs
-            except BaseException:
-                body_failed = True
-                raise
-    except Exception:
-        if body_failed:
+        logger.debug("Langfuse observation setup failed", exc_info=True)
+    with _safe_context(context) as obs:
+        try:
+            yield obs
+        except BaseException as exc:
+            update(obs, level="ERROR", status_message=f"{type(exc).__name__}: {exc}")
             raise
-        # Observability setup or flush issues must not change interactive answers.
 
 
 def update(observation: Any | None, **fields: Any) -> None:
