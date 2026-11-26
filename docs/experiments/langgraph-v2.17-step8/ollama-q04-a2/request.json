@@ -1,0 +1,15 @@
+{
+  "cache_layers": null,
+  "cache_mode": "bypass",
+  "correctness_evaluator": "answer_correctness_v2",
+  "dataset_name": "set3",
+  "dataset_version": null,
+  "item_ids": [
+    "ce841aab-a26b-512b-8fa9-ba28cf3b0f20"
+  ],
+  "pipeline": "v2.17",
+  "settings": {
+    "agent_provider": "ollama"
+  },
+  "variant_label": "langgraph-step8-ollama-q04-a2"
+}
