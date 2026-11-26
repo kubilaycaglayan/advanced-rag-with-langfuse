@@ -1,6 +1,6 @@
 {
   "step": 8,
-  "status": "awaiting_summary_gate_decision",
+  "status": "in_progress",
   "selected_attempts": {
     "openai-q01": "openai-q01-a1",
     "openai-q02": "openai-q02-a1",
@@ -9,7 +9,7 @@
     "openai-q05": "openai-q05-a1",
     "openai-q06": "openai-q06-a1"
   },
-  "selection_note": "Q6 attempt 1 selected provisionally as best correctness; historical supporting-fact discrepancy requires developer decision. All attempt scores/latencies retained.",
+  "selection_note": "Q6 attempt 1 selected as best correctness with its own latency. Developer resolved the supporting-fact discrepancy.",
   "attempts": [
     {
       "label": "openai-q01-a1",
@@ -86,6 +86,7 @@
   "live_default_changed": false,
   "step9_started": false,
   "gate_decisions": {
-    "openai-q02": "Developer authorized treating 0.025 score difference as evaluator variance and continuing; historical baseline unchanged."
+    "openai-q02": "Developer authorized treating 0.025 score difference as evaluator variance and continuing; historical baseline unchanged.",
+    "openai-q06": "Developer authorized recording the 0.0333 difference as an evaluator discrepancy and continuing."
   }
 }

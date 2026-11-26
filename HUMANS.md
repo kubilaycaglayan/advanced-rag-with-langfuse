@@ -14,7 +14,7 @@ Evidence: docs/experiments/langgraph-v2.17-step1/comparison-manifest.json, quest
 
 ## Step 8: first-book summary supporting-fact discrepancy
 
-Status: awaiting developer decision, 2026-11-26. No question after OpenAI Q6 has started.
+Status: resolved by developer on 2026-11-26: “record and continue” authorizes recording the best attempt’s 0.0333 gap as an evaluator discrepancy and continuing. Historical scores and all attempt records remain unchanged.
 
 OpenAI Q6 (right-set-3, 87382e52-ad6e-5336-9aa1-1b0d29cfc8ed) exhausted three permitted attempts: 0.60 / 49.82 seconds; 0.45 / 37.48 seconds; 0.3333 / 41.25 seconds. Historical correctness is 0.6333. Attempt 1 is the best and is provisionally selected, with its own latency. All three traces show ten turns followed by application budget drafting and one finalization; attempt 1 additionally synthesizes inside finalization. No framework, provider, tool or trace structure error was found.
 
