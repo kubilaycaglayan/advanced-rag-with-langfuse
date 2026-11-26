@@ -1,14 +1,15 @@
 {
   "step": 8,
-  "status": "in_progress",
+  "status": "awaiting_summary_gate_decision",
   "selected_attempts": {
     "openai-q01": "openai-q01-a1",
     "openai-q02": "openai-q02-a1",
     "openai-q03": "openai-q03-a1",
     "openai-q04": "openai-q04-a1",
-    "openai-q05": "openai-q05-a1"
+    "openai-q05": "openai-q05-a1",
+    "openai-q06": "openai-q06-a1"
   },
-  "selection_note": "All Q2 attempts tie on correctness; earliest retained with its own latency. Developer resolved the Q2 gate as evaluator variance.",
+  "selection_note": "Q6 attempt 1 selected provisionally as best correctness; historical supporting-fact discrepancy requires developer decision. All attempt scores/latencies retained.",
   "attempts": [
     {
       "label": "openai-q01-a1",
@@ -37,9 +38,51 @@
       "latency_seconds": 22.43,
       "execution_id": "1d0277ef-fbd2-47c7-aceb-ba7691003c20",
       "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027"
+    },
+    {
+      "label": "openai-q03-a1",
+      "correctness": 0.9167,
+      "latency_seconds": 20.26,
+      "execution_id": "1e40fe2e-190a-4327-8217-6b536e049596",
+      "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027"
+    },
+    {
+      "label": "openai-q04-a1",
+      "correctness": 1.0,
+      "latency_seconds": 51.15,
+      "execution_id": "15cedb20-b9fd-4202-b1e7-c6af2b4cc9b3",
+      "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027"
+    },
+    {
+      "label": "openai-q05-a1",
+      "correctness": 0.95,
+      "latency_seconds": 22.7,
+      "execution_id": "5800794e-ea05-4986-ae8a-12d748364968",
+      "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027"
+    },
+    {
+      "label": "openai-q06-a1",
+      "correctness": 0.6,
+      "latency_seconds": 49.82,
+      "execution_id": "6b890719-8b90-498e-93be-eb9864f5a712",
+      "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027"
+    },
+    {
+      "label": "openai-q06-a2",
+      "correctness": 0.45,
+      "latency_seconds": 37.48,
+      "execution_id": "20d8e25f-1e3d-4594-b133-8437c5b6cb1f",
+      "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027"
+    },
+    {
+      "label": "openai-q06-a3",
+      "correctness": 0.3333,
+      "latency_seconds": 41.25,
+      "execution_id": "4c7d49cc-6ffc-42f2-b839-9626a6e3d0bc",
+      "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027"
     }
   ],
-  "remaining_question_provider_pairs": 15,
+  "remaining_question_provider_pairs": 14,
   "live_default_changed": false,
   "step9_started": false,
   "gate_decisions": {

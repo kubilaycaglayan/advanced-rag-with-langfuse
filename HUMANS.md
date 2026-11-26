@@ -11,3 +11,15 @@ The historical evaluator marked D2 present, explaining “she was alive,” alth
 Required decision: authorize recording this 0.025 difference as evaluator variance and continuing, or keep the strict gate and stop validation here. Do not change prompts, evidence policy, historical scores, or generate a replacement baseline to conceal the discrepancy. The developer has been notified and asked this question in chat.
 
 Evidence: docs/experiments/langgraph-v2.17-step1/comparison-manifest.json, questions[1]; docs/experiments/langgraph-v2.17-step8/openai-q02-a1, openai-q02-a2, openai-q02-a3 (request, manifest, results, live trace and review for each); progress.json. The first attempt is provisionally selected because all three correctness scores tie; its 18.24-second latency belongs to that exact attempt. Nothing is accepted as Step 9 aggregate acceptance.
+
+## Step 8: first-book summary supporting-fact discrepancy
+
+Status: awaiting developer decision, 2026-11-26. No question after OpenAI Q6 has started.
+
+OpenAI Q6 (right-set-3, 87382e52-ad6e-5336-9aa1-1b0d29cfc8ed) exhausted three permitted attempts: 0.60 / 49.82 seconds; 0.45 / 37.48 seconds; 0.3333 / 41.25 seconds. Historical correctness is 0.6333. Attempt 1 is the best and is provisionally selected, with its own latency. All three traces show ten turns followed by application budget drafting and one finalization; attempt 1 additionally synthesizes inside finalization. No framework, provider, tool or trace structure error was found.
+
+The selected attempt and historical baseline both receive R1 present, R2 present and R3 missing. The historical judge additionally marks D1 present (“Martin dies after trying to kill Mikael”), although the saved historical answer only says Martin tries to kill Blomkvist, without his death. Its explanation even says that detail is missing, contradicting its own verdict. The candidate judge marks D1 missing, accounting for the 0.0333 gap. Both saved answers omit Wennerstrom's exposure through hacking. Citation scores of 0.5 and grouped passage IDs in some candidate answers remain visible; no score or answer was repaired. The second attempt's citation judge also rejects the equivalent wording “fled her brother” versus “ran away from her brother.”
+
+Required decision: authorize treating the best attempt's 0.0333 gap as an evaluator discrepancy and continuing, or retain the strict gate. The prior developer authorization resolved Harriet specifically. Prompts, evidence policy, historical results and the three-attempt limit remain unchanged. Developer notified in chat.
+
+Evidence: frozen comparison-manifest.json questions[5], and Step 8 openai-q06-a1/a2/a3 retained results, manifests, live traces and reviews. Step 8 remains incomplete; Step 9 has not started.

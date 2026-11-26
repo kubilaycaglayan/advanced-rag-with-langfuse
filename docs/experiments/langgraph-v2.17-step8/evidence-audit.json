@@ -109,6 +109,101 @@
         "trace.json": "79be0e627d0b5d00e0cdd5f2402be0d0c024bb5f3413f3d99863a1e214d90ef9",
         "review.json": "d0a9cd56410249fe01e1b1a2da49a19dbffdbce9ef4809f788d6ee618646d8a3"
       }
+    },
+    {
+      "label": "openai-q04-a1",
+      "execution_id": "15cedb20-b9fd-4202-b1e7-c6af2b4cc9b3",
+      "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027",
+      "managed_evaluators_equal_to_baseline": true,
+      "reviewed_tool_errors": [],
+      "manual_review": "Correctness and citation support 1.0. Ten tool-selection turns reached application budget; live graph routes decide to budget drafting then exactly one finalization, with no tool or trace errors. No regression.",
+      "score": 1.0,
+      "baseline_score": 0.5,
+      "latency_seconds": 51.15,
+      "baseline_latency_seconds": 55.92,
+      "artifact_sha256": {
+        "request.json": "52cdedc4aec7e6c9876cbfa67e9ea4099e65e375e68af0ff0fe4f647386e86c3",
+        "manifest.json": "2637385df7e05454cfd758c6c70863d70253dc9f2a9a14356f8e76883cf340a7",
+        "results.json": "134662f507050b3d462327c51cb8a6ca68cbe900c8543b713ab3d8574500b66b",
+        "trace.json": "d0428ebd5d859d8b3a7744a402ef1cabc24d574cd8b643091f8b7abfd250f72a",
+        "review.json": "a44d4525f8d7272dcd0952bda5e5465eeb745c48728b4755457910d8440a99bc"
+      }
+    },
+    {
+      "label": "openai-q05-a1",
+      "execution_id": "5800794e-ea05-4986-ae8a-12d748364968",
+      "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027",
+      "managed_evaluators_equal_to_baseline": true,
+      "reviewed_tool_errors": [],
+      "manual_review": "Correctly describes Harriet drowning Gottfried with an oar; score equals baseline. One rejected verification followed by corrected submission is normal recoverable behavior. Trace hierarchy/usage/finalization checks pass. Citation judge scores 0.5 but E2 explicitly says Martin tied up and raped Harriet while their father was still floating in the water; this directly supports the questioned timing. Citation evaluation discrepancy documented; saved judge score remains unchanged.",
+      "score": 0.95,
+      "baseline_score": 0.95,
+      "latency_seconds": 22.7,
+      "baseline_latency_seconds": 43.36,
+      "artifact_sha256": {
+        "request.json": "30958cdb2ed13db81fede4316b311969ffd525e65d94e8b38313c33f33b0f620",
+        "manifest.json": "6c64233668ed0caa6c7e34a9daeb010ba4d566cc6b2e7dfa3cca5dc5991b865e",
+        "results.json": "0642cab5956184be2179f407cf21a30b65a98bbccc6d4acfadd9a2b741fbdd50",
+        "trace.json": "cf591c1065d8a1a0b757947742c154356f95e1433c2a76c7b4ce26a3872de044",
+        "review.json": "9d318ae4a6d905ac1578933ff88db5b6f8169c40e5f554d6d9f51dda8ce5b628"
+      }
+    },
+    {
+      "label": "openai-q06-a1",
+      "execution_id": "6b890719-8b90-498e-93be-eb9864f5a712",
+      "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027",
+      "managed_evaluators_equal_to_baseline": true,
+      "reviewed_tool_errors": [],
+      "manual_review": "Budget draft then final synthesis executed once each with no trace/tool errors. Correctness below historical baseline: Wennerstrom exposure omitted. Grouped passage-ID syntax remains in final synthesis output, and citation judge scores 0.5. Attempt retained for diagnosis; retry before advancement.",
+      "score": 0.6,
+      "baseline_score": 0.6333,
+      "latency_seconds": 49.82,
+      "baseline_latency_seconds": 41.45,
+      "artifact_sha256": {
+        "request.json": "50d64c4cf60487fdfffcd28d25036df1d0ebff5d9c206e6b2e5ac1eb52b9491e",
+        "manifest.json": "624f6572a6089dbd621668fcdf828ab4ef5e3e6551c86aeb8d168d3c157aac99",
+        "results.json": "9595356bfc7c92a88599be241036648eeed248addfaa3839c06b8aff1deb24f0",
+        "trace.json": "c5ff4f6dd66fa7c31384ae0409a81a77defbd46210b7abe88ac8208a6e8959ff",
+        "review.json": "1472edf567d86df3097ab71cc82ead84620663b808ad804c184bea7378941c63"
+      }
+    },
+    {
+      "label": "openai-q06-a2",
+      "execution_id": "20d8e25f-1e3d-4594-b133-8437c5b6cb1f",
+      "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027",
+      "managed_evaluators_equal_to_baseline": true,
+      "reviewed_tool_errors": [],
+      "manual_review": "No execution/trace errors; application budget handoff after ten turns. Summary omits required narrative elements. Lower correctness than recorded baseline; all attempts retained and gate unresolved.",
+      "score": 0.45,
+      "baseline_score": 0.6333,
+      "latency_seconds": 37.48,
+      "baseline_latency_seconds": 41.45,
+      "artifact_sha256": {
+        "request.json": "6232cfeb6ea589c0909109dab28471012f1191fd49ddea6d89df38cf513e17be",
+        "manifest.json": "c9956563128c2b10142c38a4de8c2f47b387a891a0ddaa7baa41cc6892edb927",
+        "results.json": "2e114628d4d3f4a68b011e32bfc22d28a01d1a10ee3ad45789565fb34df25ab3",
+        "trace.json": "d6a7981bb7170c30ef1490bd309a24ec7cdf56822c079391c357da9faa609f97",
+        "review.json": "49c9c58b1c0e1240075bfd16db653ef28d4c82e27c7dee8faa7b10356d4c12ad"
+      }
+    },
+    {
+      "label": "openai-q06-a3",
+      "execution_id": "4c7d49cc-6ffc-42f2-b839-9626a6e3d0bc",
+      "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027",
+      "managed_evaluators_equal_to_baseline": true,
+      "reviewed_tool_errors": [],
+      "manual_review": "No execution/trace errors; application budget handoff after ten turns. Summary omits required narrative elements. Lower correctness than recorded baseline; all attempts retained and gate unresolved.",
+      "score": 0.3333,
+      "baseline_score": 0.6333,
+      "latency_seconds": 41.25,
+      "baseline_latency_seconds": 41.45,
+      "artifact_sha256": {
+        "request.json": "1f89fa2ebd36d4893a267bc969209551bd87347cacbbbfb98be05c4465e68e38",
+        "manifest.json": "e1891870715f8e4969bdbb9b4c37949dd1d6a589bb2fa881315796436e567c60",
+        "results.json": "aca71aeba2af7f4b0ead0c5b045d9a3f7f77375633abc0d84c15925dae9be942",
+        "trace.json": "928408db49e66e161b221916caaf5e8e068324b0db7c90cf9b4e2645133c0328",
+        "review.json": "fc8c04ab11dce779042283e05a998c59a647418dc41bde9ec486706c30d337b1"
+      }
     }
   ]
 }
