@@ -146,7 +146,7 @@ def _tool_scene_moment(state: AgentState, args: dict[str, Any]) -> dict[str, Any
         return {"error": "question is required"}
     evidence = [row for short in state.order if (row := state.evidence.get(short))]
     present = {str(row["id"]) for row in evidence if row.get("id")}
-    rows, moment = moment_scene_hits(question, state.config, state.collection, qdrant_client(), evidence, present, None)
+    rows, moment = moment_scene_hits(question, state.config, state.collection, qdrant_client(), evidence, present)
     scenes: dict[str, tuple[Any, float]] = {}
     if moment:
         core = _moment_core(moment)
