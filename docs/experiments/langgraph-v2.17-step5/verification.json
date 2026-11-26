@@ -1,0 +1,141 @@
+{
+  "step": 5,
+  "status": "passed",
+  "starting_revision": "b915f913fe6e4732fa974a12f1ddd8d1be418cf2",
+  "implementation_revision": "6be03b69622f68317b2954c266a91938212a507c",
+  "langgraph_version": "1.2.24",
+  "graph_nodes": [
+    "__start__",
+    "prepare",
+    "decide",
+    "select",
+    "tools",
+    "review",
+    "budget",
+    "final",
+    "__end__"
+  ],
+  "graph_edges": [
+    {
+      "source": "__start__",
+      "target": "prepare",
+      "label": null,
+      "conditional": false
+    },
+    {
+      "source": "budget",
+      "target": "final",
+      "label": null,
+      "conditional": true
+    },
+    {
+      "source": "decide",
+      "target": "budget",
+      "label": null,
+      "conditional": true
+    },
+    {
+      "source": "decide",
+      "target": "select",
+      "label": null,
+      "conditional": true
+    },
+    {
+      "source": "final",
+      "target": "__end__",
+      "label": "done",
+      "conditional": true
+    },
+    {
+      "source": "prepare",
+      "target": "decide",
+      "label": null,
+      "conditional": true
+    },
+    {
+      "source": "review",
+      "target": "decide",
+      "label": null,
+      "conditional": true
+    },
+    {
+      "source": "review",
+      "target": "final",
+      "label": null,
+      "conditional": true
+    },
+    {
+      "source": "select",
+      "target": "review",
+      "label": null,
+      "conditional": true
+    },
+    {
+      "source": "select",
+      "target": "tools",
+      "label": null,
+      "conditional": true
+    },
+    {
+      "source": "tools",
+      "target": "budget",
+      "label": null,
+      "conditional": true
+    },
+    {
+      "source": "tools",
+      "target": "decide",
+      "label": null,
+      "conditional": true
+    },
+    {
+      "source": "tools",
+      "target": "final",
+      "label": null,
+      "conditional": true
+    }
+  ],
+  "node_boundaries_ast_unchanged_from_step4": true,
+  "protected_and_integration_files_byte_unchanged": [
+    "app/agent/runner.py",
+    "pipelines.md",
+    "pipelines.sha256",
+    "app/context/agent_final_handoff.py",
+    "app/answering/execution.py",
+    "app/observability.py",
+    "app/agent/submission.py",
+    "app/models/agent.py",
+    "app/requirements.txt"
+  ],
+  "legacy_instruction_fingerprint": "e45b61a77dea658e04f29a7327294072d8416f3398877bd5c9676b6dea9fbc1e",
+  "target_instruction_fingerprint": "29264d5de9531abb45d24885a6372dcc0fc1723c5cdbb8f046e21422915cb48a",
+  "reference_sha256": "36c3cf413497de8814ed70915b343208b1f30d9a946426c1736f87eaf8a02638",
+  "execution_limit": {
+    "formula": "3 * max_turns + 5",
+    "maximum_work_nodes": "3 * max_turns + 4",
+    "tested_turn_budgets": [
+      0,
+      1,
+      10,
+      50
+    ]
+  },
+  "graph_specific_tests": 9,
+  "existing_target_tests_through_graph": 23,
+  "full_test_suite": {
+    "tests": 231,
+    "failures": 0,
+    "errors": 0
+  },
+  "application_default": "v2.16",
+  "target_registered": false,
+  "step6_started": false,
+  "live_generation_calls": 0,
+  "artifact_sha256": {
+    "routing-tests.log": "26ca001e135b4224fba497dcecc2c908b06f676b83532d4c661a5a701394ce54",
+    "graph-contracts.log": "0d52282e2f762a3ef51d52c06e4706589cb0d08f8af6756aa0f2268cce0a4129",
+    "full-tests.log": "5b0ef8d722c6a53cd118eb7cefe315b9edbfd3e9ce8317f97890496c6d7fefeb"
+  },
+  "live_app_image_unchanged": true,
+  "log_format": "Trailing whitespace normalized; substantive output unchanged."
+}

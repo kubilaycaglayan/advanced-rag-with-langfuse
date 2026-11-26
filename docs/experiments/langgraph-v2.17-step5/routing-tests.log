@@ -1,0 +1,16 @@
+ Container millenium-app-run-7f44bb5fe6df Creating
+ Container millenium-app-run-7f44bb5fe6df Created
+test_compiled_graph_reuses_topology_without_sharing_state_or_callbacks (test_agent_graph.AgentGraph.test_compiled_graph_reuses_topology_without_sharing_state_or_callbacks) ... ok
+test_framework_errors_propagate_instead_of_triggering_a_provider_fallback (test_agent_graph.AgentGraph.test_framework_errors_propagate_instead_of_triggering_a_provider_fallback) ... ok
+test_framework_limit_allows_entire_application_turn_budget_and_final_handoff (test_agent_graph.AgentGraph.test_framework_limit_allows_entire_application_turn_budget_and_final_handoff) ... ok
+test_reference_matches_compiled_nodes_edges_and_catalog_signature (test_agent_graph.AgentGraph.test_reference_matches_compiled_nodes_edges_and_catalog_signature) ... ok
+test_rejected_calls_do_not_add_graph_steps_or_enforce_an_extra_tool_limit (test_agent_graph.AgentGraph.test_rejected_calls_do_not_add_graph_steps_or_enforce_an_extra_tool_limit) ... ok
+test_text_answer_and_submission_take_distinct_graph_paths (test_agent_graph.AgentGraph.test_text_answer_and_submission_take_distinct_graph_paths) ... ok
+test_timeout_routes_without_selecting_a_model_turn (test_agent_graph.AgentGraph.test_timeout_routes_without_selecting_a_model_turn) ... ok
+test_tool_budget_routes_directly_to_draft_then_final (test_agent_graph.AgentGraph.test_tool_budget_routes_directly_to_draft_then_final) ... ok
+test_tool_results_continue_to_another_selection_turn (test_agent_graph.AgentGraph.test_tool_results_continue_to_another_selection_turn) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.086s
+
+OK
