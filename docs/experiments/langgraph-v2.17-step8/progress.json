@@ -17,7 +17,8 @@
     "ollama-q03": "ollama-q03-a1",
     "ollama-q04": "ollama-q04-a3",
     "ollama-q05": "ollama-q05-a1",
-    "ollama-q06": "ollama-q06-a3"
+    "ollama-q06": "ollama-q06-a3",
+    "ollama-q07": "ollama-q07-a1"
   },
   "selection_note": "Local Harriet attempt1 has highest recorded correctness1.0, provisionally retained with its own59.88-second latency, but manual review rejects unsupported claims. No attempt accepted; substantive-failure gate unresolved. Scores unchanged.",
   "attempts": [
@@ -117,6 +118,13 @@
       "correctness": 0.6167,
       "latency_seconds": 153.23,
       "execution_id": "2e5dd636-1f45-4e07-b2c2-4417f762ecc2",
+      "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df"
+    },
+    {
+      "label": "ollama-q07-a1",
+      "correctness": 1.0,
+      "latency_seconds": 53.35,
+      "execution_id": "099c7e79-6c7e-4c65-abc9-dbd2d8225ac2",
       "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df"
     },
     {
@@ -253,7 +261,7 @@
       "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df"
     }
   ],
-  "remaining_question_provider_pairs": 4,
+  "remaining_question_provider_pairs": 3,
   "live_default_changed": false,
   "step9_started": false,
   "gate_decisions": {
