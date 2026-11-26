@@ -1,12 +1,14 @@
 {
   "scope": "Retained attempts only; not full Step 8 completion or Step 9 acceptance",
-  "checks": "single-item/cache/source/identity/tool-errors/trace-parent-timing/single-finalization",
+  "checks": "single-item/cache/source/identity/reviewed-tool-errors/trace-parent-timing/single-finalization",
   "attempts": [
     {
       "label": "openai-q01-a1",
       "execution_id": "587da288-117a-4e71-a986-7ab479a47dba",
       "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027",
       "managed_evaluators_equal_to_baseline": true,
+      "reviewed_tool_errors": [],
+      "manual_review": null,
       "score": 0.95,
       "baseline_score": 0.9,
       "latency_seconds": 18.59,
@@ -24,6 +26,8 @@
       "execution_id": "785b03fb-1594-4626-a7f4-e083ffcb99d8",
       "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027",
       "managed_evaluators_equal_to_baseline": true,
+      "reviewed_tool_errors": [],
+      "manual_review": null,
       "score": 0.95,
       "baseline_score": 0.975,
       "latency_seconds": 18.24,
@@ -41,6 +45,8 @@
       "execution_id": "a756186b-8110-4040-a4cd-82dfddaf8891",
       "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027",
       "managed_evaluators_equal_to_baseline": true,
+      "reviewed_tool_errors": [],
+      "manual_review": null,
       "score": 0.95,
       "baseline_score": 0.975,
       "latency_seconds": 38.67,
@@ -58,6 +64,8 @@
       "execution_id": "1d0277ef-fbd2-47c7-aceb-ba7691003c20",
       "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027",
       "managed_evaluators_equal_to_baseline": true,
+      "reviewed_tool_errors": [],
+      "manual_review": null,
       "score": 0.95,
       "baseline_score": 0.975,
       "latency_seconds": 22.43,
@@ -68,6 +76,38 @@
         "results.json": "3ec297c380bd2d68ac8fec3f777a4ca374bb21aa1be28039adc724ff7a3a7594",
         "trace.json": "422308c13be233271c5f5cb45730de0fe86d3410f185674a744a543f6db857aa",
         "review.json": "f22c4d90270a48f9d05598720ce76160765d6001bc272d09af94334798758aff"
+      }
+    },
+    {
+      "label": "openai-q03-a1",
+      "execution_id": "1e40fe2e-190a-4327-8217-6b536e049596",
+      "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027",
+      "managed_evaluators_equal_to_baseline": true,
+      "reviewed_tool_errors": [
+        {
+          "arguments": {
+            "answer": "Mikael\u2019s nickname was \u201cKalle Blomkvist.\u201d [a0551c1d]",
+            "passage_ids": [
+              "a0551c1d"
+            ]
+          },
+          "error": "investigate more before answering: at least 4 tool calls (you made 3); a passage that is only on topic is not evidence",
+          "result_ids": [],
+          "seconds": 0.0,
+          "tool": "submit_answer"
+        }
+      ],
+      "manual_review": "Expected minimum-tool submission rejection recovered by another search and accepted verified submission; no unresolved execution error. Score equals historical baseline; citation support 1.0.",
+      "score": 0.9167,
+      "baseline_score": 0.9167,
+      "latency_seconds": 20.26,
+      "baseline_latency_seconds": 15.44,
+      "artifact_sha256": {
+        "request.json": "204b751d1d11910bbd16ef00365acb384e04eca564a928373ec6a9175fd38d3a",
+        "manifest.json": "c31dbc8815534c844b90c2c3cc06e60308077eac2ed14c3ba0e7826f3c3a5cc0",
+        "results.json": "976ec04d6d81bd18ab29fa5525ea653e5c7c0562d4c3c5dfc6d6d40934d6464e",
+        "trace.json": "79be0e627d0b5d00e0cdd5f2402be0d0c024bb5f3413f3d99863a1e214d90ef9",
+        "review.json": "d0a9cd56410249fe01e1b1a2da49a19dbffdbce9ef4809f788d6ee618646d8a3"
       }
     }
   ]

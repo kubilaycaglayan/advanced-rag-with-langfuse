@@ -25,7 +25,10 @@ for directory in sorted(folder.glob('*-q??-a?')):
     assert output['question'] == question['question']
     assert item['trace_id'] == trace['trace_id']
     assert result['execution_id'] == manifest['execution_id'] == trace['execution_id']
-    assert not [t for t in output['agent_trace'] if t.get('error')]
+    tool_errors = [t for t in output['agent_trace'] if t.get('error')]
+    review = json.loads((directory / 'review.json').read_text())
+    if tool_errors:
+        assert review.get('manual_review'), ('Tool errors require explicit review', directory)
     obs = trace['observations']
     by = {o['id']: o for o in obs}
     for o in obs:
@@ -39,11 +42,12 @@ for directory in sorted(folder.glob('*-q??-a?')):
     rows.append({'label': directory.name, 'execution_id': result['execution_id'],
         'source_fingerprint': manifest['pipeline']['source_fingerprint'],
         'managed_evaluators_equal_to_baseline': manifest['evaluator']['managed_evaluators'] == fixed['sources'][baseline['source_experiment_id']]['evaluator']['managed_evaluators'],
+        'reviewed_tool_errors': tool_errors, 'manual_review': review.get('manual_review'),
         'score': item['correctness_score'], 'baseline_score': baseline['correctness']['value'],
         'latency_seconds': output['latency_seconds'], 'baseline_latency_seconds': baseline['latency_seconds'],
         'artifact_sha256': {name: hashlib.sha256((directory / name).read_bytes()).hexdigest()
             for name in ('request.json', 'manifest.json', 'results.json', 'trace.json', 'review.json')}})
 assert len({r['source_fingerprint'] for r in rows}) == 1
 print(json.dumps({'scope': 'Retained attempts only; not full Step 8 completion or Step 9 acceptance',
-                  'checks': 'single-item/cache/source/identity/tool-errors/trace-parent-timing/single-finalization',
+                  'checks': 'single-item/cache/source/identity/reviewed-tool-errors/trace-parent-timing/single-finalization',
                   'attempts': rows}, indent=2))
