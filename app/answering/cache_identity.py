@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from app.cache import answers as answer_cache
+from app.settings_definitions import runtime_settings_manifest
 from app.corpus_config import langfuse_project
 from app.pipelines.resolver import ResolvedRun
 from typing import Any
@@ -15,4 +16,5 @@ def answer_cache_identity(question: str, resolved: ResolvedRun, collection: str)
         profile_id=resolved.profile_id, profile_identity=resolved.profile_identity,
         prompt_identity=resolved.prompt_identity, collection=collection, question=str(question),
         config=resolved.config.manifest(),
-        agent_settings=(resolved.agent_settings.__dict__ if resolved.agent_settings else None))
+        agent_settings=(resolved.agent_settings.__dict__ if resolved.agent_settings else None),
+        runtime_settings=runtime_settings_manifest())

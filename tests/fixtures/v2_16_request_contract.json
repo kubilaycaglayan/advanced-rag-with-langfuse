@@ -1,0 +1,62 @@
+{
+  "ollama/none/tools=True": {
+    "url": "http://example.invalid/api/chat",
+    "timeout": [
+      10,
+      900
+    ],
+    "payload_sha256": "b23f7018f74e858edcb112e184ca68b137d1f4b5bffd6135012de716ae498fd7",
+    "payload_bytes": 27255,
+    "compacted_results": 4
+  },
+  "ollama/none/tools=False": {
+    "url": "http://example.invalid/api/chat",
+    "timeout": [
+      10,
+      900
+    ],
+    "payload_sha256": "e7b4ce9685f81cb76c5e3f4a6b47b751304b0f724f68569d864179fb2e6f7422",
+    "payload_bytes": 32406,
+    "compacted_results": 0
+  },
+  "openai/none/tools=True": {
+    "url": "https://api.openai.com/v1/chat/completions",
+    "timeout": [
+      10,
+      180
+    ],
+    "payload_sha256": "004ab2f21e7148ffcefb0f15946ff41168f108083f42ed93d2000d9e939da899",
+    "payload_bytes": 27538,
+    "compacted_results": 4
+  },
+  "openai/none/tools=False": {
+    "url": "https://api.openai.com/v1/chat/completions",
+    "timeout": [
+      10,
+      180
+    ],
+    "payload_sha256": "2d8d04b6a028eb3260f00af0e9c07baac2eac65565a895c7a946c7c439cd1c44",
+    "payload_bytes": 32640,
+    "compacted_results": 0
+  },
+  "openai/high/tools=True": {
+    "url": "https://api.openai.com/v1/responses",
+    "timeout": [
+      10,
+      300
+    ],
+    "payload_sha256": "ab64dd2ef9d1dc1e1224ce9c1dbc6fcf6c30c3b8d8fadcf14febb4c2b53579c7",
+    "payload_bytes": 27125,
+    "compacted_results": 4
+  },
+  "openai/high/tools=False": {
+    "url": "https://api.openai.com/v1/responses",
+    "timeout": [
+      10,
+      300
+    ],
+    "payload_sha256": "00bcb11935404c2ee4c0eacfb267e7c8b7a09d08269762dd0adbd9154eb1f349",
+    "payload_bytes": 32201,
+    "compacted_results": 0
+  }
+}

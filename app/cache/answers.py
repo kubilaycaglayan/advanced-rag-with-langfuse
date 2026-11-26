@@ -51,7 +51,8 @@ def identity(*, project_id: str, corpus_id: str, pipeline_version: str,
              pipeline_fingerprint: str, pipeline_id: str, corpus_checksum: str,
              profile_id: str, profile_identity: str, prompt_identity: str,
              collection: str, question: str, config: dict[str, Any],
-             agent_settings: dict[str, Any] | None) -> dict[str, Any]:
+             agent_settings: dict[str, Any] | None,
+             runtime_settings: dict[str, Any] | None = None) -> dict[str, Any]:
     """Build the complete namespace and exact-input identity for one answer."""
     dimensions = {
         "cache_format": CACHE_FORMAT,
@@ -67,6 +68,7 @@ def identity(*, project_id: str, corpus_id: str, pipeline_version: str,
         "collection": collection,
         "config": config,
         "agent_settings": agent_settings,
+        "runtime_settings": runtime_settings,
         "question": question,
     }
     # Keep the submitted spelling for traceability and scoped cache clearing, but

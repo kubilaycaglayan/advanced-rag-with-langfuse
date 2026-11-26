@@ -1,6 +1,7 @@
 """experiments / metadata responsibilities."""
 from __future__ import annotations
 
+from app.settings_definitions import runtime_settings_manifest
 from app.corpus_profiles import profile_identity
 from app.corpus_profiles import prompt_identity
 from app.evaluation.specs import JUDGE_MODELS
@@ -70,6 +71,7 @@ def _fingerprints(config: ResolvedPipelineConfig, managed_evaluators: dict[str, 
     pipeline["source_manifest"] = sources
     pipeline["corpus_manifest"] = corpus_manifest
     pipeline["agent_settings"] = resolved.agent_settings.__dict__
+    pipeline["runtime_settings"] = runtime_settings_manifest()
     evaluator_model_name = os.getenv("EVALUATOR_MODEL", "qwen3:8b")
     evaluator_endpoint = os.getenv("EVALUATOR_OLLAMA_URL") or os.getenv("OLLAMA_URL", "http://127.0.0.1:11434")
     try:
