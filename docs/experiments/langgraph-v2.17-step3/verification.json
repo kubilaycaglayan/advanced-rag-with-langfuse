@@ -1,0 +1,89 @@
+{
+  "step": 3,
+  "starting_revision": "a72a66e5752503686ef29b261f2bc9eeb43ba5e5",
+  "implementation_revision": "6dd62179cfe4387b71db328004a24559faebfc68",
+  "status": "passed",
+  "agent_and_pipeline_settings_equal_step1": true,
+  "six_provider_request_payloads_equal_step2": true,
+  "generated_reference_matches": true,
+  "unchanged_release_and_handoff_files": [
+    "pipelines.md",
+    "pipelines.sha256",
+    "app/context/agent_final_handoff.py"
+  ],
+  "instruction_fingerprint": "e45b61a77dea658e04f29a7327294072d8416f3398877bd5c9676b6dea9fbc1e",
+  "effective_runs": {
+    "ollama": {
+      "agent_settings": {
+        "model": "qwen3.6:35b",
+        "provider": "ollama",
+        "max_turns": 10,
+        "max_tool_calls": 16,
+        "min_tool_calls": 4,
+        "timeout_seconds": 900.0,
+        "context_length": 16384,
+        "num_predict": 1600,
+        "think": false,
+        "snippet_chars": 300,
+        "scene_candidate_count": 30,
+        "initial_scene_probe": true,
+        "reasoning_effort": "none",
+        "premise_early_stop": false
+      },
+      "pipeline_id": "pipeline-v2.16-b904cd04",
+      "runtime_settings": {
+        "nudge_limit": 2,
+        "compaction_recent_tools": 6,
+        "compaction_chars": 22000,
+        "compaction_ids": 8,
+        "tool_result_chars": 9000,
+        "http_connect_seconds": 10,
+        "ollama_read_seconds": 900,
+        "openai_chat_read_seconds": 180,
+        "openai_responses_read_seconds": 300
+      }
+    },
+    "openai": {
+      "agent_settings": {
+        "model": "gpt-6-luna",
+        "provider": "openai",
+        "max_turns": 10,
+        "max_tool_calls": 16,
+        "min_tool_calls": 4,
+        "timeout_seconds": 900.0,
+        "context_length": 16384,
+        "num_predict": 1600,
+        "think": false,
+        "snippet_chars": 300,
+        "scene_candidate_count": 30,
+        "initial_scene_probe": true,
+        "reasoning_effort": "high",
+        "premise_early_stop": false
+      },
+      "pipeline_id": "derived-v2.16-22ea6403",
+      "runtime_settings": {
+        "nudge_limit": 2,
+        "compaction_recent_tools": 6,
+        "compaction_chars": 22000,
+        "compaction_ids": 8,
+        "tool_result_chars": 9000,
+        "http_connect_seconds": 10,
+        "ollama_read_seconds": 900,
+        "openai_chat_read_seconds": 180,
+        "openai_responses_read_seconds": 300
+      }
+    }
+  },
+  "full_test_suite": {
+    "tests": 199,
+    "failures": 0,
+    "errors": 0
+  },
+  "step4_started": false,
+  "live_generation_calls": 0,
+  "verification_artifacts": {
+    "centralization-tests.log": "9c5070e7205cd5c10485e3667675d38204a68c4261f8abd8ecb9091428a8d94c",
+    "settings-tests.log": "f392ffd8605ae0d4994b0e26ba67f638850f8ae77250a315e425b7f3fed2de51",
+    "full-tests.log": "7a502d5989daccf9633b621e888e4c58959fbfbf844da20839d6ccf8a4993627"
+  }
+}
