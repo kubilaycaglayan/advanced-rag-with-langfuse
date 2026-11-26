@@ -168,8 +168,10 @@ def review_answer_text(state: ExecutionState, runtime: AgentRuntime) -> None:
     if ids:
         focus = list(dict.fromkeys([*state.premise_evidence, *state.focus]))
         focus = [short for short in focus if short not in ids][:6]
-        with observation("submission verification", input={"answer": content, "ids": ids}):
+        with observation("submission verification", input={"answer": content, "ids": ids}) as verification_obs:
             supported, reason = _verify_submission(state, content, ids, focus)
+            update_observation(verification_obs, output={"supported": supported, "reason": reason},
+                               level="DEFAULT" if supported else "WARNING")
         state.verification_supported, state.verification_reason = supported, reason
         runtime.emit({"type": "verify", "supported": supported, "reason": reason})
         if not supported:
@@ -233,7 +235,9 @@ def process_reply_tools(state: ExecutionState, runtime: AgentRuntime) -> None:
                 payload, stop = _run_tool(state, name, arguments)
             except Exception as exc:  # a tool failure is an observation the agent can recover from
                 payload, stop = {"error": f"{type(exc).__name__}: {exc}"}, False
-            update_observation(tool_obs, output=payload)
+            update_observation(tool_obs, output=payload,
+                               level="ERROR" if isinstance(payload, dict) and payload.get("error") else "DEFAULT",
+                               status_message=payload.get("error") if isinstance(payload, dict) else None)
         seconds = round(time.perf_counter() - started, 2)
         state.trace.append({"tool": name, "arguments": arguments, "seconds": seconds,
                             "error": payload.get("error") if isinstance(payload, dict) else None,
@@ -256,8 +260,10 @@ def process_reply_tools(state: ExecutionState, runtime: AgentRuntime) -> None:
             if payload["passage_ids"]:
                 focus = list(dict.fromkeys([*state.premise_evidence, *state.focus]))
                 focus = [short for short in focus if short not in payload["passage_ids"]][:6]
-                with observation("submission verification", input=payload):
+                with observation("submission verification", input=payload) as verification_obs:
                     supported, reason = _verify_submission(state, payload["raw_answer"], payload["passage_ids"], focus)
+                    update_observation(verification_obs, output={"supported": supported, "reason": reason},
+                                       level="DEFAULT" if supported else "WARNING")
                 state.verification_supported, state.verification_reason = supported, reason
                 runtime.emit({"type": "verify", "supported": supported, "reason": reason})
                 if not supported:

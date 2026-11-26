@@ -11,6 +11,7 @@ from typing import TypedDict
 from langgraph.graph import END, START, StateGraph
 from langgraph.runtime import Runtime
 
+from app.observability import observation, update
 from app.agent import execution
 from app.agent.state import AgentRuntime, ExecutionState
 from app.settings_definitions import TargetAgentSettings
@@ -55,10 +56,13 @@ def execution_limit(settings: TargetAgentSettings) -> int:
 def boundary_node(name: str):
     def run(state: GraphState, runtime: Runtime[AgentRuntime]) -> GraphState:
         agent = state['agent']
-        getattr(execution, BOUNDARIES[name])(agent, runtime.context)
-        if name == 'prepare':
-            # Match the original preparation-before-schema-construction order.
-            runtime.context.tool_specs = execution._tool_specs()
+        with observation(f"graph node: {name}", input=state_summary(agent),
+                         metadata={"graph_node": name, "execution_backend": "langgraph"}) as span:
+            getattr(execution, BOUNDARIES[name])(agent, runtime.context)
+            if name == 'prepare':
+                # Match the original preparation-before-schema-construction order.
+                runtime.context.tool_specs = execution._tool_specs()
+            update(span, output=state_summary(agent))
         return {'agent': agent}
     return run
 
@@ -79,6 +83,21 @@ def build_graph():
 
 
 def invoke_graph(state: ExecutionState, runtime: AgentRuntime) -> ExecutionState:
-    result = build_graph().invoke({'agent': state}, context=runtime,
-                                  config={'recursion_limit': execution_limit(state.settings)})
+    with observation("agent graph", input={"question": state.question}, metadata={
+            "execution_backend": "langgraph", "target_pipeline": "v2.17",
+            "recursion_limit": execution_limit(state.settings)}) as span:
+        result = build_graph().invoke({'agent': state}, context=runtime,
+                                     config={'recursion_limit': execution_limit(state.settings)})
+        update(span, output=state_summary(result['agent']))
     return result['agent']
+
+
+def state_summary(state: ExecutionState) -> dict:
+    """Bounded routing measurements; usage/cost remain solely on generations."""
+    return {"route": state.route, "turns": state.turns, "tool_calls": state.tool_calls,
+            "collected_passages": len(state.evidence), "rejected_answers": len(state.rejected_answers),
+            "verification_supported": state.verification_supported,
+            "verification_reason": state.verification_reason,
+            "budget_reason": state.budget_reason, "budget_drafted": state.budget_drafted,
+            "final_prepared": state.final_prepared,
+            "stopped": state.final_result.get("stopped") if state.final_result else None}

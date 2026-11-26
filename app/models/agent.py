@@ -1,6 +1,7 @@
 """models / agent responsibilities."""
 from __future__ import annotations
 
+from app.models.agent_context import measure_request, record_request
 from app.settings_definitions import runtime_limits
 from app.agent.state import AgentSettings
 from app.agent.state import AgentState
@@ -26,6 +27,7 @@ def _ollama_chat(messages: list[dict[str, Any]], tools: list[dict[str, Any]] | N
     if tools:
         payload["tools"] = tools
         _compact(messages)
+    record_request(payload, messages, settings, "ollama")
     response = requests.post(base + "/api/chat", json=payload, timeout=(runtime_limits().http_connect_seconds, runtime_limits().ollama_read_seconds))
     response.raise_for_status()
     return response.json()
@@ -74,6 +76,7 @@ def _agent_chat(messages: list[dict[str, Any]], tools: list[dict[str, Any]] | No
             payload["tools"] = [{"type": "function", **(tool.get("function") or {}), "strict": False}
                                 for tool in tools]
             payload["tool_choice"] = "auto"
+        record_request(payload, messages, settings, "responses")
         response = requests.post("https://api.openai.com/v1/responses", json=payload,
                                  headers={"Authorization": f"Bearer {api_key}"}, timeout=(runtime_limits().http_connect_seconds, runtime_limits().openai_responses_read_seconds))
         if not response.ok:
@@ -100,6 +103,7 @@ def _agent_chat(messages: list[dict[str, Any]], tools: list[dict[str, Any]] | No
         input_details = usage.get("input_tokens_details") or {}
         output_details = usage.get("output_tokens_details") or {}
         return {"message": {"content": "".join(text_parts), "tool_calls": normalized_calls},
+                "provider_prompt_tokens_available": "input_tokens" in usage,
                 "prompt_eval_count": usage.get("input_tokens", 0), "eval_count": usage.get("output_tokens", 0),
                 "provider_usage": {"provider": "openai", "model": settings.model,
                                    "prompt_tokens": usage.get("input_tokens", 0),
@@ -132,6 +136,7 @@ def _agent_chat(messages: list[dict[str, Any]], tools: list[dict[str, Any]] | No
         payload["parallel_tool_calls"] = False
         payload["tools"] = tools
         payload["tool_choice"] = "auto"
+    record_request(payload, messages, settings, "chat_completions")
     response = requests.post("https://api.openai.com/v1/chat/completions", json=payload,
                              headers={"Authorization": f"Bearer {api_key}"}, timeout=(runtime_limits().http_connect_seconds, runtime_limits().openai_chat_read_seconds))
     if not response.ok:
@@ -157,6 +162,7 @@ def _agent_chat(messages: list[dict[str, Any]], tools: list[dict[str, Any]] | No
     prompt_details = usage.get("prompt_tokens_details") or {}
     completion_details = usage.get("completion_tokens_details") or {}
     return {"message": {"content": message.get("content") or "", "tool_calls": normalized_calls},
+            "provider_prompt_tokens_available": "prompt_tokens" in usage,
             "prompt_eval_count": usage.get("prompt_tokens", 0),
             "eval_count": usage.get("completion_tokens", 0),
             "provider_usage": {"provider": "openai", "model": settings.model,
@@ -213,8 +219,9 @@ def _tracked_agent_chat(state: AgentState, messages: list[dict[str, Any]],
                      model=state.settings.model,
                      metadata={"provider": state.settings.provider, "purpose": purpose,
                                "reasoning_effort": state.settings.reasoning_effort,
-                               "endpoint": "responses" if state.settings.provider == "openai" and state.settings.reasoning_effort != "none" else "chat_completions"}) as generation:
-        reply = _agent_chat(messages, tools, state.settings)
+                               "endpoint": "responses" if state.settings.provider == "openai" and state.settings.reasoning_effort != "none" else "chat_completions" if state.settings.provider == "openai" else "ollama"}) as generation:
+        with measure_request(generation) as context_measurements:
+            reply = _agent_chat(messages, tools, state.settings)
         usage = _record_agent_usage(state, reply, purpose)
         message = reply.get("message") or {}
         update_observation(generation,
@@ -227,7 +234,9 @@ def _tracked_agent_chat(state: AgentState, messages: list[dict[str, Any]],
                                          "output": round(usage["completion_tokens"] * 0.50 / 1_000_000, 10),
                                          "total": usage["estimated_cost_usd"]}
                                         if usage["estimated_cost_usd"] is not None else None),
-                           metadata={"provider": state.settings.provider, "purpose": purpose,
+                           metadata={**context_measurements, "provider": state.settings.provider, "purpose": purpose,
+                                     "provider_prompt_tokens": usage["prompt_tokens"],
+                                     "provider_prompt_tokens_available": reply.get("provider_prompt_tokens_available", "prompt_eval_count" in reply),
                                      "reasoning_effort": state.settings.reasoning_effort,
                                      "cached_prompt_tokens": usage["cached_prompt_tokens"],
                                      "reasoning_tokens": usage["reasoning_tokens"]})
