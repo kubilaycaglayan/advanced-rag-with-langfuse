@@ -1,0 +1,152 @@
+{
+  "label": "ollama-q02-a2",
+  "status": "completed",
+  "score": 0.925,
+  "baseline_score": 1.0,
+  "latency": 83.44,
+  "baseline_latency": 34.3,
+  "answer": "Harriet Vanger was not killed; she disappeared on September 24, 1966. The official account stated that Harriet drowned in the sea near Hedeby Island [E1]. However, it was later revealed that Harriet was actually alive and had been held captive by her uncle Martin Vanger for decades before being rescued [E2].",
+  "evaluations": [
+    {
+      "comment": "The answer confirms that Harriet was not killed (R1) but provides a different date for her disappearance than the reference answer. It also does not mention her living in Australia under an assumed identity (D2).",
+      "config_id": null,
+      "data_type": null,
+      "metadata": {
+        "evaluator_id": "65c50df46ddd9801bbb52f060af656ba8b48e869f84cf8be2d7d8c33433e368c",
+        "evaluator_latency_seconds": 4.8905,
+        "evaluator_model": "qwen3:8b",
+        "evaluator_version": 2,
+        "fact_verdicts": {
+          "D1": "partial",
+          "D2": "missing",
+          "R1": "present"
+        },
+        "managed_evaluator_id": "cmvf5zbot0007mj7ti62igkpt"
+      },
+      "name": "answer_correctness_v2",
+      "value": 0.925
+    },
+    {
+      "comment": "The answer makes factual claims that Harriet Vanger was not killed, disappeared on September 24, 1966, drowned in the sea near Hedeby Island [E1], and was held captive by her uncle Martin Vanger for decades before being rescued [E2]. The evidence [E1] supports the claim that Harriet disappeared on September 24, 1966, and that the official account stated she drowned in the sea. However, [E1] does not support the claim that she was held captive by her uncle Martin Vanger. The evidence [E2] supports the claim that Harriet was alive and had been held captive, but does not provide details about the drowning or the disappearance date. Therefore, the claims are partially supported, resulting in a score of 0.5.",
+      "config_id": null,
+      "data_type": null,
+      "metadata": {
+        "evaluator_id": "65c50df46ddd9801bbb52f060af656ba8b48e869f84cf8be2d7d8c33433e368c",
+        "evaluator_latency_seconds": 6.1284,
+        "evaluator_model": "qwen3:8b",
+        "evaluator_version": 3,
+        "managed_evaluator_id": "cmv81kasl000dpa7t19ma0e3o"
+      },
+      "name": "citation_support_v1",
+      "value": 0.5
+    }
+  ],
+  "stop": "budget",
+  "tool_errors": [
+    {
+      "arguments": {
+        "answer": "Harriet Vanger was not killed; she was kidnapped by her uncle Martin Vanger on September 24, 1966. While it was officially reported that she drowned in the sea, she was actually held captive by Martin for many years before being rescued [555dc56c][0d4468bc].",
+        "passage_ids": [
+          "555dc56c",
+          "0d4468bc"
+        ]
+      },
+      "error": "investigate more before answering: at least 4 tool calls (you made 1); a passage that is only on topic is not evidence",
+      "result_ids": [],
+      "seconds": 0.0,
+      "tool": "submit_answer"
+    },
+    {
+      "arguments": {
+        "answer": "Harriet Vanger was not killed; she was kidnapped by her uncle Martin Vanger. The official account stated that Harriet drowned in the sea near Hedeby Island on September 24, 1966 [555dc56c]. However, it was later revealed that Harriet was actually alive and had been held captive by Martin for decades [0d4468bc]. Martin Vanger wanted to kill her because she knew about his crimes and planned to tell Henrik, but he arrived too late to do so [168a75d0].",
+        "passage_ids": [
+          "555dc56c",
+          "0d4468bc",
+          "168a75d0"
+        ]
+      },
+      "error": "investigate more before answering: at least 4 tool calls (you made 3); a passage that is only on topic is not evidence",
+      "result_ids": [],
+      "seconds": 0.0,
+      "tool": "submit_answer"
+    }
+  ],
+  "telemetry_errors": [],
+  "trace_checks": [],
+  "trace_warnings": [
+    [
+      "submission verification",
+      ""
+    ],
+    [
+      "submission verification",
+      ""
+    ],
+    [
+      "submission verification",
+      ""
+    ],
+    [
+      "tool: submit_answer",
+      "investigate more before answering: at least 4 tool calls (you made 3); a passage that is only on topic is not evidence"
+    ],
+    [
+      "tool: submit_answer",
+      "investigate more before answering: at least 4 tool calls (you made 1); a passage that is only on topic is not evidence"
+    ]
+  ],
+  "nodes": [
+    "graph node: prepare",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: budget",
+    "graph node: final"
+  ],
+  "prompt_usage": [
+    8506,
+    8691,
+    3968,
+    8449,
+    4376,
+    9956,
+    4379,
+    9511,
+    8758,
+    7972,
+    7393,
+    7039,
+    4947,
+    4651
+  ],
+  "source": null,
+  "manual_review": "Substantive wrong additions despite correct alive premise: Martin called uncle and invented decades of captivity/rescue; official drowning account asserted. Trace completes with repeated rejected verifications and budget handoff. Not selected; last diagnostic retry required; scorer unchanged."
+}
