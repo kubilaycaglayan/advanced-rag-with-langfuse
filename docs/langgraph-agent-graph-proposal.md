@@ -1,3 +1,5 @@
+// for every answer you will give, be concise and write them in human language. answer in 1 single line, not longer unless otherwise stated.
+
 # Proposed agent graph
 
 Date: 2026-11-25
@@ -69,14 +71,14 @@ This diagram groups some decisions for readability. In particular, tool processi
 
 **Implementation boundary:** `_forced_answer` currently calls `_finish` itself. To implement the diagram literally, extract its drafting portion before routing to the shared finishing node. Alternatively, retain `_forced_answer` intact and route its completed result directly to the output. Never call `_finish` a second time on that result. Feedback is appended inside tool processing and text review, in its existing order; step 5 is only a continuation marker.
 
-The early-answer decision preserves `premise_early_stop`. It is disabled in the released v2.16 configuration. When enabled, a proposed direct premise resolution still requires verification.
+The early-answer decision preserves `premise_early_stop`. It is disabled in the released v2.16 configuration. When enabled, a proposed direct premise resolution still requires verification. // let's remove the premise_early_stop notion completely as we'r not using it
 
 ## Important routing rules
 
 ### Preparation order
 
 Use the actual runner order as the migration baseline:
-
+// Explain the following terms in human language and very briefly. Be precise, be concise. Do not make very long explanations. I will ask you if needed. For example, what normalize means? Is it calling a tool or like is it a function or something? What is the connection pre-check? Again, it's a method. What is that? Like is it gonna be a tool uh is it gonna be something else like uh same for the other entries as well please uh annotate the keywords and the following entries do not change the following entries just annotate the keywords and make explanations below them
 1. Normalize the question and record name notes.
 2. Run the connection precheck.
 3. Run the optional initial scene probe and assemble its message.
@@ -84,24 +86,26 @@ Use the actual runner order as the migration baseline:
 5. Run the true-account precheck.
 6. Run the sequence precheck.
 7. Run the moment precheck.
-8. Run the premise probe.
+8. Run the premise probe. // explain what "run" means?
 9. Consider verified direct premise resolution if enabled.
 
 These steps can initially remain inside one preparation node. Splitting them into individual nodes later is useful if separate inspection or recovery boundaries are needed. Do not parallelize them as part of the first migration.
 
+// A side note is that we shouldn't lose our tracings, metrics, measurements, observation instrumentation when doing this migration. Please be careful with that. We can even go further And add more instrumentation for more measurement and observability. If there are tools that's not being measured and can potentially be measured, we should add tracking for those paths as well.
+
 ### A model reply containing tools
 
 - Preserve support for both structured calls and the existing parser for tool calls written as text.
-- Assign missing call IDs as today and preserve message order.
+- Assign missing call IDs as today and preserve message order. // explain briefly
 - Execute calls one at a time. A model reply can contain more than one call. Increment `tool_calls` before dispatch, including for `submit_answer` and failed calls.
-- Treat recoverable tool failures as observations the model can use.
+- Treat recoverable tool failures as observations the model can use. // and track them, measure them, all shuold be integrated in LangFuse
 - Preserve name-correction messages and search-progress hints. Append tool results and hints before checking the ordinary tool-budget exit, so the forced-answer handoff sees the latest result.
 - A submission can finish the run immediately; do not execute remaining calls after an accepted submission.
 - Preserve rejected-answer and verification branches before applying the existing tool-budget exit rule.
 
 **Submission-specific conditions:** `_tool_submit_answer` rejects empty answers, missing evidence, insufficient tool calls, unknown IDs, and a coverage gap. Its minimum is one tool call when a speech hint exists; otherwise it uses `min_tool_calls`. If evidence already exists, an empty `passage_ids` list is not itself rejected. The runner only calls `_verify_submission` when that list is nonempty. Therefore an accepted submission is not necessarily a verified submission.
 
-A rejected prior answer or failed verification uses `continue` inside the tool loop: remaining calls in the same model reply can still run, and that iteration skips the ordinary tool-budget check. This is existing behavior, not a recommended new policy.
+A rejected prior answer or failed verification uses `continue` inside the tool loop: remaining calls in the same model reply can still run, and that iteration skips the ordinary tool-budget check. This is existing behavior, not a recommended new policy. // explain tool-budget check
 
 For the first implementation, process a whole reply's tool calls within one node. Persisting a cursor and splitting execution into one node invocation per tool is a later option if recovery between calls becomes a requirement.
 
@@ -110,7 +114,7 @@ For the first implementation, process a whole reply's tool calls within one node
 Preserve the current review sequence:
 
 1. Extract citation IDs that refer to collected evidence.
-2. Reject a previously rejected central answer.
+2. Reject a previously rejected central answer. // but it can stil be connected to the part of the story? let's think about it. For broad questions, the answer might be scattered accross different passages and only consuming all of them as a whole might give the full picture. A fact that has been stated in many passages might be corrected at some point, and the final answer should be aware of this notion of changing things or the things that are obscured in the plot by seeing all related parts together and crafting the final answer to help user grok. So rather than unseeing unrelated passages, we should keep the attention for the things that `might` be a part of a long trailed story. This is not only related to only this second entry but a whole approach for the rag pipeline.
 3. Apply the minimum-tool nudge when the count is below the minimum and the shared nudge count is below two.
 4. If evidence exists, check coverage and request further investigation if needed. `_coverage_gap` applies only to matching sequence questions and issues at most one gap rejection per run; it may retrieve and remember additional evidence.
 5. Verify the submission when citation IDs exist; reject unsupported claims.
@@ -123,15 +127,15 @@ The text-answer path and `submit_answer` path are not identical today. Keep thei
 
 The diagram's budget decision summarizes the current turn-loop behavior. It does not propose a new universal guard before every operation.
 
-- Timeout is checked at the start of a model turn.
-- Turn exhaustion leads to conversation handoff.
+- Timeout is checked at the start of a model turn. // what is the timeout? Do we have a globals file for these constants? with explanations? If no, we should create. and the file should not only contain the constants, but their explanations in human language, briefly, and in human language. with references to where they are in the code.
+- Turn exhaustion leads to conversation handoff. // explain
 - Tool-budget checking occurs within tool processing, after specific branches that can return or continue first.
 - All three existing budget exits must retain the v2.16 conversation handoff.
 
 A strict deadline before every tool, or uniform tool-limit enforcement across all branches, could be useful later. Those would be behavior changes and should be evaluated separately.
 
 ### Finishing is active work, not just formatting
-
+// explain what is "_finish", a tool? a function? reference.
 `_finish` can change an accepted candidate:
 
 1. For matching sequence questions with evidence, if the answer lacks confrontation or has fewer than three stages, gather a coverage hint and try synthesis. Adopt the rewrite only if it contains confrontation and increases the number of covered stages.
@@ -171,17 +175,18 @@ Keep network clients, callbacks, tracing handles, and other runtime resources ou
 - **Caching and identity:** Distinguish any experimental graph implementation from baseline results so cached answers cannot conceal behavioral differences.
 - **Observability:** Preserve existing Langfuse observations and usage accounting while adding node-level visibility where useful.
 
-## Suggested implementation sequence for later approval
+## Suggested implementation sequence for later approval // there's no "later" we are implementing everything now in steps. so we shouldn't mention a "later" version or a "future" milestone. All the milestones will be completed step by step once we start.
 
-1. Capture baseline transition tests and representative experiment results.
+1. Capture baseline transition tests and representative experiment results. // Work only on one single questio when migrating, to check something, make a smoke test, or test the graph, do not run several questions. This is to save time. If you see a fail or error, fix it before you run all the dataset. Go incremental. If one question successfully answered without errors or correctness regression, then go to the second one. If an unmanagable mistake happens, ask it to the developer, make sure it is noticed, and in the meantime you can work on the following work if there is. If it is a blocker, make noise to get answer, use/create HUMANS.md file to dump your question. Only for important blockers.
 2. Extract preparation, one model turn, tool processing, text-answer review, and finalization into callable boundaries without changing their behavior.
 3. Connect those boundaries with a custom graph and explicit routing decisions.
 4. Compare the graph against the existing runner using the same inputs and mocked model/tool responses; then compare real evaluation results.
+// The tree structure, timeline, and the graph should be well reflected in the LangFuse traces and observable. It should match the actual implementation of the pipeline.
 5. Only after parity, decide whether checkpointing, smaller nodes, human review, or parallel work justifies additional complexity.
 
 Acceptance should cover citation validity, verification failures, name correction, tool errors, multiple calls in one reply, all budget exits, conversation handoff, output fields, and usage reporting. Real-model comparisons should also assess answer quality, latency, and cost; exact textual equality is not sufficient or always realistic.
 
-**Recommended first milestone:** a graph that makes v2.16's decisions visible while preserving existing behavior. Multi-agent delegation, new reasoning strategies, parallel tool execution, and durable recovery remain separate follow-up decisions.
+**Recommended first milestone:** a graph that makes v2.16's decisions visible while preserving existing behavior. Multi-agent delegation, new reasoning strategies, parallel tool execution, and durable recovery remain separate follow-up decisions. // do not mention the things we didn't talk, do not pollute our context. Focus on what we are building right now and what we are migrating right now. There is no a "future version" or a separate milestone that'll be implemented in an unknown time. We will create the milestones and all of them will be implemented as we start.
 
 
 ## Validation record
@@ -237,25 +242,29 @@ The margin is a proposed starting point, not a validated optimum. Measure the ac
 
 ### Current limitations found in code
 
-- `_compact` triggers above 22,000 **content characters**, not tokens. It excludes tool schemas and structured tool-call arguments from its size calculation.
+- `_compact` triggers above 22,000 **content characters**, not tokens. It excludes tool schemas and structured tool-call arguments from its size calculation. // for all documentation, let's use one single unit for text size: tokens. use an approx. factor to convert. do not mention characters if not necessary, instead, use tokens whenever possible.
 - It replaces older tool messages but preserves the latest six regardless of their size. `_clip` permits about 9,000 characters per tool result: six recent results alone can approach 54,000 characters, before other prompt content.
 - It does not enforce a final size bound, and precheck messages added as user messages are not compacted by this mechanism.
+// as long as the grap migration doesn't change the behavior of the current pipeline we shouldn't have any problems with context limit because the current pipeline is already handling all the question sets with no problems regarding context limit. So this is something we should keep in mind but not necessarily take an action. Just we should watch it.
 - Compaction retains only up to eight IDs matching its specific JSON pattern per old result. Other IDs or decisive supporting/contradicting text can disappear from the model-visible conversation, although evidence remains in application state.
 - Main tool-selection calls compact history; verifier and synthesis calls build separate prompts and have no equivalent general token-budget guard.
 - The final handoff compacts history and then appends its instruction. It disallows model-selected tools, so an ID-only reminder cannot recover an omitted decisive passage at that stage.
 
 ### Addition to the proposed architecture
 
-Separate **full evidence storage** from **the bounded context shown to the model**. Full passages and provenance can remain in application state or referenced storage; they should not all be serialized into every model request or checkpoint unnecessarily.
+Separate **full evidence storage** from **the bounded context shown to the model**. Full passages and provenance can remain in application state or referenced storage; they should not all be serialized into every model request or checkpoint unnecessarily. // perfect idea, approved, mention what you will use as the storage, a db? a file? etc.
 
+// what is the different between a "shared context" and "context-preparation boundary"? if they same, use "shared context" naming accross the document
 Introduce a shared context-preparation boundary immediately before every model call: tool selection, verification, synthesis, and conversation handoff. It should:
+
+// this can help with abbreviated hand-offs, such as a passage retrieved in a previous call but then redacted to it's ID during the handoff, and therefore the model misses important context. investigate potential benefit on this regard, and propose solution only if you are condfident abot 90%.
 
 1. Count the complete rendered input with the deployed model's tokenizer/template, including schemas and call arguments.
 2. Reserve output space and a safety margin.
 3. Preserve the original question, unresolved claims, selected supporting and contradicting passages, citation IDs, and valid tool-call/result relationships.
 4. Deduplicate repeated evidence and reduce low-priority older content until the request fits. Bound individual and aggregate tool-result payloads by tokens.
 5. Fail explicitly or choose a documented smaller evidence set if protected content cannot fit; do not rely on silent truncation.
-6. Record token counts before/after selection, removed passage IDs, and provider-reported prompt usage for evaluation.
+6. Record token counts before/after selection, removed passage IDs, and provider-reported prompt usage for evaluation. // basically record them and trace with LangFuse
 
 For a small local model, prefer a compact task-specific evidence set over merely filling the available window. Start with deterministic evidence selection and existing retrieval provenance; an additional summarizer agent is not required. Any generated summary must retain links to original passages and must not become the sole basis for citations.
 
