@@ -1,0 +1,40 @@
+{
+  "step": 2,
+  "status": "complete",
+  "starting_revision": "738ad5523735a83e553a90bea1e3bb331969bf84",
+  "dependency_commit": "5454de9",
+  "contract_commit": "3f8ba03",
+  "python": "3.12.16",
+  "langgraph_pin": "1.2.24",
+  "isolated_image": "sha256:26b29cff34680d0cfa67d14a726b6b967ed9c8bb32be1547d40d8724fc97ea22",
+  "live_app_image_unchanged": true,
+  "before": {
+    "tests": 75,
+    "failures": 0,
+    "errors": 0
+  },
+  "new_contracts": {
+    "test_methods": 16,
+    "failures": 0,
+    "errors": 0
+  },
+  "after": {
+    "tests": 91,
+    "failures": 0,
+    "errors": 0
+  },
+  "dependency_check": "pip check passed; app imports and minimal graph invocation passed",
+  "model_generation_calls": 0,
+  "step3_started": false,
+  "artifact_sha256": {
+    "after-tests.log": "36bdb193db8d8893c646d789c3351e54b5716ff6b87dfa779f3c8f793fcf3353",
+    "base-image.txt": "c5957ca50a99a0c6f41ef10d6840a6782b01764dadbcab3f6444c8b811c55b87",
+    "before-tests.log": "448bd0d9e015e2b1631dc8b903a9b3b018966f6c3a11c33c7ffbb5948bedaf49",
+    "contract-tests.log": "8a0d8dc29bce136c0fbaf61a56be8fdaa9eb13afa1433c404218538c4fef1ba3",
+    "dependency-build.log": "7e17787469b681c4b241dff613bb3b2ed46f85844345899ef022b0ee07ccdcac",
+    "dependency-probe.json": "ab7d7c2f6dcdc1f9c3d798452eb25a6b4df00c8a90ed53e6b2410d192e49530d",
+    "initial-probe-path-error.log": "09c824c3e1f7fbb0de70dcc92a408cdc5d0c7baf29c856bbd174f8d2bd22c113",
+    "pip-install-report.json": "8744b28de6bbe517c96a9fc7da1916d87d909b71c7eee075811ad41598470319",
+    "resolved-requirements.txt": "e3ba9edc27093219e72a1579c54472821fad6caedcd5b64b149ab50379bb7ee8"
+  }
+}
