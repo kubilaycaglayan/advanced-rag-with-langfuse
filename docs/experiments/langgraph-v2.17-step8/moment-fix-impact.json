@@ -1,0 +1,34 @@
+{
+  "final_code_revision": "327674d",
+  "previous_executable_revision": "c107e224fe310218c4c726f2798a1104b30694cd",
+  "change": "Remove obsolete seventh None argument from _tool_scene_moment to six-argument moment_scene_hits. No prompts, evidence-selection rules, handoff, settings or provider request construction changed.",
+  "affected_retained_attempts": [
+    {
+      "label": "openai-q08-a2",
+      "selected": false,
+      "speech_precheck": false,
+      "scene_moment_tool": true,
+      "failed": false
+    },
+    {
+      "label": "openai-q10-a1",
+      "selected": false,
+      "speech_precheck": true,
+      "scene_moment_tool": false,
+      "failed": true
+    }
+  ],
+  "unaffected_selected_attempts": [
+    "openai-q01-a1",
+    "openai-q02-a1",
+    "openai-q03-a1",
+    "openai-q04-a1",
+    "openai-q05-a1",
+    "openai-q06-a1",
+    "openai-q07-a1",
+    "openai-q08-a3",
+    "openai-q09-a1"
+  ],
+  "policy": "Retain failed/superseded attempts. Rerun affected selected items only; Q10 attempt 2 runs final revision. Prior selected questions do not execute the changed moment path.",
+  "tests": "94 agent/execution tests pass; prior signature-aware test fails with too many positional arguments."
+}

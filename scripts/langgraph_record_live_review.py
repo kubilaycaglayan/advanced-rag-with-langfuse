@@ -29,7 +29,7 @@ for d in sorted(f.glob('*-q??-a?')):
     m = json.loads((d/'manifest.json').read_text())
     i, = r['item_results']
     v['attempts'].append({'label':d.name,'correctness':i['correctness_score'],
-        'latency_seconds':i['output']['latency_seconds'],'execution_id':r['execution_id'],
+        'latency_seconds':i['output'].get('latency_seconds'),'execution_id':r['execution_id'],
         'source_fingerprint':m['pipeline']['source_fingerprint']})
 (f/'progress.json').write_text(json.dumps(v, indent=2)+'\n')
 print(json.dumps(review, indent=2))

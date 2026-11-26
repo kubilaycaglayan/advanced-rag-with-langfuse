@@ -155,5 +155,9 @@
       "value": 1.0,
       "artifact": "factory-rubric-rescore-v2.json"
     }
+  },
+  "superseded_attempts": {
+    "openai-q08-a2": "Unselected diagnostic attempt used scene_moment before signature fix.",
+    "openai-q10-a1": "Failed preparation due to obsolete seventh scene_moment argument; retry on final code."
   }
 }

@@ -1,0 +1,5 @@
+{
+  "label": "openai-q10-a1",
+  "status": "partial",
+  "manual_review": "Archived failed attempt. Preparation raised TypeError from seven arguments to a six-argument helper; signature-aware regression test reproduced failure; fixed at 327674d. Superseded by retry, not selected. Original results retained."
+}

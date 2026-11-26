@@ -1,0 +1,28 @@
+ Container millenium-app-run-35f7a8f3b0df Creating 
+ Container millenium-app-run-35f7a8f3b0df Created 
+........E....................................
+======================================================================
+ERROR: test_moment_tool_returns_the_chosen_scene (test_agent.Coverage.test_moment_tool_returns_the_chosen_scene)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/tests/test_agent.py", line 395, in test_moment_tool_returns_the_chosen_scene
+    payload = _tool_scene_moment(agent, {})
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/app/agent/tools/scenes.py", line 149, in _tool_scene_moment
+    rows, moment = moment_scene_hits(question, state.config, state.collection, qdrant_client(), evidence, present, None)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 2, in _moment_scene_hits
+  File "/usr/local/lib/python3.12/unittest/mock.py", line 192, in checksig
+    sig.bind(*args, **kwargs)
+  File "/usr/local/lib/python3.12/inspect.py", line 3280, in bind
+    return self._bind(args, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/inspect.py", line 3199, in _bind
+    raise TypeError('too many positional arguments') from None
+TypeError: too many positional arguments
+
+----------------------------------------------------------------------
+Ran 45 tests in 0.036s
+
+FAILED (errors=1)
+
