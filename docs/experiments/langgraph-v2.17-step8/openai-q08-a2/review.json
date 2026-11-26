@@ -1,0 +1,116 @@
+{
+  "label": "openai-q08-a2",
+  "status": "completed",
+  "score": 0.9,
+  "baseline_score": 1.0,
+  "latency": 21.28,
+  "baseline_latency": 19.78,
+  "answer": "Blomkvist realized Salander was a hacker because she quoted text that was stored only on his computer, showing that she had been inside it. [E1]",
+  "evaluations": [
+    {
+      "comment": "The answer supports R1 by explaining that Salander quoted text only on Mikael's computer, indicating she had accessed it. However, it does not mention the confrontation at her apartment, which is part of D1.",
+      "config_id": null,
+      "data_type": null,
+      "metadata": {
+        "evaluator_id": "65c50df46ddd9801bbb52f060af656ba8b48e869f84cf8be2d7d8c33433e368c",
+        "evaluator_latency_seconds": 5.0424,
+        "evaluator_model": "qwen3:8b",
+        "evaluator_version": 2,
+        "fact_verdicts": {
+          "D1": "missing",
+          "R1": "present"
+        },
+        "managed_evaluator_id": "cmvf5zbot0007mj7ti62igkpt"
+      },
+      "name": "answer_correctness_v2",
+      "value": 0.9
+    },
+    {
+      "comment": "The answer claims that Blomkvist realized Salander was a hacker because she quoted text that was stored only on his computer. The evidence [E1] supports this claim by including the dialogue where Salander says, 'You\u2019ve been inside my computer. You\u2019re a hacker,' and the explanation that she quoted from a text only on his computer. The evidence directly supports the factual claim in the answer.",
+      "config_id": null,
+      "data_type": null,
+      "metadata": {
+        "evaluator_id": "65c50df46ddd9801bbb52f060af656ba8b48e869f84cf8be2d7d8c33433e368c",
+        "evaluator_latency_seconds": 3.2331,
+        "evaluator_model": "qwen3:8b",
+        "evaluator_version": 3,
+        "managed_evaluator_id": "cmv81kasl000dpa7t19ma0e3o"
+      },
+      "name": "citation_support_v1",
+      "value": 1.0
+    }
+  ],
+  "stop": "submit",
+  "tool_errors": [
+    {
+      "arguments": {
+        "answer": "He realized she had been inside his computer when she quoted a text that was stored only on it. He told her, \u201cYou\u2019ve been inside my computer. You\u2019re a hacker.\u201d [a5571633]",
+        "passage_ids": [
+          "a5571633"
+        ]
+      },
+      "error": "investigate more before answering: at least 4 tool calls (you made 3); a passage that is only on topic is not evidence",
+      "result_ids": [],
+      "seconds": 0.0,
+      "tool": "submit_answer"
+    },
+    {
+      "arguments": {
+        "question": "How did Mikael Blomkvist realize that Lisbeth Salander had hacked his computer and was a hacker?"
+      },
+      "error": "TypeError: _moment_scene_hits() takes 6 positional arguments but 7 were given",
+      "result_ids": [],
+      "seconds": 0.02,
+      "tool": "scene_moment"
+    }
+  ],
+  "telemetry_errors": [],
+  "trace_checks": [],
+  "trace_warnings": [
+    [
+      "tool: scene_moment",
+      "TypeError: _moment_scene_hits() takes 6 positional arguments but 7 were given"
+    ],
+    [
+      "tool: submit_answer",
+      "investigate more before answering: at least 4 tool calls (you made 3); a passage that is only on topic is not evidence"
+    ]
+  ],
+  "nodes": [
+    "graph node: prepare",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: select",
+    "graph node: decide",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: final"
+  ],
+  "prompt_usage": [
+    3742,
+    8444,
+    7316,
+    4942,
+    4866,
+    4752,
+    3919,
+    3280
+  ],
+  "source": null,
+  "manual_review": "Correct core answer and citation support. Early submission rejection recovered normally; trace checks pass. Supporting confrontation detail omitted, score 0.9 below historical 1.0; retain and use last diagnostic attempt."
+}

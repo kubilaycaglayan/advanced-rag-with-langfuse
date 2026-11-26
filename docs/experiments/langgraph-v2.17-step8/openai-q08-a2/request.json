@@ -1,0 +1,16 @@
+{
+  "cache_layers": null,
+  "cache_mode": "bypass",
+  "correctness_evaluator": "answer_correctness_v2",
+  "dataset_name": "right-set-3",
+  "dataset_version": null,
+  "item_ids": [
+    "a385d39a-767a-514a-a858-573e337356ad"
+  ],
+  "pipeline": "v2.17",
+  "settings": {
+    "agent_provider": "openai",
+    "agent_reasoning_effort": "high"
+  },
+  "variant_label": "langgraph-step8-openai-q08-a2"
+}
