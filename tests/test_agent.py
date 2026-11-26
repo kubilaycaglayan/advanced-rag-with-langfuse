@@ -18,7 +18,7 @@ from app.retrieval.entities import connection_pairs
 from app.agent.tools.coverage import _covered_stages
 from app.agent.tools.accounts import _event_verb
 from app.agent.submission import _final
-from app.agent.submission import _finish
+from app.agent.submission import prepare_final_answer
 from app.agent.protocol import _int
 from app.agent.submission import _looks_like_abstention
 from app.retrieval.entities import name_score
@@ -212,7 +212,7 @@ class AbstentionRecovery(unittest.TestCase):
         agent.evidence = {"a1b2c3d4": {"id": "a1b2c3d4-0000-0000-0000-000000000000", "text": "the report"}}
         agent.order = ["a1b2c3d4"]
         with patch("app.agent.submission._synthesize", return_value=("He learned about her from the report [a1b2c3d4].", ["a1b2c3d4"])):
-            result = _finish(agent, "The provided passages do not contain information.", [], stopped="content")
+            result = prepare_final_answer(agent, "The provided passages do not contain information.", [], stopped="content")
         self.assertEqual(result["answer"], "He learned about her from the report [E1].")
         self.assertEqual(result["stopped"], "content+synthesis")
 
@@ -343,7 +343,7 @@ class MomentHelpers(unittest.TestCase):
                                        "text": "She muttered Kalle Fucking Blomkvist."}}
         agent.order = ["90239c47"]
         with patch("app.agent.submission._synthesize") as synthesize:
-            result = _finish(agent, "She muttered: Kalle Fucking Blomkvist [90239c47].", ["90239c47"], stopped="content")
+            result = prepare_final_answer(agent, "She muttered: Kalle Fucking Blomkvist [90239c47].", ["90239c47"], stopped="content")
         synthesize.assert_not_called()
         self.assertIn("Kalle Fucking Blomkvist", result["answer"])
 

@@ -50,7 +50,7 @@ def validate_settings(instance: Any) -> None:
 
 
 @dataclass(frozen=True)
-class AgentSettings:
+class TargetAgentSettings:
     model: str = setting('qwen3.6:35b', 'model name', 'Answering-agent model; separate from retrieval transformation models.', 'app/models/agent.py')
     provider: str = setting('ollama', 'provider', 'Existing answering-agent adapter.', 'app/models/agent.py', choices=('ollama', 'openai'))
     max_turns: int = setting(10, 'turns', 'Maximum model-selection turns; verification and synthesis are separate calls.', 'app/agent/runner.py', minimum=0)
@@ -64,13 +64,18 @@ class AgentSettings:
     scene_candidate_count: int = setting(30, 'scenes', 'Scene candidate pool before scene selection.', 'app/agent/tools/search.py', minimum=1, maximum=100)
     initial_scene_probe: bool = setting(True, 'boolean', 'Gather an initial scene before model tool selection; override name is automatic_scene_search.', 'app/agent/runner.py')
     reasoning_effort: str = setting('none', 'effort', 'OpenAI none uses Chat Completions; other efforts use Responses.', 'app/models/agent.py', choices=('none', 'low', 'medium', 'high', 'xhigh', 'max'))
-    premise_early_stop: bool = setting(False, 'boolean', 'Legacy optional direct premise resolution; retained in Step 3 pending its agreed later removal.', 'app/agent/runner.py')
 
     def __post_init__(self) -> None:
         validate_settings(self)
 
-    def with_model(self, model: str) -> AgentSettings:
-        return AgentSettings(**{**self.__dict__, 'model': model})
+    def with_model(self, model: str) -> TargetAgentSettings:
+        return type(self)(**{**self.__dict__, 'model': model})
+
+
+@dataclass(frozen=True)
+class AgentSettings(TargetAgentSettings):
+    # Retain the released v2.16 schema; the target configuration has no early stop.
+    premise_early_stop: bool = setting(False, 'boolean', 'v2.16 compatibility only; absent from the target configuration.', 'app/agent/runner.py')
 
 
 @dataclass(frozen=True)

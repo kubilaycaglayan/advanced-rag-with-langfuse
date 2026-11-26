@@ -68,3 +68,33 @@ def instruction_manifest() -> dict[str, Any]:
 def instruction_fingerprint() -> str:
     return hashlib.sha256(json.dumps(instruction_manifest(), ensure_ascii=False, sort_keys=True,
                                      separators=(",", ":")).encode()).hexdigest()
+
+
+def target_instruction_manifest() -> dict[str, Any]:
+    """Cover the extracted v2.17 builders without changing v2.16's release identity.
+
+    The target remains unregistered until the catalog step. Relocation changes the
+    source manifest shape; execution-contract tests protect model-visible parity.
+    """
+    from app.agent import execution
+    manifest = instruction_manifest()
+    builders = {
+        "prepare_question": execution.prepare_question,
+        "select_model_turn": execution.select_model_turn,
+        "process_reply_tools": execution.process_reply_tools,
+        "review_answer_text": execution.review_answer_text,
+        "draft_budget_answer": submission.draft_budget_answer,
+        "prepare_final_answer": submission.prepare_final_answer,
+    }
+    messages = {name: value for name, value in manifest["messages"].items() if name != "run_agent"}
+    for name, builder in builders.items():
+        function = next(node for node in ast.parse(inspect.getsource(builder)).body if isinstance(node, ast.FunctionDef))
+        messages[name] = sorted(node.value for node in ast.walk(function)
+                                if isinstance(node, ast.Constant) and isinstance(node.value, str)
+                                and not (isinstance(function.body[0], ast.Expr) and node is function.body[0].value))
+    return {**manifest, "format": 2, "messages": messages}
+
+
+def target_instruction_fingerprint() -> str:
+    return hashlib.sha256(json.dumps(target_instruction_manifest(), ensure_ascii=False, sort_keys=True,
+                                     separators=(",", ":")).encode()).hexdigest()

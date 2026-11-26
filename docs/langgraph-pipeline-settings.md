@@ -25,7 +25,7 @@ Effective example: pipeline `v2.16`, explicit overrides `{}`. This table describ
 | `scene_candidate_count` | `30` | `30` | `30` | scenes | Scene candidate pool before scene selection. Validation: minimum 1; maximum 100. | [app/agent/tools/search.py](../app/agent/tools/search.py) |
 | `initial_scene_probe` | `true` | `true` | `true` | boolean | Gather an initial scene before model tool selection; override name is automatic_scene_search. | [app/agent/runner.py](../app/agent/runner.py) |
 | `reasoning_effort` | `"none"` | `"none"` (released omission; resolver fallback) | `"none"` | effort | OpenAI none uses Chat Completions; other efforts use Responses. Validation: choices: none, low, medium, high, xhigh, max. | [app/models/agent.py](../app/models/agent.py) |
-| `premise_early_stop` | `false` | `false` | `false` | boolean | Legacy optional direct premise resolution; retained in Step 3 pending its agreed later removal. | [app/agent/runner.py](../app/agent/runner.py) |
+| `premise_early_stop` | `false` | `false` | `false` | boolean | v2.16 compatibility only; absent from the target configuration. | [app/agent/runner.py](../app/agent/runner.py) |
 
 ## Embedded runtime limits
 

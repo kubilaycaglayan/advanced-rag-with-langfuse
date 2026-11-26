@@ -49,6 +49,11 @@ class ExecutionHarness:
         self.replies = iter(replies)
         self.seed = seed
         self.settings = settings or AgentSettings(initial_scene_probe=False, min_tool_calls=0)
+        if hasattr(runner, 'TargetAgentSettings'):
+            if getattr(self.settings, 'premise_early_stop', False):
+                raise ValueError('legacy early-stop settings cannot enter the target harness')
+            self.settings = runner.TargetAgentSettings(**{
+                key: value for key, value in self.settings.__dict__.items() if key != 'premise_early_stop'})
         self.question = question
         self.tool_handler = tools
         self.events = []
@@ -97,9 +102,10 @@ class ExecutionHarness:
         self.stack.enter_context(patch.object(runner, '_run_tool', side_effect=dispatch))
         self.coverage = self.stack.enter_context(patch.object(runner, '_coverage_gap', return_value=None))
         self.stack.enter_context(patch('app.agent.tools.submission._coverage_gap', return_value=None))
-        self.finish = Mock(wraps=submission._finish)
-        for module in (runner, submission):
-            self.stack.enter_context(patch.object(module, '_finish', new=self.finish))
+        self.finish = Mock(wraps=submission.prepare_final_answer)
+        final_name = 'prepare_final_answer' if hasattr(runner, 'TargetAgentSettings') else '_finish'
+        self.stack.enter_context(patch.object(runner, final_name, new=self.finish))
+        self.stack.enter_context(patch.object(submission, '_finish', new=self.finish))
         return self
 
     def run(self):
