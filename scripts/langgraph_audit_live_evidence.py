@@ -48,7 +48,8 @@ for directory in sorted(folder.glob('*-q??-a?')):
     assert sum(o['name'] == 'graph node: final' for o in obs) == 1
     assert manifest['pipeline']['execution_identity']['source_fingerprint'] == manifest['pipeline']['source_fingerprint']
     baseline = question['baselines'][output['agent_provider']]
-    rows.append({'label': directory.name, 'execution_id': result['execution_id'],
+    rows.append({'label': directory.name, 'selected': directory.name in progress['selected_attempts'].values(),
+        'execution_id': result['execution_id'],
         'source_fingerprint': manifest['pipeline']['source_fingerprint'],
         'managed_evaluators_equal_to_baseline': manifest['evaluator']['managed_evaluators'] == fixed['sources'][baseline['source_experiment_id']]['evaluator']['managed_evaluators'],
         'reviewed_tool_errors': tool_errors, 'manual_review': review.get('manual_review'),
@@ -70,7 +71,7 @@ for directory in sorted(folder.glob('*-q??-a?')):
         assert actual['evaluation']['value'] == override['value']
         assert actual['latency_seconds'] == output['latency_seconds']
     rows[-1]['effective_correctness'] = override['value'] if override else item['correctness_score']
-print(json.dumps({'scope': 'Retained attempts only; not full Step 8 completion or Step 9 acceptance',
+print(json.dumps({'scope': 'All completed retained attempts; structural evidence audit only, no Step 9 aggregate acceptance',
                   'checks': 'single-item/cache/source/identity/reviewed-tool-errors/trace-parent-timing/single-finalization',
                   'final_source_fingerprint': final_manifest['source_fingerprint'],
                   'archived_failed_attempts':archived, 'attempts': rows}, indent=2))

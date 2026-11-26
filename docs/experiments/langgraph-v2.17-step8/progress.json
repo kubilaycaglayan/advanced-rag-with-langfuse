@@ -1,6 +1,6 @@
 {
   "step": 8,
-  "status": "in_progress",
+  "status": "complete",
   "selected_attempts": {
     "openai-q01": "openai-q01-a1",
     "openai-q02": "openai-q02-a1",
@@ -19,9 +19,11 @@
     "ollama-q05": "ollama-q05-a1",
     "ollama-q06": "ollama-q06-a3",
     "ollama-q07": "ollama-q07-a1",
-    "ollama-q08": "ollama-q08-a3"
+    "ollama-q08": "ollama-q08-a3",
+    "ollama-q10": "ollama-q10-a1",
+    "ollama-q09": "ollama-q09-a1"
   },
-  "selection_note": "Local Harriet attempt1 has highest recorded correctness1.0, provisionally retained with its own59.88-second latency, but manual review rejects unsupported claims. No attempt accepted; substantive-failure gate unresolved. Scores unchanged.",
+  "selection_note": "All 20 fixed-sample provider/question pairs have a selected completed run. Selection uses highest recorded correctness (earliest tie) with that same attempt\u2019s latency. Substantive or evaluator failures are documented in the selected review and README; this closes Step 8 evidence collection only, not Step 9 acceptance.",
   "attempts": [
     {
       "label": "ollama-q01-a1",
@@ -171,6 +173,13 @@
       "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df"
     },
     {
+      "label": "ollama-q10-a1",
+      "correctness": 1.0,
+      "latency_seconds": 54.93,
+      "execution_id": "4d08b058-d56c-40f5-a428-ba50c99cd728",
+      "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df"
+    },
+    {
       "label": "openai-q01-a1",
       "correctness": 0.95,
       "latency_seconds": 18.59,
@@ -304,7 +313,7 @@
       "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df"
     }
   ],
-  "remaining_question_provider_pairs": 2,
+  "remaining_question_provider_pairs": 0,
   "live_default_changed": false,
   "step9_started": false,
   "gate_decisions": {
@@ -312,7 +321,11 @@
     "openai-q06": "Developer authorized recording the 0.0333 difference as an evaluator discrepancy and continuing.",
     "openai-q09": "Developer approved current answer and requested a question-specific scorer correction. Final live rubric rescore: attempts 1/3=1.0, scene-confused attempt2=0.5. Select attempt1 with original latency; source results preserved.",
     "ollama-q01": "Developer authorized recording this and similarly verified evaluator-only discrepancies while continuing; no other scorer changes; substantive wrong answers/execution errors remain gated.",
-    "ollama-q02": "Developer authorized recording substantive false-answer failure and finishing remaining items."
+    "ollama-q02": "Developer authorized recording substantive false-answer failure and finishing remaining items.",
+    "ollama-q06": "Developer authorized recording substantive false-answer failure and finishing remaining items; attempt 3 selected as highest numeric score (0.6167), but it falsely reports Harriet Vanger\u2019s remains were found. No scorer adjustment.",
+    "ollama-q08": "All three attempts scored 0.55 versus baseline 1.0 and omitted the private-document discovery on Mikael\u2019s computer; attempt 3 selected as earliest best-score tie, per instruction to record and continue.",
+    "ollama-q09": "All three attempts exhausted; best correctness 0.5 (attempt 1) versus baseline 1.0. Q9 attempt 3 scored 0.0 for correctness while citation support scored 1.0 on a contradictory farmhouse/brickworks interpretation. Attempt 1 provisionally selected by highest correctness; answer still mixes scenes.",
+    "ollama-q10": "Attempt 1 selected: exact quoted answer, correctness/citation support 1.0, baseline 1.0; latency 54.93 seconds; no tool or trace warnings."
   },
   "effective_correctness_overrides": {
     "openai-q09-a1": {

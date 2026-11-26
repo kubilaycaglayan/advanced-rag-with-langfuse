@@ -1,5 +1,5 @@
 {
-  "scope": "Retained attempts only; not full Step 8 completion or Step 9 acceptance",
+  "scope": "All completed retained attempts; structural evidence audit only, no Step 9 aggregate acceptance",
   "checks": "single-item/cache/source/identity/reviewed-tool-errors/trace-parent-timing/single-finalization",
   "final_source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df",
   "archived_failed_attempts": [
@@ -12,6 +12,7 @@
   "attempts": [
     {
       "label": "ollama-q01-a1",
+      "selected": false,
       "execution_id": "620bcb69-1f9b-48ce-99d0-1dfd5d72b28b",
       "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df",
       "managed_evaluators_equal_to_baseline": false,
@@ -60,6 +61,7 @@
     },
     {
       "label": "ollama-q01-a2",
+      "selected": true,
       "execution_id": "7f5e3030-9c3f-47e4-ae3a-5c9501ebf891",
       "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df",
       "managed_evaluators_equal_to_baseline": false,
@@ -108,6 +110,7 @@
     },
     {
       "label": "ollama-q01-a3",
+      "selected": false,
       "execution_id": "c8a4ab1b-09de-41c9-857b-bd564dd2f7df",
       "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df",
       "managed_evaluators_equal_to_baseline": false,
@@ -143,6 +146,7 @@
     },
     {
       "label": "ollama-q02-a1",
+      "selected": true,
       "execution_id": "ab8c9923-e79e-409d-9810-998d4a830300",
       "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df",
       "managed_evaluators_equal_to_baseline": false,
@@ -164,6 +168,7 @@
     },
     {
       "label": "ollama-q02-a2",
+      "selected": false,
       "execution_id": "92a9c915-490a-464b-b33e-28ca3486449e",
       "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df",
       "managed_evaluators_equal_to_baseline": false,
@@ -213,6 +218,7 @@
     },
     {
       "label": "ollama-q02-a3",
+      "selected": false,
       "execution_id": "f9771118-4418-4148-bb0b-52a4f3369b8d",
       "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df",
       "managed_evaluators_equal_to_baseline": false,
@@ -233,7 +239,422 @@
       "effective_correctness": 0.95
     },
     {
+      "label": "ollama-q03-a1",
+      "selected": true,
+      "execution_id": "de6dedf8-304c-4669-8e6f-f2d63c2e8335",
+      "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df",
+      "managed_evaluators_equal_to_baseline": false,
+      "reviewed_tool_errors": [],
+      "manual_review": "Contains correct nickname but adds a long, arguably unsupported list; evaluator scores 1.0 and trace has no execution error. Provisional selection pending review.",
+      "score": 1.0,
+      "baseline_score": 0.95,
+      "latency_seconds": 40.64,
+      "baseline_latency_seconds": 18.79,
+      "artifact_sha256": {
+        "request.json": "78e390da0d29d8def01de1519a248728e2ddde9d37fd4db628ce888a8b9a6217",
+        "manifest.json": "f0fe2983e5500071f3521ec686cde8548e4916f98de5718c78b3ba26a0196742",
+        "results.json": "14b7d2e489c0ed9d6972383e9b56d51740c6f195caecef111f2c28c3a416278b",
+        "trace.json": "57de7c63ec3bc1eb20107a48f34641eb6333b10df9ddd3e5a96eeadcc3d5729c",
+        "review.json": "d9d4a2327e2b23943a3228de02fbf7fac64e450262f2600fdb23f651b702aa3c"
+      },
+      "final_code_compatibility": "exact source",
+      "effective_correctness": 1.0
+    },
+    {
+      "label": "ollama-q04-a1",
+      "selected": false,
+      "execution_id": "07258a63-7818-4790-aaa9-6e63942668cc",
+      "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df",
+      "managed_evaluators_equal_to_baseline": false,
+      "reviewed_tool_errors": [
+        {
+          "arguments": {
+            "answer": "The books do not contain a list or ranking of the \"top 10 most important characters.\""
+          },
+          "error": "investigate more before answering: at least 4 tool calls (you made 1); a passage that is only on topic is not evidence",
+          "result_ids": [],
+          "seconds": 0.0,
+          "tool": "submit_answer"
+        }
+      ],
+      "manual_review": "Unsupported abstention on broad narrative list question; score0.0 vs0.5 baseline. Clear substantive failure; retry.",
+      "score": 0.0,
+      "baseline_score": 0.5,
+      "latency_seconds": 26.44,
+      "baseline_latency_seconds": 45.45,
+      "artifact_sha256": {
+        "request.json": "6a0c75d4e3e42d9f9e87174433db4f7af0155a55e76cf6c389cdfdd2a9116632",
+        "manifest.json": "13697c2613cbd7516f69403a5e350ee6410b2da59364d72c67998d1f6b7eadbe",
+        "results.json": "adea6ce484333ffaa7123b7d7d5a420d9a133ab8ec126064004619b2c930edd1",
+        "trace.json": "30ac430cb73ef4ad40362421860b8721278ca58ef3428b52c6b27e7347762012",
+        "review.json": "52da11ecdba84a7514d7ca3a24967b9196f7209b92d9f7ecefc78b1be0ebb02e"
+      },
+      "final_code_compatibility": "exact source",
+      "effective_correctness": 0.0
+    },
+    {
+      "label": "ollama-q04-a2",
+      "selected": false,
+      "execution_id": "afadc745-5232-48bd-990d-f6ff063bd988",
+      "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df",
+      "managed_evaluators_equal_to_baseline": false,
+      "reviewed_tool_errors": [
+        {
+          "arguments": {
+            "answer": "The books do not contain a list or ranking of the \"top 10 most important characters.\" The provided snippets mention Zalachenko, Gullberg, Bj\u00f6rck, and Agneta Salander, but do not rank character importance."
+          },
+          "error": "investigate more before answering: at least 4 tool calls (you made 1); a passage that is only on topic is not evidence",
+          "result_ids": [],
+          "seconds": 0.0,
+          "tool": "submit_answer"
+        },
+        {
+          "arguments": {
+            "answer": "The books do not contain a list or ranking of the \"top 10 most important characters.\" The provided snippets mention Zalachenko, Gullberg, Bj\u00f6rck, and Agneta Salander, but do not rank character importance."
+          },
+          "error": "investigate more before answering: at least 4 tool calls (you made 3); a passage that is only on topic is not evidence",
+          "result_ids": [],
+          "seconds": 0.0,
+          "tool": "submit_answer"
+        }
+      ],
+      "manual_review": "Second unsupported abstention; lists candidates but refuses requested answer; score0.0. Substantive failure; final permitted retry.",
+      "score": 0.0,
+      "baseline_score": 0.5,
+      "latency_seconds": 31.57,
+      "baseline_latency_seconds": 45.45,
+      "artifact_sha256": {
+        "request.json": "2e59de221de11e1b738ede76bd6ec9a04f6f890aef091541f3883bfc6458e43e",
+        "manifest.json": "d5f3aed364910e2ac46fb0a46a909671fb3b85ceaf033b4ad40d373e47b863a4",
+        "results.json": "17e3778fedd479de7dc19fd5f2cef082d21f6dcc1e0ac29f7ef4ba6febb83a95",
+        "trace.json": "5a2b688ae8d3498902b07427dc4e383434090b7d8945d6ecb2a4365198ad16fd",
+        "review.json": "983bed2cd5f4aa3e7eecb5f506b8ce3d3387318629cd65a57ce857ecea256ebf"
+      },
+      "final_code_compatibility": "exact source",
+      "effective_correctness": 0.0
+    },
+    {
+      "label": "ollama-q04-a3",
+      "selected": true,
+      "execution_id": "ecd00c3b-547c-482a-b4be-90937f3540e3",
+      "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df",
+      "managed_evaluators_equal_to_baseline": false,
+      "reviewed_tool_errors": [],
+      "manual_review": "Answers with ten central characters; correctness/citation review supports score1.0 vs baseline0.5. Select third attempt at106.15 seconds; previous two unsupported abstentions retained.",
+      "score": 1.0,
+      "baseline_score": 0.5,
+      "latency_seconds": 106.15,
+      "baseline_latency_seconds": 45.45,
+      "artifact_sha256": {
+        "request.json": "94acf573950ed65720ba8315156a50f210835edd4b346d40025e80d3c51858ca",
+        "manifest.json": "abfae10c9529472b7e6a1571dd62e9ed9d154a0ab4bf3255825ddbd6f18a8780",
+        "results.json": "ae8b7478dab1ecd8f1d8eda8e8053d9069a6d0ee22e5fe2cad19a0f7d9f8517c",
+        "trace.json": "b687aa32a77b1eb007a4598558d6383f88a9210be5a6188dbba5b652ea495678",
+        "review.json": "a49a720c7d46b2a7f5b4fc029116d9f33ccf75f65d26e578253d944d4eebf51d"
+      },
+      "final_code_compatibility": "exact source",
+      "effective_correctness": 1.0
+    },
+    {
+      "label": "ollama-q05-a1",
+      "selected": true,
+      "execution_id": "338e8f92-94cb-408d-88ea-5cf9ce54c725",
+      "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df",
+      "managed_evaluators_equal_to_baseline": false,
+      "reviewed_tool_errors": [],
+      "manual_review": "Correct true account: Harriet drowned Gottfried with an oar; evaluates0.9625 vs baseline1.0. Adds extra Martin blackmail claim; inspect cited evidence before deciding. No execution errors.",
+      "score": 0.9625,
+      "baseline_score": 1.0,
+      "latency_seconds": 32.78,
+      "baseline_latency_seconds": 35.39,
+      "artifact_sha256": {
+        "request.json": "cf4d58a399a99dbf38adad46ed6938e122628e5a0ebb68d3e69b63d3e32989ed",
+        "manifest.json": "c924a5cfaa8bda51158851add7948cbd0de1cbb6e77e016186dee7222f199e3a",
+        "results.json": "51a8865159d520f9f7bc31a24d753b56e1ce289d22b5481d52a7c96891c4e1c0",
+        "trace.json": "eee8512310b8609c69e1033b6ef28b4b04009c71ea4f9243afe88873eb6ad793",
+        "review.json": "6a914619b52d3083c2e9a4ebc34661b6baa792dd876ca94c2f4c8874b7fdfff8"
+      },
+      "final_code_compatibility": "exact source",
+      "effective_correctness": 0.9625
+    },
+    {
+      "label": "ollama-q06-a1",
+      "selected": false,
+      "execution_id": "5d2f3d82-6e69-494a-bbb3-ba425a340c09",
+      "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df",
+      "managed_evaluators_equal_to_baseline": false,
+      "reviewed_tool_errors": [
+        {
+          "arguments": {
+            "answer": "The first book, *The Girl with the Dragon Tattoo*, follows journalist Mikael Blomkvist, who is imprisoned for libeling financier Hans-Erik Wennerstr\u00f6m. To clear his name, he accepts a secret assignment from Henrik Vanger to investigate the 40-year-old disappearance of his niece, Harriet Vanger. Blomkvist is assisted by Lisbeth Salander, a brilliant hacker and investigator. Together they discover that Martin Vanger was a serial killer who murdered young women in Harriet's image. Harriet had actually fled the island after discovering her father's crimes and Martin's activities; she later confirms to Blomkvist that Martin died in a car accident (likely suicide). The book ends with Blomkvist publishing an expos\u00e9 on Wennerstr\u00f6m, vindicating himself, and forming a close bond with Salander.",
+            "passage_ids": [
+              "6067d833",
+              "46b8b531",
+              "893923af",
+              "214d23e5",
+              "97f606b6",
+              "341820e5"
+            ]
+          },
+          "error": "unknown passage ids: ['341820e5']. Use the 8-character ids the tools returned.",
+          "result_ids": [],
+          "seconds": 0.0,
+          "tool": "submit_answer"
+        }
+      ],
+      "manual_review": "Unsupported abstention on broad summary question; score0.45 vs0.9667 baseline. Substantive failure; retry.",
+      "score": 0.45,
+      "baseline_score": 0.9667,
+      "latency_seconds": 120.31,
+      "baseline_latency_seconds": 75.97,
+      "artifact_sha256": {
+        "request.json": "4a8f381ded7bba6f9c83e729975fae408aaca5304e3dc02d9f46f74a200a17b6",
+        "manifest.json": "746656c467fabb00d480c6bf16670de13829358f27c93650075d4768959575c5",
+        "results.json": "37ad7f41d8f84af650029c97e58dae61b429a3085d5ea47ce6ca9709fb550335",
+        "trace.json": "e5594893d3f26cf6622223e62fcc273fd15bf5e901277b8165bb31e56d971912",
+        "review.json": "83864161498a44126aa57543f44d7603fc70567b24ca26e1f586ffe81fc43801"
+      },
+      "final_code_compatibility": "exact source",
+      "effective_correctness": 0.45
+    },
+    {
+      "label": "ollama-q06-a2",
+      "selected": false,
+      "execution_id": "6b02dac7-470a-4831-87f4-d7c897e3ba30",
+      "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df",
+      "managed_evaluators_equal_to_baseline": false,
+      "reviewed_tool_errors": [],
+      "manual_review": "Still abstains on broad summary; correctness judge1.0 conflicts with answer and selected facts. Substantive failure, final retry.",
+      "score": 1.0,
+      "baseline_score": 0.9667,
+      "latency_seconds": 98.51,
+      "baseline_latency_seconds": 75.97,
+      "artifact_sha256": {
+        "request.json": "ecb5a78cf8ba60f1eadebf11b3ee3314889cdf461569a11991c5d310ee900794",
+        "manifest.json": "cdcd66e5a6e692e45aa2899bcd78626b9db6455304cc68b44fbeb5f43dc853cf",
+        "results.json": "c58bfb6950cbeaf7e2efd2d7d9b8878cfdcb1535e0d84c9984b22455a5a94107",
+        "trace.json": "72928433d7959c80b4606f1c990f1741f176d2cea93cd140d91c89e3f6816a87",
+        "review.json": "8d39a7698a4ad4076ba756cbbe6635138c48f3d39650ae3b30a073a5180f7819"
+      },
+      "final_code_compatibility": "exact source",
+      "effective_correctness": 1.0
+    },
+    {
+      "label": "ollama-q06-a3",
+      "selected": true,
+      "execution_id": "2e5dd636-1f45-4e07-b2c2-4417f762ecc2",
+      "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df",
+      "managed_evaluators_equal_to_baseline": false,
+      "reviewed_tool_errors": [],
+      "manual_review": "Provides a relevant summary, but score0.6167 vs0.9667; claims Harriet remains, contradictory to alive baseline and false. Best numeric score; record failure and continue under developer direction.",
+      "score": 0.6167,
+      "baseline_score": 0.9667,
+      "latency_seconds": 153.23,
+      "baseline_latency_seconds": 75.97,
+      "artifact_sha256": {
+        "request.json": "db304ca99faa687a15fcb8c7444b3154cd32b1c74e9f32dc0e600ff20522e783",
+        "manifest.json": "546b096cb741fc89a1cffee15fd2cba82e5d5b036699659e99f218cbeaddf9f7",
+        "results.json": "757811f9a7f085f2393bf083224467c10477072f483d65d38950e304666ca0e5",
+        "trace.json": "2edb28be24e5cd3da610b1b8ede706e3977712e9682b53811b0239473066aa11",
+        "review.json": "e0bb544b10a4ae9783509230b422bcd4091d98909ddbb36963f49d6acccc850f"
+      },
+      "final_code_compatibility": "exact source",
+      "effective_correctness": 0.6167
+    },
+    {
+      "label": "ollama-q07-a1",
+      "selected": true,
+      "execution_id": "099c7e79-6c7e-4c65-abc9-dbd2d8225ac2",
+      "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df",
+      "managed_evaluators_equal_to_baseline": false,
+      "reviewed_tool_errors": [],
+      "manual_review": "Accurate arrest and discredited testimony; score1.0 vs baseline1.0, trace complete. Select.",
+      "score": 1.0,
+      "baseline_score": 1.0,
+      "latency_seconds": 53.35,
+      "baseline_latency_seconds": 51.06,
+      "artifact_sha256": {
+        "request.json": "51b7df9e3843394fe09df6b001e72ad67315d8d6a13f7a0fdfa5dbd93c8294f8",
+        "manifest.json": "6e809332aac22a84b1d1e47c7366fc17d002a3664a1dedfd5a19f8a33814096b",
+        "results.json": "f15ee5a62d982b1e4769b2640d4647af8bc3139da9f62bd40ed718eb939c7d80",
+        "trace.json": "e3648d00ddfcbf7ff9b6537a52efbdb80ca6d6d999cb25818a000c9f0da202dc",
+        "review.json": "3dd169948ae9354a76e1061f3adb6fcf638ff5d3b27cbf17f49fcab536c60c63"
+      },
+      "final_code_compatibility": "exact source",
+      "effective_correctness": 1.0
+    },
+    {
+      "label": "ollama-q08-a1",
+      "selected": false,
+      "execution_id": "6f131e48-f8fa-4399-ba1f-e2c9f45dc5c1",
+      "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df",
+      "managed_evaluators_equal_to_baseline": false,
+      "reviewed_tool_errors": [],
+      "manual_review": "Correctly describes hacking in Wennerstrom affair; score .55 vs1.0 baseline; omits private-document discovery/apartment confrontation supporting details. Retry.",
+      "score": 0.55,
+      "baseline_score": 1.0,
+      "latency_seconds": 24.92,
+      "baseline_latency_seconds": 20.84,
+      "artifact_sha256": {
+        "request.json": "08a9111c91a71e387658da1e9ec684757895ddc6703f5992a06c5e6e7aa39d49",
+        "manifest.json": "f70b3da293c84354a0008a15eb532826e60a5338f8fde185aa122b3ca8c6581f",
+        "results.json": "b3de7de0334a82f1f5cd8eaa98a81edad9565089b04abc2d9dee9127277e2aed",
+        "trace.json": "1509c2255b9d2eb62f6758ac390bf99e47a242ea15742f8241e81b31ffafd5cc",
+        "review.json": "6eaceb471211f792d87a15613142543d90f1faf244055d060773a3cf259916d7"
+      },
+      "final_code_compatibility": "exact source",
+      "effective_correctness": 0.55
+    },
+    {
+      "label": "ollama-q08-a2",
+      "selected": false,
+      "execution_id": "2478aa26-ff58-43ec-a924-2c69466e0e4c",
+      "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df",
+      "managed_evaluators_equal_to_baseline": false,
+      "reviewed_tool_errors": [],
+      "manual_review": "Repeated generic Wennerstrom affair explanation; misses exact report quoting Mikaels private computer. Score .55; final retry.",
+      "score": 0.55,
+      "baseline_score": 1.0,
+      "latency_seconds": 23.24,
+      "baseline_latency_seconds": 20.84,
+      "artifact_sha256": {
+        "request.json": "acf67e0f6d0727728743d9e1540e9c5cf24e602baa39e372fd2983f345ed86f1",
+        "manifest.json": "37c3b50a8851e1428c65a4d8f06b6488058158029f46f0c8c0d320bac5423c49",
+        "results.json": "b2a172ab03fd12c04c6cc61b8f35d1716729ca54faf962360c436f30a621c9a9",
+        "trace.json": "d2a9ca3e8b1832ac5c0db2fdf68adf467e5362a77b1357cc8c65bb7365b9b204",
+        "review.json": "5a34bb7fc16bb20d1fe2f14834a65125ecba1e51f3dcb480025f5784e287ac67"
+      },
+      "final_code_compatibility": "exact source",
+      "effective_correctness": 0.55
+    },
+    {
+      "label": "ollama-q08-a3",
+      "selected": true,
+      "execution_id": "be002a43-c2cd-4915-ae80-66b5b7e39dda",
+      "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df",
+      "managed_evaluators_equal_to_baseline": false,
+      "reviewed_tool_errors": [],
+      "manual_review": "All attempts score .55 vs1.0; answers omit distinctive stored-only-on-Mikael-computer moment. Best tie attempt1 provisionally selected with its own latency24.92s; substantive regression recorded per developer direction.",
+      "score": 0.55,
+      "baseline_score": 1.0,
+      "latency_seconds": 21.77,
+      "baseline_latency_seconds": 20.84,
+      "artifact_sha256": {
+        "request.json": "884442cff501fb3c388611eb3d1639ca3c70fa4ce5e1eb569003fd68881554ef",
+        "manifest.json": "fc91149f2c7f767a976dd97bbd9cd4d79490948240b8573e282718b795f2679a",
+        "results.json": "0768db74e80022f306c04de4dc2565ddd65d83a713f758463d64b937f21c6031",
+        "trace.json": "d53a4dc0aa712c95a48fd8fb5023002d160fd23d416277497b5ede2b7d9bf3a9",
+        "review.json": "1cadd734dd576d23728cf29e7049847ccf9223660436f16151d4f038b6a3571e"
+      },
+      "final_code_compatibility": "exact source",
+      "effective_correctness": 0.55
+    },
+    {
+      "label": "ollama-q09-a1",
+      "selected": true,
+      "execution_id": "828461bb-7344-421c-a091-17737f3283d9",
+      "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df",
+      "managed_evaluators_equal_to_baseline": false,
+      "reviewed_tool_errors": [],
+      "manual_review": "Confuses Gosseberga shooting with abandoned brickworks; substantive regression .5 vs1.0. Retry.",
+      "score": 0.5,
+      "baseline_score": 1.0,
+      "latency_seconds": 72.46,
+      "baseline_latency_seconds": 97.15,
+      "artifact_sha256": {
+        "request.json": "627b13f457e005f183dd0e2a3858096d89db572c6a90b5244ae4ba3cf94f9cb9",
+        "manifest.json": "bdb4a3cee08e4082a4de6b42a1629c808f619fa4fdfa3b953218937d203514af",
+        "results.json": "d896e374027393be0c105787f5a0a71b53140a0843bf88b5f3de73a24c69e3bd",
+        "trace.json": "f8252f9ba8512f4638276ef37712e6d105393e56e888629be9be2d8d805e9cec",
+        "review.json": "342443c6f09e24fd71775c7644c2e5434e575d37ef92b46ba8e8570ff9be5376"
+      },
+      "final_code_compatibility": "exact source",
+      "effective_correctness": 0.5
+    },
+    {
+      "label": "ollama-q09-a2",
+      "selected": false,
+      "execution_id": "ffdc5ca9-435d-4d01-945e-16444362dc00",
+      "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df",
+      "managed_evaluators_equal_to_baseline": false,
+      "reviewed_tool_errors": [],
+      "manual_review": "Again transfers Gosseberga shooting/wounds to brickworks; score0.0. Final permitted retry.",
+      "score": 0.0,
+      "baseline_score": 1.0,
+      "latency_seconds": 91.42,
+      "baseline_latency_seconds": 97.15,
+      "artifact_sha256": {
+        "request.json": "e65a12141a3f3f5c6b5a9e297df7811fab95551d99dfbe2fb0c5bce0e7f2cd50",
+        "manifest.json": "2dd41f0ef5185117fe4f86c1428cab0be31506f8fc08bcb0a834611d79bd8b83",
+        "results.json": "2b1cb0f7237cb6f37dfde89777c8762e9f7aaa17e5a19819a4fe2faf733f77d6",
+        "trace.json": "5eda17830e5fe63c117314bbbab87bf024a5bb5750ddc4c6dc45a4afbf7f151f",
+        "review.json": "dc2e15962ab3abb0fd5f972d488883f1e74b30fff6089248d86cf67d55ced7de"
+      },
+      "final_code_compatibility": "exact source",
+      "effective_correctness": 0.0
+    },
+    {
+      "label": "ollama-q09-a3",
+      "selected": false,
+      "execution_id": "f8218853-42e8-4710-b5e0-23875814b0cb",
+      "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df",
+      "managed_evaluators_equal_to_baseline": false,
+      "reviewed_tool_errors": [
+        {
+          "arguments": {
+            "answer": "Salander confronted Niedermann at the abandoned brickworks, revealing she had been broadcasting his confession. After a struggle where she blinded him with sand and struck him with a spade, she attempted to flee but was shot three times by Alexander Zalachenko, including a bullet that penetrated her skull, causing her to lose consciousness [scene 66ae9569]. Niedermann was later killed by the Svavelsj\u00f6 MC gang, while Salander survived the attack [72c4aa39], [f42fabcb].",
+            "passage_ids": [
+              "66ae9569",
+              "72c4aa39",
+              "f42fabcb"
+            ]
+          },
+          "error": "investigate more before answering: at least 4 tool calls (you made 1); a passage that is only on topic is not evidence",
+          "result_ids": [],
+          "seconds": 0.0,
+          "tool": "submit_answer"
+        }
+      ],
+      "manual_review": "Attempt 3 score 0.0; manual review finds answer contradicts the expected abandoned-brickworks location, while citation-support evaluator awards 1.0 based on a conflicting farmhouse interpretation. Retain attempt 1 (best correctness score 0.5) as provisional; substantive answer failure remains recorded.",
+      "score": 0.0,
+      "baseline_score": 1.0,
+      "latency_seconds": 111.27,
+      "baseline_latency_seconds": 97.15,
+      "artifact_sha256": {
+        "request.json": "4df60ec56a21aed0c662767051a85413ea9d8184501e28cd984aebceeb9b925e",
+        "manifest.json": "c863438bfb903e3d2bf99c75b644718741b1eca4bfa35ce9dd73180f0f4c3982",
+        "results.json": "9cfb7de29e09255329441b81009c888ce7ad7aa481e1cb536fc484de9ed6a2a3",
+        "trace.json": "c6099cf1f4388e8e30a9290ccf0982fb7378702d55f2904706005142d18abe61",
+        "review.json": "d99c068f21a78376f13b1228bdb910b85fcefc66efb7162a842fc8062e0d7c6b"
+      },
+      "final_code_compatibility": "exact source",
+      "effective_correctness": 0.0
+    },
+    {
+      "label": "ollama-q10-a1",
+      "selected": true,
+      "execution_id": "4d08b058-d56c-40f5-a428-ba50c99cd728",
+      "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df",
+      "managed_evaluators_equal_to_baseline": false,
+      "reviewed_tool_errors": [],
+      "manual_review": "Correct exact quoted response; correctness and citation support both 1.0, matching baseline. Clean trace with no warnings.",
+      "score": 1.0,
+      "baseline_score": 1.0,
+      "latency_seconds": 54.93,
+      "baseline_latency_seconds": 53.69,
+      "artifact_sha256": {
+        "request.json": "87b0879ae7dd4096b65387d878a02e9caca0d6cdf7c44f6fdf151ce39cd7e4cf",
+        "manifest.json": "6e926f8e7aa399d833fa5d11466ffebb60ee80d6cf6589085fbf1bb37df5265c",
+        "results.json": "9bb5b2255e001365e9ec31f916852cf70256aae699c552d3477b4a0636c8122b",
+        "trace.json": "9d924f430be3caf29d45db87ea2c74aaa9ea55df42715154d550a1a1ad8c5de6",
+        "review.json": "c1c9cc69204312d68798dd502da5438b0159d8953a5694ced7dc667bfa35cccf"
+      },
+      "final_code_compatibility": "exact source",
+      "effective_correctness": 1.0
+    },
+    {
       "label": "openai-q01-a1",
+      "selected": true,
       "execution_id": "587da288-117a-4e71-a986-7ab479a47dba",
       "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027",
       "managed_evaluators_equal_to_baseline": true,
@@ -255,6 +676,7 @@
     },
     {
       "label": "openai-q02-a1",
+      "selected": true,
       "execution_id": "785b03fb-1594-4626-a7f4-e083ffcb99d8",
       "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027",
       "managed_evaluators_equal_to_baseline": true,
@@ -276,6 +698,7 @@
     },
     {
       "label": "openai-q02-a2",
+      "selected": false,
       "execution_id": "a756186b-8110-4040-a4cd-82dfddaf8891",
       "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027",
       "managed_evaluators_equal_to_baseline": true,
@@ -297,6 +720,7 @@
     },
     {
       "label": "openai-q02-a3",
+      "selected": false,
       "execution_id": "1d0277ef-fbd2-47c7-aceb-ba7691003c20",
       "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027",
       "managed_evaluators_equal_to_baseline": true,
@@ -318,6 +742,7 @@
     },
     {
       "label": "openai-q03-a1",
+      "selected": true,
       "execution_id": "1e40fe2e-190a-4327-8217-6b536e049596",
       "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027",
       "managed_evaluators_equal_to_baseline": true,
@@ -352,6 +777,7 @@
     },
     {
       "label": "openai-q04-a1",
+      "selected": true,
       "execution_id": "15cedb20-b9fd-4202-b1e7-c6af2b4cc9b3",
       "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027",
       "managed_evaluators_equal_to_baseline": true,
@@ -373,6 +799,7 @@
     },
     {
       "label": "openai-q05-a1",
+      "selected": true,
       "execution_id": "5800794e-ea05-4986-ae8a-12d748364968",
       "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027",
       "managed_evaluators_equal_to_baseline": true,
@@ -394,6 +821,7 @@
     },
     {
       "label": "openai-q06-a1",
+      "selected": true,
       "execution_id": "6b890719-8b90-498e-93be-eb9864f5a712",
       "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027",
       "managed_evaluators_equal_to_baseline": true,
@@ -415,6 +843,7 @@
     },
     {
       "label": "openai-q06-a2",
+      "selected": false,
       "execution_id": "20d8e25f-1e3d-4594-b133-8437c5b6cb1f",
       "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027",
       "managed_evaluators_equal_to_baseline": true,
@@ -436,6 +865,7 @@
     },
     {
       "label": "openai-q06-a3",
+      "selected": false,
       "execution_id": "4c7d49cc-6ffc-42f2-b839-9626a6e3d0bc",
       "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027",
       "managed_evaluators_equal_to_baseline": true,
@@ -457,6 +887,7 @@
     },
     {
       "label": "openai-q07-a1",
+      "selected": true,
       "execution_id": "2a15eab7-b07a-4cdd-abf9-c31cad71a52a",
       "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027",
       "managed_evaluators_equal_to_baseline": true,
@@ -492,6 +923,7 @@
     },
     {
       "label": "openai-q08-a1",
+      "selected": false,
       "execution_id": "84fafcbb-7dc4-4192-80e6-b5bd5f7d9c20",
       "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027",
       "managed_evaluators_equal_to_baseline": true,
@@ -526,6 +958,7 @@
     },
     {
       "label": "openai-q08-a2",
+      "selected": false,
       "execution_id": "ef3392e7-b161-4dc3-9a05-14e25b9f0878",
       "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027",
       "managed_evaluators_equal_to_baseline": true,
@@ -569,6 +1002,7 @@
     },
     {
       "label": "openai-q08-a3",
+      "selected": true,
       "execution_id": "0a1eac00-59ab-41dd-8f46-47e0a3809646",
       "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027",
       "managed_evaluators_equal_to_baseline": true,
@@ -590,6 +1024,7 @@
     },
     {
       "label": "openai-q09-a1",
+      "selected": true,
       "execution_id": "4c29c309-e6d2-4863-b98f-24d794959ce9",
       "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027",
       "managed_evaluators_equal_to_baseline": true,
@@ -611,6 +1046,7 @@
     },
     {
       "label": "openai-q09-a2",
+      "selected": false,
       "execution_id": "0b789ecf-0e3c-4f93-b4b9-bf29b7003ff7",
       "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027",
       "managed_evaluators_equal_to_baseline": true,
@@ -632,6 +1068,7 @@
     },
     {
       "label": "openai-q09-a3",
+      "selected": false,
       "execution_id": "d17b382c-38cb-4bc1-a442-3219adebe886",
       "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027",
       "managed_evaluators_equal_to_baseline": true,
@@ -653,6 +1090,7 @@
     },
     {
       "label": "openai-q10-a2",
+      "selected": true,
       "execution_id": "ef3471b0-0c69-4f03-85b6-9edaaf798b5f",
       "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df",
       "managed_evaluators_equal_to_baseline": true,
