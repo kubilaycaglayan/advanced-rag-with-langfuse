@@ -5,7 +5,7 @@ from app.experiments.datasets import _item_session
 from app.identity import question_label
 from app.observability import observation
 from langfuse import Langfuse
-from langfuse import propagate_attributes
+from app.observability import trace_scope as propagate_attributes
 from opentelemetry import trace as otel_trace_api
 from typing import Any
 import queue

@@ -6,6 +6,8 @@ from typing import Any, Callable
 
 from app.corpus_profiles import agent_prompt
 from app.agent.runner import run_agent
+from app.agent.execution import run_agent as run_graph_agent
+from app.pipelines.execution_identity import execution_backend
 from app.pipelines.resolver import ResolvedRun
 
 
@@ -20,7 +22,8 @@ def execute_question(question: str, resolved: ResolvedRun, collection: str,
     system_prompt = None
     if resolved.corpus_id != "millennium":
         system_prompt = agent_prompt()
-    agent = run_agent(question, collection, resolved.config,
+    selected_runner = run_graph_agent if execution_backend(resolved) == "langgraph" else run_agent
+    agent = selected_runner(question, collection, resolved.config,
                       settings=resolved.agent_settings, on_event=on_event,
                       system_prompt=system_prompt)
     evidence = list(agent.get("evidence") or [])

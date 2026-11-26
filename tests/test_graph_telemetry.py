@@ -110,7 +110,7 @@ class GraphTelemetry(unittest.TestCase):
     def test_tree_actual_execution_timing_usage_and_associations(self):
         with self.harness([
             contracts.reply(calls=[contracts.call('broken_tool'), contracts.call('semantic_search')]),
-            contracts.reply(calls=[contracts.submit(), contracts.submit('Bea read it [bbbbbbbb].', ('bbbbbbbb',))]),
+            contracts.reply(calls=[contracts.submit(), contracts.submit(), contracts.submit('Bea read it [bbbbbbbb].', ('bbbbbbbb',))]),
             contracts.reply('{"supported":false,"reason":"wrong"}'), contracts.reply('{"supported":true}'),
         ]) as h, attributes(metadata={'execution_id': 'execution', 'dataset_item_id': 'item'}, session_id='question-session'):
             result = h.run()
@@ -143,6 +143,22 @@ class GraphTelemetry(unittest.TestCase):
             rejected = next(s for s in spans if s.name == 'submission verification' and not s.values['output']['supported'])
             self.assertEqual(rejected.values['level'], 'WARNING')
             self.assertEqual(graph_span.values['output']['stopped'], 'submit')
+            repeated = next(s for s in spans if s.name == 'rejected answer')
+            self.assertEqual(repeated.values['level'], 'WARNING')
+            self.assertEqual(repeated.parent.name, 'graph node: tools')
+
+    def test_repeated_text_rejection_records_feedback_without_an_extra_verifier(self):
+        with self.harness([
+            contracts.reply('Ada wrote it [aaaaaaaa].'), contracts.reply('{"supported":false}'),
+            contracts.reply('Ada wrote it [aaaaaaaa].'), contracts.reply('Bea read it [bbbbbbbb].'),
+            contracts.reply('{"supported":true}'),
+        ], seed=[contracts.A, contracts.B]) as h:
+            result = h.run()
+        rejected = next(s for s in h.client.spans if s.name == 'rejected answer')
+        self.assertEqual(rejected.parent.name, 'graph node: review')
+        self.assertEqual(rejected.values['metadata']['path'], 'text')
+        self.assertEqual(result['answer'], 'Bea read it [E1].')
+        self.assertEqual(result['usage']['calls'], 5)
 
     def test_context_measurements_use_compacted_exact_request_and_preserve_evaluator_input(self):
         from app.agent.state import AgentState, AgentSettings

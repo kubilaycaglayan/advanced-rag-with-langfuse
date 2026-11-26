@@ -65,8 +65,9 @@ def render_reference() -> str:
               '`python -m app.agent.graph_reference --check`. '
               'Node implementations are in [execution.py](../app/agent/execution.py); '
               'graph wiring and the limit are in [graph.py](../app/agent/graph.py). '
-              'Langfuse graph/node spans, application integration and candidate registration '
-              'remain later roadmap steps.', '']
+              'Graph/node spans surround actual execution, and the answering/cache/experiment '
+              'boundaries support an explicitly identified graph run. Candidate registration '
+              'and live trace acceptance remain later roadmap steps.', '']
     return '\n'.join(lines)
 
 

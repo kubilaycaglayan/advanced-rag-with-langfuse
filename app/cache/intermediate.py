@@ -10,6 +10,7 @@ import time
 from typing import Any, Callable, Iterator
 from urllib.parse import quote
 
+from app.pipelines.execution_identity import execution_identity
 from app.cache.answers import _redis_client
 from app.identity import canonical_json
 from app.observability import observation, update
@@ -40,7 +41,7 @@ def use_cache(mode: str, layers: tuple[str, ...], scope: dict[str, Any]) -> Iter
 
 def scope_for(resolved: Any, collection: str, project_id: str) -> dict[str, Any]:
     """The stable parent identity shared by all intermediate cache layers."""
-    return {
+    scope = {
         "project_id": project_id,
         "corpus_id": resolved.corpus_id,
         "corpus_checksum": resolved.corpus_checksum,
@@ -54,6 +55,10 @@ def scope_for(resolved: Any, collection: str, project_id: str) -> dict[str, Any]
         "config": resolved.config.manifest(),
         "agent_settings": resolved.agent_settings.__dict__ if resolved.agent_settings else None,
     }
+    identity = execution_identity(resolved)
+    if identity is not None:
+        scope["execution_identity"] = identity
+    return scope
 
 
 def _redis_key(context: CacheContext, layer: str, key: dict[str, Any]) -> str:

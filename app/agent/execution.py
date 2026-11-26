@@ -143,8 +143,10 @@ def review_answer_text(state: ExecutionState, runtime: AgentRuntime) -> None:
            if short.casefold() in state.evidence]
     ids = list(dict.fromkeys(ids))
     if _answer_key(content) in state.rejected_answers:
-        messages.append({"role": "assistant", "content": content})
-        messages.append({"role": "user", "content": "That central answer was already rejected. Resolve the contradiction or give a different, supported answer."})
+        with observation("rejected answer", input={"answer": content}, metadata={"path": "text"}) as rejected:
+            messages.append({"role": "assistant", "content": content})
+            messages.append({"role": "user", "content": "That central answer was already rejected. Resolve the contradiction or give a different, supported answer."})
+            update_observation(rejected, level="WARNING", output={"reason": "previously rejected"})
         return
     if state.tool_calls < state.settings.min_tool_calls and state.nudges < runtime_limits().nudge_limit:
         state.nudges += 1
@@ -247,8 +249,10 @@ def process_reply_tools(state: ExecutionState, runtime: AgentRuntime) -> None:
         progress_hint = (_search_progress_hint(state, name, arguments, payload)
                          if isinstance(payload, dict) else None)
         if stop and _answer_key(payload["raw_answer"]) in state.rejected_answers:
-            messages.append({"role": "tool", "tool_call_id": call.get("id"), "content": _clip({
-                "error": "this answer was already rejected; resolve its unsupported claim before submitting again"})})
+            with observation("rejected answer", input=payload, metadata={"path": "submit_answer"}) as rejected:
+                messages.append({"role": "tool", "tool_call_id": call.get("id"), "content": _clip({
+                    "error": "this answer was already rejected; resolve its unsupported claim before submitting again"})})
+                update_observation(rejected, level="WARNING", output={"reason": "previously rejected"})
             continue
         if name == "find_names" and payload.get("likely") and payload.get("name") not in state.resolved_names:
             state.resolved_names.add(payload["name"])

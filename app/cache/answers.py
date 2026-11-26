@@ -52,7 +52,8 @@ def identity(*, project_id: str, corpus_id: str, pipeline_version: str,
              profile_id: str, profile_identity: str, prompt_identity: str,
              collection: str, question: str, config: dict[str, Any],
              agent_settings: dict[str, Any] | None,
-             runtime_settings: dict[str, Any] | None = None) -> dict[str, Any]:
+             runtime_settings: dict[str, Any] | None = None,
+             execution_identity: dict[str, Any] | None = None) -> dict[str, Any]:
     """Build the complete namespace and exact-input identity for one answer."""
     dimensions = {
         "cache_format": CACHE_FORMAT,
@@ -71,6 +72,8 @@ def identity(*, project_id: str, corpus_id: str, pipeline_version: str,
         "runtime_settings": runtime_settings,
         "question": question,
     }
+    if execution_identity is not None:
+        dimensions["execution_identity"] = execution_identity
     # Keep the submitted spelling for traceability and scoped cache clearing, but
     # make answer reuse insensitive to capitalization.
     key_dimensions = {**dimensions, "question": str(question).casefold()}

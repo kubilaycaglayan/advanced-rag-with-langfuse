@@ -59,6 +59,20 @@ class FailOpenTelemetry(unittest.TestCase):
                     raise failure
         self.assertIs(caught.exception, failure)
 
+    def test_sdk_experiment_item_scope_failure_does_not_skip_item(self):
+        import asyncio
+        from types import SimpleNamespace
+        from unittest.mock import AsyncMock
+        from app.experiments.telemetry import ExperimentLangfuse
+        client = object.__new__(ExperimentLangfuse)
+        item = SimpleNamespace(dataset_name='QA.csv', id='item', input={'question': 'Q'}, metadata={})
+        parent = AsyncMock(return_value='item answer')
+        with patch('app.corpus_profiles.langfuse_enabled', return_value=True), \
+             patch('langfuse.propagate_attributes', return_value=BrokenContext('enter')), \
+             patch('langfuse.Langfuse._process_experiment_item', new=parent):
+            self.assertEqual(asyncio.run(client._process_experiment_item(item)), 'item answer')
+        parent.assert_awaited_once()
+
     def test_context_exit_failure_preserves_successful_result(self):
         for kind in ('observation', 'scope'):
             with self.subTest(kind=kind), patch('app.corpus_profiles.langfuse_enabled', return_value=True), \

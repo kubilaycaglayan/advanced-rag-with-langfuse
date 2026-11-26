@@ -54,8 +54,10 @@ def _run_ask(request: AskRequest, prepared: dict[str, Any], *, on_trace=None, on
         trace_metadata.update({"agent_provider": agent_settings.provider,
                                "agent_model": agent_settings.model,
                                "agent_automatic_scene_search": agent_settings.initial_scene_probe,
-                               "agent_scene_candidate_count": agent_settings.scene_candidate_count,
-                               "agent_premise_early_stop": agent_settings.premise_early_stop})
+                               "agent_scene_candidate_count": agent_settings.scene_candidate_count})
+        if hasattr(agent_settings, "premise_early_stop"):
+            trace_metadata["agent_premise_early_stop"] = agent_settings.premise_early_stop
+    trace_metadata["execution_backend"] = getattr(prepared["resolved"], "execution_backend", "legacy")
     root_metadata = {"clientIp": str(request.client_ip)} if request.source == "frontend" and request.client_ip else None
     with trace_scope(session_id=session_id, user_id=request.user_id, environment=environment, metadata=trace_metadata,
                      tags=[f"pipeline:{pipeline_id}"]), observation("rag ask", as_type="span",

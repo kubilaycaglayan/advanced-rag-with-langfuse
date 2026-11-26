@@ -5,12 +5,12 @@ import hashlib
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any, Literal, Mapping
 
 from app.corpus_config import corpus_config, corpus_id
 from app.corpus_profiles import profile_identity, prompt_identity
 from app.agent.state import AgentSettings
-from app.settings_definitions import validate_agent_value
+from app.settings_definitions import TargetAgentSettings, validate_agent_value
 from app.agent.instructions import instruction_fingerprint
 from app.agent.schemas import tool_names
 from app.identity import canonical_json
@@ -29,7 +29,7 @@ class ResolvedRun:
     status: str
     engine: str
     config: ResolvedPipelineConfig
-    agent_settings: AgentSettings
+    agent_settings: TargetAgentSettings
     prompts: dict[str, int]
     index: dict[str, str]
     pipeline_id: str
@@ -41,6 +41,7 @@ class ResolvedRun:
     profile_id: str = "millennium"
     profile_identity: str = ""
     prompt_identity: str = ""
+    execution_backend: Literal["legacy", "langgraph"] = "legacy"
 
     @property
     def version_fields(self) -> dict[str, Any]:

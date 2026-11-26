@@ -29,7 +29,7 @@ def pack_scope_attributes(attributes: dict[str, Any]) -> dict[str, Any]:
             "execution_id", "dataset_id", "dataset_version", "dataset_item_id",
             "pipeline_id", "pipeline_version", "pipeline_derived", "evaluator_id",
             "experiment_run", "answer_cache_status", "agent_provider", "agent_model",
-            "agent_reasoning_effort", "agent_think", "agent_context_length",
+            "agent_reasoning_effort", "agent_think", "agent_context_length", "execution_backend",
         }
         packed["metadata"] = {key: value for key, value in metadata.items() if key in trace_keys}
     return packed

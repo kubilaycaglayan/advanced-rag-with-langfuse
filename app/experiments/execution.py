@@ -37,7 +37,7 @@ from app.prompt_assets import ManagedJudgePrompt
 from app.prompt_assets import load_managed_evaluators
 from functools import partial
 from langfuse import Langfuse
-from langfuse import propagate_attributes
+from app.observability import trace_scope as propagate_attributes
 from typing import Any
 import json
 import re
@@ -163,7 +163,9 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
                         trace_metadata["agent_context_length"] = resolved.agent_settings.context_length
                         trace_metadata["agent_automatic_scene_search"] = resolved.agent_settings.initial_scene_probe
                         trace_metadata["agent_scene_candidate_count"] = resolved.agent_settings.scene_candidate_count
-                        trace_metadata["agent_premise_early_stop"] = resolved.agent_settings.premise_early_stop
+                        if hasattr(resolved.agent_settings, "premise_early_stop"):
+                            trace_metadata["agent_premise_early_stop"] = resolved.agent_settings.premise_early_stop
+                    trace_metadata["execution_backend"] = getattr(resolved, "execution_backend", "legacy")
                     trace_metadata.update({f"managed_eval_{name}": f"{asset['id']}@{asset['version']}"
                                            for name, asset in managed_evaluators.items()})
                     scope_attributes = pack_scope_attributes({
@@ -206,11 +208,13 @@ def execute_execution(execution_id: str) -> dict[str, Any]:
             experiment_metadata["agent_context_length"] = resolved.agent_settings.context_length
             experiment_metadata["agent_automatic_scene_search"] = resolved.agent_settings.initial_scene_probe
             experiment_metadata["agent_scene_candidate_count"] = resolved.agent_settings.scene_candidate_count
-            experiment_metadata["agent_premise_early_stop"] = resolved.agent_settings.premise_early_stop
+            if hasattr(resolved.agent_settings, "premise_early_stop"):
+                experiment_metadata["agent_premise_early_stop"] = resolved.agent_settings.premise_early_stop
             experiment_metadata["agent_endpoint"] = ("responses" if resolved.agent_settings.provider == "openai"
                                                       and resolved.agent_settings.reasoning_effort != "none"
                                                       else "chat_completions" if resolved.agent_settings.provider == "openai"
                                                       else "ollama")
+        experiment_metadata["execution_backend"] = getattr(resolved, "execution_backend", "legacy")
         experiment_metadata.update({f"config_{key}": value if isinstance(value, str) else json.dumps(value, sort_keys=True)
                                     for key, value in config.manifest().items() if key != "prompt_hashes"})
         experiment_metadata.update({f"managed_eval_{name}": f"{asset['id']}@{asset['version']}"

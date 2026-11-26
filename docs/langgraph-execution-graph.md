@@ -42,4 +42,4 @@ For T permitted model-selection turns, the longest path executes `1 + 3*T + 1 + 
 
 The graph carries the existing in-memory `ExecutionState` in a single channel and receives `AgentRuntime` through LangGraph runtime context. No message reducer, checkpoint, persistent store, prebuilt agent or parallel tool node is used.
 
-Regenerate with `python -m app.agent.graph_reference`; check with `python -m app.agent.graph_reference --check`. Node implementations are in [execution.py](../app/agent/execution.py); graph wiring and the limit are in [graph.py](../app/agent/graph.py). Langfuse graph/node spans, application integration and candidate registration remain later roadmap steps.
+Regenerate with `python -m app.agent.graph_reference`; check with `python -m app.agent.graph_reference --check`. Node implementations are in [execution.py](../app/agent/execution.py); graph wiring and the limit are in [graph.py](../app/agent/graph.py). Graph/node spans surround actual execution, and the answering/cache/experiment boundaries support an explicitly identified graph run. Candidate registration and live trace acceptance remain later roadmap steps.

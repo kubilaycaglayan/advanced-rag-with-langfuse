@@ -1,6 +1,7 @@
 """experiments / metadata responsibilities."""
 from __future__ import annotations
 
+from app.pipelines.execution_identity import execution_identity
 from app.settings_definitions import runtime_settings_manifest
 from app.corpus_profiles import profile_identity
 from app.corpus_profiles import prompt_identity
@@ -21,7 +22,7 @@ import os
 
 
 _EXPERIMENT_PROPAGATED_METADATA = frozenset({
-    "execution_id", "pipeline_id", "pipeline_version", "pipeline_derived", "evaluator_id",
+    "execution_id", "pipeline_id", "pipeline_version", "pipeline_derived", "evaluator_id", "execution_backend",
     "dataset_version", "variant_label", "snapshot_sha256", "correctness_evaluator",
     "answer_cache_mode", "agent_provider", "agent_model", "agent_reasoning_effort",
     "agent_think", "agent_context_length",
@@ -72,6 +73,9 @@ def _fingerprints(config: ResolvedPipelineConfig, managed_evaluators: dict[str, 
     pipeline["corpus_manifest"] = corpus_manifest
     pipeline["agent_settings"] = resolved.agent_settings.__dict__
     pipeline["runtime_settings"] = runtime_settings_manifest()
+    backend_identity = execution_identity(resolved, sources["source_fingerprint"])
+    if backend_identity is not None:
+        pipeline["execution_identity"] = backend_identity
     evaluator_model_name = os.getenv("EVALUATOR_MODEL", "qwen3:8b")
     evaluator_endpoint = os.getenv("EVALUATOR_OLLAMA_URL") or os.getenv("OLLAMA_URL", "http://127.0.0.1:11434")
     try:
