@@ -18,7 +18,8 @@
     "ollama-q04": "ollama-q04-a3",
     "ollama-q05": "ollama-q05-a1",
     "ollama-q06": "ollama-q06-a3",
-    "ollama-q07": "ollama-q07-a1"
+    "ollama-q07": "ollama-q07-a1",
+    "ollama-q08": "ollama-q08-a3"
   },
   "selection_note": "Local Harriet attempt1 has highest recorded correctness1.0, provisionally retained with its own59.88-second latency, but manual review rejects unsupported claims. No attempt accepted; substantive-failure gate unresolved. Scores unchanged.",
   "attempts": [
@@ -139,6 +140,27 @@
       "correctness": 0.55,
       "latency_seconds": 23.24,
       "execution_id": "2478aa26-ff58-43ec-a924-2c69466e0e4c",
+      "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df"
+    },
+    {
+      "label": "ollama-q08-a3",
+      "correctness": 0.55,
+      "latency_seconds": 21.77,
+      "execution_id": "be002a43-c2cd-4915-ae80-66b5b7e39dda",
+      "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df"
+    },
+    {
+      "label": "ollama-q09-a1",
+      "correctness": 0.5,
+      "latency_seconds": 72.46,
+      "execution_id": "828461bb-7344-421c-a091-17737f3283d9",
+      "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df"
+    },
+    {
+      "label": "ollama-q09-a2",
+      "correctness": 0.0,
+      "latency_seconds": 91.42,
+      "execution_id": "ffdc5ca9-435d-4d01-945e-16444362dc00",
       "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df"
     },
     {
@@ -275,7 +297,7 @@
       "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df"
     }
   ],
-  "remaining_question_provider_pairs": 3,
+  "remaining_question_provider_pairs": 2,
   "live_default_changed": false,
   "step9_started": false,
   "gate_decisions": {
