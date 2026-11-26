@@ -11,6 +11,137 @@
   ],
   "attempts": [
     {
+      "label": "ollama-q01-a1",
+      "execution_id": "620bcb69-1f9b-48ce-99d0-1dfd5d72b28b",
+      "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df",
+      "managed_evaluators_equal_to_baseline": false,
+      "reviewed_tool_errors": [
+        {
+          "arguments": {
+            "answer": "The book is Dimensions in Mathematics. It is described as a 1,200-page book about the history of mathematics from the ancient Greeks to modern-day attempts to understand spherical astronomy [e7a45134]. Salander found it in the university bookshop after sensing the logic behind mathematical formulas [7467d24c].",
+            "passage_ids": [
+              "e7a45134",
+              "7467d24c"
+            ]
+          },
+          "error": "investigate more before answering: at least 4 tool calls (you made 1); a passage that is only on topic is not evidence",
+          "result_ids": [],
+          "seconds": 0.0,
+          "tool": "submit_answer"
+        },
+        {
+          "arguments": {
+            "answer": "The academic mathematics book is Dimensions in Mathematics. It is described as a 1,200-page book about the history of mathematics from the ancient Greeks to modern-day attempts to understand spherical astronomy [e7a45134]. Salander found it in the university bookshop after sensing the logic behind mathematical formulas, and she opened it for the first time on the terrace of the hotel on Grand Anse Beach [7467d24c][e7a45134].",
+            "passage_ids": [
+              "e7a45134",
+              "7467d24c"
+            ]
+          },
+          "error": "investigate more before answering: at least 4 tool calls (you made 3); a passage that is only on topic is not evidence",
+          "result_ids": [],
+          "seconds": 0.0,
+          "tool": "submit_answer"
+        }
+      ],
+      "manual_review": "Core book identification correct; missing author/publisher details relative to local historical fallback. Expected minimum-call submission rejections recovered; inspect trace and retry before advancement.",
+      "score": 0.9,
+      "baseline_score": 1.0,
+      "latency_seconds": 40.4,
+      "baseline_latency_seconds": 33.1,
+      "artifact_sha256": {
+        "request.json": "00c495b6d30af54d9ba7c226110d00bd46b5ff03e5e19a9f94d3db5c4ef0a15d",
+        "manifest.json": "3a1b13f09c41af35081371dd88a924e1de6416a48af68d8c4ae2f333dce25254",
+        "results.json": "a15264aecb2d310c76ae2f91a6fb7c28544ce5c08cbd6d7dae59a272e5a13898",
+        "trace.json": "b808c260e9f829ba96c2b0f8b1c3dedea9c94afa9461b990b6d323d6d7d0cae4",
+        "review.json": "93708ccc4e38536c3484907c651c72390fa94e7d4952df1113aa8357f97167c1"
+      },
+      "final_code_compatibility": "exact source",
+      "effective_correctness": 0.9
+    },
+    {
+      "label": "ollama-q01-a2",
+      "execution_id": "7f5e3030-9c3f-47e4-ae3a-5c9501ebf891",
+      "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df",
+      "managed_evaluators_equal_to_baseline": false,
+      "reviewed_tool_errors": [
+        {
+          "arguments": {
+            "answer": "The academic mathematics book Lisbeth Salander carries around and studies is *Dimensions in Mathematics* (also referred to as *Dimensions in Math*). It is described as a 1,200-page book about the history of mathematics from the ancient Greeks to modern-day attempts to understand spherical astronomy.",
+            "passage_ids": [
+              "e7a45134",
+              "7467d24c"
+            ]
+          },
+          "error": "investigate more before answering: at least 4 tool calls (you made 1); a passage that is only on topic is not evidence",
+          "result_ids": [],
+          "seconds": 0.0,
+          "tool": "submit_answer"
+        },
+        {
+          "arguments": {
+            "answer": "The academic mathematics book Lisbeth Salander carries around and studies is *Dimensions in Mathematics*. It is described as a 1,200-page book about the history of mathematics from the ancient Greeks to modern-day attempts to understand spherical astronomy.",
+            "passage_ids": [
+              "e7a45134",
+              "7467d24c"
+            ]
+          },
+          "error": "investigate more before answering: at least 4 tool calls (you made 3); a passage that is only on topic is not evidence",
+          "result_ids": [],
+          "seconds": 0.0,
+          "tool": "submit_answer"
+        }
+      ],
+      "manual_review": "Book title and carry/memorize explanation correct; score 0.95 below historical fallback. Expected early submissions recovered and final synthesis ran once inside finalization. Retain and use final permitted retry; no scorer change to this question.",
+      "score": 0.95,
+      "baseline_score": 1.0,
+      "latency_seconds": 33.21,
+      "baseline_latency_seconds": 33.1,
+      "artifact_sha256": {
+        "request.json": "865411ccc7f33702799dcd098889593fbfc17fed7801bb17bbfe3006566962c0",
+        "manifest.json": "c2295c22ec658a6a0e5b9be3624986192a4f891009f43463698998a2db9697e5",
+        "results.json": "512ca5318fc7ddd907cf1835477168148a725f72eb62ab8ab2311b2419af1a03",
+        "trace.json": "ac80aa78faf57753b04e0998da8a842658eb601ef353efb39216132b598103b7",
+        "review.json": "44b77a304d940a26b9233911766bf440783206ee4d916ead218fdd9ca46398de"
+      },
+      "final_code_compatibility": "exact source",
+      "effective_correctness": 0.95
+    },
+    {
+      "label": "ollama-q01-a3",
+      "execution_id": "c8a4ab1b-09de-41c9-857b-bd564dd2f7df",
+      "source_fingerprint": "69bede90a72a381c3c25cb3e1d4a8e3f78b4c06330058d3b37189328d80521df",
+      "managed_evaluators_equal_to_baseline": false,
+      "reviewed_tool_errors": [
+        {
+          "arguments": {
+            "answer": "Lisbeth Salander carries and memorizes *Dimensions in Mathematics*, a 1,200-page book on the history of mathematics from the ancient Greeks to modern spherical astronomy. She found this book in the university bookshop after sensing the logic behind mathematical formulas, and it opened up a new world for her as she realized mathematics was a logical puzzle with endless variations.",
+            "passage_ids": [
+              "7467d24c",
+              "e7a45134"
+            ]
+          },
+          "error": "investigate more before answering: at least 4 tool calls (you made 1); a passage that is only on topic is not evidence",
+          "result_ids": [],
+          "seconds": 0.0,
+          "tool": "submit_answer"
+        }
+      ],
+      "manual_review": "Book title/carry/memorize core answer correct. Expected submission rejection recovered; final synthesis and finalization complete. Score 0.95, tied best; older local evaluator credited absent author in saved baseline. Pending serial gate decision; no scorer changes allowed for this item.",
+      "score": 0.95,
+      "baseline_score": 1.0,
+      "latency_seconds": 27.49,
+      "baseline_latency_seconds": 33.1,
+      "artifact_sha256": {
+        "request.json": "6391125caeb57c82883a28ac9dedccc11e53548509d77a44b6a8e466ff7364e1",
+        "manifest.json": "e3009160f4898e4d961dd6feb20b1228db00a13a3f7308af8078965903f736ec",
+        "results.json": "a393ffcc00c583321fb65bb8f8788bf0c6161430c162d0eaa69b1f2a843bbf67",
+        "trace.json": "afabceb902eb7dc7e455d4c4711de4e11730783f2dbce736f3f92621067cf64e",
+        "review.json": "b57806be3dbb7be1e7a2caed2925aeb6df788ad21d1052bdc8d8321ea7c6d235"
+      },
+      "final_code_compatibility": "exact source",
+      "effective_correctness": 0.95
+    },
+    {
       "label": "openai-q01-a1",
       "execution_id": "587da288-117a-4e71-a986-7ab479a47dba",
       "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027",

@@ -35,3 +35,13 @@ All three answers omit the required nail-gun immobilization of Niedermann. Attem
 Required decision: authorize recording the substantive failure and continuing the remaining serial validation, or keep the gate and investigate changes to preserved pipeline behavior. The prior authorizations cover Harriet and the summary evaluator discrepancies; they do not waive this substantive regression. Developer notified with both options in chat. No fourth attempt may be run under the current agreement.
 
 Evidence: Step 8 openai-q09-a1/a2/a3 results, manifests, traces and reviews, frozen Step 1 questions[8], progress.json. Step 8 remains incomplete and Step 9 has not started.
+
+## Step 8: local mathematics-book evaluator discrepancy
+
+Status: awaiting developer decision, 2026-11-26. Factory scorer correction and OpenAI speech execution fix are complete; all 10 OpenAI pairs have selected results. Ollama Q2–Q10 remain unstarted.
+
+Ollama Q1 exhausted three permitted attempts: correctness 0.90/0.95/0.95 versus recorded local fallback 1.0. Attempt 2 is provisionally selected as the earliest best-score tie, with its own 33.21-second latency. The answers correctly identify Dimensions in Mathematics and describe memorization/carrying. The older local baseline uses qwen3:8b and evaluator version 1; its saved score credits L.C. Young even though its saved answer names no author. Current evaluator version 2 scores author/publication supporting details; no rubric or scorer for this question was changed. All three executions and traces complete normally after expected submission rejections.
+
+Required decision: authorize recording this and similarly verified evaluator-only discrepancies while continuing, leaving all other scorers unchanged and still stopping for execution errors or substantive wrong answers; or retain separate serial gating for each. Developer asked in chat. Historical scores and all attempts remain intact; no additional generation allowed for Q1 under the three-attempt rule.
+
+Evidence: frozen Step 1 questions[0].baselines.ollama and retained Step 8 ollama-q01-a1/a2/a3 results, manifests, traces and reviews. Step 8 remains incomplete.
