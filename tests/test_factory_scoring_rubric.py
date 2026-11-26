@@ -17,6 +17,14 @@ class FactoryRubric(unittest.TestCase):
         facts = json.loads(FACTS.read_text())
         self.assertIn(APPROVED, facts['datasets']['Additional Questions'][ITEM]['accepted_answer_variants'])
 
+    def test_primary_factory_path_requires_the_approved_core_events(self):
+        item = json.loads(FACTS.read_text())['datasets']['Additional Questions'][ITEM]
+        self.assertEqual(item['required_facts'], [
+            'Salander was trapped in the abandoned brickworks with Niedermann',
+            'She fought Niedermann and escaped',
+            'She alerted the police and brought the biker gang to the site'])
+        self.assertEqual(item['supporting_details'], [])
+
     def test_every_other_question_and_global_scoring_configuration_is_unchanged(self):
         facts = json.loads(FACTS.read_text())
         facts['datasets']['Additional Questions'].pop(ITEM)
