@@ -1,4 +1,4 @@
-"""Apply captured execution contracts to the unregistered v2.17 boundaries."""
+"""Apply captured execution contracts to the unregistered v2.17 graph and boundaries."""
 from dataclasses import asdict, fields
 import json
 import unittest
@@ -153,7 +153,7 @@ class ExecutionBoundaries(unittest.TestCase):
         self.assertIn('_premise_probe', identifiers)
         self.assertNotIn('_forced_answer', identifiers)
         self.assertNotIn('_finish', identifiers)
-        self.assertNotIn('langgraph', Path(execution.__file__).read_text().lower().split('from __future__')[1])
+        self.assertIn('invoke_graph', identifiers)
 
     def test_full_transcripts_results_and_evidence_match_the_released_runner(self):
         scenarios = [

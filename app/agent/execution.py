@@ -1,4 +1,4 @@
-"""Unregistered v2.17 execution boundaries; imperative driver only, no LangGraph yet."""
+"""Unregistered v2.17 execution boundaries and graph-backed agent entry point."""
 from __future__ import annotations
 
 from app.agent.prechecks import _connection_precheck
@@ -334,7 +334,7 @@ def run_agent(question: str, collection: str, config: ResolvedPipelineConfig | N
               settings: TargetAgentSettings | None = None,
               on_event: Callable[[dict[str, Any]], None] | None = None,
               system_prompt: str | None = None) -> dict[str, Any]:
-    """Exercise the extracted v2.17 boundaries without registering or wiring a graph."""
+    """Answer through the custom v2.17 graph without changing released application routing."""
     if not question.strip():
         raise ValueError("question must not be blank")
     if settings is not None and (not isinstance(settings, TargetAgentSettings) or isinstance(settings, AgentSettings)):
@@ -344,14 +344,9 @@ def run_agent(question: str, collection: str, config: ResolvedPipelineConfig | N
                            config=config or ResolvedPipelineConfig(), settings=settings,
                            system_prompt=system_prompt or SYSTEM_PROMPT, started=time.perf_counter())
     runtime = AgentRuntime(on_event=on_event)
-    prepare_question(state, runtime)
-    runtime.tool_specs = _tool_specs()
-    boundaries = {"decide": decide_next_turn, "select": select_model_turn,
-                  "tools": process_reply_tools, "review": review_answer_text,
-                  "budget": draft_budget, "final": finalize_answer}
+    from app.agent.graph import invoke_graph
     with observation("agent run", input={"question": question, "model": settings.model}) as root:
         runtime.root_observation = root
-        while state.route != "done":
-            boundaries[state.route](state, runtime)
+        state = invoke_graph(state, runtime)
     assert state.final_result is not None
     return state.final_result
