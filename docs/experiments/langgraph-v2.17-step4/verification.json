@@ -1,0 +1,55 @@
+{
+  "step": 4,
+  "status": "passed",
+  "starting_revision": "fc7608fc08d24dec67c335ccca4aa28e6a658bbf",
+  "implementation_revision": "6474fd17d2b6d6d5d57771c9cc940f21d7808d15",
+  "legacy_files_byte_unchanged": [
+    "app/agent/runner.py",
+    "pipelines.md",
+    "pipelines.sha256",
+    "app/context/agent_final_handoff.py",
+    "app/answering/execution.py"
+  ],
+  "legacy_resolved_settings_and_ids_unchanged": true,
+  "final_preparation_body_ast_unchanged": true,
+  "captured_contract_assertions_ast_unchanged": true,
+  "target_configuration_has_no_early_stop": true,
+  "target_still_probes_premise": true,
+  "target_registered": false,
+  "langgraph_wired": false,
+  "step5_started": false,
+  "legacy_instruction_fingerprint": "e45b61a77dea658e04f29a7327294072d8416f3398877bd5c9676b6dea9fbc1e",
+  "target_instruction_fingerprint": "29264d5de9531abb45d24885a6372dcc0fc1723c5cdbb8f046e21422915cb48a",
+  "target_message_builders": [
+    "_initial_scene_message",
+    "_precheck_message",
+    "_true_account_message",
+    "_moment_message",
+    "_sequence_message",
+    "_premise_probe",
+    "_verify_submission",
+    "_search_progress_hint",
+    "_synthesize",
+    "prepare_question",
+    "select_model_turn",
+    "process_reply_tools",
+    "review_answer_text",
+    "draft_budget_answer",
+    "prepare_final_answer"
+  ],
+  "full_test_suite": {
+    "tests": 222,
+    "failures": 0,
+    "errors": 0
+  },
+  "captured_contracts_reused_on_target": 16,
+  "differential_transcript_scenarios": 4,
+  "live_generation_calls": 0,
+  "artifact_sha256": {
+    "extraction-tests.log": "795e94a0cd1fb43547abec9f292aa4ff4a7e8a4340154d160286b3bfdf2ceaf2",
+    "finalization-split-tests.log": "fd131131a6e8820d6220451fb1ea65fd3b5cd5aeba8c077756545dc4863499be",
+    "full-tests.log": "f46ce55744da432e4feba954b00b74005e474e108348e3f61b703ab49a1d9322"
+  },
+  "live_app_image_unchanged": true,
+  "log_format": "Trailing whitespace normalized; substantive output unchanged."
+}
