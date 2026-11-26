@@ -1,0 +1,4 @@
+{
+  "agent_provider": "ollama",
+  "agent_model": "qwen3:8b"
+}
