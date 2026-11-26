@@ -2,6 +2,8 @@
 
 Previous answers, correctness scores, and latencies come from the frozen Step 1 comparison manifest. After answers, scores, and latencies come from the selected v2.17 Step 8 attempts. Correctness regressions are marked 🛑 in the question heading. OpenAI Q9 uses the approved item-specific scorer correction recorded in `factory-rubric-rescore-v2.json`; its raw evaluator score is shown in parentheses where it differs from the effective score.
 
+**Mean correctness across 10 questions:** previous **0.8825** · after **0.93667** (using effective selected scores, including the approved Q9 rescore).
+
 ## Q1: What academic mathematics book does Lisbeth Salander carry around and memorize?
 
 | | Previous (Step 1) | After (selected Step 8) |
