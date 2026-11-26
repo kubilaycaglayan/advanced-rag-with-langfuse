@@ -1,0 +1,4 @@
+{
+  "agent_provider": "openai",
+  "agent_reasoning_effort": "high"
+}
