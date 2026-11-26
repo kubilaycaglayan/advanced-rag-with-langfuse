@@ -2,7 +2,7 @@
 
 Date: 2026-11-25
 
-**Status:** Migration scope under review; target v2.17, based on current v2.16 behavior; implementation planning starts after this review.
+**Status:** Historical design proposal for v2.17, based on v2.16 behavior. Step 5 now implements the custom graph; see the [generated execution graph](langgraph-execution-graph.md) for its actual nodes, edges and execution limit. The diagram below retains the original proposed grouping.
 
 **Behavioral baseline:** v2.16, the currently supported version in [the pipeline catalog](../pipelines.md). This graph proposes an orchestration structure around that behavior; it is not an exact executable specification.
 
