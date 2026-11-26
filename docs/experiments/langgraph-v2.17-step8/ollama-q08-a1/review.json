@@ -1,0 +1,81 @@
+{
+  "label": "ollama-q08-a1",
+  "status": "completed",
+  "score": 0.55,
+  "baseline_score": 1.0,
+  "latency": 24.92,
+  "baseline_latency": 20.84,
+  "answer": "Mikael Blomkvist knows that Lisbeth Salander is a hacker because of her work on the Wennerstr\u00f6m affair. During that investigation, Salander used her ability to pass freely into other people's computers to obtain the material that became the scoop for Millennium [E1]. Blomkvist, who considers himself virtually computer illiterate, was amazed by her phenomenal computer skills and odd talents, which she had demonstrated repeatedly while helping him track down a killer and save his life [E2]. Later, in *The Girl Who Kicked the Hornet's Nest*, it is explicitly stated that Salander was a \"computer expert and a hacker,\" a fact Blomkvist knew but kept secret as he had promised her [E3]. Additionally, she is described as an \"elite-level hacker\" who served as Blomkvist\u2019s secret source in the Wennerstr\u00f6m affair [E4].",
+  "evaluations": [
+    {
+      "comment": "The answer does not directly state that Mikael realized Salander had hacked his computer based on her report quoting material only on his computer, which is the core of the required fact R1. Instead, it provides alternative information about Salander's hacking skills and Blomkvist's knowledge of her being a hacker.",
+      "config_id": null,
+      "data_type": null,
+      "metadata": {
+        "evaluator_id": "65c50df46ddd9801bbb52f060af656ba8b48e869f84cf8be2d7d8c33433e368c",
+        "evaluator_latency_seconds": 4.8894,
+        "evaluator_model": "qwen3:8b",
+        "evaluator_version": 2,
+        "fact_verdicts": {
+          "D1": "present",
+          "R1": "partial"
+        },
+        "managed_evaluator_id": "cmvf5zbot0007mj7ti62igkpt"
+      },
+      "name": "answer_correctness_v2",
+      "value": 0.55
+    },
+    {
+      "comment": "All factual claims in the answer are appropriately supported by the cited evidence. The answer states that Mikael Blomkvist knows Salander is a hacker because of her work on the Wennerstr\u00f6m affair (E1), her computer skills (E2), and her explicit designation as a 'computer expert and a hacker' (E3). Additionally, the answer mentions she is described as an 'elite-level hacker' (E4). Each claim is directly supported by the corresponding evidence.",
+      "config_id": null,
+      "data_type": null,
+      "metadata": {
+        "evaluator_id": "65c50df46ddd9801bbb52f060af656ba8b48e869f84cf8be2d7d8c33433e368c",
+        "evaluator_latency_seconds": 4.5558,
+        "evaluator_model": "qwen3:8b",
+        "evaluator_version": 3,
+        "managed_evaluator_id": "cmv81kasl000dpa7t19ma0e3o"
+      },
+      "name": "citation_support_v1",
+      "value": 1.0
+    }
+  ],
+  "stop": "content",
+  "tool_errors": [],
+  "telemetry_errors": [],
+  "trace_checks": [],
+  "trace_warnings": [],
+  "nodes": [
+    "graph node: prepare",
+    "graph node: select",
+    "graph node: decide",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: tools",
+    "graph node: select",
+    "graph node: decide",
+    "graph node: tools",
+    "graph node: decide",
+    "graph node: select",
+    "graph node: review",
+    "graph node: final"
+  ],
+  "prompt_usage": [
+    5610,
+    7294,
+    6656,
+    5970,
+    5432,
+    4819,
+    4114
+  ],
+  "source": null,
+  "manual_review": "Correctly describes hacking in Wennerstrom affair; score .55 vs1.0 baseline; omits private-document discovery/apartment confrontation supporting details. Retry."
+}
