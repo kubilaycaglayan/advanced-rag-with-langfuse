@@ -2,7 +2,7 @@
 
 Date: 2026-11-26
 
-Status: Roadmap for review; implementation has not started.
+Status: Steps 1–6 have prior implementation records; Step 7 completed on 2026-11-26. See [Step 7 verification](experiments/langgraph-v2.17-step7/README.md). Steps 8–9 remain pending.
 
 All steps deliver one v2.17 migration. The governing documents are the [assessment](langgraph-refactor-assessment.md), [agent graph proposal](langgraph-agent-graph-proposal.md), and [settings reference](langgraph-pipeline-settings.md).
 

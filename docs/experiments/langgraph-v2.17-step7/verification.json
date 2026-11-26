@@ -1,0 +1,32 @@
+{
+  "starting_revision": "75d865994cf0c550eaab8837ca987faec0dbb9dc",
+  "default": "v2.16",
+  "v2.16_catalog_block_unchanged": true,
+  "v2.16_release_line_unchanged": true,
+  "protected_files_byte_unchanged": [
+    "app/agent/runner.py",
+    "app/context/agent_final_handoff.py",
+    "app/context/conversation.py",
+    "app/agent/protocol.py",
+    "app/agent/prechecks.py",
+    "app/agent/submission.py",
+    "app/requirements.txt"
+  ],
+  "legacy_instruction_fingerprint": "e45b61a77dea658e04f29a7327294072d8416f3398877bd5c9676b6dea9fbc1e",
+  "target_instruction_fingerprint": "f0491a8c7fb1b31599ca554d332f2ab247b7d4f25954327d2daaaa097f35d209",
+  "candidate_checksum": "48fcda2bf756ddecbaa60dc10699e57e59fda40879212deb84d04fd370e49b2f",
+  "handoff_sha256": "c418d9c241c3e7c049465c1de926ca911c810af96a2082e8077bce0c4b4123e6",
+  "live_experiments_run": false,
+  "deployment_performed": false,
+  "step": 7,
+  "status": "passed",
+  "implementation_revision": "79d0f46",
+  "parity_tests_revision": "b557d86",
+  "full_test_suite": {
+    "tests": 252,
+    "failures": 0,
+    "errors": 0
+  },
+  "catalog_and_generated_reference_checks": "passed",
+  "full_tests_log_sha256": "4f09d51429c996241c12a4bc619ff2f403d088144cc58241d734555b430ddbb3"
+}
