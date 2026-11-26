@@ -88,6 +88,13 @@
       "latency_seconds": 26.33,
       "execution_id": "2a15eab7-b07a-4cdd-abf9-c31cad71a52a",
       "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027"
+    },
+    {
+      "label": "openai-q08-a1",
+      "correctness": 0.55,
+      "latency_seconds": 18.9,
+      "execution_id": "84fafcbb-7dc4-4192-80e6-b5bd5f7d9c20",
+      "source_fingerprint": "e066b617dd6c88f1b6e252557ddb945406fc1d003a9d5aa21380ade8abb53027"
     }
   ],
   "remaining_question_provider_pairs": 13,
